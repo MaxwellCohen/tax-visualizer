@@ -151,7 +151,7 @@ export function clampTaxInputPretaxToLimits(input: TaxInput): TaxInput {
     h1 = Math.min(h1, lim.hsaFamily);
     h2 = Math.min(h2, Math.max(0, lim.hsaFamily - h1));
   } else {
-    h1 = Math.min(h1, lim.hsaFamily);
+    h1 = Math.min(h1, lim.hsaSelfOnly);
     h2 = 0;
   }
 
@@ -319,13 +319,13 @@ export function calculateTaxes(input: TaxInput): TaxResult | null {
   const uncappedHsaTotal = uncappedHsa_1 + (joint ? uncappedHsa_2 : 0);
   const rawHsa = joint
     ? Math.min(uncappedHsaTotal, lim.hsaFamily)
-    : Math.min(uncappedHsa_1, lim.hsaFamily);
+    : Math.min(uncappedHsa_1, lim.hsaSelfOnly);
 
   const pretaxCapped401 =
     uncapped401_1 > cap401 || (joint && uncapped401_2 > cap401);
   const pretaxCappedHsa = joint
     ? uncappedHsaTotal > lim.hsaFamily
-    : uncappedHsa_1 > lim.hsaFamily;
+    : uncappedHsa_1 > lim.hsaSelfOnly;
 
   const rawOther = toMoneyValue(input.preTaxOther);
   const rawPretaxTotal = raw401 + rawHsa + rawOther;
@@ -396,7 +396,7 @@ export function calculateTaxes(input: TaxInput): TaxResult | null {
   const federalIncomeTax =
     federalOrdinary.totalTax + federalLongTermCapGains.totalTax + federalNetInvestmentIncomeTax;
 
-  const wagesForPayroll = Math.max(0, wageIncome - effectiveHsa - effectiveOther);
+  const wagesForPayroll = Math.max(0, wageIncome - effective401 - effectiveHsa - effectiveOther);
   const { socialSecurityTax, medicareTax, payrollTax } = calculatePayrollTax(
     wagesForPayroll,
     input.taxYear,
@@ -416,10 +416,10 @@ export function calculateTaxes(input: TaxInput): TaxResult | null {
   if (pretaxCapped401 || pretaxCappedHsa) {
     warnings.push(
       pretaxCapped401 && pretaxCappedHsa
-        ? `401(k) deferrals and HSA payroll amounts were capped at IRS limits for ${input.taxYear} (${money.format(cap401)} elective deferral per spouse; HSA ${joint ? `combined ${money.format(lim.hsaFamily)}` : `up to ${money.format(lim.hsaFamily)}`}). Age-50+ catch-up is not modeled.`
+        ? `401(k) deferrals and HSA payroll amounts were capped at IRS limits for ${input.taxYear} (${money.format(cap401)} elective deferral per spouse; HSA ${joint ? `combined ${money.format(lim.hsaFamily)} for family HDHP` : `self-only HDHP up to ${money.format(lim.hsaSelfOnly)}`}). Age-50+ catch-up is not modeled.`
         : pretaxCapped401
           ? `401(k) deferrals were capped at the ${input.taxYear} IRS elective deferral limit (${money.format(cap401)} per spouse). Age-50+ catch-up is not modeled.`
-          : `HSA payroll amounts were capped at the ${input.taxYear} IRS limit (${joint ? `${money.format(lim.hsaFamily)} combined for family HDHP` : `up to ${money.format(lim.hsaFamily)}; self-only HDHP is typically ${money.format(lim.hsaSelfOnly)}`}).`,
+          : `HSA payroll amounts were capped at the ${input.taxYear} IRS limit (${joint ? `${money.format(lim.hsaFamily)} combined for family HDHP` : `self-only HDHP up to ${money.format(lim.hsaSelfOnly)}`}).`,
     );
   }
 
@@ -485,7 +485,7 @@ export function calculateTaxes(input: TaxInput): TaxResult | null {
     longTermCapitalGainsSegments: federalLongTermCapGains.segments,
     warnings,
     notes: [
-      "401(k), HSA, and traditional IRA amounts use IRS contribution caps for the selected tax year (age-50+ catch-up omitted). Payroll pre-tax totals are capped at W-2 wages (entries are pro-rated if they exceed wages). Traditional 401(k)/403(b) reduces federal taxable wages but not Social Security/Medicare wages. HSA and other payroll pre-tax amounts reduce FICA wages here. Deductible traditional IRA reduces federal ordinary income only (not FICA) and is paid from take-home; MAGI phase-outs for IRA deductibility if covered by a workplace plan are not modeled.",
+      "401(k), HSA, and traditional IRA amounts use IRS contribution caps for the selected tax year (age-50+ catch-up omitted). Payroll pre-tax totals are capped at W-2 wages (entries are pro-rated if they exceed wages). Traditional 401(k)/403(b), HSA, and other modeled payroll pre-tax amounts reduce both federal taxable wages and Social Security/Medicare wages here (qualified-plan elective deferrals; Roth 401(k) and rare exceptions are not modeled). Deductible traditional IRA reduces federal ordinary income only (not FICA) and is paid from take-home; MAGI phase-outs for IRA deductibility if covered by a workplace plan are not modeled.",
       "Payroll taxes are estimated from W-2 wages sources only.",
       "Short-term capital gains follow IRS Topic 409: they are taxed as ordinary income (same graduated rates as wages), not the preferential long-term rates. Long-term gains use 0% / 15% / 20% stacked on ordinary taxable income (simplified worksheet; not tax advice).",
       "Deductions are applied to ordinary income first, then to long-term gains (approximation).",

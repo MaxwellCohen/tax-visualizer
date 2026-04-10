@@ -115,7 +115,7 @@ export default function TaxInputForm(props: TaxInputFormProps) {
   const maxHsaSpouse1 = createMemo(() => {
     const lim = pretaxLimits();
     if (!lim) return undefined;
-    if (!isMarriedJoint()) return lim.hsaFamily;
+    if (!isMarriedJoint()) return lim.hsaSelfOnly;
     return Math.max(0, lim.hsaFamily - values().preTaxHsaSpouse2);
   });
   const maxHsaSpouse2 = createMemo(() => {
@@ -150,7 +150,7 @@ export default function TaxInputForm(props: TaxInputFormProps) {
         form.setFieldValue("preTaxHsaSpouse2", h2);
       }
     } else {
-      const h1 = Math.min(v.preTaxHsaSpouse1, lim.hsaFamily);
+      const h1 = Math.min(v.preTaxHsaSpouse1, lim.hsaSelfOnly);
       if (h1 !== v.preTaxHsaSpouse1) {
         form.setFieldValue("preTaxHsaSpouse1", h1);
       }
@@ -456,10 +456,10 @@ export default function TaxInputForm(props: TaxInputFormProps) {
       >
         <p class="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
           Payroll amounts that come out before tax. Applied only to W-2 wages; totals above your wage income
-          are scaled down. 401(k)/403(b) reduces federal income tax on wages but not Social Security/Medicare
-          here; HSA and other lines also reduce payroll tax. With married filing jointly, 401(k) limits are per
-          spouse; HSA family coverage uses a combined cap on payroll contributions. Entries here cannot exceed
-          the IRS contribution limits for the selected tax year (age-50+ catch-up is not modeled). Those
+          are scaled down. Modeled traditional 401(k)/403(b), HSA, and other lines reduce federal income tax
+          and Social Security/Medicare wages (Roth 401(k) is not modeled). With married filing jointly, 401(k)
+          limits are per spouse; HSA family HDHP uses a combined payroll cap. Non-joint filers use the self-only
+          HSA cap. Entries cannot exceed IRS limits for the selected tax year (age-50+ catch-up is not modeled);
           limits update when you change tax year.
         </p>
         <div class="space-y-4">
@@ -554,9 +554,9 @@ export default function TaxInputForm(props: TaxInputFormProps) {
                     when={isMarriedJoint()}
                     fallback={
                       <span class="text-[0.65rem] font-normal normal-case tracking-normal">
-                        Typical {values().taxYear}: {money.format(pretaxLimits()?.hsaSelfOnly ?? 0)}{" "}
-                        self-only HDHP / {money.format(pretaxLimits()?.hsaFamily ?? 0)} family HDHP (combined
-                        contributions).
+                        Modeled cap: self-only HDHP ({money.format(pretaxLimits()?.hsaSelfOnly ?? 0)} for{" "}
+                        {values().taxYear}). Family HDHP is {money.format(pretaxLimits()?.hsaFamily ?? 0)} combined
+                        (married filing jointly only here).
                       </span>
                     }
                   >

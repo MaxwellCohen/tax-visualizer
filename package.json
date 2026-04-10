@@ -5,7 +5,8 @@
     "dev": "vite dev",
     "build": "vite build",
     "start": "vite start",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@solidjs/router": "^0.15.0",
@@ -19,7 +20,8 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.7",
     "@types/d3-sankey": "^0.12.5",
-    "tailwindcss": "^4.0.7"
+    "tailwindcss": "^4.0.7",
+    "vitest": "^4.1.4"
   },
   "engines": {
     "node": ">=22"
