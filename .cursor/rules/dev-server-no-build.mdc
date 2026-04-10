@@ -1,0 +1,8 @@
+---
+description: Assume dev server is running; avoid production builds unless asked
+alwaysApply: true
+---
+
+# Dev server workflow
+
+The user usually runs a dev server with hot reload. Do not run production build commands (`npm run build`, `vite build`, etc.) unless they explicitly request a build. Rely on the running dev server for verification.
