@@ -1,6 +1,6 @@
 import { Show } from "solid-js";
 import type { TaxResult } from "~/lib/taxCalc";
-import { PAD_L, PAD_T, SUMMARY_H, pct } from "~/components/taxMekko/constants";
+import { PAD_T, SUMMARY_H, pct } from "~/components/taxMekko/constants";
 import { money } from "~/lib/moneyFormat";
 import type { MekkoLayout } from "~/components/taxMekko/mekkoLayout";
 
@@ -14,14 +14,14 @@ export function MekkoSvgSummary(props: Props) {
   return (
     <>
       <text
-        x={PAD_L - 8}
-        y={18}
-        text-anchor="end"
+        x={(L.plotLeft + L.plotRight) / 2}
+        y={16}
+        text-anchor="middle"
         font-size="10"
         font-family="var(--font-body)"
         fill="var(--text-muted)"
       >
-        Cash, pre-tax &amp; taxes (share of gross)
+        Cash, pre-tax & taxes (share of gross)
       </text>
       <g transform={`translate(${L.plotLeft}, ${PAD_T})`}>
         <rect

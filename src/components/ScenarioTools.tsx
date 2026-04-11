@@ -1,74 +1,79 @@
+import { createSignal } from "solid-js";
+import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { ScenarioToolsActions } from "~/components/scenarioTools/ScenarioToolsActions";
 import { ScenarioToolsPresets } from "~/components/scenarioTools/ScenarioToolsPresets";
+import {
+  createTaxHomeHandlers,
+  type TaxHomeHandlersCtx,
+} from "~/routes/taxHome/taxHomeHandlers";
 
-type ScenarioPresetOption = {
-  id: string;
-  label: string;
-  description: string;
-};
-
-type ScenarioToolsProps = {
-  presets: ScenarioPresetOption[];
-  hasBaseline: boolean;
-  statusMessage: string | null;
-  onApplyPreset: (presetId: string) => void;
-  onCopyShareLink: () => void;
-  onCopySummary: () => void;
-  onSaveBaseline: () => void;
-  onLoadBaseline: () => void;
-  onClearBaseline: () => void;
-  onResetScenario: () => void;
-};
+export type ScenarioToolsProps = Omit<TaxHomeHandlersCtx, "showStatus">;
 
 export default function ScenarioTools(props: ScenarioToolsProps) {
+  const [statusMessage, setStatusMessage] = createSignal<string | null>(null);
+
+  let statusTimer: number | undefined;
+  const showStatus = (message: string) => {
+    setStatusMessage(message);
+    if (typeof window === "undefined") return;
+    if (statusTimer !== undefined) window.clearTimeout(statusTimer);
+    statusTimer = window.setTimeout(() => setStatusMessage(null), 2500);
+  };
+
+  const handlers = createTaxHomeHandlers({
+    presets: props.presets,
+    availableYears: props.availableYears,
+    defaultYear: props.defaultYear,
+    taxInput: props.taxInput,
+    setTaxInput: props.setTaxInput,
+    baselineInput: props.baselineInput,
+    setBaselineInput: props.setBaselineInput,
+    taxResult: props.taxResult,
+    showStatus,
+  });
   return (
     <section
-      class="space-y-5 rounded-xl p-5"
+      class="rounded-xl p-5"
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border)",
         "box-shadow": "var(--shadow)",
       }}
     >
-      <div class="flex flex-wrap items-start justify-between gap-3">
-        <div class="space-y-1">
-          <h2
-            class="text-[0.65rem] font-semibold uppercase tracking-[0.15em]"
-            style={{ color: "var(--text-faint)", "font-family": "var(--font-heading)" }}
-          >
-            Scenario tools
-          </h2>
-          <p class="max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            Try a starter scenario, share the current case, or save a baseline to compare how one
-            change affects take-home pay and taxes. Your latest scenario is saved locally in this
-            browser.
-          </p>
-        </div>
-        {props.statusMessage ? (
-          <p
-            class="rounded-lg px-3 py-2 text-xs"
-            style={{
-              background: "var(--accent-muted)",
-              color: "var(--accent)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            {props.statusMessage}
-          </p>
-        ) : null}
-      </div>
-
-      <ScenarioToolsPresets presets={props.presets} onApplyPreset={props.onApplyPreset} />
-
-      <ScenarioToolsActions
-        hasBaseline={props.hasBaseline}
-        onCopyShareLink={props.onCopyShareLink}
-        onCopySummary={props.onCopySummary}
-        onSaveBaseline={props.onSaveBaseline}
-        onLoadBaseline={props.onLoadBaseline}
-        onClearBaseline={props.onClearBaseline}
-        onResetScenario={props.onResetScenario}
-      />
+      <CollapsibleBlock
+        title="Scenario tools"
+        bodyClass="mt-4 space-y-5"
+        headerAside={
+          statusMessage() ? (
+            <p
+              class="rounded-lg px-3 py-2 text-xs"
+              style={{
+                background: "var(--accent-muted)",
+                color: "var(--accent)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              {statusMessage()}
+            </p>
+          ) : undefined
+        }
+      >
+        <p class="max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+          Try a starter scenario, share the current case, or save a baseline to compare how one
+          change affects take-home pay and taxes. Your latest scenario is saved locally in this
+          browser.
+        </p>
+        <ScenarioToolsPresets presets={props.presets} onApplyPreset={handlers.applyPreset} />
+        <ScenarioToolsActions
+          hasBaseline={props.baselineInput() != null}
+          onCopyShareLink={() => void handlers.copyShareLink()}
+          onCopySummary={() => void handlers.copySummary()}
+          onSaveBaseline={handlers.saveBaseline}
+          onLoadBaseline={handlers.loadBaseline}
+          onClearBaseline={handlers.clearBaseline}
+          onResetScenario={handlers.resetScenario}
+        />
+      </CollapsibleBlock>
     </section>
   );
 }

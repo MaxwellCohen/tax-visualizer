@@ -1,4 +1,5 @@
 import { Show, createMemo } from "solid-js";
+import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { sankey } from "d3-sankey";
 import type { SankeyGraph } from "d3-sankey";
 import { SankeyChartSvg } from "~/components/taxSankey/SankeyChartSvg";
@@ -6,16 +7,18 @@ import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
 import { compareSankeyLinks } from "~/components/taxSankey/compareSankeyLinks";
 import { compareSankeySiblings } from "~/components/taxSankey/compareSankeySiblings";
 import { SANKEY_HEIGHT, SANKEY_WIDTH } from "~/components/taxSankey/layout";
-import type { SankeyChartData } from "~/lib/taxCharts";
+import { buildSankeyChartData } from "~/lib/taxCharts";
+import type { TaxResult } from "~/lib/taxCalc";
 
 type TaxSankeyProps = {
-  data: SankeyChartData;
+  result: TaxResult;
 };
 
 export default function TaxSankey(props: TaxSankeyProps) {
   const sankeyData = createMemo(() => {
-    const clonedNodes: ChartNode[] = props.data.nodes.map(node => ({ ...node }));
-    const clonedLinks: ChartLink[] = props.data.links
+    const chart = buildSankeyChartData(props.result);
+    const clonedNodes: ChartNode[] = chart.nodes.map(node => ({ ...node }));
+    const clonedLinks: ChartLink[] = chart.links
       .filter(link => link.value > 0)
       .map(link => ({ source: link.sourceId, target: link.targetId, value: link.value }));
 
@@ -52,32 +55,28 @@ export default function TaxSankey(props: TaxSankeyProps) {
         "box-shadow": "var(--shadow)",
       }}
     >
-      <h2
-        class="mb-4 text-[0.65rem] font-semibold uppercase tracking-[0.15em]"
-        style={{ color: "var(--text-faint)", "font-family": "var(--font-heading)" }}
-      >
-        Tax Flow
-      </h2>
-      <p class="mb-4 max-w-3xl text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-        How to read this: start at gross income, then follow the flows into pre-tax payroll
-        benefits, deductions, federal tax buckets, taxes, and modeled take-home pay. The
-        &quot;shielded income&quot; path is a visual explanation of income removed by deductions, not
-        a literal cash account. Short-term capital gains still show as their own income stream on
-        the left, but federal tax on them is not a separate band: the IRS taxes them as ordinary
-        income, so that tax is included in the ordinary bracket slices (and any NIIT share in those
-        slices&apos; totals).
-      </p>
-      <Show
-        keyed
-        when={sankeyData()}
-        fallback={
-          <p class="text-sm" style={{ color: "var(--text-faint)" }}>
-            Enter income to see the flow.
-          </p>
-        }
-      >
-        {data => <SankeyChartSvg graph={data.graph} />}
-      </Show>
+      <CollapsibleBlock title="Tax Flow" bodyClass="mt-4">
+        <p class="mb-4 max-w-3xl text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+          How to read this: start at gross income, then follow the flows into pre-tax payroll
+          benefits, deductions, federal tax buckets, taxes, and modeled take-home pay. The
+          &quot;shielded income&quot; path is a visual explanation of income removed by deductions, not
+          a literal cash account. Short-term capital gains still show as their own income stream on
+          the left, but federal tax on them is not a separate band: the IRS taxes them as ordinary
+          income, so that tax is included in the ordinary bracket slices (and any NIIT share in those
+          slices&apos; totals).
+        </p>
+        <Show
+          keyed
+          when={sankeyData()}
+          fallback={
+            <p class="text-sm" style={{ color: "var(--text-faint)" }}>
+              Enter income to see the flow.
+            </p>
+          }
+        >
+          {data => <SankeyChartSvg graph={data.graph} />}
+        </Show>
+      </CollapsibleBlock>
     </section>
   );
 }

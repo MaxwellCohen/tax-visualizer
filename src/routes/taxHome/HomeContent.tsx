@@ -1,4 +1,4 @@
-import { Show } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 import { RouteSeo } from "~/components/Seo";
 import { HomeHeader } from "~/routes/taxHome/HomeHeader";
 import ScenarioTools from "~/components/ScenarioTools";
@@ -9,79 +9,72 @@ import TaxNarrative from "~/components/TaxNarrative";
 import TaxSankey from "~/components/TaxSankey";
 import TaxSummary from "~/components/TaxSummary";
 import TaxWarnings from "~/components/TaxWarnings";
-import type { TaxInput } from "~/lib/taxCalc";
-import type { MekkoRow, SankeyChartData } from "~/lib/taxCharts";
-import type { TaxResult } from "~/lib/taxCalc";
-import type { ScenarioPreset } from "~/lib/taxScenario.types";
+import { calculateTaxes, type TaxInput } from "~/lib/taxCalc";
+import { getAvailableTaxYears, isPlanningTaxYear } from "~/lib/taxData";
+import { getScenarioPresets } from "~/lib/taxScenario";
+import { starterScenario } from "~/routes/taxHome/scenarioInit";
+import { wireTaxHomePersistence } from "~/routes/taxHome/taxHomePersistence";
 import { TaxYearInvalid } from "./TaxYearInvalid";
 
-type Handlers = {
-  applyPreset: (id: string) => void;
-  copyShareLink: () => void;
-  copySummary: () => void;
-  saveBaseline: () => void;
-  loadBaseline: () => void;
-  clearBaseline: () => void;
-  resetScenario: () => void;
-};
+export function HomeContent() {
+  const availableYears = getAvailableTaxYears();
+  const defaultYear = availableYears[0] ?? new Date().getFullYear();
+  const presets = getScenarioPresets();
+  const [taxInput, setTaxInput] = createSignal<TaxInput>(starterScenario(defaultYear));
+  const [baselineInput, setBaselineInput] = createSignal<TaxInput | null>(null);
 
-type Props = {
-  presets: ScenarioPreset[];
-  hasBaseline: boolean;
-  statusMessage: string | null;
-  handlers: Handlers;
-  taxInput: TaxInput;
-  availableYears: number[];
-  onTaxInputChange: (v: TaxInput) => void;
-  taxResult: TaxResult | null | undefined;
-  baselineResult: TaxResult | null;
-  sankeyData: SankeyChartData | null;
-  mekkoRows: MekkoRow[];
-  isPlanningYear: boolean;
-};
+  const taxResult = createMemo(() => calculateTaxes(taxInput()));
+  const baselineResult = createMemo(() => {
+    const saved = baselineInput();
+    return saved ? calculateTaxes(saved) : null;
+  });
+  const isPlanningYear = createMemo(() => isPlanningTaxYear(taxInput().taxYear));
 
-export function HomeContent(props: Props) {
+  wireTaxHomePersistence({
+    taxInput,
+    setTaxInput,
+    setBaselineInput,
+  });
+
   return (
     <main class="mx-auto max-w-6xl space-y-8 px-4 py-8">
       <RouteSeo page="home" />
       <HomeHeader />
 
       <ScenarioTools
-        presets={props.presets}
-        hasBaseline={props.hasBaseline}
-        statusMessage={props.statusMessage}
-        onApplyPreset={props.handlers.applyPreset}
-        onCopyShareLink={() => void props.handlers.copyShareLink()}
-        onCopySummary={() => void props.handlers.copySummary()}
-        onSaveBaseline={props.handlers.saveBaseline}
-        onLoadBaseline={props.handlers.loadBaseline}
-        onClearBaseline={props.handlers.clearBaseline}
-        onResetScenario={props.handlers.resetScenario}
+        presets={presets}
+        availableYears={availableYears}
+        defaultYear={defaultYear}
+        taxInput={taxInput}
+        setTaxInput={setTaxInput}
+        baselineInput={baselineInput}
+        setBaselineInput={setBaselineInput}
+        taxResult={taxResult}
       />
 
       <TaxInputForm
-        value={props.taxInput}
-        availableYears={props.availableYears}
-        onChange={props.onTaxInputChange}
+        value={taxInput()}
+        availableYears={availableYears}
+        onChange={setTaxInput}
       />
 
-      <Show when={props.taxResult} fallback={<TaxYearInvalid />}>
+      <Show when={taxResult()} fallback={<TaxYearInvalid />}>
         {(result) => (
           <>
-            <TaxSankey data={props.sankeyData ?? { nodes: [], links: [] }} />
-            <TaxMekko result={result()} rows={props.mekkoRows} />
+            <TaxSankey result={result()} />
+            <TaxMekko result={result()} />
             <TaxWarnings warnings={result().warnings} />
             <TaxSummary
               result={result()}
-              baselineResult={props.baselineResult}
+              baselineResult={baselineResult()}
             />
             <TaxNarrative
               result={result()}
-              isPlanningYear={props.isPlanningYear}
+              isPlanningYear={isPlanningYear()}
             />
             <TaxModelGuide
               result={result()}
-              isPlanningYear={props.isPlanningYear}
+              isPlanningYear={isPlanningYear()}
             />
           </>
         )}
