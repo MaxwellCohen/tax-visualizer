@@ -1,3 +1,6 @@
+import { ScenarioToolsActions } from "~/components/scenarioTools/ScenarioToolsActions";
+import { ScenarioToolsPresets } from "~/components/scenarioTools/ScenarioToolsPresets";
+
 type ScenarioPresetOption = {
   id: string;
   label: string;
@@ -16,9 +19,6 @@ type ScenarioToolsProps = {
   onClearBaseline: () => void;
   onResetScenario: () => void;
 };
-
-const buttonClass =
-  "rounded-md px-3 py-2 text-xs font-medium uppercase tracking-wide transition-colors";
 
 export default function ScenarioTools(props: ScenarioToolsProps) {
   return (
@@ -58,109 +58,17 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
         ) : null}
       </div>
 
-      <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {props.presets.map(preset => (
-          <button
-            type="button"
-            class="rounded-lg p-4 text-left transition-colors"
-            style={{
-              background: "var(--surface-alt)",
-              border: "1px solid var(--border-subtle)",
-            }}
-            onClick={() => props.onApplyPreset(preset.id)}
-          >
-            <div
-              class="text-[0.65rem] font-semibold uppercase tracking-[0.15em]"
-              style={{ color: "var(--text-faint)", "font-family": "var(--font-heading)" }}
-            >
-              Preset
-            </div>
-            <div class="mt-2 text-sm font-semibold" style={{ color: "var(--text)" }}>
-              {preset.label}
-            </div>
-            <p class="mt-1 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              {preset.description}
-            </p>
-          </button>
-        ))}
-      </div>
+      <ScenarioToolsPresets presets={props.presets} onApplyPreset={props.onApplyPreset} />
 
-      <div class="flex flex-wrap gap-2">
-        <button
-          type="button"
-          class={buttonClass}
-          style={{
-            background: "var(--accent-muted)",
-            color: "var(--accent)",
-            border: "1px solid var(--border)",
-          }}
-          onClick={props.onCopyShareLink}
-        >
-          Copy share link
-        </button>
-        <button
-          type="button"
-          class={buttonClass}
-          style={{
-            background: "var(--surface-alt)",
-            color: "var(--text)",
-            border: "1px solid var(--border)",
-          }}
-          onClick={props.onCopySummary}
-        >
-          Copy summary
-        </button>
-        <button
-          type="button"
-          class={buttonClass}
-          style={{
-            background: "var(--surface-alt)",
-            color: "var(--text)",
-            border: "1px solid var(--border)",
-          }}
-          onClick={props.onSaveBaseline}
-        >
-          Save as baseline
-        </button>
-        <button
-          type="button"
-          class={buttonClass}
-          style={{
-            background: "var(--surface-alt)",
-            color: props.hasBaseline ? "var(--text)" : "var(--text-faint)",
-            border: "1px solid var(--border)",
-          }}
-          disabled={!props.hasBaseline}
-          onClick={props.onLoadBaseline}
-        >
-          Load baseline
-        </button>
-        <button
-          type="button"
-          class={buttonClass}
-          style={{
-            background: "var(--surface-alt)",
-            color: props.hasBaseline ? "var(--text)" : "var(--text-faint)",
-            border: "1px solid var(--border)",
-          }}
-          disabled={!props.hasBaseline}
-          onClick={props.onClearBaseline}
-        >
-          Clear baseline
-        </button>
-        <button
-          type="button"
-          class={buttonClass}
-          style={{
-            background: "var(--surface-alt)",
-            color: "var(--text-muted)",
-            border: "1px solid var(--border)",
-          }}
-          onClick={props.onResetScenario}
-        >
-          Reset scenario
-        </button>
-      </div>
+      <ScenarioToolsActions
+        hasBaseline={props.hasBaseline}
+        onCopyShareLink={props.onCopyShareLink}
+        onCopySummary={props.onCopySummary}
+        onSaveBaseline={props.onSaveBaseline}
+        onLoadBaseline={props.onLoadBaseline}
+        onClearBaseline={props.onClearBaseline}
+        onResetScenario={props.onResetScenario}
+      />
     </section>
   );
 }

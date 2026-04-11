@@ -1,0 +1,21 @@
+export function HomeHeader() {
+  return (
+    <header class="space-y-2">
+      <h1
+        class="text-3xl font-semibold tracking-tight"
+        style={{ "font-family": "var(--font-heading)", color: "var(--text)" }}
+      >
+        US Tax Visualizer
+      </h1>
+      <p class="max-w-2xl text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+        Enter your filing details below to see how gross income flows through deductions, pre-tax
+        payroll benefits, separate federal treatment of ordinary income (progressive brackets) vs
+        long-term capital gains (0% / 15% / 20%), payroll taxes on wages, and take-home pay.
+      </p>
+      <p class="max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+        Use a preset if you want a fast tour, then save a baseline and change one variable at a
+        time to see what really moved the result.
+      </p>
+    </header>
+  );
+}

@@ -1,8 +1,10 @@
 import { A } from "@solidjs/router";
+import { NotFoundSeo } from "~/components/Seo";
 
 export default function NotFound() {
   return (
     <main class="mx-auto max-w-2xl px-4 py-16 text-center">
+      <NotFoundSeo />
       <p
         class="text-sm font-semibold uppercase tracking-[0.15em]"
         style={{ color: "var(--accent)" }}
