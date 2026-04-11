@@ -2,7 +2,7 @@ import type { FilingStatus } from "~/lib/taxData";
 import { newIncomeSource } from "~/lib/taxCalc.incomeSource";
 import type { IncomeKind, TaxInput } from "~/lib/taxCalc.types";
 
-export const DEFAULT_FILING_STATUS: FilingStatus = "single";
+const DEFAULT_FILING_STATUS: FilingStatus = "single";
 
 const filingStatuses = new Set<FilingStatus>([
   "single",

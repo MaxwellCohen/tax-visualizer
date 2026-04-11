@@ -1,12 +1,11 @@
-import type { FormApi } from "@tanstack/solid-form";
 import type { TaxInput } from "~/lib/taxCalc";
-import { inputClass, labelClass, parseCurrencyInput } from "~/components/taxInputForm/shared";
+import { labelClass } from "~/components/taxInputForm/shared";
 import { TraditionalIraFields } from "~/components/taxInputForm/TraditionalIraFields";
-
-type FormLike = FormApi<TaxInput, undefined>;
+import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
+import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 
 type Props = {
-  form: FormLike;
+  form: TaxInputFormApi;
   values: () => TaxInput;
   isMarriedJoint: () => boolean;
   maxIraContribution: () => number | undefined;
@@ -20,18 +19,7 @@ export function PreTaxOtherIraFields(props: Props) {
         {field => (
           <label class={`${labelClass} md:max-w-md`} style={{ color: "var(--text-muted)" }}>
             Other (FSA, transit, etc.)
-            <input
-              type="number"
-              min="0"
-              step="50"
-              class={inputClass}
-              style={{ background: "var(--input-bg)", color: "var(--text)" }}
-              value={field().state.value}
-              onInput={e =>
-                field().handleChange(parseCurrencyInput(e.currentTarget.value))
-              }
-              onBlur={field().handleBlur}
-            />
+            <FormCurrencyInput field={field} min="0" step="50" />
           </label>
         )}
       </props.form.Field>

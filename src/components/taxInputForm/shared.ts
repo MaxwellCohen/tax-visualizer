@@ -32,11 +32,11 @@ export const inputClass =
   "w-full rounded-md border-0 px-3 py-2.5 text-sm outline-none transition-shadow duration-150 focus:ring-2 focus:ring-[var(--accent)]";
 export const labelClass = "flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide";
 
-export const money = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
+/** Helper text under pre-tax numeric fields (401(k), HSA, IRA). */
+export const pretaxFieldCaptionClass =
+  "text-[0.65rem] font-normal normal-case tracking-normal";
+
+export { money } from "~/lib/moneyFormat";
 
 export function labelForIncomeKind(kind: IncomeKind): string {
   return incomeKindOptions.find(o => o.value === kind)?.label ?? kind;

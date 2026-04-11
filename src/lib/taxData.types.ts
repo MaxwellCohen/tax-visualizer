@@ -7,7 +7,7 @@ export type FederalTaxBracket = {
 
 export type FilingStatusRecord<T> = Record<FilingStatus, T>;
 
-export type PayrollRules = {
+type PayrollRules = {
   socialSecurityRate: number;
   socialSecurityWageBase: number;
   medicareRate: number;

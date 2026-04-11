@@ -1,4 +1,4 @@
-export type TaxDisclaimerProps = {
+type TaxDisclaimerProps = {
   /** Larger text and padding for emphasis (e.g. if reused in a dedicated section). */
   prominent?: boolean;
 };

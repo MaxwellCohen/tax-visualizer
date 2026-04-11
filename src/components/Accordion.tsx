@@ -11,7 +11,7 @@ const summaryClass =
 const actionClass =
   "shrink-0 text-[0.65rem] font-semibold uppercase tracking-[0.12em]";
 
-export type AccordionProps = {
+type AccordionProps = {
   /** Primary summary content (placed in the flexible left region). */
   summary: JSX.Element;
   /** Optional trailing label (for example Edit / Collapse). */

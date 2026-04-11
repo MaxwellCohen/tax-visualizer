@@ -1,7 +1,7 @@
 import type { ChartNode } from "~/components/taxSankey/chartTypes";
 import { sankeyMoney } from "~/components/taxSankey/sankeyFormat";
 
-export type SankeyLabelLines = {
+type SankeyLabelLines = {
   title: string;
   compact: boolean;
   line1: string;

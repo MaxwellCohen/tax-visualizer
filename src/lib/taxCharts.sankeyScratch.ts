@@ -1,7 +1,7 @@
 import type { SankeyChartLink, SankeyChartNode } from "~/lib/taxCharts.types";
 import type { SankeyPretaxRow } from "~/lib/taxCharts.sankeyPretaxRows";
 
-export type NiitBySegmentMaps = {
+type NiitBySegmentMaps = {
   ordinary: Map<string, number>;
   ltcg: Map<string, number>;
 };

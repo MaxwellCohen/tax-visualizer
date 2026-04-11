@@ -33,7 +33,7 @@ export type TaxInput = {
 };
 
 export type DeductionKind = "standard" | "itemized";
-export type TaxSegmentKind = "ordinaryFederal" | "longTermCapGains";
+type TaxSegmentKind = "ordinaryFederal" | "longTermCapGains";
 
 export type TaxSegment = {
   id: string;

@@ -1,15 +1,25 @@
 import { buildFederalBrackets } from "~/lib/taxData.build";
 import type { LongTermCapGainsThresholds, NiitRules, TaxYearConfig } from "~/lib/taxData.types";
 
+/** NIIT MAGI thresholds and Additional Medicare wage thresholds share these IRS filing-status breakpoints. */
+const THRESHOLDS_200K_250K_125K_200K = {
+  single: 200_000,
+  marriedJoint: 250_000,
+  marriedSeparate: 125_000,
+  headOfHousehold: 200_000,
+} as const;
+
 export const FEDERAL_NIIT: NiitRules = {
   rate: 0.038,
-  magiThreshold: {
-    single: 200_000,
-    marriedJoint: 250_000,
-    marriedSeparate: 125_000,
-    headOfHousehold: 200_000,
-  },
+  magiThreshold: THRESHOLDS_200K_250K_125K_200K,
 };
+
+const PAYROLL_RATES_SHARED = {
+  socialSecurityRate: 0.062,
+  medicareRate: 0.0145,
+  additionalMedicareRate: 0.009,
+  additionalMedicareThreshold: THRESHOLDS_200K_250K_125K_200K,
+} as const;
 
 const FEDERAL_BRACKETS_2023 = buildFederalBrackets(
   [11_000, 44_725, 95_375, 182_100, 231_250, 578_125],
@@ -80,16 +90,8 @@ export const TAX_DATA_BY_YEAR: Record<number, TaxYearConfig> = {
     federalBrackets: FEDERAL_BRACKETS_2023,
     longTermCapGains: LTCG_2023,
     payroll: {
-      socialSecurityRate: 0.062,
+      ...PAYROLL_RATES_SHARED,
       socialSecurityWageBase: 160_200,
-      medicareRate: 0.0145,
-      additionalMedicareRate: 0.009,
-      additionalMedicareThreshold: {
-        single: 200_000,
-        marriedJoint: 250_000,
-        marriedSeparate: 125_000,
-        headOfHousehold: 200_000,
-      },
     },
     pretaxLimits: {
       electiveDeferral401k: 22_500,
@@ -109,16 +111,8 @@ export const TAX_DATA_BY_YEAR: Record<number, TaxYearConfig> = {
     federalBrackets: FEDERAL_BRACKETS_2024,
     longTermCapGains: LTCG_2024,
     payroll: {
-      socialSecurityRate: 0.062,
+      ...PAYROLL_RATES_SHARED,
       socialSecurityWageBase: 168_600,
-      medicareRate: 0.0145,
-      additionalMedicareRate: 0.009,
-      additionalMedicareThreshold: {
-        single: 200_000,
-        marriedJoint: 250_000,
-        marriedSeparate: 125_000,
-        headOfHousehold: 200_000,
-      },
     },
     pretaxLimits: {
       electiveDeferral401k: 23_000,
@@ -138,16 +132,8 @@ export const TAX_DATA_BY_YEAR: Record<number, TaxYearConfig> = {
     federalBrackets: FEDERAL_BRACKETS_2025,
     longTermCapGains: LTCG_2025,
     payroll: {
-      socialSecurityRate: 0.062,
+      ...PAYROLL_RATES_SHARED,
       socialSecurityWageBase: 176_100,
-      medicareRate: 0.0145,
-      additionalMedicareRate: 0.009,
-      additionalMedicareThreshold: {
-        single: 200_000,
-        marriedJoint: 250_000,
-        marriedSeparate: 125_000,
-        headOfHousehold: 200_000,
-      },
     },
     pretaxLimits: {
       electiveDeferral401k: 23_500,
@@ -167,16 +153,8 @@ export const TAX_DATA_BY_YEAR: Record<number, TaxYearConfig> = {
     federalBrackets: FEDERAL_BRACKETS_2026,
     longTermCapGains: LTCG_2026,
     payroll: {
-      socialSecurityRate: 0.062,
+      ...PAYROLL_RATES_SHARED,
       socialSecurityWageBase: 181_200,
-      medicareRate: 0.0145,
-      additionalMedicareRate: 0.009,
-      additionalMedicareThreshold: {
-        single: 200_000,
-        marriedJoint: 250_000,
-        marriedSeparate: 125_000,
-        headOfHousehold: 200_000,
-      },
     },
     pretaxLimits: {
       electiveDeferral401k: 24_000,

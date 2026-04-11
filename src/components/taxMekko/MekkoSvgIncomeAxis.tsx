@@ -1,5 +1,5 @@
 import { For } from "solid-js";
-import { money } from "~/components/taxMekko/constants";
+import { money } from "~/lib/moneyFormat";
 import { incomeY } from "~/components/taxMekko/incomeScale";
 import type { MekkoLayout } from "~/components/taxMekko/mekkoLayout";
 

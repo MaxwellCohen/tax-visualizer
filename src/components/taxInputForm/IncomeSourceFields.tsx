@@ -1,11 +1,11 @@
-import type { FormApi } from "@tanstack/solid-form";
 import type { IncomeKind, TaxInput } from "~/lib/taxCalc";
-import { incomeKindOptions, inputClass, labelClass, parseCurrencyInput } from "~/components/taxInputForm/shared";
-
-type FormLike = FormApi<TaxInput, undefined>;
+import { incomeKindOptions, inputClass, labelClass } from "~/components/taxInputForm/shared";
+import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
+import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
+import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 
 type IncomeSourceFieldsProps = {
-  form: FormLike;
+  form: TaxInputFormApi;
   index: number;
   canRemove: boolean;
   onRemove: () => void;
@@ -16,20 +16,16 @@ export function IncomeSourceFields(props: IncomeSourceFieldsProps) {
     <div class="grid gap-3 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.75fr)_auto]">
       <props.form.Field name={`incomeSources[${props.index}].kind`}>
         {field => (
-          <label class={labelClass} style={{ color: "var(--text-muted)" }}>
-            Type
-            <select
-              class={inputClass}
-              style={{ background: "var(--input-bg)", color: "var(--text)" }}
-              value={field().state.value}
-              onChange={e => field().handleChange(e.currentTarget.value as IncomeKind)}
-              onBlur={field().handleBlur}
-            >
-              {incomeKindOptions.map(opt => (
-                <option value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </label>
+          <FormStyledSelect
+            label="Type"
+            value={field().state.value}
+            onChange={e => field().handleChange(e.currentTarget.value as IncomeKind)}
+            onBlur={field().handleBlur}
+          >
+            {incomeKindOptions.map(opt => (
+              <option value={opt.value}>{opt.label}</option>
+            ))}
+          </FormStyledSelect>
         )}
       </props.form.Field>
       <props.form.Field name={`incomeSources[${props.index}].label`}>
@@ -52,18 +48,7 @@ export function IncomeSourceFields(props: IncomeSourceFieldsProps) {
         {field => (
           <label class={labelClass} style={{ color: "var(--text-muted)" }}>
             Amount
-            <input
-              type="number"
-              min="0"
-              step="1"
-              class={inputClass}
-              style={{ background: "var(--input-bg)", color: "var(--text)" }}
-              value={field().state.value}
-              onInput={e =>
-                field().handleChange(parseCurrencyInput(e.currentTarget.value))
-              }
-              onBlur={field().handleBlur}
-            />
+            <FormCurrencyInput field={field} />
           </label>
         )}
       </props.form.Field>

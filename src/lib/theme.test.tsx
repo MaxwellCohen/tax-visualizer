@@ -1,6 +1,11 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider, useTheme } from "~/lib/theme";
+import {
+  stubMatchMediaPrefersDark,
+  stubMatchMediaStatic,
+  stubThemeLocalStorage,
+} from "~/lib/theme.test.helpers";
 
 afterEach(() => {
   cleanup();
@@ -35,24 +40,8 @@ describe("theme", () => {
 
   it("reads theme from localStorage on mount", () => {
     const store: Record<string, string> = { theme: "dark" };
-    vi.stubGlobal("localStorage", {
-      getItem: (k: string) => store[k] ?? null,
-      setItem: (k: string, v: string) => {
-        store[k] = v;
-      },
-      removeItem: (k: string) => {
-        delete store[k];
-      },
-      clear: () => {
-        for (const k of Object.keys(store)) delete store[k];
-      },
-      key: () => null,
-      length: 0,
-    });
-    vi.stubGlobal(
-      "matchMedia",
-      vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
-    );
+    stubThemeLocalStorage(store);
+    stubMatchMediaStatic(false);
 
     render(() => (
       <ThemeProvider>
@@ -65,25 +54,8 @@ describe("theme", () => {
 
   it("falls back to prefers-color-scheme when storage unset", () => {
     const store: Record<string, string> = {};
-    vi.stubGlobal("localStorage", {
-      getItem: (k: string) => store[k] ?? null,
-      setItem: (k: string, v: string) => {
-        store[k] = v;
-      },
-      removeItem: vi.fn(),
-      clear: vi.fn(),
-      key: () => null,
-      length: 0,
-    });
-    vi.stubGlobal(
-      "matchMedia",
-      vi.fn().mockImplementation((q: string) => ({
-        matches: q.includes("prefers-color-scheme: dark"),
-        media: q,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      })),
-    );
+    stubThemeLocalStorage(store);
+    stubMatchMediaPrefersDark();
 
     render(() => (
       <ThemeProvider>
@@ -95,20 +67,8 @@ describe("theme", () => {
 
   it("toggleTheme flips light/dark", () => {
     const store: Record<string, string> = {};
-    vi.stubGlobal("localStorage", {
-      getItem: (k: string) => store[k] ?? null,
-      setItem: (k: string, v: string) => {
-        store[k] = v;
-      },
-      removeItem: vi.fn(),
-      clear: vi.fn(),
-      key: () => null,
-      length: 0,
-    });
-    vi.stubGlobal(
-      "matchMedia",
-      vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
-    );
+    stubThemeLocalStorage(store);
+    stubMatchMediaStatic(false);
 
     render(() => (
       <ThemeProvider>

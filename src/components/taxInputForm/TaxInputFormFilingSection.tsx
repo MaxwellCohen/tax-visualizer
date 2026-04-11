@@ -1,14 +1,13 @@
-import type { FormApi } from "@tanstack/solid-form";
 import type { Accessor } from "solid-js";
 import type { TaxInput } from "~/lib/taxCalc";
 import type { FilingStatus } from "~/lib/taxData";
 import { isPlanningTaxYear } from "~/lib/taxData";
-import { filingStatusOptions, inputClass, labelClass } from "~/components/taxInputForm/shared";
-
-type FormLike = FormApi<TaxInput, undefined>;
+import { filingStatusOptions } from "~/components/taxInputForm/shared";
+import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
+import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 
 type Props = {
-  form: FormLike;
+  form: TaxInputFormApi;
   values: Accessor<TaxInput>;
   availableYears: number[];
 };
@@ -25,41 +24,31 @@ export function TaxInputFormFilingSection(props: Props) {
       <div class="grid gap-4 md:grid-cols-2">
         <props.form.Field name="taxYear">
           {field => (
-            <label class={labelClass} style={{ color: "var(--text-muted)" }}>
-              Tax Year
-              <select
-                class={inputClass}
-                style={{ background: "var(--input-bg)", color: "var(--text)" }}
-                value={field().state.value}
-                onChange={e => field().handleChange(Number(e.currentTarget.value))}
-                onBlur={field().handleBlur}
-              >
-                {props.availableYears.map(year => (
-                  <option value={year}>{year}</option>
-                ))}
-              </select>
-            </label>
+            <FormStyledSelect
+              label="Tax Year"
+              value={field().state.value}
+              onChange={e => field().handleChange(Number(e.currentTarget.value))}
+              onBlur={field().handleBlur}
+            >
+              {props.availableYears.map(year => (
+                <option value={year}>{year}</option>
+              ))}
+            </FormStyledSelect>
           )}
         </props.form.Field>
 
         <props.form.Field name="filingStatus">
           {field => (
-            <label class={labelClass} style={{ color: "var(--text-muted)" }}>
-              Filing Status
-              <select
-                class={inputClass}
-                style={{ background: "var(--input-bg)", color: "var(--text)" }}
-                value={field().state.value}
-                onChange={e =>
-                  field().handleChange(e.currentTarget.value as FilingStatus)
-                }
-                onBlur={field().handleBlur}
-              >
-                {filingStatusOptions.map(option => (
-                  <option value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
+            <FormStyledSelect
+              label="Filing Status"
+              value={field().state.value}
+              onChange={e => field().handleChange(e.currentTarget.value as FilingStatus)}
+              onBlur={field().handleBlur}
+            >
+              {filingStatusOptions.map(option => (
+                <option value={option.value}>{option.label}</option>
+              ))}
+            </FormStyledSelect>
           )}
         </props.form.Field>
       </div>

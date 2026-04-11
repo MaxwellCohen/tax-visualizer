@@ -3,7 +3,8 @@ import { calculateTaxes } from "~/lib/taxCalc";
 import { baseInput } from "~/lib/taxCalc.test.helpers";
 import { buildMekkoRows } from "~/lib/taxCharts";
 import { computeMekkoLayout } from "~/components/taxMekko/mekkoLayout";
-import { H, W, money, pct } from "~/components/taxMekko/constants";
+import { H, W, pct } from "~/components/taxMekko/constants";
+import { money } from "~/lib/moneyFormat";
 import { incomeY, incomeYAxis, niceStep } from "~/components/taxMekko/incomeScale";
 
 describe("mekko constants formatters", () => {

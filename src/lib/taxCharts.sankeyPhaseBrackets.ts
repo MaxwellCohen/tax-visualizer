@@ -4,6 +4,24 @@ import { formatLtcgBracketLabel, formatOrdinaryBracketLabel } from "~/lib/taxCha
 import { addNode } from "~/lib/taxCharts.sankeyHelpers";
 import type { SankeyScratch } from "~/lib/taxCharts.sankeyScratch";
 
+function pushBracketIncomeLinkAndRetainedSlice(
+  s: SankeyScratch,
+  sourceId: string,
+  nodeId: string,
+  incomeAmount: number,
+  taxWithNiit: number,
+): void {
+  s.links.push({
+    sourceId,
+    targetId: nodeId,
+    value: incomeAmount,
+  });
+  const retainedAmount = Math.max(0, incomeAmount - taxWithNiit);
+  if (retainedAmount > 0) {
+    s.takeHomePoolSlices.push({ sourceId: nodeId, weight: retainedAmount });
+  }
+}
+
 export function appendSankeyBracketNodes(result: TaxResult, s: SankeyScratch): void {
   for (const segment of result.ordinaryFederalSegments) {
     const nodeId = `ordinary-bracket-${segment.id}`;
@@ -20,15 +38,13 @@ export function appendSankeyBracketNodes(result: TaxResult, s: SankeyScratch): v
       rangeStart: segment.rangeStart,
       rangeEnd: segment.rangeEnd,
     });
-    s.links.push({
-      sourceId: SANKEY_IDS.ordinaryTaxableIncome,
-      targetId: nodeId,
-      value: segment.incomeAmount,
-    });
-    const retainedAmount = Math.max(0, segment.incomeAmount - taxWithNiit);
-    if (retainedAmount > 0) {
-      s.takeHomePoolSlices.push({ sourceId: nodeId, weight: retainedAmount });
-    }
+    pushBracketIncomeLinkAndRetainedSlice(
+      s,
+      SANKEY_IDS.ordinaryTaxableIncome,
+      nodeId,
+      segment.incomeAmount,
+      taxWithNiit,
+    );
   }
 
   for (const segment of result.longTermCapitalGainsSegments) {
@@ -46,14 +62,12 @@ export function appendSankeyBracketNodes(result: TaxResult, s: SankeyScratch): v
       rangeStart: segment.rangeStart,
       rangeEnd: segment.rangeEnd,
     });
-    s.links.push({
-      sourceId: SANKEY_IDS.longTermTaxableIncome,
-      targetId: nodeId,
-      value: segment.incomeAmount,
-    });
-    const retainedAmount = Math.max(0, segment.incomeAmount - taxWithNiit);
-    if (retainedAmount > 0) {
-      s.takeHomePoolSlices.push({ sourceId: nodeId, weight: retainedAmount });
-    }
+    pushBracketIncomeLinkAndRetainedSlice(
+      s,
+      SANKEY_IDS.longTermTaxableIncome,
+      nodeId,
+      segment.incomeAmount,
+      taxWithNiit,
+    );
   }
 }

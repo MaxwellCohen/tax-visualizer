@@ -1,6 +1,6 @@
 import type { IncomeKind } from "~/lib/taxCalc.types";
 
-export type SankeyNodeKind =
+type SankeyNodeKind =
   | "grossIncome"
   | "incomeSource"
   | "pretaxContribution"
@@ -39,7 +39,7 @@ export type SankeyChartData = {
   links: SankeyChartLink[];
 };
 
-export type MekkoRowKind = "deduction" | "ordinaryBracket" | "ltcgBracket";
+type MekkoRowKind = "deduction" | "ordinaryBracket" | "ltcgBracket";
 
 export type MekkoRow = {
   id: string;

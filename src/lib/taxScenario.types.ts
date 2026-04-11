@@ -1,7 +1,7 @@
 import type { FilingStatus } from "~/lib/taxData";
 import type { IncomeKind, TaxInput } from "~/lib/taxCalc.types";
 
-export type ScenarioPresetId = "singleW2" | "w2AndLtcg" | "familyBenefits" | "highIncome";
+type ScenarioPresetId = "singleW2" | "w2AndLtcg" | "familyBenefits" | "highIncome";
 
 export type ScenarioPreset = {
   id: ScenarioPresetId;

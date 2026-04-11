@@ -1,13 +1,12 @@
 import { Show } from "solid-js";
-import type { FormApi } from "@tanstack/solid-form";
 import type { Accessor } from "solid-js";
-import { inputClass, labelClass, money, parseCurrencyInput } from "~/components/taxInputForm/shared";
 import type { TaxInput } from "~/lib/taxCalc";
-
-type FormLike = FormApi<TaxInput, undefined>;
+import { labelClass, money } from "~/components/taxInputForm/shared";
+import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
+import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 
 type Props = {
-  form: FormLike;
+  form: TaxInputFormApi;
   values: Accessor<TaxInput>;
   standardDeduction: Accessor<number>;
   itemizedBeatsStandard: Accessor<boolean>;
@@ -50,18 +49,7 @@ export function TaxInputFormDeductionSection(props: Props) {
             {field => (
               <label class={`${labelClass} md:max-w-sm`} style={{ color: "var(--text-muted)" }}>
                 Itemized Deduction Amount
-                <input
-                  type="number"
-                  min="0"
-                  step="100"
-                  class={inputClass}
-                  style={{ background: "var(--input-bg)", color: "var(--text)" }}
-                  value={field().state.value}
-                  onInput={e =>
-                    field().handleChange(parseCurrencyInput(e.currentTarget.value))
-                  }
-                  onBlur={field().handleBlur}
-                />
+                <FormCurrencyInput field={field} min="0" step="100" />
               </label>
             )}
           </props.form.Field>

@@ -1,7 +1,7 @@
 export const SITE_NAME = "US Tax Visualizer";
 
 /** Set `VITE_SITE_ORIGIN` (e.g. in `.env`) for absolute `og:url` and `link[rel=canonical]`. */
-export const SITE_ORIGIN = (import.meta.env.VITE_SITE_ORIGIN ?? "").replace(/\/$/, "");
+const SITE_ORIGIN = (import.meta.env.VITE_SITE_ORIGIN ?? "").replace(/\/$/, "");
 
 export function canonicalUrl(pathnameAndSearch: string): string | undefined {
   if (!SITE_ORIGIN) return undefined;
