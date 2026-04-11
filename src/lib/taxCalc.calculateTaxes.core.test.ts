@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateTaxes, newIncomeSource } from "~/lib/taxCalc";
-import { baseInput } from "~/lib/taxCalc.test.helpers";
+import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 
 describe("calculateTaxes core", () => {
   it("returns null for unknown tax year", () => {
@@ -27,7 +27,9 @@ describe("calculateTaxes core", () => {
   });
 
   it("traditional 401(k) reduces ordinary taxable income and Social Security / Medicare base", () => {
-    const r = calculateTaxes(baseInput({ preTax401kSpouse1: 10_000 }));
+    const r = calculateTaxes(
+      baseInput({ pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 10_000 }) }),
+    );
     expect(r!.preTax401k).toBe(10_000);
     expect(r!.wagesAfterPretax).toBe(40_000);
     expect(r!.ordinaryTaxableIncome).toBe(40_000 - 15_750);
@@ -37,7 +39,9 @@ describe("calculateTaxes core", () => {
 
   it("HSA payroll reduces FICA base like 401(k)", () => {
     const r = calculateTaxes(
-      baseInput({ preTaxHsaSpouse1: 3_000, preTax401kSpouse1: 0 }),
+      baseInput({
+        pretaxBenefitSources: withPretaxTotals({ preTaxHsaSpouse1: 3_000, preTax401kSpouse1: 0 }),
+      }),
     );
     expect(r!.preTaxHsa).toBe(3_000);
     const wagesForFica = 47_000;

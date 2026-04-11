@@ -1,3 +1,5 @@
+import type { AggregatedPretax } from "~/lib/taxCalc.pretaxBenefitSource";
+import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
 import type { TaxInput } from "~/lib/taxCalc.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
 import { toMoneyValue } from "~/lib/taxCalc.money";
@@ -17,17 +19,17 @@ type Pretax401HsaScaled = {
 };
 
 function computeScaled401HsaAndOrdinaryBase(
-  input: TaxInput,
+  pt: AggregatedPretax,
   lim: TaxYearConfig["pretaxLimits"],
   inc: IncomeTotals,
   joint: boolean,
 ): Pretax401HsaScaled {
   const { wageIncome, ordinaryGrossIncome } = inc;
   const cap401 = lim.electiveDeferral401k;
-  const uncapped401_1 = toMoneyValue(input.preTax401kSpouse1);
-  const uncapped401_2 = joint ? toMoneyValue(input.preTax401kSpouse2) : 0;
-  const uncappedHsa_1 = toMoneyValue(input.preTaxHsaSpouse1);
-  const uncappedHsa_2 = joint ? toMoneyValue(input.preTaxHsaSpouse2) : 0;
+  const uncapped401_1 = toMoneyValue(pt.preTax401kSpouse1);
+  const uncapped401_2 = joint ? toMoneyValue(pt.preTax401kSpouse2) : 0;
+  const uncappedHsa_1 = toMoneyValue(pt.preTaxHsaSpouse1);
+  const uncappedHsa_2 = joint ? toMoneyValue(pt.preTaxHsaSpouse2) : 0;
 
   const raw401_1 = Math.min(uncapped401_1, cap401);
   const raw401_2 = joint ? Math.min(uncapped401_2, cap401) : 0;
@@ -43,7 +45,7 @@ function computeScaled401HsaAndOrdinaryBase(
     ? uncappedHsaTotal > lim.hsaFamily
     : uncappedHsa_1 > lim.hsaSelfOnly;
 
-  const rawOther = toMoneyValue(input.preTaxOther);
+  const rawOther = toMoneyValue(pt.preTaxOther);
   const rawPretaxTotal = raw401 + rawHsa + rawOther;
   const pretaxScale = wageIncome <= 0 ? 0 : rawPretaxTotal > wageIncome ? wageIncome / rawPretaxTotal : 1;
   const effective401 = raw401 * pretaxScale;
@@ -78,7 +80,7 @@ type IraSlicePart = {
 };
 
 function computeIraSlicePart(
-  input: TaxInput,
+  pt: AggregatedPretax,
   lim: TaxYearConfig["pretaxLimits"],
   inc: IncomeTotals,
   joint: boolean,
@@ -88,8 +90,8 @@ function computeIraSlicePart(
   const { sources, shortTermCapGainsGrossIncome } = inc;
   const cap401 = lim.electiveDeferral401k;
   const capIra = lim.traditionalIraContribution;
-  const uncappedIra1 = toMoneyValue(input.traditionalIraSpouse1);
-  const uncappedIra2 = joint ? toMoneyValue(input.traditionalIraSpouse2) : 0;
+  const uncappedIra1 = toMoneyValue(pt.traditionalIraSpouse1);
+  const uncappedIra2 = joint ? toMoneyValue(pt.traditionalIraSpouse2) : 0;
   const rawIra1 = Math.min(uncappedIra1, capIra);
   const rawIra2 = joint ? Math.min(uncappedIra2, capIra) : 0;
   const rawIraSum = rawIra1 + rawIra2;
@@ -125,9 +127,10 @@ export function computePretaxIraSlice(
 ): PretaxIraSlice {
   const joint = input.filingStatus === "marriedJoint";
   const lim = config.pretaxLimits;
+  const pt = aggregatePretaxFromSources(input.pretaxBenefitSources, joint);
 
-  const scaled = computeScaled401HsaAndOrdinaryBase(input, lim, inc, joint);
-  const ira = computeIraSlicePart(input, lim, inc, joint, scaled.ordinaryGrossForTax, scaled.wagesAfterPretax);
+  const scaled = computeScaled401HsaAndOrdinaryBase(pt, lim, inc, joint);
+  const ira = computeIraSlicePart(pt, lim, inc, joint, scaled.ordinaryGrossForTax, scaled.wagesAfterPretax);
 
   return {
     joint,

@@ -6,7 +6,6 @@ import { TaxInputFormIncomeSection } from "~/components/taxInputForm/TaxInputFor
 import { TaxInputFormPreTaxSection } from "~/components/taxInputForm/TaxInputFormPreTaxSection";
 import { createDeductionMemos } from "~/components/taxInputForm/hooks/deductionMemos";
 import { createTaxInputForm, type TaxInputFormOuterProps } from "~/components/taxInputForm/hooks/formCore";
-import { createIncomeMemos } from "~/components/taxInputForm/hooks/incomeMemos";
 import { createLimitMemos } from "~/components/taxInputForm/hooks/limitMemos";
 import { wirePretaxCapEffect } from "~/components/taxInputForm/hooks/pretaxCapEffect";
 type TaxInputFormProps = TaxInputFormOuterProps & {
@@ -14,15 +13,15 @@ type TaxInputFormProps = TaxInputFormOuterProps & {
 };
 
 export default function TaxInputForm(props: TaxInputFormProps) {
-  const { form, values, addSource, removeSourceAt } = createTaxInputForm(props);
-  const income = createIncomeMemos(values);
+  const { form, values, addSource, removeSourceAt, addPretaxBenefit, removePretaxBenefitAt } =
+    createTaxInputForm(props);
   const limits = createLimitMemos(values);
   const deduction = createDeductionMemos(values, limits.selectedTaxConfig);
 
   wirePretaxCapEffect(form, values, limits.pretaxLimits);
 
-  const [wagesSectionOpen, setWagesSectionOpen] = createSignal(true);
   const [preTaxBenefitsOpen, setPreTaxBenefitsOpen] = createSignal(true);
+  const [incomeSourcesOpen, setIncomeSourcesOpen] = createSignal(true);
 
   return (
     <form
@@ -33,16 +32,13 @@ export default function TaxInputForm(props: TaxInputFormProps) {
         "box-shadow": "var(--shadow)",
       }}
     >
-      <CollapsibleBlock title="Filing details & income" bodyClass="mt-4 space-y-8">
+      <CollapsibleBlock title="Filing details & income" bodyClass="mt-4 space-y-4">
         <TaxInputFormFilingSection form={form} values={values} availableYears={props.availableYears} />
         <TaxInputFormIncomeSection
           form={form}
           values={values}
-          wagesSectionOpen={wagesSectionOpen()}
-          setWagesSectionOpen={setWagesSectionOpen}
-          wageSourceIndices={income.wageSourceIndices}
-          otherSourceIndices={income.otherSourceIndices}
-          wagesTotal={income.wagesTotal}
+          incomeSourcesOpen={incomeSourcesOpen()}
+          setIncomeSourcesOpen={setIncomeSourcesOpen}
           addSource={addSource}
           removeSourceAt={removeSourceAt}
         />
@@ -53,10 +49,8 @@ export default function TaxInputForm(props: TaxInputFormProps) {
           setPreTaxBenefitsOpen={setPreTaxBenefitsOpen}
           preTaxBenefitsTotal={limits.preTaxBenefitsTotal}
           isMarriedJoint={limits.isMarriedJoint}
-          maxElective401={limits.maxElective401}
-          maxIraContribution={limits.maxIraContribution}
-          maxHsaSpouse1={limits.maxHsaSpouse1}
-          maxHsaSpouse2={limits.maxHsaSpouse2}
+          addPretaxBenefit={addPretaxBenefit}
+          removePretaxBenefitAt={removePretaxBenefitAt}
           pretaxLimits={limits.pretaxLimits}
         />
         <TaxInputFormDeductionSection

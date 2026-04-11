@@ -1,36 +1,40 @@
-import type { IncomeKind } from "~/lib/taxCalc";
+import { createMemo } from "solid-js";
+import type { PretaxBenefitKind } from "~/lib/taxCalc";
+import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
+import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
 import {
-  incomeKindOptions,
   inputClass,
+  pretaxBenefitKindSelectOptions,
   taxInputFormTableTdActions,
   taxInputFormTableTdLabeled,
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
-import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
-import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 
-type IncomeSourceFieldsProps = {
+type Props = {
   form: TaxInputFormApi;
   index: number;
   canRemove: boolean;
   onRemove: () => void;
+  isMarriedJoint: () => boolean;
 };
 
-export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
+export function PretaxBenefitSourceRow(props: Props) {
+  const kindOptions = createMemo(() => pretaxBenefitKindSelectOptions(props.isMarriedJoint()));
+
   return (
     <tr class={taxInputFormTableTrClass}>
       <td class={`${taxInputFormTableTdLabeled} pl-3`} data-label="Type">
-        <props.form.Field name={`incomeSources[${props.index}].kind`}>
+        <props.form.Field name={`pretaxBenefitSources[${props.index}].kind`}>
           {field => (
             <FormStyledSelect
-              label="Income type"
+              label="Benefit type"
               hideLabel
               value={field().state.value}
-              onChange={e => field().handleChange(e.currentTarget.value as IncomeKind)}
+              onChange={e => field().handleChange(e.currentTarget.value as PretaxBenefitKind)}
               onBlur={field().handleBlur}
             >
-              {incomeKindOptions.map(opt => (
+              {kindOptions().map(opt => (
                 <option value={opt.value}>{opt.label}</option>
               ))}
             </FormStyledSelect>
@@ -38,11 +42,11 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
         </props.form.Field>
       </td>
       <td class={taxInputFormTableTdLabeled} data-label="Label (optional)">
-        <props.form.Field name={`incomeSources[${props.index}].label`}>
+        <props.form.Field name={`pretaxBenefitSources[${props.index}].label`}>
           {field => (
             <input
               type="text"
-              placeholder="e.g. Employer, Brokerage"
+              placeholder="e.g. Employer plan, bank"
               class={inputClass}
               style={{ background: "var(--input-bg)", color: "var(--text)" }}
               aria-label="Label (optional)"
@@ -54,7 +58,7 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
         </props.form.Field>
       </td>
       <td class={taxInputFormTableTdLabeled} data-label="Amount">
-        <props.form.Field name={`incomeSources[${props.index}].amount`}>
+        <props.form.Field name={`pretaxBenefitSources[${props.index}].amount`}>
           {field => <FormCurrencyInput field={field} ariaLabel="Amount" />}
         </props.form.Field>
       </td>
@@ -67,7 +71,7 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
             border: "1px solid var(--border)",
           }}
           disabled={!props.canRemove}
-          title={props.canRemove ? "Remove this source" : "Keep at least one row"}
+          title={props.canRemove ? "Remove this line" : "Keep at least one line"}
           onClick={() => props.onRemove()}
         >
           Remove

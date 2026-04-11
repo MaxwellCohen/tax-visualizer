@@ -48,4 +48,24 @@ export type SerializedScenarioV2 = {
   itemizedDeductions: number;
 };
 
-export type SerializedScenario = SerializedScenarioV1 | SerializedScenarioV2;
+export type SerializedScenarioV3 = {
+  version: 3;
+  taxYear: number;
+  filingStatus: FilingStatus;
+  incomeSources: Array<{
+    id?: string;
+    kind: IncomeKind;
+    label: string;
+    amount: number;
+  }>;
+  pretaxBenefitSources: Array<{
+    id?: string;
+    kind: string;
+    label: string;
+    amount: number;
+  }>;
+  useItemizedDeductions: boolean;
+  itemizedDeductions: number;
+};
+
+export type SerializedScenario = SerializedScenarioV1 | SerializedScenarioV2 | SerializedScenarioV3;

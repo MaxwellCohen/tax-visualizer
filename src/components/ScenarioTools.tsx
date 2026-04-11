@@ -63,7 +63,11 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
           change affects take-home pay and taxes. Your latest scenario is saved locally in this
           browser.
         </p>
-        <ScenarioToolsPresets presets={props.presets} onApplyPreset={handlers.applyPreset} />
+        <ScenarioToolsPresets
+          presets={props.presets}
+          taxInput={props.taxInput}
+          onApplyPreset={handlers.applyPreset}
+        />
         <ScenarioToolsActions
           hasBaseline={props.baselineInput() != null}
           onCopyShareLink={() => void handlers.copyShareLink()}

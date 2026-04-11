@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateTaxes, newIncomeSource } from "~/lib/taxCalc";
-import { baseInput } from "~/lib/taxCalc.test.helpers";
+import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 
 describe("calculateTaxes more", () => {
   it("NIIT: 3.8% × min(NII, MAGI − threshold) for single", () => {
@@ -59,7 +59,7 @@ describe("calculateTaxes more", () => {
 
   it("deductible traditional IRA reduces ordinary income (not payroll)", () => {
     const r = calculateTaxes(
-      baseInput({ traditionalIraSpouse1: 7_000 }),
+      baseInput({ pretaxBenefitSources: withPretaxTotals({ traditionalIraSpouse1: 7_000 }) }),
     );
     expect(r!.traditionalIra).toBe(7_000);
     expect(r!.ordinaryTaxableIncome).toBe(50_000 - 7_000 - 15_750);
@@ -72,7 +72,7 @@ describe("calculateTaxes more", () => {
 
   it("single filer HSA capped at self-only limit in calculation", () => {
     const r = calculateTaxes(
-      baseInput({ preTaxHsaSpouse1: 50_000 }),
+      baseInput({ pretaxBenefitSources: withPretaxTotals({ preTaxHsaSpouse1: 50_000 }) }),
     );
     expect(r!.preTaxHsa).toBe(4_300);
   });
@@ -81,8 +81,10 @@ describe("calculateTaxes more", () => {
     const r = calculateTaxes(
       baseInput({
         filingStatus: "marriedJoint",
-        preTaxHsaSpouse1: 5_000,
-        preTaxHsaSpouse2: 5_000,
+        pretaxBenefitSources: withPretaxTotals({
+          preTaxHsaSpouse1: 5_000,
+          preTaxHsaSpouse2: 5_000,
+        }),
       }),
     );
     expect(r!.preTaxHsa).toBe(8_550);

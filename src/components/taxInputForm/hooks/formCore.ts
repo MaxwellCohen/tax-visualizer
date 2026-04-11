@@ -1,6 +1,6 @@
 import { createForm } from "@tanstack/solid-form";
 import type { TaxInput } from "~/lib/taxCalc";
-import { newIncomeSource } from "~/lib/taxCalc";
+import { newIncomeSource, newPretaxBenefitSource } from "~/lib/taxCalc";
 
 export type TaxInputFormOuterProps = {
   value: TaxInput;
@@ -28,5 +28,14 @@ export function createTaxInputForm(props: TaxInputFormOuterProps) {
     void form.removeFieldValue("incomeSources", index);
   };
 
-  return { form, values, addSource, removeSourceAt };
+  const addPretaxBenefit = () => {
+    form.pushFieldValue("pretaxBenefitSources", newPretaxBenefitSource({ kind: "preTax401kSpouse1" }));
+  };
+
+  const removePretaxBenefitAt = (index: number) => {
+    if (values().pretaxBenefitSources.length <= 1) return;
+    void form.removeFieldValue("pretaxBenefitSources", index);
+  };
+
+  return { form, values, addSource, removeSourceAt, addPretaxBenefit, removePretaxBenefitAt };
 }

@@ -1,17 +1,26 @@
-type Preset = { id: string; label: string; description: string };
+import type { Accessor } from "solid-js";
+import type { TaxInput } from "~/lib/taxCalc.types";
+import type { ScenarioPreset } from "~/lib/taxScenario.types";
+import { taxInputMatchesPreset } from "~/lib/taxScenario";
 
 type Props = {
-  presets: Preset[];
+  presets: ScenarioPreset[];
+  taxInput: Accessor<TaxInput>;
   onApplyPreset: (presetId: string) => void;
 };
 
 export function ScenarioToolsPresets(props: Props) {
   return (
-    <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-      {props.presets.map(preset => (
+    <div class="grid gap-3 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {props.presets.map(preset => {
+        const selected = () => taxInputMatchesPreset(props.taxInput(), preset);
+        return (
         <button
           type="button"
-          class="rounded-lg p-4 text-left transition-colors"
+          class="rounded-lg p-4 text-left transition-[color,background-color,box-shadow,outline-color]"
+          classList={{
+            "outline-2 outline-(--accent) outline-offset-2": selected(),
+          }}
           style={{
             background: "var(--surface-alt)",
             border: "1px solid var(--border-subtle)",
@@ -31,7 +40,8 @@ export function ScenarioToolsPresets(props: Props) {
             {preset.description}
           </p>
         </button>
-      ))}
+        );
+      })}
     </div>
   );
 }

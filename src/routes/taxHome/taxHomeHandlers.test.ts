@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { calculateTaxes } from "~/lib/taxCalc";
-import { baseInput } from "~/lib/taxCalc.test.helpers";
+import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
+import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import { getScenarioPresets } from "~/lib/taxScenario";
 import { createTaxHomeHandlers } from "~/routes/taxHome/taxHomeHandlers";
 
@@ -83,7 +84,7 @@ describe("createTaxHomeHandlers", () => {
   });
 
   it("saveBaseline persists to localStorage", () => {
-    taxInput = baseInput({ preTax401kSpouse1: 1_000 });
+    taxInput = baseInput({ pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 1_000 }) });
     const setItem = vi.fn();
     vi.stubGlobal("window", { localStorage: { setItem, removeItem: vi.fn(), getItem: vi.fn() } });
     createTaxHomeHandlers(ctx()).saveBaseline();
@@ -93,7 +94,7 @@ describe("createTaxHomeHandlers", () => {
 
   it("loadBaseline applies stored scenario", () => {
     taxInput = baseInput();
-    baseline = baseInput({ preTax401kSpouse1: 500 });
+    baseline = baseInput({ pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 500 }) });
     setTaxInput.mockClear();
     createTaxHomeHandlers(ctx()).loadBaseline();
     expect(setTaxInput).toHaveBeenCalled();
@@ -115,10 +116,10 @@ describe("createTaxHomeHandlers", () => {
   });
 
   it("resetScenario restores starter", () => {
-    taxInput = baseInput({ preTax401kSpouse1: 9_000 });
+    taxInput = baseInput({ pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 9_000 }) });
     createTaxHomeHandlers(ctx()).resetScenario();
     expect(setTaxInput).toHaveBeenCalled();
     const last = setTaxInput.mock.calls.at(-1)![0];
-    expect(last.preTax401kSpouse1).toBe(0);
+    expect(aggregatePretaxFromSources(last.pretaxBenefitSources, false).preTax401kSpouse1).toBe(0);
   });
 });

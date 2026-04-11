@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateTaxes, newIncomeSource } from "~/lib/taxCalc";
-import { baseInput } from "~/lib/taxCalc.test.helpers";
+import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import type { TaxSegment } from "~/lib/taxCalc.types";
 import { formatLtcgBracketLabel, formatOrdinaryBracketLabel } from "~/lib/taxCharts.sankeyFormat";
 import { addNode, sortedIncomeSources, splitTakeHomeAndPayrollByPool } from "~/lib/taxCharts.sankeyHelpers";
@@ -85,10 +85,12 @@ describe("taxCharts.sankey units", () => {
   it("sankeyPretaxRowsFromResult lists configured rows", () => {
     const r = calculateTaxes(
       baseInput({
-        preTax401kSpouse1: 1,
-        preTaxHsaSpouse1: 2,
-        preTaxOther: 3,
-        traditionalIraSpouse1: 4,
+        pretaxBenefitSources: withPretaxTotals({
+          preTax401kSpouse1: 1,
+          preTaxHsaSpouse1: 2,
+          preTaxOther: 3,
+          traditionalIraSpouse1: 4,
+        }),
       }),
     )!;
     const rows = sankeyPretaxRowsFromResult(r);

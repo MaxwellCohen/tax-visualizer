@@ -1,11 +1,11 @@
 import type { TaxInput } from "~/lib/taxCalc.types";
 import { SCENARIO_PRESETS } from "~/lib/taxScenario.presets.constants";
 import { sanitizeScenarioInput } from "~/lib/taxScenario.sanitizeScenarioInput";
-import type { ScenarioPreset, SerializedScenarioV2 } from "~/lib/taxScenario.types";
+import type { ScenarioPreset, SerializedScenarioV3 } from "~/lib/taxScenario.types";
 
 export function serializeScenarioInput(input: TaxInput): string {
-  const payload: SerializedScenarioV2 = {
-    version: 2,
+  const payload: SerializedScenarioV3 = {
+    version: 3,
     taxYear: input.taxYear,
     filingStatus: input.filingStatus,
     incomeSources: input.incomeSources.map(source => ({
@@ -14,13 +14,12 @@ export function serializeScenarioInput(input: TaxInput): string {
       label: source.label,
       amount: source.amount,
     })),
-    preTax401kSpouse1: input.preTax401kSpouse1,
-    preTax401kSpouse2: input.preTax401kSpouse2,
-    preTaxHsaSpouse1: input.preTaxHsaSpouse1,
-    preTaxHsaSpouse2: input.preTaxHsaSpouse2,
-    preTaxOther: input.preTaxOther,
-    traditionalIraSpouse1: input.traditionalIraSpouse1,
-    traditionalIraSpouse2: input.traditionalIraSpouse2,
+    pretaxBenefitSources: input.pretaxBenefitSources.map(row => ({
+      id: row.id,
+      kind: row.kind,
+      label: row.label,
+      amount: row.amount,
+    })),
     useItemizedDeductions: input.useItemizedDeductions,
     itemizedDeductions: input.itemizedDeductions,
   };

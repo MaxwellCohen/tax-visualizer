@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateTaxes, newIncomeSource } from "~/lib/taxCalc";
-import { baseInput } from "~/lib/taxCalc.test.helpers";
+import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import { buildMekkoRows, buildSankeyChartData, INCOME_KIND_CHART_ORDER } from "~/lib/taxCharts";
 
 describe("taxCharts pipeline", () => {
@@ -28,7 +28,7 @@ describe("taxCharts pipeline", () => {
           newIncomeSource({ kind: "wages", amount: 120_000 }),
           newIncomeSource({ kind: "longTermCapGains", amount: 25_000 }),
         ],
-        preTax401kSpouse1: 10_000,
+        pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 10_000 }),
       }),
     );
     expect(result).not.toBeNull();

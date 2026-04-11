@@ -11,6 +11,8 @@ type Props = {
   field: Accessor<NumberFieldApi>;
   min?: string;
   step?: string;
+  /** When set, used instead of a wrapping `<label>` (e.g. table cells with column headers). */
+  ariaLabel?: string;
 };
 
 export function FormCurrencyInput(props: Props) {
@@ -21,6 +23,7 @@ export function FormCurrencyInput(props: Props) {
       step={props.step ?? "1"}
       class={inputClass}
       style={{ background: "var(--input-bg)", color: "var(--text)" }}
+      aria-label={props.ariaLabel}
       value={props.field().state.value}
       onInput={e => props.field().handleChange(parseCurrencyInput(e.currentTarget.value))}
       onBlur={props.field().handleBlur}

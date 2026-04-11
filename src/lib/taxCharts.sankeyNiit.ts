@@ -24,7 +24,7 @@ export function netInvestmentIncomeTaxPerSegment(result: TaxResult): {
     totalIncome: number,
     into: Map<string, number>,
   ) => {
-    if (pool <= 0 || totalIncome <= 0 || segments.length === 0) return;
+    if (pool <= 0 || totalIncome <= 0 || !segments?.length) return;
     let allocated = 0;
     segments.forEach((seg, i) => {
       const last = i === segments.length - 1;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calculateTaxes, newIncomeSource } from "~/lib/taxCalc";
-import { baseInput } from "~/lib/taxCalc.test.helpers";
+import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
+import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import {
   buildScenarioSummaryText,
   deserializeScenarioInput,
@@ -71,7 +72,7 @@ describe("sanitizeScenarioInput", () => {
       itemizedDeductions: 0,
     };
     const s = sanitizeScenarioInput(raw, years, fallback);
-    expect(s.preTax401kSpouse1).toBe(23_500);
+    expect(aggregatePretaxFromSources(s.pretaxBenefitSources, false).preTax401kSpouse1).toBe(23_500);
   });
 
   it("maps v1 legacy keys", () => {
@@ -86,9 +87,10 @@ describe("sanitizeScenarioInput", () => {
       itemizedDeductions: 20_000,
     };
     const s = sanitizeScenarioInput(raw, years, fallback);
-    expect(s.preTax401kSpouse1).toBe(5_000);
-    expect(s.preTaxHsaSpouse1).toBe(1_000);
-    expect(s.traditionalIraSpouse1).toBe(0);
+    const p = aggregatePretaxFromSources(s.pretaxBenefitSources, false);
+    expect(p.preTax401kSpouse1).toBe(5_000);
+    expect(p.preTaxHsaSpouse1).toBe(1_000);
+    expect(p.traditionalIraSpouse1).toBe(0);
     expect(s.useItemizedDeductions).toBe(true);
   });
 
@@ -103,11 +105,11 @@ describe("serialize / deserialize scenario", () => {
   const fallback = 2025;
 
   it("roundtrips", () => {
-    const input = baseInput({ preTax401kSpouse1: 5_000 });
+    const input = baseInput({ pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 5_000 }) });
     const json = serializeScenarioInput(input);
     const back = deserializeScenarioInput(json, years, fallback);
     expect(back).not.toBeNull();
-    expect(back!.preTax401kSpouse1).toBe(5_000);
+    expect(aggregatePretaxFromSources(back!.pretaxBenefitSources, false).preTax401kSpouse1).toBe(5_000);
   });
 
   it("decodeURIComponent fallback for URL-encoded JSON", () => {

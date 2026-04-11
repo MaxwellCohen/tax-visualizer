@@ -1,6 +1,9 @@
 import type { FilingStatus } from "~/lib/taxData.types";
+import type { PretaxBenefitSource } from "~/lib/taxCalc.pretaxBenefitSource";
 
 export type IncomeKind = "wages" | "ordinary" | "shortTermCapGains" | "longTermCapGains";
+
+export type { PretaxBenefitKind, PretaxBenefitSource } from "~/lib/taxCalc.pretaxBenefitSource";
 
 export type IncomeSource = {
   id: string;
@@ -14,20 +17,11 @@ export type TaxInput = {
   taxYear: number;
   filingStatus: FilingStatus;
   incomeSources: IncomeSource[];
-  /** Traditional 401(k)/403(b) deferrals; per spouse when filing jointly (each has its own IRS deferral cap). */
-  preTax401kSpouse1: number;
-  preTax401kSpouse2: number;
-  /** Payroll HSA; split by spouse when filing jointly (family HDHP uses a combined contribution cap). */
-  preTaxHsaSpouse1: number;
-  preTaxHsaSpouse2: number;
-  /** Other cafeteria amounts (FSA, transit, etc.); treated like HSA for FICA. */
-  preTaxOther: number;
   /**
-   * Deductible traditional IRA (non-payroll); reduces federal ordinary income only, not FICA.
-   * Per spouse when filing jointly; each capped by `traditionalIraContribution` for the year.
+   * Pre-tax payroll + deductible traditional IRA lines. Multiple rows may share a kind; amounts aggregate
+   * before caps and wage scaling in `taxCalc`.
    */
-  traditionalIraSpouse1: number;
-  traditionalIraSpouse2: number;
+  pretaxBenefitSources: PretaxBenefitSource[];
   useItemizedDeductions: boolean;
   itemizedDeductions: number;
 };

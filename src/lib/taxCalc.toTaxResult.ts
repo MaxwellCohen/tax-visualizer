@@ -49,8 +49,8 @@ export function toTaxResult(params: {
     medicareTax: params.medicareTax,
     takeHomePay: params.takeHomePay,
     effectiveTaxRate: params.effectiveTaxRate,
-    ordinaryFederalSegments: fed.federalOrdinary.segments,
-    longTermCapitalGainsSegments: fed.federalLongTermCapGains.segments,
+    ordinaryFederalSegments: fed.federalOrdinary.segments ?? [],
+    longTermCapitalGainsSegments: fed.federalLongTermCapGains.segments ?? [],
     warnings: params.warnings,
     notes,
   };
