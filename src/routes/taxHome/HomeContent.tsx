@@ -13,6 +13,7 @@ import type { TaxInput } from "~/lib/taxCalc";
 import type { MekkoRow, SankeyChartData } from "~/lib/taxCharts";
 import type { TaxResult } from "~/lib/taxCalc";
 import type { ScenarioPreset } from "~/lib/taxScenario.types";
+import { TaxYearInvalid } from "./TaxYearInvalid";
 
 type Handlers = {
   applyPreset: (id: string) => void;
@@ -64,29 +65,24 @@ export function HomeContent(props: Props) {
         onChange={props.onTaxInputChange}
       />
 
-      <Show
-        when={props.taxResult}
-        fallback={
-          <p
-            class="rounded-lg px-4 py-3 text-sm"
-            style={{
-              background: "var(--warning-bg)",
-              border: "1px solid var(--warning-border)",
-              color: "var(--warning-text)",
-            }}
-          >
-            Invalid tax year selected.
-          </p>
-        }
-      >
-        {result => (
+      <Show when={props.taxResult} fallback={<TaxYearInvalid />}>
+        {(result) => (
           <>
-            <TaxWarnings warnings={result().warnings} />
-            <TaxSummary result={result()} baselineResult={props.baselineResult} />
-            <TaxNarrative result={result()} isPlanningYear={props.isPlanningYear} />
             <TaxSankey data={props.sankeyData ?? { nodes: [], links: [] }} />
             <TaxMekko result={result()} rows={props.mekkoRows} />
-            <TaxModelGuide result={result()} isPlanningYear={props.isPlanningYear} />
+            <TaxWarnings warnings={result().warnings} />
+            <TaxSummary
+              result={result()}
+              baselineResult={props.baselineResult}
+            />
+            <TaxNarrative
+              result={result()}
+              isPlanningYear={props.isPlanningYear}
+            />
+            <TaxModelGuide
+              result={result()}
+              isPlanningYear={props.isPlanningYear}
+            />
           </>
         )}
       </Show>
