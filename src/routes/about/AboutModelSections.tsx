@@ -1,4 +1,5 @@
 import type { JSX } from "solid-js";
+import { Dynamic } from "solid-js/web";
 
 const aboutCardStyle = {
   background: "var(--surface)",
@@ -12,9 +13,8 @@ const aboutHeadingStyle = {
 } as const;
 
 function AboutBulletCard(props: { title: string; as?: "section" | "div"; children: JSX.Element }) {
-  const As = props.as ?? "section";
   return (
-    <As class="rounded-xl p-5" style={aboutCardStyle}>
+    <Dynamic component={props.as ?? "section"} class="rounded-xl p-5" style={aboutCardStyle}>
       <h2
         class="mb-3 text-[0.65rem] font-semibold uppercase tracking-[0.15em]"
         style={aboutHeadingStyle}
@@ -24,7 +24,7 @@ function AboutBulletCard(props: { title: string; as?: "section" | "div"; childre
       <ul class="space-y-2 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
         {props.children}
       </ul>
-    </As>
+    </Dynamic>
   );
 }
 
