@@ -1,6 +1,6 @@
 import { incomeSourceDisplayLabel } from "~/lib/taxCalc";
 import type { TaxFormIncomeRow } from "~/lib/taxForm.types";
-import { INCOME_KIND_CHART_ORDER_BY_KIND } from "~/lib/config/sankeyOrder.config";
+import { INCOME_KIND_CHART_ORDER_BY_KIND } from "~/lib/config/chartMetricsRegistry";
 import type { SankeyChartNode } from "~/lib/taxCharts.types";
 
 export function addNode(nodeMap: Map<string, SankeyChartNode>, node: SankeyChartNode): void {

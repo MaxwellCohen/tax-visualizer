@@ -1,5 +1,5 @@
 import type { IncomeKind } from "~/lib/taxCalc.types";
-import { INCOME_KIND_SANKEY_ORDER } from "~/lib/config/sankeyOrder.config";
+import { INCOME_KIND_SANKEY_ORDER } from "~/lib/config/chartMetricsRegistry";
 
 export type IncomeKindConfig = {
   kind: IncomeKind;

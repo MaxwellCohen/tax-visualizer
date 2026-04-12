@@ -82,14 +82,6 @@ function addTaxesTakeHomeAndCreditsNodes(m: TaxChartMetrics, s: SankeyScratch): 
       amount,
     });
   }
-  if (hasSE) {
-    addNode(s.nodeMap, {
-      id: "self-employment-tax",
-      label: "Self-employment tax",
-      kind: "taxesPayroll",
-      amount: m.selfEmploymentTax,
-    });
-  }
 }
 
 function buildPoolSplit(
@@ -172,32 +164,30 @@ function routePayrollTaxFallback(m: TaxChartMetrics, result: TaxResult, s: Sanke
   if (payrollForFallback <= 0) return;
 
   if (hasSE && m.selfEmploymentTax > 0) {
-    routeSelfEmploymentTax(m, result, s, payrollKeys);
+    /** W-2 FICA only; SECA is linked in {@link appendSelfEmploymentTaxInflowLinks} for every scenario. */
+    const regularPayrollKeys = payrollKeys.filter((k) =>
+      incomeRowsFromTaxResult(result).some((src) => `income-${src.id}` === k.key && src.kind === "wages"),
+    );
+    if (regularPayrollKeys.length > 0 && m.payrollTax > 0) {
+      pushProportionalInflows(s, regularPayrollKeys, m.payrollTax, SANKEY_IDS.taxesPayroll);
+    }
   } else {
     pushProportionalInflows(s, payrollKeys, payrollForFallback, SANKEY_IDS.taxesPayroll);
   }
 }
 
-function routeSelfEmploymentTax(
-  m: TaxChartMetrics,
-  result: TaxResult,
-  s: SankeyScratch,
-  payrollKeys: { key: string; weight: number }[],
-): void {
+/**
+ * d3-sankey sizes nodes from link sums. SECA was previously only linked in {@link linkIncomeSourceFallback}
+ * (when bracket pool total is zero), so mixed W-2 + 1099 cases left SECA disconnected from income nodes.
+ */
+function appendSelfEmploymentTaxInflowLinks(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
+  const se = m.selfEmploymentTax ?? 0;
+  if (se <= 0) return;
   const seKeys = incomeRowsFromTaxResult(result)
     .filter((src) => src.kind === "selfEmployment" && src.amount > 0)
     .map((src) => ({ key: `income-${src.id}`, weight: src.amount }));
-
-  if (seKeys.length > 0) {
-    pushProportionalInflows(s, seKeys, m.selfEmploymentTax, "self-employment-tax");
-  }
-
-  const regularPayrollKeys = payrollKeys.filter((k) =>
-    incomeRowsFromTaxResult(result).some((src) => `income-${src.id}` === k.key && src.kind === "wages"),
-  );
-  if (regularPayrollKeys.length > 0 && m.payrollTax > 0) {
-    pushProportionalInflows(s, regularPayrollKeys, m.payrollTax, SANKEY_IDS.taxesPayroll);
-  }
+  if (seKeys.length === 0) return;
+  pushProportionalInflows(s, seKeys, se, SANKEY_IDS.taxesPayroll);
 }
 
 function routeTakeHomeFallback(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
@@ -253,4 +243,5 @@ export function appendSankeyTaxKeepAndFallback(m: TaxChartMetrics, result: TaxRe
     }
   }
   linkIncomeSourceFallback(m, result, s, poolTotal);
+  appendSelfEmploymentTaxInflowLinks(m, result, s);
 }

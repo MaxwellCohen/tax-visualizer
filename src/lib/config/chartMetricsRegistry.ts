@@ -1,20 +1,27 @@
 /**
- * Unified tax calculation registry: each metric defines identity, `compute`, optional Sankey/Mekko/summary hints,
- * and serialization order. See {@link CHART_METRICS_REGISTRY}.
+ * Unified chart registry: each row defines a tax metric (`compute`), optional Sankey structural nodes, Mekko/summary
+ * hints, and serialization order. See {@link CHART_REGISTRY}.
  *
  * **Evaluation contract:** Tax math for chart metrics runs only through {@link computeTaxMetricLines}. Each registry
  * `compute` mutates {@link ChartMetricComputeContext.accreted} on demand (calling private `accrete*` helpers that wrap
  * the former pipeline steps). There is no {@link TaxPipelineSnapshot} object or separate pipeline builder—only this
  * loop and shared helpers. The only preparation outside this module is resolving which {@link TaxYearConfig} applies.
  *
- * **Detailed display list:** Rows with {@link ChartMetricRegistryEntry.detailedDisplay} drive {@link buildDisplayItemsConfig}
+ * **Detailed display list:** Rows with {@link ChartRegistryEntry.detailedDisplay} drive {@link buildDisplayItemsConfig}
  * (single add/remove point with the registry).
  *
- * **Sankey:** Optional {@link ChartMetricRegistryEntry.sankey} `phase` + `append` contribute nodes/links when
+ * **Sankey:** Optional {@link ChartRegistryEntry.sankey} `phase` + `append` contribute nodes/links when
  * {@link sankeyRegistryRunner.runSankeyRegistryAppendersForPhase} runs for that phase. Not every metric maps 1:1 to graph elements (e.g. gross
  * uses one node per income form row); unmigrated phases still use `taxCharts.sankeyPhase*` helpers.
+ *
+ * **Income column order:** {@link INCOME_KIND_SANKEY_ORDER} / {@link INCOME_KIND_CHART_ORDER_BY_KIND} come from
+ * `sankey.incomeKindVerticalOrder` on the gross-income rows whose `visualizationSourceId` is an {@link IncomeKind}.
+ *
+ * **Sankey node layout:** each structural bar’s style/column/order is defined on the owning row via
+ * `sankey.structuralNode` / `sankey.structuralNodes`. {@link SANKEY_NODE_LAYOUT} is derived; removing the last row
+ * that defines a `kind` removes that node from the derived layout.
  */
-import type { DeductionKind, TaxSegment } from "~/lib/taxCalc.types";
+import type { DeductionKind, IncomeKind, TaxSegment } from "~/lib/taxCalc.types";
 import type {
   DisplayItem,
   DisplayItemConfig,
@@ -89,6 +96,28 @@ function incomeAggregationResultFromCi(
   };
 }
 
+/** Map form {@link PretaxBenefitKind} strings (e.g. `preTax401kSpouse1`) to registry rows; short ids (`401k`) supported for legacy rows. */
+function resolvePretaxBenefitConfigForKind(kind: string): PretaxBenefitConfig | undefined {
+  if (kind === "traditionalIraSpouse1" || kind === "traditionalIraSpouse2") {
+    return PRETAX_BENEFIT_CONFIGS.find((c) => c.id === "traditionalIra");
+  }
+  const kl = kind.toLowerCase();
+  // Elective deferrals: 401(k), 403(b), 457(b) share modeling with the 401k bucket (combined deferral cap per spouse).
+  if (kl.includes("401k") || kl.includes("403b") || kl.includes("457")) {
+    return PRETAX_BENEFIT_CONFIGS.find((c) => c.id === "401k");
+  }
+  if (kl.includes("hsa")) {
+    return PRETAX_BENEFIT_CONFIGS.find((c) => c.id === "hsa");
+  }
+  if (kind === "preTaxOther") {
+    return PRETAX_BENEFIT_CONFIGS.find((c) => c.id === "other");
+  }
+  if (kl.includes("fsa") || kl.includes("commuter")) {
+    return PRETAX_BENEFIT_CONFIGS.find((c) => c.id === "other");
+  }
+  return PRETAX_BENEFIT_CONFIGS.find((c) => c.id === kind);
+}
+
 function computePretaxBenefits(
   inputs: TaxCalculationInputs,
   config: TaxYearConfig,
@@ -99,9 +128,9 @@ function computePretaxBenefits(
 
   const aggregated = inputs.pretaxBenefitSources.reduce(
     (acc, src) => {
-      const cfg = PRETAX_BENEFIT_CONFIGS.find((c) => c.id === src.kind);
+      const cfg = resolvePretaxBenefitConfigForKind(src.kind);
       if (!cfg) return acc;
-      const isSpouse2 = src.id.includes("spouse2");
+      const isSpouse2 = src.kind.toLowerCase().includes("spouse2");
       if (cfg.isSpouseSpecific) {
         acc[cfg.aggregationField][isSpouse2 ? "spouse2" : "spouse1"] += src.amount;
       } else {
@@ -553,10 +582,35 @@ function accreteTakeHome(ctx: ChartMetricComputeContext): TakeHomeResult {
   return ctx.accreted.takeHome!;
 }
 
+/**
+ * One Sankey structural `kind` (see ChartNode.kind): position, column, fills. Attached to the registry row that owns
+ * that bar; first row in {@link CHART_REGISTRY} wins if the same `kind` appears twice.
+ */
+export type SankeyNodeLayoutEntry = {
+  kind: string;
+  /** Vertical sibling sort (lower = higher on chart). */
+  order: number;
+  /** Semantic column index before proportional mapping to d3 layers. */
+  column: number;
+  fill: string;
+  linkStroke: string;
+  fillBenefitAccounting?: string;
+  linkStrokeBenefitAccounting?: string;
+};
+
 export type ChartMetricSankeyHint = {
   sankeyNodeKind?: SankeyNodeKind;
   chartCategory?: ChartCategory;
   showWhen?: (ctx: ChartMetricComputeContext) => boolean;
+  /**
+   * When this row’s `visualizationSourceId` is an {@link IncomeKind}, vertical position of that income on the Sankey
+   * income column (lower = higher on chart). Drives {@link INCOME_KIND_CHART_ORDER_BY_KIND}.
+   */
+  incomeKindVerticalOrder?: number;
+  /** Primary structural node for this metric’s Sankey `kind` (merge with {@link structuralNodes} when collecting). */
+  structuralNode?: SankeyNodeLayoutEntry;
+  /** Additional structural nodes when this metric owns more than one bar (e.g. ordinary taxable + payroll strip). */
+  structuralNodes?: readonly SankeyNodeLayoutEntry[];
   /** When set, {@link sankeyRegistryRunner.runSankeyRegistryAppendersForPhase} invokes `append` during this Sankey build phase. */
   phase?: SankeyPhaseId;
   /**
@@ -638,7 +692,7 @@ export function buildChartMetricComputeContext(
   };
 }
 
-/** Row in the detailed income/tax breakdown panel; lives on registry entries as {@link ChartMetricRegistryEntry.detailedDisplay}. */
+/** Row in the detailed income/tax breakdown panel; lives on registry entries as {@link ChartRegistryEntry.detailedDisplay}. */
 export type ChartMetricDetailedDisplayHint = {
   order: number;
   type: string;
@@ -650,9 +704,8 @@ export type ChartMetricDetailedDisplayHint = {
   highlight?: boolean;
 };
 
-export type ChartMetricRegistryEntry = {
+export type ChartRegistryEntry = {
   metricsKey: keyof TaxChartMetrics;
-  emitAsComputedRow: boolean;
   valueKind: ChartMetricValueKind;
   /** Optional display id → chart key (see VISUALIZATION_METRIC_ID_TO_CHART_KEY). */
   visualizationSourceId?: string;
@@ -665,17 +718,28 @@ export type ChartMetricRegistryEntry = {
   compute: (ctx: ChartMetricComputeContext) => number | TaxSegment[] | DeductionKind;
 };
 
+/** @deprecated Use {@link ChartRegistryEntry} */
+export type ChartMetricRegistryEntry = ChartRegistryEntry;
+
 /**
- * Ordered: this array order is the single source for resolve and pipeline serialization.
+ * Ordered: single source for pipeline metrics, Sankey structural nodes, resolve order, and serialization.
  *
  * Each `compute` calls `accrete*` helpers and reads {@link ChartMetricComputeContext.accreted}.
  */
-export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
+export const CHART_REGISTRY: readonly ChartRegistryEntry[] = [
   {
     metricsKey: "totalIncome",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "total-income",
+    sankey: {
+      structuralNode: {
+        kind: "incomeSource",
+        order: 0,
+        column: 0,
+        fill: "var(--sankey-node-income)",
+        linkStroke: "var(--sankey-link)",
+      },
+    },
     summary: { summaryId: "total-income", label: "Total Income", category: "income", displayOrder: 6 },
     detailedDisplay: {
       order: 105,
@@ -689,27 +753,27 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "wageIncome",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "wages",
+    sankey: { incomeKindVerticalOrder: 3 },
     summary: incomeSummary("wages", 1),
     detailedDisplay: { order: 100, type: "wages", category: "income" },
     compute: (ctx) => accreteIncome(ctx).wageIncome,
   },
   {
     metricsKey: "selfEmploymentIncome",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "selfEmployment",
+    sankey: { incomeKindVerticalOrder: 2 },
     summary: incomeSummary("selfEmployment", 2),
     detailedDisplay: { order: 101, type: "selfemployment", category: "income" },
     compute: (ctx) => accreteIncome(ctx).selfEmploymentIncome,
   },
   {
     metricsKey: "ordinaryGrossIncome",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "ordinary",
+    sankey: { incomeKindVerticalOrder: 4 },
     summary: incomeSummary("ordinary", 3),
     detailedDisplay: { order: 102, type: "ordinary", category: "income" },
     compute: (ctx) => {
@@ -719,34 +783,51 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "shortTermCapGainsGrossIncome",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "shortTermCapGains",
+    sankey: { incomeKindVerticalOrder: 1 },
     summary: incomeSummary("shortTermCapGains", 4),
     detailedDisplay: { order: 103, type: "shorttermcapgains", category: "income" },
     compute: (ctx) => accreteIncome(ctx).shortTermCapGains,
   },
   {
     metricsKey: "longTermCapitalGainsGrossIncome",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "longTermCapGains",
+    sankey: {
+      incomeKindVerticalOrder: 0,
+      structuralNode: {
+        kind: "ltcgDeductionShield",
+        order: 1,
+        column: 1,
+        fill: "var(--sankey-node-ltcg)",
+        linkStroke: "var(--sankey-link)",
+      },
+    },
     summary: incomeSummary("longTermCapGains", 5),
     detailedDisplay: { order: 104, type: "longtermcapgains", category: "income" },
     compute: (ctx) => accreteIncome(ctx).longTermCapGains,
   },
   {
     metricsKey: "preTax401k",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "preTax401k",
+    sankey: {
+      structuralNode: {
+        kind: "deferredSink",
+        order: 16,
+        /** Past pretax bars + shield so d3-sankey layers stay strictly income → pretax → shield → deferred (not same layer as {@link preTaxTotal} pretaxContribution). */
+        column: 4,
+        fill: "var(--sankey-node-deferred)",
+        linkStroke: "var(--sankey-link-deferred)",
+      },
+    },
     summary: pretaxSummaryRow(PRETAX_BENEFIT_CONFIGS[0], 7),
     detailedDisplay: { order: 106, type: "401k", category: "pretax" },
     compute: (ctx) => accretePretax(ctx)["401k"],
   },
   {
     metricsKey: "preTaxHsa",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "preTaxHsa",
     summary: pretaxSummaryRow(PRETAX_BENEFIT_CONFIGS[1], 8),
@@ -755,7 +836,6 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "preTaxOther",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "preTaxOther",
     summary: pretaxSummaryRow(PRETAX_BENEFIT_CONFIGS[3], 10),
@@ -764,9 +844,17 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "preTaxTotal",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "preTaxTotal",
+    sankey: {
+      structuralNode: {
+        kind: "pretaxContribution",
+        order: 6,
+        column: 2,
+        fill: "var(--sankey-node-keep)",
+        linkStroke: "var(--sankey-link)",
+      },
+    },
     detailedDisplay: {
       order: 110,
       type: "total-pretax",
@@ -779,7 +867,6 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "traditionalIra",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "traditionalIra",
     summary: pretaxSummaryRow(PRETAX_BENEFIT_CONFIGS[2], 9),
@@ -788,9 +875,19 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "wagesAfterPretax",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "wages-after-pretax",
+    sankey: {
+      structuralNode: {
+        kind: "deductionBenefitSink",
+        order: 11,
+        column: 2,
+        fill: "var(--sankey-node-keep)",
+        linkStroke: "var(--sankey-link-keep)",
+        fillBenefitAccounting: "var(--sankey-node-deferred)",
+        linkStrokeBenefitAccounting: "var(--sankey-link-deferred)",
+      },
+    },
     summary: {
       summaryId: "wages-after-pretax",
       label: "Wages After Pre-tax",
@@ -806,26 +903,41 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
     },
     compute: (ctx) => accretePretax(ctx).wagesAfterPretax,
   },
-  {
-    metricsKey: "deductionKind",
-    emitAsComputedRow: false,
-    valueKind: "deductionKind",
-    compute: (ctx) => accreteDeduction(ctx).kind,
-  },
+  // {
+  //   metricsKey: "deductionKind",
+  //   valueKind: "deductionKind",
+  //   compute: (ctx) => accreteDeduction(ctx).kind,
+  // },
   {
     metricsKey: "standardDeduction",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "standard-deduction",
+    sankey: {
+      structuralNode: {
+        kind: "standardDeduction",
+        order: 4,
+        column: 1,
+        fill: "var(--sankey-node-2)",
+        linkStroke: "var(--sankey-link)",
+      },
+    },
     summary: { summaryId: "standard-deduction", label: "Standard Deduction", category: "deduction", displayOrder: 12 },
     detailedDisplay: { order: 112, type: "standard-deduction", category: "deduction" },
     compute: (ctx) => accreteDeduction(ctx).standardDeduction,
   },
   {
     metricsKey: "deductionAmount",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "deduction-amount",
+    sankey: {
+      structuralNode: {
+        kind: "deduction",
+        order: 5,
+        column: 1,
+        fill: "var(--sankey-node-2)",
+        linkStroke: "var(--sankey-link)",
+      },
+    },
     mekko: { role: "deduction", usesSegments: false },
     summary: { summaryId: "deduction-amount", label: "Deduction Used", category: "deduction", displayOrder: 13 },
     detailedDisplay: {
@@ -839,21 +951,36 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "deductionAllocatedToOrdinary",
-    emitAsComputedRow: true,
     valueKind: "number",
     compute: () => 0,
   },
   {
     metricsKey: "deductionAllocatedToLongTermGross",
-    emitAsComputedRow: true,
     valueKind: "number",
     compute: () => 0,
   },
   {
     metricsKey: "ordinaryTaxableIncome",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "ordinary-taxable-income",
+    sankey: {
+      structuralNodes: [
+        {
+          kind: "ordinaryTaxableIncome",
+          order: 3,
+          column: 1,
+          fill: "var(--sankey-node-3)",
+          linkStroke: "var(--sankey-link)",
+        },
+        {
+          kind: "payrollOrdinaryStrip",
+          order: 7,
+          column: 3,
+          fill: "var(--sankey-node-deferred)",
+          linkStroke: "var(--sankey-link-deferred)",
+        },
+      ],
+    },
     summary: { summaryId: "ordinary-taxable-income", label: "Ordinary Taxable", category: "income", displayOrder: 14 },
     detailedDisplay: {
       order: 114,
@@ -865,9 +992,17 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "longTermTaxableIncome",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "long-term-taxable-income",
+    sankey: {
+      structuralNode: {
+        kind: "longTermTaxableIncome",
+        order: 2,
+        column: 1,
+        fill: "var(--sankey-node-ltcg)",
+        linkStroke: "var(--sankey-link)",
+      },
+    },
     summary: { summaryId: "long-term-taxable-income", label: "LTCG Taxable", category: "income", displayOrder: 15 },
     detailedDisplay: {
       order: 115,
@@ -879,33 +1014,54 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "taxableIncome",
-    emitAsComputedRow: true,
     valueKind: "number",
+    sankey: {
+      structuralNode: {
+        kind: "deductionShield",
+        order: 10,
+        /** One step right of pretax middle bars so shield is not the same layer as {@link preTaxTotal} pretaxContribution. */
+        column: 3,
+        fill: "var(--sankey-node-5)",
+        linkStroke: "var(--sankey-link)",
+      },
+    },
     compute: (ctx) =>
       accreteFederalOrdinary(ctx).ordinaryTaxableIncome + accreteFederalLtcg(ctx).longTermTaxableIncome,
   },
   {
     metricsKey: "ordinaryFederalSegments",
-    emitAsComputedRow: false,
     valueKind: "segments",
     sankey: {
       sankeyNodeKind: "ordinaryBracket",
       chartCategory: "tax",
       phase: "brackets",
       append: appendOrdinaryBracketSankey,
+      structuralNode: {
+        kind: "ordinaryBracket",
+        order: 9,
+        column: 3,
+        fill: "var(--sankey-node-4)",
+        linkStroke: "var(--sankey-link)",
+      },
     },
     mekko: { role: "ordinaryBracket", usesSegments: true },
     compute: (ctx) => accreteFederalOrdinary(ctx).segments,
   },
   {
     metricsKey: "longTermCapitalGainsSegments",
-    emitAsComputedRow: false,
     valueKind: "segments",
     sankey: {
       sankeyNodeKind: "ltcgBracket",
       chartCategory: "tax",
       phase: "brackets",
       append: appendLtcgBracketSankey,
+      structuralNode: {
+        kind: "ltcgBracket",
+        order: 8,
+        column: 3,
+        fill: "var(--sankey-node-ltcg)",
+        linkStroke: "var(--sankey-link)",
+      },
     },
     mekko: { role: "ltcgBracket", usesSegments: true },
     compute: (ctx) =>
@@ -919,7 +1075,6 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "federalOrdinaryIncomeTax",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "federal-ordinary-tax",
     sankey: { sankeyNodeKind: "ordinaryBracket", chartCategory: "tax" },
@@ -935,7 +1090,6 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "federalLongTermCapGainsTax",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "federal-ltcg-tax",
     sankey: { sankeyNodeKind: "ltcgBracket", chartCategory: "tax" },
@@ -951,7 +1105,6 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "federalNetInvestmentIncomeTax",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "federal-niit",
     summary: { summaryId: "federal-niit", label: "Net Investment Income Tax", category: "tax", displayOrder: 18 },
@@ -966,13 +1119,11 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "netInvestmentIncome",
-    emitAsComputedRow: true,
     valueKind: "number",
     compute: (ctx) => accreteNiit(ctx).netInvestmentIncome,
   },
   {
     metricsKey: "federalIncomeTaxBeforeCredits",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "federal-income-tax-before-credits",
     summary: {
@@ -993,22 +1144,38 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "federalTaxCredits",
-    emitAsComputedRow: true,
     valueKind: "number",
     compute: (ctx) => accreteTaxCredits(ctx).creditsEntered,
   },
   {
     metricsKey: "federalTaxCreditsApplied",
-    emitAsComputedRow: true,
     valueKind: "number",
-    sankey: { sankeyNodeKind: "federalCredits", chartCategory: "tax" },
+    sankey: {
+      sankeyNodeKind: "federalCredits",
+      chartCategory: "tax",
+      structuralNode: {
+        kind: "federalCredits",
+        order: 14,
+        column: 4,
+        fill: "var(--sankey-node-credits)",
+        linkStroke: "var(--sankey-link-credits)",
+      },
+    },
     compute: (ctx) => accreteTaxCredits(ctx).creditsApplied,
   },
   {
     metricsKey: "federalIncomeTax",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "federal-income-tax",
+    sankey: {
+      structuralNode: {
+        kind: "taxesFederal",
+        order: 13,
+        column: 4,
+        fill: "var(--sankey-node-6)",
+        linkStroke: "var(--sankey-link-tax)",
+      },
+    },
     summary: { summaryId: "federal-income-tax", label: "Federal Income Tax", category: "tax", displayOrder: 19 },
     detailedDisplay: {
       order: 120,
@@ -1023,11 +1190,20 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "payrollTax",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "payroll-tax",
-    sankey: { sankeyNodeKind: "taxesPayroll", chartCategory: "tax" },
-    summary: { summaryId: "payroll-tax", label: "Payroll Taxes", category: "tax", displayOrder: 27 },
+    sankey: {
+      sankeyNodeKind: "taxesPayroll",
+      chartCategory: "tax",
+      structuralNode: {
+        kind: "taxesPayroll",
+        order: 12,
+        column: 4,
+        fill: "var(--sankey-node-6)",
+        linkStroke: "var(--sankey-link-tax)",
+      },
+    },
+    summary: { summaryId: "payroll-tax", label: "Payroll Taxes", category: "tax", displayOrder: 28 },
     detailedDisplay: {
       order: 123,
       type: "payroll-tax",
@@ -1040,13 +1216,31 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "selfEmploymentTax",
-    emitAsComputedRow: true,
     valueKind: "number",
+    visualizationSourceId: "self-employment-tax",
+    sankey: {
+      sankeyNodeKind: "taxesPayroll",
+      chartCategory: "tax",
+    },
+    summary: {
+      summaryId: "self-employment-tax",
+      label: "Self-Employment Tax",
+      category: "tax",
+      displayOrder: 27,
+      showWhen: (m) => m.selfEmploymentTax > 0,
+    },
+    detailedDisplay: {
+      order: 123,
+      type: "self-employment-tax",
+      category: "tax",
+      label: "Self-Employment Tax",
+      tooltip: "Social Security and Medicare on net self-employment earnings (SECA)",
+      color: "#1d4ed8",
+    },
     compute: (ctx) => accreteSelfEmployment(ctx).amount,
   },
   {
     metricsKey: "socialSecurityTax",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "social-security-tax",
     summary: { summaryId: "social-security-tax", label: "Social Security Tax", category: "tax", displayOrder: 25 },
@@ -1055,7 +1249,6 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "medicareTax",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "medicare-tax",
     summary: { summaryId: "medicare-tax", label: "Medicare Tax", category: "tax", displayOrder: 26 },
@@ -1064,15 +1257,24 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "takeHomePay",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "take-home-pay",
-    sankey: { sankeyNodeKind: "keep", chartCategory: "keep" },
+    sankey: {
+      sankeyNodeKind: "keep",
+      chartCategory: "keep",
+      structuralNode: {
+        kind: "keep",
+        order: 15,
+        column: 4,
+        fill: "var(--sankey-node-keep)",
+        linkStroke: "var(--sankey-link-keep)",
+      },
+    },
     summary: {
       summaryId: "take-home-pay",
       label: "Take-Home Pay",
       category: "takehome",
-      displayOrder: 28,
+      displayOrder: 29,
       highlight: true,
     },
     detailedDisplay: {
@@ -1087,14 +1289,13 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "effectiveTaxRate",
-    emitAsComputedRow: true,
     valueKind: "number",
     visualizationSourceId: "effective-rate",
     summary: {
       summaryId: "effective-rate",
       label: "Effective Tax Rate",
       category: "rate",
-      displayOrder: 29,
+      displayOrder: 30,
       format: "percent",
       highlight: true,
     },
@@ -1112,7 +1313,6 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "childTaxCredit",
-    emitAsComputedRow: false,
     valueKind: "number",
     summary: federalCreditSummary(FEDERAL_CREDIT_CONFIGS[0], 21),
     detailedDisplay: {
@@ -1126,7 +1326,6 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "educationCredits",
-    emitAsComputedRow: false,
     valueKind: "number",
     summary: federalCreditSummary(FEDERAL_CREDIT_CONFIGS[1], 22),
     detailedDisplay: {
@@ -1140,7 +1339,6 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "retirementSavings",
-    emitAsComputedRow: false,
     valueKind: "number",
     summary: federalCreditSummary(FEDERAL_CREDIT_CONFIGS[2], 23),
     detailedDisplay: {
@@ -1154,7 +1352,6 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "federalCreditOther",
-    emitAsComputedRow: false,
     valueKind: "number",
     summary: federalCreditSummary(FEDERAL_CREDIT_CONFIGS[3], 24),
     detailedDisplay: {
@@ -1168,13 +1365,12 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
   {
     metricsKey: "marginalFederalRate",
-    emitAsComputedRow: false,
     valueKind: "number",
     summary: {
       summaryId: "marginal-rate",
       label: "Marginal Rate",
       category: "rate",
-      displayOrder: 30,
+      displayOrder: 31,
       format: "percent",
     },
     detailedDisplay: {
@@ -1190,15 +1386,79 @@ export const CHART_METRICS_REGISTRY: readonly ChartMetricRegistryEntry[] = [
   },
 ];
 
+/** Sankey income-column order: registry rows with `sankey.incomeKindVerticalOrder` and income `visualizationSourceId`. */
+function buildIncomeKindSankeyOrderFromRegistry(): readonly { kind: IncomeKind; order: number }[] {
+  const rows: { kind: IncomeKind; order: number }[] = [];
+  for (const e of CHART_REGISTRY) {
+    const o = e.sankey?.incomeKindVerticalOrder;
+    if (e.visualizationSourceId != null && typeof o === "number") {
+      rows.push({ kind: e.visualizationSourceId as IncomeKind, order: o });
+    }
+  }
+  rows.sort((a, b) => a.order - b.order);
+  return rows;
+}
+
+export const INCOME_KIND_SANKEY_ORDER = buildIncomeKindSankeyOrderFromRegistry();
+
+export const INCOME_KIND_CHART_ORDER_BY_KIND = Object.fromEntries(
+  INCOME_KIND_SANKEY_ORDER.map((k) => [k.kind, k.order]),
+) as Record<IncomeKind, number>;
+
+/** Element shape of {@link INCOME_KIND_SANKEY_ORDER}. */
+export type SankeyOrderKind = {
+  kind: IncomeKind | string;
+  order: number;
+};
+
+function collectStructuralNodesFromRegistry(registry: readonly ChartRegistryEntry[]): SankeyNodeLayoutEntry[] {
+  const byKind = new Map<string, SankeyNodeLayoutEntry>();
+  for (const e of registry) {
+    const s = e.sankey;
+    if (!s) continue;
+    const nodes: SankeyNodeLayoutEntry[] = [];
+    if (s.structuralNode) nodes.push(s.structuralNode);
+    if (s.structuralNodes) nodes.push(...s.structuralNodes);
+    for (const n of nodes) {
+      if (!byKind.has(n.kind)) {
+        byKind.set(n.kind, n);
+      }
+    }
+  }
+  return [...byKind.values()].sort((a, b) => a.order - b.order);
+}
+
+/** Derived from `sankey.structuralNode(s)` on {@link CHART_REGISTRY} rows. */
+export const SANKEY_NODE_LAYOUT: readonly SankeyNodeLayoutEntry[] = collectStructuralNodesFromRegistry(CHART_REGISTRY);
+
+/** Fallback when a node kind is not listed (e.g. future kinds). */
+export const SANKEY_NODE_FILL_DEFAULT = "var(--sankey-node-7)";
+export const SANKEY_LINK_STROKE_DEFAULT = "var(--sankey-link)";
+
+/** Highest semantic column index in {@link SANKEY_NODE_LAYOUT} (inclusive). */
+export const SANKEY_VISUAL_SEMANTIC_MAX = Math.max(0, ...SANKEY_NODE_LAYOUT.map((e) => e.column));
+
+export const SANKEY_NODE_KIND_CHART_ORDER: Record<string, number> = Object.fromEntries(
+  SANKEY_NODE_LAYOUT.map((k) => [k.kind, k.order]),
+);
+
+export const SANKEY_VISUAL_COLUMN_BY_KIND: Record<string, number> = Object.fromEntries(
+  SANKEY_NODE_LAYOUT.map((k) => [k.kind, k.column]),
+);
+
+export const SANKEY_NODE_STYLE_BY_KIND: Record<string, SankeyNodeLayoutEntry> = Object.fromEntries(
+  SANKEY_NODE_LAYOUT.map((e) => [e.kind, e]),
+);
+
 /** Keys in resolve / `TAX_CHART_METRICS_KEYS` order. */
-export const TAX_CHART_METRICS_KEYS_FROM_REGISTRY = CHART_METRICS_REGISTRY.map((e) => e.metricsKey);
+export const TAX_CHART_METRICS_KEYS_FROM_REGISTRY = CHART_REGISTRY.map((e) => e.metricsKey);
 
 export const SEGMENT_METRIC_KEYS_FROM_REGISTRY = new Set(
-  CHART_METRICS_REGISTRY.filter((e) => e.valueKind === "segments").map((e) => e.metricsKey),
+  CHART_REGISTRY.filter((e) => e.valueKind === "segments").map((e) => e.metricsKey),
 );
 
 /** Pipeline serialization order (matches registry array order). */
-export const PIPELINE_COMPUTED_ROW_ORDER_FULL_FROM_REGISTRY = CHART_METRICS_REGISTRY.map((e) => e.metricsKey);
+export const PIPELINE_COMPUTED_ROW_ORDER_FULL_FROM_REGISTRY = CHART_REGISTRY.map((e) => e.metricsKey);
 
 /** Fold metric lines into the record shape used by charts (single adapter). */
 export function taxMetricsRecordFromLines(lines: readonly TaxMetricLine[]): TaxChartMetrics {
@@ -1210,7 +1470,7 @@ export function taxMetricsRecordFromLines(lines: readonly TaxMetricLine[]): TaxC
 }
 
 /**
- * Single driver: builds {@link TaxMetricLine}[] by iterating {@link CHART_METRICS_REGISTRY} in order. Each `compute`
+ * Single driver: builds {@link TaxMetricLine}[] by iterating {@link CHART_REGISTRY} in order. Each `compute`
  * fills {@link ChartMetricComputeContext.accreted} via `accrete*` helpers and returns the metric value. Produces
  * {@link TaxChartMetrics} via {@link taxMetricsRecordFromLines}.
  */
@@ -1220,12 +1480,11 @@ export function computeTaxMetricLines(
   config: TaxYearConfig,
 ): TaxMetricLine[] {
   const ctx = buildChartMetricComputeContext(formRows, inputs, config);
-  return CHART_METRICS_REGISTRY.map((entry) => ({
+  return CHART_REGISTRY.map((entry) => ({
     id: entry.visualizationSourceId ?? String(entry.metricsKey),
     metricsKey: entry.metricsKey,
     valueKind: entry.valueKind,
     value: entry.compute(ctx) as TaxMetricComputedValue,
-    emitAsComputedRow: entry.emitAsComputedRow,
   }));
 }
 
@@ -1241,7 +1500,7 @@ export function computeTaxChartMetricsFromRegistry(
 /** Build VISUALIZATION_METRIC_ID_TO_CHART_KEY from registry `visualizationSourceId` fields. */
 export function buildVisualizationMetricIdToChartKey(): Partial<Record<string, keyof TaxChartMetrics>> {
   const out: Partial<Record<string, keyof TaxChartMetrics>> = {};
-  for (const e of CHART_METRICS_REGISTRY) {
+  for (const e of CHART_REGISTRY) {
     if (e.visualizationSourceId) {
       out[e.visualizationSourceId] = e.metricsKey;
     }
@@ -1250,11 +1509,11 @@ export function buildVisualizationMetricIdToChartKey(): Partial<Record<string, k
 }
 
 /** Stable keys for segment arrays (from registry; use instead of string literals in charts). */
-const METRIC_KEY_ORDINARY_FEDERAL_SEGMENTS = CHART_METRICS_REGISTRY.find(
+const METRIC_KEY_ORDINARY_FEDERAL_SEGMENTS = CHART_REGISTRY.find(
   (e) => e.metricsKey === "ordinaryFederalSegments",
 )!.metricsKey;
 
-const METRIC_KEY_LONG_TERM_CAPGAINS_SEGMENTS = CHART_METRICS_REGISTRY.find(
+const METRIC_KEY_LONG_TERM_CAPGAINS_SEGMENTS = CHART_REGISTRY.find(
   (e) => e.metricsKey === "longTermCapitalGainsSegments",
 )!.metricsKey;
 
@@ -1285,7 +1544,7 @@ function chartMetricNumericForDisplay(m: TaxChartMetrics, key: keyof TaxChartMet
 
 /** Detailed breakdown rows from registry `detailedDisplay` metadata. */
 function buildDisplayItemsConfig(): DisplayItemConfig[] {
-  return CHART_METRICS_REGISTRY.filter((e) => e.detailedDisplay != null)
+  return CHART_REGISTRY.filter((e) => e.detailedDisplay != null)
     .map((e) => {
       const d = e.detailedDisplay!;
       const label = d.label ?? e.summary?.label ?? String(e.metricsKey);

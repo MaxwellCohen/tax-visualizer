@@ -3,7 +3,7 @@ import {
   SANKEY_LINK_STROKE_DEFAULT,
   SANKEY_NODE_FILL_DEFAULT,
   SANKEY_NODE_STYLE_BY_KIND,
-} from "~/lib/config/sankeyOrder.config";
+} from "~/lib/config/chartMetricsRegistry";
 
 export function linkStroke(targetNode: ChartNode): string {
   const row = SANKEY_NODE_STYLE_BY_KIND[targetNode.kind];

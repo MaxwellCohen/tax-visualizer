@@ -1,8 +1,8 @@
-import type { DeductionKind } from "~/lib/taxCalc.types";
+import type { DeductionKind, TaxSegment } from "~/lib/taxCalc.types";
 import { taxMetricsRecordFromLines } from "~/lib/config/chartMetricsRegistry";
 import { SEGMENT_METADATA_ROW_IDS, TAX_CHART_METRICS_KEYS } from "~/lib/config/pipelineTaxResult.config";
 import type { TaxChartMetrics, TaxComputedRow, TaxResult, TaxResultRow } from "~/lib/taxForm.types";
-import { isComputedRow } from "~/lib/taxForm.types";
+import { isComputedRow, isComputedSegmentRow } from "~/lib/taxForm.types";
 
 function deductionKindFromRows(rows: TaxResultRow[]): DeductionKind {
   for (const r of rows) {
@@ -16,10 +16,13 @@ function deductionKindFromRows(rows: TaxResultRow[]): DeductionKind {
 /** Reconstructs {@link TaxChartMetrics} from {@link TaxResult.rows} when `metricLines` is absent. */
 function chartMetricsFromComputedRowsOnly(result: TaxResult): TaxChartMetrics {
   const rows = result.rows;
-  const byId = new Map<string, TaxComputedRow>();
+  const numericById = new Map<string, TaxComputedRow>();
+  const segmentsById = new Map<string, TaxSegment[]>();
   for (const row of rows) {
     if (isComputedRow(row)) {
-      byId.set(row.id, row);
+      numericById.set(row.id, row);
+    } else if (isComputedSegmentRow(row)) {
+      segmentsById.set(row.id, row.segments);
     }
   }
 
@@ -31,13 +34,13 @@ function chartMetricsFromComputedRowsOnly(result: TaxResult): TaxChartMetrics {
       (out as Record<string, unknown>)[key] = deductionKind;
       continue;
     }
-    const row = byId.get(key);
+    if (SEGMENT_METADATA_ROW_IDS.has(key)) {
+      (out as Record<string, unknown>)[key] = segmentsById.get(key) ?? [];
+      continue;
+    }
+    const row = numericById.get(key);
     if (!row) {
-      if (SEGMENT_METADATA_ROW_IDS.has(key)) {
-        (out as Record<string, unknown>)[key] = [];
-      } else {
-        (out as Record<string, unknown>)[key] = 0;
-      }
+      (out as Record<string, unknown>)[key] = 0;
       continue;
     }
     (out as Record<string, unknown>)[key] =
@@ -48,7 +51,7 @@ function chartMetricsFromComputedRowsOnly(result: TaxResult): TaxChartMetrics {
 
 /**
  * Chart metrics for display. Prefer {@link TaxResult.metricLines}; otherwise reconstruct from computed rows
- * (segments will be empty).
+ * (including segment rows when present).
  */
 export function resolveTaxChartMetrics(result: TaxResult): TaxChartMetrics {
   if (result.metricLines?.length) {

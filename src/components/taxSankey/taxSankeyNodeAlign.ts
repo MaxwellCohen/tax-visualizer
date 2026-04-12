@@ -3,7 +3,7 @@ import type { ChartNode } from "~/components/taxSankey/chartTypes";
 import {
   SANKEY_VISUAL_COLUMN_BY_KIND,
   SANKEY_VISUAL_SEMANTIC_MAX,
-} from "~/lib/config/sankeyOrder.config";
+} from "~/lib/config/chartMetricsRegistry";
 
 function semanticColumnToLayer(semantic: number, n: number): number {
   if (n <= 1) return 0;

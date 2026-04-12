@@ -12,6 +12,7 @@ export type {
   TaxResultMekkoDisplay,
   TaxChartMetrics,
   TaxComputedRow,
+  TaxComputedSegmentRow,
   TaxResultRow,
   TaxMetricLine,
   TaxMetricValueKind,
@@ -44,6 +45,7 @@ export {
   computeTaxChartMetrics,
   metricsToComputedRows,
 } from "~/lib/taxCalc.pipeline";
+export type { TaxSerializedPipelineRow } from "~/lib/taxCalc.pipeline";
 export { resolveTaxChartMetrics } from "~/lib/taxResult.resolve";
 export {
   buildDisplayItems,

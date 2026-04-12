@@ -1,6 +1,29 @@
 import type { ChartNode } from "~/components/taxSankey/chartTypes";
 import { SANKEY_SIBLING_RANK } from "~/components/taxSankey/sankeySiblingRank.constants";
-import { INCOME_KIND_CHART_ORDER_BY_KIND } from "~/lib/config/sankeyOrder.config";
+import { INCOME_KIND_CHART_ORDER_BY_KIND } from "~/lib/config/chartMetricsRegistry";
+
+/** Lower = higher on chart. 401(k) middle + deferred sinks last (bottom) among payroll pre-tax ribbons. */
+const PRETAX_MIDDLE_VERTICAL_RANK: Record<string, number> = {
+  "pretax-hsa": 0,
+  "pretax-other": 1,
+  "pretax-ira": 2,
+  "pretax-401k": 3,
+};
+
+const DEFERRED_SINK_VERTICAL_RANK: Record<string, number> = {
+  "deferred-hsa": 0,
+  "deferred-other": 1,
+  "deferred-ira": 2,
+  "deferred-401k": 3,
+};
+
+function comparePretaxContributionSiblings(a: ChartNode, b: ChartNode): number | null {
+  if (a.kind !== "pretaxContribution" || b.kind !== "pretaxContribution") return null;
+  const ra = PRETAX_MIDDLE_VERTICAL_RANK[a.id];
+  const rb = PRETAX_MIDDLE_VERTICAL_RANK[b.id];
+  if (ra !== undefined && rb !== undefined) return ra - rb;
+  return a.label.localeCompare(b.label);
+}
 
 function compareOrdinaryVsLongTermTaxable(a: ChartNode, b: ChartNode): number | null {
   if (a.kind === "ordinaryTaxableIncome" && b.kind === "longTermTaxableIncome") return 1;
@@ -37,6 +60,9 @@ function compareLtcgBracketSiblings(a: ChartNode, b: ChartNode): number | null {
 
 function compareDeferredSinkSiblings(a: ChartNode, b: ChartNode): number | null {
   if (a.kind !== "deferredSink" || b.kind !== "deferredSink") return null;
+  const ra = DEFERRED_SINK_VERTICAL_RANK[a.id];
+  const rb = DEFERRED_SINK_VERTICAL_RANK[b.id];
+  if (ra !== undefined && rb !== undefined) return ra - rb;
   return a.label.localeCompare(b.label);
 }
 
@@ -81,6 +107,9 @@ export function compareSankeySiblings(a: ChartNode, b: ChartNode): number {
 
   const ltcg = compareLtcgBracketSiblings(a, b);
   if (ltcg !== null) return ltcg;
+
+  const pretaxMid = comparePretaxContributionSiblings(a, b);
+  if (pretaxMid !== null) return pretaxMid;
 
   const def = compareDeferredSinkSiblings(a, b);
   if (def !== null) return def;

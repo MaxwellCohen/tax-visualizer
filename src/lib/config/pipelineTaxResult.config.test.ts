@@ -1,33 +1,43 @@
 import { describe, expect, it } from "vitest";
-import { CHART_METRICS_REGISTRY } from "~/lib/config/chartMetricsRegistry";
-import {
-  CHART_METRICS_NOT_EMITTED_AS_COMPUTED_ROWS,
-  PIPELINE_COMPUTED_ROW_ORDER,
-  TAX_CHART_METRICS_KEYS,
-} from "~/lib/config/pipelineTaxResult.config";
+import { CHART_REGISTRY, computeTaxMetricLines } from "~/lib/config/chartMetricsRegistry";
+import { PIPELINE_COMPUTED_ROW_ORDER, TAX_CHART_METRICS_KEYS } from "~/lib/config/pipelineTaxResult.config";
+import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
+import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
+import { getTaxYearConfig } from "~/lib/taxData";
 
 describe("pipelineTaxResult.config", () => {
   it("TAX_CHART_METRICS_KEYS matches the chart metrics registry (unique, full list)", () => {
     const keys = new Set<string>(TAX_CHART_METRICS_KEYS);
     expect(keys.size).toBe(TAX_CHART_METRICS_KEYS.length);
-    expect(TAX_CHART_METRICS_KEYS.length).toBe(CHART_METRICS_REGISTRY.length);
+    expect(TAX_CHART_METRICS_KEYS.length).toBe(CHART_REGISTRY.length);
     for (let i = 0; i < TAX_CHART_METRICS_KEYS.length; i++) {
-      expect(TAX_CHART_METRICS_KEYS[i]).toBe(CHART_METRICS_REGISTRY[i]!.metricsKey);
+      expect(TAX_CHART_METRICS_KEYS[i]).toBe(CHART_REGISTRY[i]!.metricsKey);
     }
   });
 
-  it("computed row order is chart keys minus non-row metrics", () => {
-    expect(PIPELINE_COMPUTED_ROW_ORDER.length).toBe(
-      TAX_CHART_METRICS_KEYS.length - CHART_METRICS_NOT_EMITTED_AS_COMPUTED_ROWS.size,
-    );
-    const chartSet = new Set<string>(TAX_CHART_METRICS_KEYS);
-    const rowSet = new Set<string>(PIPELINE_COMPUTED_ROW_ORDER);
-    for (const k of CHART_METRICS_NOT_EMITTED_AS_COMPUTED_ROWS) {
-      expect(chartSet.has(k)).toBe(true);
-      expect(rowSet.has(k)).toBe(false);
+  it("pipeline computed row order lists every chart metric key in registry order", () => {
+    expect(PIPELINE_COMPUTED_ROW_ORDER.length).toBe(TAX_CHART_METRICS_KEYS.length);
+    for (let i = 0; i < TAX_CHART_METRICS_KEYS.length; i++) {
+      expect(PIPELINE_COMPUTED_ROW_ORDER[i]).toBe(TAX_CHART_METRICS_KEYS[i]);
     }
-    for (const k of PIPELINE_COMPUTED_ROW_ORDER) {
-      expect(chartSet.has(k)).toBe(true);
-    }
+  });
+
+  it("aggregates pre-tax rows using full PretaxBenefitKind strings (401(k) and traditional IRA)", () => {
+    const data = baseInput({
+      pretaxRows: [
+        ...withPretaxTotals({ preTax401kSpouse1: 10_000 }),
+        ...withPretaxTotals({ traditionalIraSpouse1: 3_000 }),
+      ],
+    });
+    const inputs = rowsToTaxCalculationInputs(data.rows);
+    const config = getTaxYearConfig(2025);
+    expect(config).toBeDefined();
+    const lines = computeTaxMetricLines(data.rows, inputs, config!);
+    const preTax401k = lines.find((l) => l.metricsKey === "preTax401k")?.value as number;
+    const traditionalIra = lines.find((l) => l.metricsKey === "traditionalIra")?.value as number;
+    const preTaxTotal = lines.find((l) => l.metricsKey === "preTaxTotal")?.value as number;
+    expect(preTax401k).toBe(10_000);
+    expect(traditionalIra).toBe(3_000);
+    expect(preTaxTotal).toBe(10_000);
   });
 });

@@ -21,7 +21,7 @@ export {
   SANKEY_VISUAL_COLUMN_BY_KIND,
   SANKEY_VISUAL_SEMANTIC_MAX,
   type SankeyNodeLayoutEntry,
-} from "~/lib/config/sankeyOrder.config";
+} from "~/lib/config/chartMetricsRegistry";
 export type {
   DeductionBenefitSinkRole,
   MekkoRow,

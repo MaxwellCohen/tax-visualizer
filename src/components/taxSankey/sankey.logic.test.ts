@@ -84,10 +84,24 @@ describe("compareSankeySiblings", () => {
     expect(compareSankeySiblings(a, b)).toBeGreaterThan(0);
   });
 
-  it("orders deferredSink by label", () => {
+  it("orders deferredSink by label when ids are unknown", () => {
     const a = N({ id: "a", kind: "deferredSink", label: "B" });
     const b = N({ id: "b", kind: "deferredSink", label: "A" });
     expect(compareSankeySiblings(a, b)).toBeGreaterThan(0);
+  });
+
+  it("places 401(k) deferred sink below HSA by stable id order", () => {
+    const k = N({ id: "deferred-401k", kind: "deferredSink", label: "401(k) deferred" });
+    const h = N({ id: "deferred-hsa", kind: "deferredSink", label: "HSA deferred" });
+    expect(compareSankeySiblings(h, k)).toBeLessThan(0);
+    expect(compareSankeySiblings(k, h)).toBeGreaterThan(0);
+  });
+
+  it("places pretax-401k middle bar below HSA by stable id order", () => {
+    const k = N({ id: "pretax-401k", kind: "pretaxContribution", label: "401(k)" });
+    const h = N({ id: "pretax-hsa", kind: "pretaxContribution", label: "HSA" });
+    expect(compareSankeySiblings(h, k)).toBeLessThan(0);
+    expect(compareSankeySiblings(k, h)).toBeGreaterThan(0);
   });
 
   it("incomeSource falls back to label when kind order ties", () => {

@@ -1,8 +1,3 @@
-import type { IncomeKind } from "~/lib/taxCalc.types";
-import { INCOME_KIND_CHART_ORDER_BY_KIND } from "~/lib/config/sankeyOrder.config";
-
-{ INCOME_KIND_CHART_ORDER_BY_KIND };
-
 export const SANKEY_IDS = {
   ordinaryTaxableIncome: "ordinary-taxable-income",
   /** Sibling of ordinary rate brackets: payroll tax (FICA) attributed to ordinary taxable income. */

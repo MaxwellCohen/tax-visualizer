@@ -1,7 +1,7 @@
 /**
  * Single registration point for Sankey build order: gross → taxable → deduction/pretax → brackets → tax/keep.
  * Each phase runs the corresponding `taxCharts.sankeyPhase*` helper, then {@link runSankeyRegistryAppendersForPhase}
- * for registry rows with matching `sankey.phase` (see CHART_METRICS_REGISTRY).
+ * for registry rows with matching `sankey.phase` (see CHART_REGISTRY).
  */
 import type { TaxChartMetrics } from "~/lib/taxForm.types";
 import type { TaxResult } from "~/lib/taxForm.types";
