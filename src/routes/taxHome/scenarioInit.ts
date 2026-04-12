@@ -1,31 +1,17 @@
 import {
-  emptyAggregatedPretax,
-  newFederalTaxCreditSource,
-  newIncomeSource,
-  newItemizedDeductionSource,
-  pretaxScalarsToMinimalSources,
-  type TaxInput,
-} from "~/lib/taxCalc";
-import {
   deserializeScenarioInput,
   serializeScenarioInput,
 } from "~/lib/taxScenario";
+import { fallbackScenario } from "~/lib/taxScenario.sanitizeHelpers";
+import type { TaxFormData } from "~/lib/taxForm.types";
 
-export function starterScenario(taxYear: number): TaxInput {
-  return {
-    taxYear,
-    filingStatus: "single",
-    incomeSources: [newIncomeSource({ kind: "wages", amount: 90_000 })],
-    pretaxBenefitSources: pretaxScalarsToMinimalSources(emptyAggregatedPretax()),
-    useItemizedDeductions: false,
-    itemizedDeductions: [newItemizedDeductionSource()],
-    federalTaxCredits: [newFederalTaxCreditSource()],
-  };
+export function starterScenario(taxYear: number): TaxFormData {
+  return fallbackScenario(taxYear);
 }
 
-export function cloneScenario(input: TaxInput, availableYears: number[], fallbackYear: number): TaxInput {
+export function cloneScenario(input: TaxFormData, availableYears: number[], fallbackYear: number): TaxFormData {
   return (
     deserializeScenarioInput(serializeScenarioInput(input), availableYears, fallbackYear) ??
-    starterScenario(fallbackYear)
+    fallbackScenario(fallbackYear)
   );
 }

@@ -45,20 +45,6 @@ const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
 
-function getValueFromState(state: TaxCalculationState, key: string): number | undefined {
-  for (const item of TAX_ITEM_CALCS) {
-    const result = state.results.get(item.id);
-    if (result) {
-      if (result.amount !== undefined && item.id === key) {
-        return result.amount;
-      }
-      if (result.metadata && key in result.metadata) {
-        return result.metadata[key] as number;
-      }
-    }
-  }
-  return undefined;
-}
 
 function getOutputValue(state: TaxCalculationState, output: TaxItemOutput): number | undefined {
   if (output.key === "totalIncome") {

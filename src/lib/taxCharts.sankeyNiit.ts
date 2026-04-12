@@ -1,19 +1,21 @@
-import type { TaxResult, TaxSegment } from "~/lib/taxCalc";
+import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import type { TaxSegment } from "~/lib/taxCalc.types";
+import { ltcgSegmentKey, ordinarySegmentKey } from "~/lib/taxCharts.sankeySegmentKeys";
 
 /** Split NIIT across bracket slices so Sankey/Mekko tax flows match total federal tax. */
-export function netInvestmentIncomeTaxPerSegment(result: TaxResult): {
+export function netInvestmentIncomeTaxPerSegment(m: TaxChartMetrics): {
   ordinary: Map<string, number>;
   ltcg: Map<string, number>;
 } {
   const ordinary = new Map<string, number>();
   const ltcg = new Map<string, number>();
-  const niit = result.federalNetInvestmentIncomeTax;
-  const nii = result.netInvestmentIncome;
+  const niit = m.federalNetInvestmentIncomeTax;
+  const nii = m.netInvestmentIncome;
   if (niit <= 0 || nii <= 0) {
     return { ordinary, ltcg };
   }
 
-  const stNii = Math.max(0, nii - result.longTermTaxableIncome);
+  const stNii = Math.max(0, nii - m.longTermTaxableIncome);
   const ltNii = nii - stNii;
   const ordinaryPool = niit * (stNii / nii);
   const ltcgPool = niit * (ltNii / nii);
@@ -23,6 +25,7 @@ export function netInvestmentIncomeTaxPerSegment(result: TaxResult): {
     segments: TaxSegment[],
     totalIncome: number,
     into: Map<string, number>,
+    keyOf: (seg: TaxSegment) => string,
   ) => {
     if (pool <= 0 || totalIncome <= 0 || !segments?.length) return;
     let allocated = 0;
@@ -30,11 +33,11 @@ export function netInvestmentIncomeTaxPerSegment(result: TaxResult): {
       const last = i === segments.length - 1;
       const part = last ? Math.max(0, pool - allocated) : Math.round((pool * seg.incomeAmount) / totalIncome);
       allocated += part;
-      into.set(seg.id ?? `seg-${i}`, part);
+      into.set(keyOf(seg), part);
     });
   };
 
-  allocatePool(ordinaryPool, result.ordinaryFederalSegments, result.ordinaryTaxableIncome, ordinary);
-  allocatePool(ltcgPool, result.longTermCapitalGainsSegments, result.longTermTaxableIncome, ltcg);
+  allocatePool(ordinaryPool, m.ordinaryFederalSegments, m.ordinaryTaxableIncome, ordinary, ordinarySegmentKey);
+  allocatePool(ltcgPool, m.longTermCapitalGainsSegments, m.longTermTaxableIncome, ltcg, ltcgSegmentKey);
   return { ordinary, ltcg };
 }

@@ -1,5 +1,6 @@
+import type { Setter } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { calculateTaxes } from "~/lib/taxCalc";
+import { calculateTaxes, rowsToTaxCalculationInputs } from "~/lib/taxCalc";
 import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
 import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import { getScenarioPresets } from "~/lib/taxScenario";
@@ -24,9 +25,9 @@ describe("createTaxHomeHandlers", () => {
     availableYears,
     defaultYear,
     taxInput: () => taxInput,
-    setTaxInput,
+    setTaxInput: setTaxInput as unknown as Setter<typeof taxInput>,
     baselineInput: () => baseline,
-    setBaselineInput,
+    setBaselineInput: setBaselineInput as unknown as Setter<typeof baseline>,
     taxResult: () => calculateTaxes(taxInput),
     showStatus,
   });
@@ -51,7 +52,7 @@ describe("createTaxHomeHandlers", () => {
   });
 
   it("copySummary requires result", async () => {
-    taxInput = { ...baseInput(), taxYear: 1900 };
+    taxInput = baseInput({ taxYear: 1900 });
     const h = createTaxHomeHandlers(ctx());
     await h.copySummary();
     expect(showStatus).toHaveBeenCalledWith(expect.stringContaining("valid"));
@@ -84,7 +85,7 @@ describe("createTaxHomeHandlers", () => {
   });
 
   it("saveBaseline persists to localStorage", () => {
-    taxInput = baseInput({ pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 1_000 }) });
+    taxInput = baseInput({ pretaxRows: withPretaxTotals({ preTax401kSpouse1: 1_000 }) });
     const setItem = vi.fn();
     vi.stubGlobal("window", { localStorage: { setItem, removeItem: vi.fn(), getItem: vi.fn() } });
     createTaxHomeHandlers(ctx()).saveBaseline();
@@ -94,7 +95,7 @@ describe("createTaxHomeHandlers", () => {
 
   it("loadBaseline applies stored scenario", () => {
     taxInput = baseInput();
-    baseline = baseInput({ pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 500 }) });
+    baseline = baseInput({ pretaxRows: withPretaxTotals({ preTax401kSpouse1: 500 }) });
     setTaxInput.mockClear();
     createTaxHomeHandlers(ctx()).loadBaseline();
     expect(setTaxInput).toHaveBeenCalled();
@@ -116,10 +117,12 @@ describe("createTaxHomeHandlers", () => {
   });
 
   it("resetScenario restores starter", () => {
-    taxInput = baseInput({ pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 9_000 }) });
+    taxInput = baseInput({ pretaxRows: withPretaxTotals({ preTax401kSpouse1: 9_000 }) });
     createTaxHomeHandlers(ctx()).resetScenario();
     expect(setTaxInput).toHaveBeenCalled();
     const last = setTaxInput.mock.calls.at(-1)![0];
-    expect(aggregatePretaxFromSources(last.pretaxBenefitSources, false).preTax401kSpouse1).toBe(0);
+    expect(
+      aggregatePretaxFromSources(rowsToTaxCalculationInputs(last.rows).pretaxBenefitSources, false).preTax401kSpouse1,
+    ).toBe(0);
   });
 });

@@ -1,31 +1,50 @@
+import { getFilingStatusFromRows, getTaxYearFromRows } from "~/lib/taxCalc.inputs";
+import type { TaxFormData, TaxFormRow } from "~/lib/taxForm.types";
 import { getTaxYearConfig } from "~/lib/taxData";
-import { clampTaxInputItemizedAndCreditsToLimits } from "~/lib/taxCalc.clampItemizedCredits";
-import type { TaxInput } from "~/lib/taxCalc.types";
-import {
-  aggregatePretaxFromSources,
-  clampAggregatedPretaxToLimits,
-  distributeAggregatedPretaxToSources,
-  filterPretaxSourcesForFiling,
-} from "~/lib/taxCalc.pretaxBenefitSource";
 
-/** Clamps 401(k), HSA, and traditional IRA rows to year limits in `TAX_DATA_BY_YEAR` (shared URLs, imports). */
-export function clampTaxInputPretaxToLimits(input: TaxInput): TaxInput {
-  const config = getTaxYearConfig(input.taxYear);
-  if (!config) return input;
+export function clampTaxFormData(data: TaxFormData): TaxFormData {
+  const taxYear = getTaxYearFromRows(data.rows);
+  const filingStatus = getFilingStatusFromRows(data.rows);
+  const config = getTaxYearConfig(taxYear);
+  if (!config) {
+    return data;
+  }
 
-  const joint = input.filingStatus === "marriedJoint";
-  const filtered = filterPretaxSourcesForFiling(input.pretaxBenefitSources, joint);
-  const agg = aggregatePretaxFromSources(filtered, joint);
-  const clamped = clampAggregatedPretaxToLimits(agg, config.pretaxLimits, joint);
-  const nextSources = distributeAggregatedPretaxToSources(filtered, clamped);
+  const joint = filingStatus === "marriedJoint";
 
-  return {
-    ...input,
-    pretaxBenefitSources: nextSources,
-  };
-}
+  const rows: TaxFormRow[] = data.rows.map((row) => {
+    if (row.type !== "pretax") {
+      return row;
+    }
+    let amount = row.amount;
+    const kind = row.kind as string;
+    if (kind === "401k" || kind === "preTax401kSpouse1" || kind === "preTax401kSpouse2") {
+      amount = Math.min(amount, config.pretaxLimits.electiveDeferral401k);
+    } else if (kind === "hsa" || kind === "preTaxHsaSpouse1" || kind === "preTaxHsaSpouse2") {
+      const limit = joint ? config.pretaxLimits.hsaFamily : config.pretaxLimits.hsaSelfOnly;
+      amount = Math.min(amount, limit);
+    }
+    return { ...row, amount };
+  });
 
-/** Applies pretax limits, then Schedule A SALT and federal per-credit caps from `TAX_DATA_BY_YEAR`. */
-export function clampTaxInputToYearLimits(input: TaxInput): TaxInput {
-  return clampTaxInputItemizedAndCreditsToLimits(clampTaxInputPretaxToLimits(input));
+  const rows2 = rows.map((row) => {
+    if (row.type !== "deduction") {
+      return row;
+    }
+    if (row.kind === "salt") {
+      const saltMax = config.itemizedCaps.saltMax[filingStatus];
+      return { ...row, amount: Math.min(row.amount, saltMax) };
+    }
+    return row;
+  });
+
+  const rows3 = rows2.map((row) => {
+    if (row.type !== "credit") {
+      return row;
+    }
+    const cap = config.federalTaxCreditCaps[row.kind] ?? Infinity;
+    return { ...row, amount: Math.min(row.amount, cap) };
+  });
+
+  return { rows: rows3 };
 }

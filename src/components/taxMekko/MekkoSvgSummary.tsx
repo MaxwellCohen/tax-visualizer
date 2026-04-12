@@ -1,16 +1,17 @@
 import { Show } from "solid-js";
-import type { TaxResult } from "~/lib/taxCalc";
+import type { TaxChartMetrics } from "~/lib/taxForm.types";
 import { PAD_T, SUMMARY_H, pct } from "~/components/taxMekko/constants";
 import { money } from "~/lib/moneyFormat";
 import type { MekkoLayout } from "~/components/taxMekko/mekkoLayout";
 
 type Props = {
   L: MekkoLayout;
-  result: TaxResult;
+  metrics: TaxChartMetrics;
 };
 
 export function MekkoSvgSummary(props: Props) {
   const L = props.L;
+  const m = props.metrics;
   return (
     <>
       <text
@@ -32,7 +33,7 @@ export function MekkoSvgSummary(props: Props) {
           fill="var(--mekko-keep)"
           rx={2}
         >
-          <title>{`Take-home pay ${money.format(props.result.takeHomePay)} (${pct.format(L.takeShare)})`}</title>
+          <title>{`Take-home pay ${money.format(m.takeHomePay)} (${pct.format(L.takeShare)})`}</title>
         </rect>
         <rect
           x={L.takeShare * L.plotW}
@@ -42,7 +43,7 @@ export function MekkoSvgSummary(props: Props) {
           fill="var(--mekko-pretax)"
           rx={2}
         >
-          <title>{`Payroll pre-tax & deductible IRA ${money.format(props.result.preTaxTotal + props.result.traditionalIra)} (${pct.format(L.pretaxShare)})`}</title>
+          <title>{`Payroll pre-tax & deductible IRA ${money.format(m.preTaxTotal + m.traditionalIra)} (${pct.format(L.pretaxShare)})`}</title>
         </rect>
         <rect
           x={(L.takeShare + L.pretaxShare) * L.plotW}
@@ -52,7 +53,7 @@ export function MekkoSvgSummary(props: Props) {
           fill="var(--mekko-tax)"
           rx={2}
         >
-          <title>{`Taxes ${money.format(props.result.federalIncomeTax + props.result.payrollTax)} (${pct.format(L.taxShare)})`}</title>
+          <title>{`Taxes ${money.format(m.federalIncomeTax + m.payrollTax)} (${pct.format(L.taxShare)})`}</title>
         </rect>
         <Show when={L.takeShare * L.plotW > 56}>
           <text

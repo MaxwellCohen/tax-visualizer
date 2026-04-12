@@ -1,4 +1,4 @@
-import type { TaxResult } from "~/lib/taxCalc";
+import type { TaxChartMetrics } from "~/lib/taxForm.types";
 
 export type SankeyPretaxRow = {
   amount: number;
@@ -8,31 +8,31 @@ export type SankeyPretaxRow = {
   sinkLabel: string;
 };
 
-export function sankeyPretaxRowsFromResult(result: TaxResult): SankeyPretaxRow[] {
+export function sankeyPretaxRowsFromMetrics(m: TaxChartMetrics): SankeyPretaxRow[] {
   return [
     {
-      amount: result.preTax401k,
+      amount: m.preTax401k,
       middleId: "pretax-401k",
       middleLabel: "401(k)",
       sinkId: "deferred-401k",
       sinkLabel: "401(k) deferred",
     },
     {
-      amount: result.preTaxHsa,
+      amount: m.preTaxHsa,
       middleId: "pretax-hsa",
       middleLabel: "HSA",
       sinkId: "deferred-hsa",
       sinkLabel: "HSA deferred",
     },
     {
-      amount: result.preTaxOther,
+      amount: m.preTaxOther,
       middleId: "pretax-other",
       middleLabel: "Other pre-tax",
       sinkId: "deferred-other",
       sinkLabel: "Other deferred",
     },
     {
-      amount: result.traditionalIra,
+      amount: m.traditionalIra,
       middleId: "pretax-ira",
       middleLabel: "Trad. IRA",
       sinkId: "deferred-ira",

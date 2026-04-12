@@ -1,33 +1,38 @@
-import { Index, Show } from "solid-js";
+import { Index, Show, createMemo } from "solid-js";
 import type { Accessor } from "solid-js";
 import Accordion from "~/components/Accordion";
-import type { TaxInput } from "~/lib/taxCalc";
+import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import type { ItemizedDeductionCaps } from "~/lib/taxData.types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { ItemizedDeductionSourceRow } from "~/components/taxInputForm/ItemizedDeductionSourceFields";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
+import { deductionRowIndices, settingRowIndex } from "~/lib/taxForm.rows";
 
 const addLineBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 type Props = {
   form: TaxInputFormApi;
-  values: Accessor<TaxInput>;
+  values: Accessor<TaxFormData>;
   standardDeduction: Accessor<number>;
   itemizedBeatsStandard: Accessor<boolean>;
   addItemizedDeduction: () => void;
-  removeItemizedDeductionAt: (index: number) => void;
+  removeItemizedDeductionAt: (rowIndex: number) => void;
   clearAll: () => void;
   itemizedCaps: Accessor<ItemizedDeductionCaps | null>;
 };
 
 export function TaxInputFormDeductionSection(props: Props) {
-  const itemizedTotal = () => sumLabeledAmountSources(props.values().itemizedDeductions);
+  const calc = createMemo(() => rowsToTaxCalculationInputs(props.values().rows));
+  const itemizedTotal = () => sumLabeledAmountSources(calc().itemizedDeductions);
+  const useItemizedIdx = createMemo(() => settingRowIndex(props.values().rows, "useItemizedDeductions"));
+  const useItemized = createMemo(() => calc().useItemizedDeductions);
+  const dedIndices = createMemo(() => deductionRowIndices(props.values().rows));
+
   const summaryAmount = () =>
-    props.values().useItemizedDeductions
-      ? itemizedTotal()
-      : props.standardDeduction();
+    useItemized() ? itemizedTotal() : props.standardDeduction();
 
   return (
     <Accordion
@@ -41,15 +46,15 @@ export function TaxInputFormDeductionSection(props: Props) {
       }
       bodyClass="space-y-4"
     >
-      <props.form.Field name="useItemizedDeductions">
-        {field => (
+      <props.form.Field name={`rows[${useItemizedIdx()}].value`}>
+        {(field: any) => (
           <label
             class="flex items-center gap-2.5 text-sm cursor-pointer"
             style={{ color: "var(--text-muted)" }}
           >
             <input
               type="checkbox"
-              checked={field().state.value}
+              checked={field().state.value as boolean}
               onChange={e => field().handleChange(e.currentTarget.checked)}
               onBlur={field().handleBlur}
               class="h-4 w-4 rounded"
@@ -63,7 +68,7 @@ export function TaxInputFormDeductionSection(props: Props) {
         Standard deduction for this year and filing status: {money.format(props.standardDeduction())}.
       </p>
 
-      <Show when={props.values().useItemizedDeductions}>
+      <Show when={useItemized()}>
         <>
           <p class="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
             Choose a Schedule A–style category per line; optional label for your notes. Amounts sum for the modeled
@@ -92,7 +97,7 @@ export function TaxInputFormDeductionSection(props: Props) {
                     class={`${taxInputFormTableThClass} whitespace-nowrap pr-3 text-right align-bottom`}
                   >
                     <div class="flex justify-end gap-2">
-                      <Show when={props.values().itemizedDeductions.length > 0}>
+                      <Show when={dedIndices().length > 0}>
                         <button
                           type="button"
                           class="shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--surface-alt) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--text-muted) transition-colors hover:border-(--warning-text) hover:text-(--warning-text)"
@@ -109,15 +114,17 @@ export function TaxInputFormDeductionSection(props: Props) {
                 </tr>
               </thead>
               <tbody>
-                <Index each={props.values().itemizedDeductions}>
+                <Index each={dedIndices()}>
                   {(_src, idx) => {
-                    const rowIndex = () => idx;
+                    const rowIndex = () =>
+                      typeof idx === "function" ? (idx as () => number)() : (idx as number);
+                    const absIndex = () => dedIndices()[rowIndex()];
                     return (
                       <ItemizedDeductionSourceRow
                         form={props.form}
-                        index={rowIndex()}
-                        canRemove={props.values().itemizedDeductions.length > 1}
-                        onRemove={() => props.removeItemizedDeductionAt(rowIndex())}
+                        rowIndex={absIndex()}
+                        canRemove={dedIndices().length > 1}
+                        onRemove={() => props.removeItemizedDeductionAt(absIndex())}
                         itemizedCaps={props.itemizedCaps}
                       />
                     );

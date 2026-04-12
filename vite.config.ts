@@ -4,6 +4,11 @@ import { solidStart } from "@solidjs/start/config";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  // @ts-expect-error devtools is valid in Vite 7
+  devtools: true,
+  server: {
+    host: true
+  },
   plugins: [
     solidStart(),
     tailwindcss(),

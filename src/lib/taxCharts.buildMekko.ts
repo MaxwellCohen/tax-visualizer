@@ -1,29 +1,35 @@
-import type { TaxResult } from "~/lib/taxCalc";
+import type { TaxChartMetrics } from "~/lib/taxForm.types";
 import { allocateFederalCreditsTopMarginalSlices } from "~/lib/taxCharts.visualizationBundle";
 import { formatLtcgBracketLabel } from "~/lib/taxCharts.sankeyFormat";
+import {
+  ltcgBracketNodeId,
+  ltcgSegmentKey,
+  ordinaryBracketNodeId,
+  ordinarySegmentKey,
+} from "~/lib/taxCharts.sankeySegmentKeys";
 import type { MekkoRow } from "~/lib/taxCharts.types";
 
-export function buildMekkoRows(result: TaxResult): MekkoRow[] {
+export function buildMekkoRows(m: TaxChartMetrics): MekkoRow[] {
   const rows: MekkoRow[] = [];
-  const federalByNode = allocateFederalCreditsTopMarginalSlices(result);
+  const federalByNode = allocateFederalCreditsTopMarginalSlices(m);
 
-  if (result.deductionAmount > 0) {
+  if (m.deductionAmount > 0) {
     rows.push({
       id: "deduction",
-      label: result.deductionKind === "itemized" ? "Itemized" : "Std Ded",
-      total: result.deductionAmount,
-      keep: result.deductionAmount,
+      label: m.deductionKind === "itemized" ? "Itemized" : "Std Ded",
+      total: m.deductionAmount,
+      keep: m.deductionAmount,
       tax: 0,
       kind: "deduction",
     });
   }
 
-  for (const segment of result.ordinaryFederalSegments) {
+  for (const segment of m.ordinaryFederalSegments) {
     if (segment.incomeAmount <= 0) continue;
-    const nodeId = `ordinary-bracket-${segment.id}`;
+    const nodeId = ordinaryBracketNodeId(segment);
     const tax = federalByNode.get(nodeId)?.federalToTax ?? 0;
     rows.push({
-      id: `ordinary-${segment.id}`,
+      id: `ordinary-${ordinarySegmentKey(segment)}`,
       label: `Ord. ${Math.round(segment.marginalRate * 100)}%`,
       total: segment.incomeAmount,
       tax,
@@ -33,12 +39,12 @@ export function buildMekkoRows(result: TaxResult): MekkoRow[] {
     });
   }
 
-  for (const segment of result.longTermCapitalGainsSegments) {
+  for (const segment of m.longTermCapitalGainsSegments) {
     if (segment.incomeAmount <= 0) continue;
-    const nodeId = `ltcg-bracket-${segment.id}`;
+    const nodeId = ltcgBracketNodeId(segment);
     const tax = federalByNode.get(nodeId)?.federalToTax ?? 0;
     rows.push({
-      id: `ltcg-${segment.id}`,
+      id: `ltcg-${ltcgSegmentKey(segment)}`,
       label: formatLtcgBracketLabel(segment),
       total: segment.incomeAmount,
       tax,

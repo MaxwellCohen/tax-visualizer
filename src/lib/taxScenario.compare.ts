@@ -1,18 +1,12 @@
-import type { TaxInput } from "~/lib/taxCalc.types";
+import { getTaxYearFromRows, rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import type { ScenarioPreset } from "~/lib/taxScenario.types";
 
-function taxInputSignature(input: TaxInput): string {
-  return JSON.stringify({
-    taxYear: input.taxYear,
-    filingStatus: input.filingStatus,
-    incomeSources: input.incomeSources.map(s => [s.kind, s.label, s.amount]),
-    pretaxBenefitSources: input.pretaxBenefitSources.map(s => [s.kind, s.label, s.amount]),
-    useItemizedDeductions: input.useItemizedDeductions,
-    itemizedDeductions: input.itemizedDeductions.map(s => [s.kind, s.label, s.amount]),
-    federalTaxCredits: input.federalTaxCredits.map(s => [s.kind, s.label, s.amount]),
-  });
+function taxFormSignature(input: TaxFormData): string {
+  return JSON.stringify(rowsToTaxCalculationInputs(input.rows));
 }
 
-export function taxInputMatchesPreset(current: TaxInput, preset: ScenarioPreset): boolean {
-  return taxInputSignature(current) === taxInputSignature(preset.buildInput(current.taxYear));
+export function taxInputMatchesPreset(current: TaxFormData, preset: ScenarioPreset): boolean {
+  const year = getTaxYearFromRows(current.rows);
+  return taxFormSignature(current) === taxFormSignature(preset.buildInput(year));
 }

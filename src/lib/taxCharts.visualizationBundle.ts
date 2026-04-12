@@ -1,8 +1,9 @@
-import type { TaxResult } from "~/lib/taxCalc";
+import type { TaxChartMetrics } from "~/lib/taxForm.types";
 import { netInvestmentIncomeTaxPerSegment } from "~/lib/taxCharts.sankeyNiit";
+import { ltcgSegmentKey, ordinarySegmentKey } from "~/lib/taxCharts.sankeySegmentKeys";
 
 /**
- * Derived chart numbers from `TaxResult` only. Authoritative tax math lives in
+ * Derived chart numbers from resolved metrics only. Authoritative tax math lives in
  * `calculateTaxes`; this module is the single place charts read allocation rules from.
  */
 
@@ -11,15 +12,15 @@ export type FederalSliceAfterCredits = { federalToTax: number; creditPortion: nu
 
 /**
  * Attribute nonrefundable federal credits to the highest marginal-rate bracket slices first, then the next-highest,
- * so Sankey and Mekko agree on how credits reduce tax per band (net federal tax matches `TaxResult` either way).
+ * so Sankey and Mekko agree on how credits reduce tax per band (net federal tax matches totals either way).
  */
-export function allocateFederalCreditsTopMarginalSlices(result: TaxResult): Map<string, FederalSliceAfterCredits> {
+export function allocateFederalCreditsTopMarginalSlices(m: TaxChartMetrics): Map<string, FederalSliceAfterCredits> {
   type Row = { nodeId: string; federalGross: number; marginalRate: number };
   const rows: Row[] = [];
-  const niitBySegment = netInvestmentIncomeTaxPerSegment(result);
+  const niitBySegment = netInvestmentIncomeTaxPerSegment(m);
 
-  for (const segment of result.ordinaryFederalSegments) {
-    const segmentId = segment.id ?? `ordinary-${segment.rangeStart}`;
+  for (const segment of m.ordinaryFederalSegments) {
+    const segmentId = ordinarySegmentKey(segment);
     const nodeId = `ordinary-bracket-${segmentId}`;
     const niitPart = niitBySegment.ordinary.get(segmentId) ?? 0;
     rows.push({
@@ -28,8 +29,8 @@ export function allocateFederalCreditsTopMarginalSlices(result: TaxResult): Map<
       marginalRate: segment.marginalRate,
     });
   }
-  for (const segment of result.longTermCapitalGainsSegments) {
-    const segmentId = segment.id ?? `ltcg-${segment.rangeStart}`;
+  for (const segment of m.longTermCapitalGainsSegments) {
+    const segmentId = ltcgSegmentKey(segment);
     const nodeId = `ltcg-bracket-${segmentId}`;
     const niitPart = niitBySegment.ltcg.get(segmentId) ?? 0;
     rows.push({
@@ -44,7 +45,7 @@ export function allocateFederalCreditsTopMarginalSlices(result: TaxResult): Map<
     out.set(r.nodeId, { federalToTax: r.federalGross, creditPortion: 0 });
   }
 
-  const totalCredits = result.federalTaxCreditsApplied;
+  const totalCredits = m.federalTaxCreditsApplied;
   if (totalCredits <= 0 || rows.length === 0) {
     return out;
   }
@@ -72,20 +73,20 @@ export function allocateFederalCreditsTopMarginalSlices(result: TaxResult): Map<
  * Uniform ratio of net federal tax to federal tax before credits (handy when a proportional split is enough).
  * Bracket-level Mekko/Sankey flows prefer {@link allocateFederalCreditsTopMarginalSlices}.
  */
-export function federalIncomeTaxCreditApplyRatio(result: TaxResult): number {
-  const before = result.federalIncomeTaxBeforeCredits;
+export function federalIncomeTaxCreditApplyRatio(m: TaxChartMetrics): number {
+  const before = m.federalIncomeTaxBeforeCredits;
   if (before <= 0) {
-    return result.federalIncomeTax <= 0 ? 0 : 1;
+    return m.federalIncomeTax <= 0 ? 0 : 1;
   }
-  return result.federalIncomeTax / before;
+  return m.federalIncomeTax / before;
 }
 
 /**
  * Cash take-home attributed through ordinary/LTCG bracket flows in the Sankey (excludes the
  * federal-credits → take-home ribbon, which is layered separately).
  */
-export function takeHomeAttributableToBracketFlows(result: TaxResult): number {
-  return Math.max(0, result.takeHomePay - result.federalTaxCreditsApplied);
+export function takeHomeAttributableToBracketFlows(m: TaxChartMetrics): number {
+  return Math.max(0, m.takeHomePay - m.federalTaxCreditsApplied);
 }
 
 /** Retained slice weight for splitting take-home / payroll across bracket nodes (income minus federal + NIIT on that slice). */
@@ -93,7 +94,48 @@ export function bracketSliceRetainedWeight(incomeAmount: number, taxWithNiit: nu
   return Math.max(0, incomeAmount - taxWithNiit);
 }
 
+/**
+ * Total deduction dollars the Sankey routes through the shield when the tax pipeline has not yet
+ * populated allocation fields (they may be 0 while `deductionAmount` is still correct).
+ */
+export function effectiveDeductionShelteredTotal(m: TaxChartMetrics): number {
+  const allocated = m.deductionAllocatedToOrdinary + m.deductionAllocatedToLongTermGross;
+  if (allocated > 0) return allocated;
+  return m.deductionAmount > 0 ? m.deductionAmount : 0;
+}
+
+/** Portion of the deduction attributed to ordinary income rows (vs LTCG gross shield). */
+export function effectiveDeductionToOrdinary(m: TaxChartMetrics): number {
+  if (m.deductionAllocatedToOrdinary > 0) return m.deductionAllocatedToOrdinary;
+  if (m.deductionAllocatedToOrdinary + m.deductionAllocatedToLongTermGross > 0) {
+    return m.deductionAllocatedToOrdinary;
+  }
+  const total = effectiveDeductionShelteredTotal(m);
+  if (total <= 0) return 0;
+  const ltcgShelteredByDeduction = Math.max(
+    0,
+    m.longTermCapitalGainsGrossIncome - m.longTermTaxableIncome,
+  );
+  const toLtcg = Math.min(ltcgShelteredByDeduction, total);
+  return Math.max(0, total - toLtcg);
+}
+
+/** Portion flowing from `ltcgDeductionShield` into the deduction bar (when applicable). */
+export function effectiveDeductionToLtcgGrossShield(m: TaxChartMetrics): number {
+  if (m.deductionAllocatedToLongTermGross > 0) return m.deductionAllocatedToLongTermGross;
+  if (m.deductionAllocatedToOrdinary + m.deductionAllocatedToLongTermGross > 0) {
+    return m.deductionAllocatedToLongTermGross;
+  }
+  const total = effectiveDeductionShelteredTotal(m);
+  if (total <= 0) return 0;
+  const ltcgShelteredByDeduction = Math.max(
+    0,
+    m.longTermCapitalGainsGrossIncome - m.longTermTaxableIncome,
+  );
+  return Math.min(ltcgShelteredByDeduction, total);
+}
+
 /** Dollars flowing out of `deduction-shield` for the deduction slice (matches routed inflows; may be below `deductionAmount` when the deduction exceeds gross income). */
-export function deductionShieldAccountingOutflow(result: TaxResult): number {
-  return result.deductionAllocatedToOrdinary + result.deductionAllocatedToLongTermGross;
+export function deductionShieldAccountingOutflow(m: TaxChartMetrics): number {
+  return effectiveDeductionShelteredTotal(m);
 }

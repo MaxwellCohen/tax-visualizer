@@ -1,6 +1,6 @@
-import type { ItemizedDeductionKind, ItemizedDeductionSource } from "~/lib/taxCalc.types";
+import type { ItemizedDeductionSource, ItemizedDeductionKind } from "~/lib/taxCalc.types";
 
-export const ITEMIZED_DEDUCTION_KIND_VALUES: readonly ItemizedDeductionKind[] = [
+export const ITEMIZED_DEDUCTION_KIND_VALUES: ItemizedDeductionKind[] = [
   "medicalDental",
   "salt",
   "mortgageInterest",
@@ -10,4 +10,17 @@ export const ITEMIZED_DEDUCTION_KIND_VALUES: readonly ItemizedDeductionKind[] = 
   "otherItemized",
 ];
 
-export { newItemizedDeductionSource } from "~/lib/taxCalc.types";
+export function newItemizedDeductionSource(
+  overrides?: Partial<Omit<ItemizedDeductionSource, "id">>
+): ItemizedDeductionSource {
+  const id = typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `itm-${Math.random().toString(36).slice(2)}`;
+  return {
+    id,
+    kind: "otherItemized",
+    label: "",
+    amount: 0,
+    ...overrides,
+  };
+}

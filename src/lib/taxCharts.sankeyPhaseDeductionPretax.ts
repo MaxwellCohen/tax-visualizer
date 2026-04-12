@@ -1,4 +1,5 @@
-import type { TaxResult } from "~/lib/taxCalc";
+import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import type { TaxResult } from "~/lib/taxForm.types";
 import { SANKEY_IDS } from "~/lib/taxCharts.sankey.constants";
 import {
   allocateProportional,
@@ -8,16 +9,21 @@ import {
 } from "~/lib/taxCharts.sankeyAllocate";
 import { addNode } from "~/lib/taxCharts.sankeyHelpers";
 import type { SankeyScratch } from "~/lib/taxCharts.sankeyScratch";
-import { deductionShieldAccountingOutflow } from "~/lib/taxCharts.visualizationBundle";
+import {
+  deductionShieldAccountingOutflow,
+  effectiveDeductionToLtcgGrossShield,
+  effectiveDeductionToOrdinary,
+  effectiveDeductionShelteredTotal,
+} from "~/lib/taxCharts.visualizationBundle";
 
-function deductionIncomeShelteredTotal(result: TaxResult): number {
-  return result.deductionAllocatedToOrdinary + result.deductionAllocatedToLongTermGross;
+function deductionIncomeShelteredTotal(m: TaxChartMetrics): number {
+  return effectiveDeductionShelteredTotal(m);
 }
 
 /** Routes the modeled deduction inflow: ordinary rows first; LTCG remainder flows from `ltcgDeductionShield` (not LTCG income rows). */
-function pushDeductionInflowLinks(result: TaxResult, s: SankeyScratch, targetId: string): void {
-  const toOrdinary = result.deductionAllocatedToOrdinary;
-  const fromLtcgShield = result.deductionAllocatedToLongTermGross;
+function pushDeductionInflowLinks(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch, targetId: string): void {
+  const toOrdinary = effectiveDeductionToOrdinary(m);
+  const fromLtcgShield = effectiveDeductionToLtcgGrossShield(m);
   if (toOrdinary > 0) {
     const ord = ordinaryIncomeNodeEntries(result);
     const fromWage = wageIncomeNodeEntries(result);
@@ -37,15 +43,15 @@ function pushDeductionInflowLinks(result: TaxResult, s: SankeyScratch, targetId:
   }
 }
 
-export function appendSankeyDeductionAndPretax(result: TaxResult, s: SankeyScratch): void {
-  if (result.deductionAmount > 0) {
-    addDeductionNodes(result, s);
+export function appendSankeyDeductionAndPretax(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
+  if (m.deductionAmount > 0) {
+    addDeductionNodes(m, result, s);
   }
-  addPretaxRows(result, s);
+  addPretaxRows(m, result, s);
 }
 
-function addDeductionNodes(result: TaxResult, s: SankeyScratch): void {
-  const deductionSheltered = deductionIncomeShelteredTotal(result);
+function addDeductionNodes(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
+  const deductionSheltered = deductionIncomeShelteredTotal(m);
   const totalAmount = deductionSheltered + s.preTaxTotal;
 
   addNode(s.nodeMap, {
@@ -56,46 +62,44 @@ function addDeductionNodes(result: TaxResult, s: SankeyScratch): void {
     incomeAmount: totalAmount,
   });
 
-  if (result.deductionKind === "itemized") {
-    addItemizedDeductionNodes(result, s, deductionSheltered);
+  if (m.deductionKind === "itemized") {
+    addItemizedDeductionNodes(m, result, s, deductionSheltered);
   } else {
-    addStandardDeductionNode(result, s, deductionSheltered);
+    addStandardDeductionNode(m, result, s, deductionSheltered);
   }
 
-  addDeductionOutflow(result, s);
+  addDeductionOutflow(m, s);
 }
 
-function addItemizedDeductionNodes(result: TaxResult, s: SankeyScratch, deductionSheltered: number): void {
+function addItemizedDeductionNodes(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch, deductionSheltered: number): void {
   addNode(s.nodeMap, {
     id: "deduction",
     label: "Itemized deduction",
     kind: "deduction",
     amount: deductionSheltered,
   });
-  pushDeductionInflowLinks(result, s, "deduction");
+  pushDeductionInflowLinks(m, result, s, "deduction");
   s.links.push({ sourceId: "deduction", targetId: "deduction-shield", value: deductionSheltered });
 }
 
-function addStandardDeductionNode(result: TaxResult, s: SankeyScratch, deductionSheltered: number): void {
+function addStandardDeductionNode(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch, deductionSheltered: number): void {
   addNode(s.nodeMap, {
-    id: "deduction",
+    id: "standard-deduction",
     label: "Standard deduction",
-    kind: "deduction",
+    kind: "standardDeduction",
     amount: deductionSheltered,
   });
-  pushDeductionInflowLinks(result, s, "deduction");
-  s.links.push({ sourceId: "deduction", targetId: "deduction-shield", value: deductionSheltered });
+  pushDeductionInflowLinks(m, result, s, "standard-deduction");
+  s.links.push({ sourceId: "standard-deduction", targetId: "deduction-shield", value: deductionSheltered });
 }
 
-function addDeductionOutflow(result: TaxResult, s: SankeyScratch): void {
-  const shieldOut = deductionShieldAccountingOutflow(result);
-  const isStandard = result.deductionKind === "standard";
-
+function addDeductionOutflow(m: TaxChartMetrics, s: SankeyScratch): void {
+  const shieldOut = deductionShieldAccountingOutflow(m);
   addNode(s.nodeMap, {
     id: SANKEY_IDS.keep,
     label: "Take-home",
     kind: "keep",
-    amount: result.takeHomePay,
+    amount: m.takeHomePay,
   });
   s.links.push({
     sourceId: "deduction-shield",
@@ -104,14 +108,19 @@ function addDeductionOutflow(result: TaxResult, s: SankeyScratch): void {
   });
 }
 
-function addPretaxRows(result: TaxResult, s: SankeyScratch): void {
+function addPretaxRows(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
   for (const row of s.pretaxRows) {
     if (row.amount <= 0) continue;
-    addPretaxRowNodes(result, s, row);
+    addPretaxRowNodes(m, result, s, row);
   }
 }
 
-function addPretaxRowNodes(result: TaxResult, s: SankeyScratch, row: { middleId: string; middleLabel: string; sinkId: string; sinkLabel: string; amount: number }): void {
+function addPretaxRowNodes(
+  m: TaxChartMetrics,
+  result: TaxResult,
+  s: SankeyScratch,
+  row: { middleId: string; middleLabel: string; sinkId: string; sinkLabel: string; amount: number },
+): void {
   addNode(s.nodeMap, {
     id: row.middleId,
     label: row.middleLabel,
@@ -131,7 +140,7 @@ function addPretaxRowNodes(result: TaxResult, s: SankeyScratch, row: { middleId:
     s.links.push({ sourceId: key, targetId: row.middleId, value });
   }
 
-  if (result.deductionAmount > 0) {
+  if (m.deductionAmount > 0) {
     s.links.push({ sourceId: row.middleId, targetId: "deduction-shield", value: row.amount });
     s.links.push({ sourceId: "deduction-shield", targetId: row.sinkId, value: row.amount });
   } else {

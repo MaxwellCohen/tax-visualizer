@@ -1,8 +1,23 @@
+/**
+ * Federal tax pipeline: runs config-driven item calcs from `taxItems`. Year-scoped brackets, caps,
+ * payroll, and NIIT come from `getTaxYearConfig` (backed by `~/lib/config/yearValues` via
+ * `~/lib/taxData.fromYearValues`). `TaxCalculationInputs.taxYear` is set from the form setting row
+ * (`type: "setting"`, `id: "taxYear"`) in `rowsToTaxCalculationInputs` (`~/lib/taxCalc.inputs`).
+ */
 import type { TaxCalculationInputs, TaxCalculationState, TaxItemResult } from "~/lib/taxConfig.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
 import { createInitialState } from "~/lib/taxConfig.types";
-import { getEnabledTaxItemCalcs, getTaxItemCalc, type TaxItemCalc } from "~/lib/config/taxItems";
+import { getEnabledTaxItemCalcs, type TaxItemCalc, buildDisplayItems } from "~/lib/config/taxItems";
 import { generateVisualizationConfig, type VisualizationConfig } from "~/lib/config/visualization";
+import {
+  PIPELINE_COMPUTED_ROW_ORDER,
+  PIPELINE_FLAT_SPECS,
+  SEGMENT_METADATA_ROW_IDS,
+  type PipelineFlatValueSpec,
+  deductionKindFromInputs,
+} from "~/lib/config/pipelineTaxResult.config";
+import type { TaxSegment } from "~/lib/taxCalc.types";
+import type { TaxChartMetrics, TaxComputedRow, TaxFormRow, TaxResult } from "~/lib/taxForm.types";
 
 export { createInitialState } from "~/lib/taxConfig.types";
 export type { TaxCalculationInputs, TaxCalculationState, TaxItemResult } from "~/lib/taxConfig.types";
@@ -84,114 +99,104 @@ export function runCalculationPipeline(
   return state;
 }
 
+type FlatBuildCtx = {
+  getAmount: (displayType: string) => number;
+  state: TaxCalculationState;
+  flat: Partial<Record<keyof TaxChartMetrics, unknown>>;
+};
+
+function evaluatePipelineFlatSpec(spec: PipelineFlatValueSpec, ctx: FlatBuildCtx): unknown {
+  switch (spec.kind) {
+    case "display":
+      return ctx.getAmount(spec.displayType);
+    case "literalNumber":
+      return spec.value;
+    case "sumDisplay":
+      return spec.displayTypes.reduce((s, t) => s + ctx.getAmount(t), 0);
+    case "deductionKindFromInputs":
+      return deductionKindFromInputs(ctx.state.inputs.useItemizedDeductions);
+    case "stateMetadataNumber": {
+      const r = ctx.state.results.get(spec.resultId);
+      const v = r?.metadata?.[spec.field];
+      return typeof v === "number" && Number.isFinite(v) ? v : 0;
+    }
+    case "segmentsFromState": {
+      const r = ctx.state.results.get(spec.resultId);
+      const segs = r?.metadata?.segments;
+      return Array.isArray(segs) ? segs : [];
+    }
+    case "sumFlatNumeric":
+      return spec.keys.reduce((s, k) => s + num(ctx.flat[k]), 0);
+    case "maxMinusFlat": {
+      const a = num(ctx.flat[spec.minuend]);
+      const b = num(ctx.flat[spec.subtrahend]);
+      return Math.max(0, a - b);
+    }
+  }
+}
+
 export function buildTaxResultFromState(state: TaxCalculationState): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  const results = state.results;
+  const displayItems = buildDisplayItems(state.inputs, state);
+  const findItem = (type: string) => displayItems.find((item) => item.type === type);
+  const getAmount = (type: string): number => findItem(type)?.amount ?? 0;
 
-  extractIncomeData(results, result);
-  extractPretaxData(results, result);
-  extractDeductionData(results, result);
-  extractFederalTaxData(results, result);
-  extractPayrollData(results, result);
-  extractTakeHomeData(results, result);
-  extractCombinedFederalTax(results, result);
+  const flat: Partial<Record<keyof TaxChartMetrics, unknown>> = {};
+  const ctx: FlatBuildCtx = { getAmount, state, flat };
 
-  result.warnings = state.warnings;
-  result.errors = state.errors;
-  result.metadata = state.metadata;
-
-  return result;
-}
-
-function extractIncomeData(results: Map<string, TaxItemResult>, result: Record<string, unknown>): void {
-  const incomeAgg = results.get("income-aggregation");
-  if (!incomeAgg) return;
-
-  result.totalIncome = incomeAgg.amount;
-  result.wageIncome = (incomeAgg.metadata?.wageIncome as number) ?? 0;
-  result.ordinaryGrossIncome = ((incomeAgg.metadata?.ordinaryIncome as number) ?? 0) + ((incomeAgg.metadata?.shortTermCapGains as number) ?? 0);
-  result.shortTermCapGainsGrossIncome = (incomeAgg.metadata?.shortTermCapGains as number) ?? 0;
-  result.longTermCapitalGainsGrossIncome = (incomeAgg.metadata?.longTermCapGains as number) ?? 0;
-  result.incomeSources = (incomeAgg.metadata?.sources as unknown[]) ?? [];
-}
-
-function extractPretaxData(results: Map<string, TaxItemResult>, result: Record<string, unknown>): void {
-  const pretax = results.get("pretax-benefits");
-  if (!pretax) return;
-
-  result.preTaxTotal = pretax.amount;
-  result.preTax401k = pretax.metadata?.effective401 ?? 0;
-  result.preTaxHsa = pretax.metadata?.effectiveHsa ?? 0;
-  result.preTaxOther = pretax.metadata?.effectiveOther ?? 0;
-}
-
-function extractDeductionData(results: Map<string, TaxItemResult>, result: Record<string, unknown>): void {
-  const deduction = results.get("deduction-calculation");
-  if (!deduction) return;
-
-  result.deductionAmount = deduction.amount;
-  result.deductionKind = deduction.metadata?.kind ?? "standard";
-  result.standardDeduction = deduction.metadata?.standardDeduction ?? 0;
-}
-
-function extractFederalTaxData(results: Map<string, TaxItemResult>, result: Record<string, unknown>): void {
-  const ordinaryTax = results.get("federal-ordinary-tax");
-  if (ordinaryTax) {
-    result.federalOrdinaryIncomeTax = ordinaryTax.amount;
-    result.ordinaryTaxableIncome = ordinaryTax.metadata?.ordinaryTaxableIncome ?? 0;
-    result.ordinaryFederalSegments = ordinaryTax.metadata?.segments ?? [];
+  for (const { key, spec } of PIPELINE_FLAT_SPECS) {
+    flat[key] = evaluatePipelineFlatSpec(spec, ctx);
   }
 
-  const ltcgTax = results.get("federal-ltcg-tax");
-  if (ltcgTax) {
-    result.federalLongTermCapGainsTax = ltcgTax.amount;
-    result.longTermTaxableIncome = ltcgTax.metadata?.longTermTaxableIncome ?? 0;
-  }
-
-  const niit = results.get("federal-niit");
-  if (niit) {
-    result.federalNetInvestmentIncomeTax = niit.amount;
-    result.netInvestmentIncome = niit.metadata?.netInvestmentIncome ?? 0;
-  }
-
-  const credits = results.get("tax-credits");
-  if (credits) {
-    result.federalTaxCreditsEntered = credits.metadata?.creditsEntered ?? 0;
-    result.federalTaxCreditsApplied = credits.metadata?.creditsApplied ?? 0;
-  }
+  return {
+    ...flat,
+    warnings: state.warnings,
+    errors: state.errors,
+    metadata: state.metadata,
+  } as Record<string, unknown>;
 }
 
-function extractPayrollData(results: Map<string, TaxItemResult>, result: Record<string, unknown>): void {
-  const payroll = results.get("payroll-tax");
-  if (!payroll) return;
-
-  result.payrollTax = payroll.amount;
-  result.socialSecurityTax = (payroll.metadata?.socialSecurityTax as number) ?? 0;
-  result.medicareTax = ((payroll.metadata?.medicareTax as number) ?? 0) + ((payroll.metadata?.additionalMedicare as number) ?? 0);
+function num(v: unknown): number {
+  return typeof v === "number" && Number.isFinite(v) ? v : 0;
 }
 
-function extractTakeHomeData(results: Map<string, TaxItemResult>, result: Record<string, unknown>): void {
-  const takeHome = results.get("take-home-calculation");
-  if (!takeHome) return;
-
-  result.takeHomePay = takeHome.amount;
-  result.effectiveTaxRate = (takeHome.metadata?.effectiveRate as number) ?? 0;
-  result.traditionalIra = (takeHome.metadata?.pretaxIra as number) ?? 0;
+function computed(id: string, value: number, metadata?: Record<string, unknown>): TaxComputedRow {
+  return metadata ? { type: "computed", id, value, metadata } : { type: "computed", id, value };
 }
 
-function extractCombinedFederalTax(results: Map<string, TaxItemResult>, result: Record<string, unknown>): void {
-  const ordinaryTax = results.get("federal-ordinary-tax");
-  const ltcgTax = results.get("federal-ltcg-tax");
-  const niit = results.get("federal-niit");
-  const credits = results.get("tax-credits");
+/** Build flat pipeline record into appended computed rows (canonical ids match {@link resolveTaxChartMetrics}) */
+export function flatTaxRecordToComputedRows(flat: Record<string, unknown>): TaxComputedRow[] {
+  const rows: TaxComputedRow[] = [];
+  for (const id of PIPELINE_COMPUTED_ROW_ORDER) {
+    if (SEGMENT_METADATA_ROW_IDS.has(id)) {
+      const segments = (flat[id] as TaxSegment[]) ?? [];
+      rows.push(computed(id, 0, { segments }));
+    } else if (id === "deductionKind") {
+      rows.push(computed(id, 0, { kind: flat.deductionKind }));
+    } else {
+      rows.push(computed(id, num(flat[id])));
+    }
+  }
+  return rows;
+}
 
-  if (!ordinaryTax || !ltcgTax || !niit || !credits) return;
+function cloneFormRows(rows: TaxFormRow[]): TaxFormRow[] {
+  return rows.map((r) => ({ ...r }));
+}
 
-  const totalTaxBeforeCredits = ((ordinaryTax.amount as number) ?? 0) + ((ltcgTax.amount as number) ?? 0) + ((niit.amount as number) ?? 0);
-  const creditsApplied = (credits.metadata?.creditsApplied as number) ?? 0;
-  result.federalIncomeTaxBeforeCredits = totalTaxBeforeCredits;
-  result.federalIncomeTax = Math.max(0, totalTaxBeforeCredits - creditsApplied);
-  result.taxableIncome = ((ordinaryTax.metadata?.ordinaryTaxableIncome as number) ?? 0) + ((ltcgTax.metadata?.longTermTaxableIncome as number) ?? 0);
+export function buildTaxResultFromPipeline(
+  formRows: TaxFormRow[],
+  state: TaxCalculationState,
+  warnings: string[],
+): TaxResult {
+  const flat = buildTaxResultFromState(state) as Record<string, unknown>;
+  const computedRows = flatTaxRecordToComputedRows(flat);
+  return {
+    rows: [...cloneFormRows(formRows), ...computedRows],
+    warnings,
+    notes: [],
+    errors: [...state.errors],
+    metadata: { ...(typeof flat.metadata === "object" && flat.metadata !== null ? flat.metadata : {}) },
+  };
 }
 
 export function getResults(state: TaxCalculationState): Map<string, TaxItemResult> {

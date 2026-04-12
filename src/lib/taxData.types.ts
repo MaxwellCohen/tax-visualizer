@@ -30,7 +30,7 @@ export type NiitRules = {
 };
 
 /**
- * IRS-style contribution caps for the given `taxYear` (see `TAX_DATA_BY_YEAR[year].pretaxLimits`).
+ * IRS-style contribution caps for the given `taxYear` (see `getTaxYearConfig(year).pretaxLimits`).
  * All amounts are per calendar/tax year and update when the selected year changes.
  */
 export type PretaxBenefitLimits = {
@@ -43,7 +43,7 @@ export type PretaxBenefitLimits = {
 };
 
 /**
- * Schedule A dollar caps that can change with legislation (see `TAX_DATA_BY_YEAR[year].itemizedCaps`).
+ * Schedule A dollar caps that can change with legislation (see `getTaxYearConfig(year).itemizedCaps`).
  * Only SALT is enforced in this app’s itemized model.
  */
 export type ItemizedDeductionCaps = {
@@ -65,5 +65,44 @@ export type TaxYearConfig = {
   pretaxLimits: PretaxBenefitLimits;
   itemizedCaps: ItemizedDeductionCaps;
   federalTaxCreditCaps: Record<FederalTaxCreditKind, number>;
+  /** Form 8960-style NIIT rate and MAGI thresholds (from year config / `YearValues`). */
+  niit: NiitRules;
   status?: "final" | "planning";
 };
+
+export type IncomeKindConfig = {
+  id: string;
+  label: string;
+  aggregationField: string;
+};
+
+export type IncomeConfig = {
+  kinds: IncomeKindConfig[];
+};
+
+export type DeductionKindConfig = {
+  id: string;
+  label: string;
+  aggregationField: string;
+  hasSpouseSpecific: boolean;
+};
+
+export type DeductionConfig = {
+  standardDeductionField: string;
+  kinds: DeductionKindConfig[];
+};
+
+export type TaxBracketConfig = {
+  rate: number;
+  upTo: number | null;
+};
+
+export type TaxCalculationConfig = {
+  bracketType: "ordinary" | "ltcg";
+  rates: number[];
+  thresholds: FilingStatusRecord<{ zeroRateMax: number; fifteenRateMax: number }>;
+};
+
+export type IncomeKind = "wages" | "ordinary" | "shortTermCapGains" | "longTermCapGains" | "selfEmployment";
+
+export type DeductionKind = "standard" | "itemized";

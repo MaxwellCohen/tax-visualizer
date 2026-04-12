@@ -4,11 +4,12 @@ import Accordion from "~/components/Accordion";
 import { IncomeSourceTableRow } from "~/components/taxInputForm/IncomeSourceFields";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
-import type { TaxInput } from "~/lib/taxCalc";
+import type { TaxFormData, TaxFormIncomeRow } from "~/lib/taxForm.types";
+import { incomeRowIndices } from "~/lib/taxForm.rows";
 
 type Props = {
   form: TaxInputFormApi;
-  values: Accessor<TaxInput>;
+  values: Accessor<TaxFormData>;
   addSource: () => void;
   removeSourceAt: (i: number) => void;
 };
@@ -17,11 +18,16 @@ const addSourceBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 export function TaxInputFormIncomeSection(props: Props) {
+  const indices = createMemo(() => incomeRowIndices(props.values().rows));
+
   const incomeTotal = createMemo(() =>
-    props.values().incomeSources.reduce((sum, s) => {
-      const n = s.amount;
-      return sum + (Number.isFinite(n) ? n : 0);
-    }, 0),
+    props
+      .values()
+      .rows.filter((r): r is TaxFormIncomeRow => r.type === "income")
+      .reduce((sum, s) => {
+        const n = s.amount;
+        return sum + (Number.isFinite(n) ? n : 0);
+      }, 0),
   );
 
   return (
@@ -68,17 +74,17 @@ export function TaxInputFormIncomeSection(props: Props) {
             </tr>
           </thead>
           <tbody>
-            <Index each={props.values().incomeSources}>
+            <Index each={indices()}>
               {(_src, idx) => {
-                /** SSR `Index` passes a number; client passes an accessor — see solid-js `server.js` `Index`. */
                 const rowIndex = () =>
                   typeof idx === "function" ? (idx as () => number)() : (idx as number);
+                const absIndex = () => indices()[rowIndex()];
                 return (
                   <IncomeSourceTableRow
                     form={props.form}
-                    index={rowIndex()}
-                    canRemove={props.values().incomeSources.length > 1}
-                    onRemove={() => props.removeSourceAt(rowIndex())}
+                    rowIndex={absIndex()}
+                    canRemove={indices().length > 1}
+                    onRemove={() => props.removeSourceAt(absIndex())}
                   />
                 );
               }}

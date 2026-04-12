@@ -1,5 +1,131 @@
 import type { TaxCalculationInputs, TaxCalculationState, TaxItemResult, TaxItemCategory } from "~/lib/taxConfig.types";
+import type { PretaxBenefitKind } from "~/lib/taxCalc.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
+
+const ELECTIVE_DEFERRAL_KINDS: readonly PretaxBenefitKind[] = [
+  "preTax401kSpouse1",
+  "preTax403bSpouse1",
+  "preTax457bSpouse1",
+  "preTax401kSpouse2",
+  "preTax403bSpouse2",
+  "preTax457bSpouse2",
+];
+
+const HSA_PRETAX_KINDS: readonly PretaxBenefitKind[] = ["preTaxHsaSpouse1", "preTaxHsaSpouse2"];
+
+export type IncomeKindConfig = {
+  id: string;
+  label: string;
+  aggregationField: string;
+};
+
+export const INCOME_KIND_CONFIGS: IncomeKindConfig[] = [
+  { id: "wages", label: "Wages", aggregationField: "wageIncome" },
+  { id: "selfEmployment", label: "Self-Employment", aggregationField: "selfEmploymentIncome" },
+  { id: "ordinary", label: "Ordinary Income", aggregationField: "ordinaryIncome" },
+  { id: "shortTermCapGains", label: "Short-Term Capital Gains", aggregationField: "shortTermCapGains" },
+  { id: "longTermCapGains", label: "Long-Term Capital Gains", aggregationField: "longTermCapGains" },
+];
+
+/** Display item `type` for an income kind; must match `buildDisplayItemsConfig` (`makeDisplayItemConfig` first arg). */
+export function incomeKindIdToDisplayType(kindId: string): string {
+  return kindId.replace(" ", "-").toLowerCase();
+}
+
+export type DeductionKindConfig = {
+  id: string;
+  label: string;
+  aggregationField: string;
+};
+
+export const DEDUCTION_KIND_CONFIGS: DeductionKindConfig[] = [
+  { id: "salt", label: "State & Local Taxes", aggregationField: "salt" },
+  { id: "medicalDental", label: "Medical & Dental", aggregationField: "medicalDental" },
+  { id: "mortgageInterest", label: "Mortgage Interest", aggregationField: "mortgageInterest" },
+  { id: "charitable", label: "Charitable Contributions", aggregationField: "charitable" },
+];
+
+export const LTCG_BRACKET_CONFIGS: Array<{ rate: number; thresholdKey: "zeroRateMax" | "fifteenRateMax" | null }> = [
+  { rate: 0, thresholdKey: "zeroRateMax" },
+  { rate: 0.15, thresholdKey: "fifteenRateMax" },
+  { rate: 0.20, thresholdKey: null },
+];
+
+export function calculateLtcgTax(
+  taxableLtcg: number,
+  thresholds: { zeroRateMax: number; fifteenRateMax: number },
+  baseIncome: number,
+): { tax: number; segments: TaxBracketSegment[] } {
+  const segments: TaxBracketSegment[] = [];
+  let totalTax = 0;
+  let remaining = taxableLtcg;
+  let lowerBound = baseIncome;
+
+  for (const cfg of LTCG_BRACKET_CONFIGS) {
+    if (remaining <= 0) break;
+
+    const upperBound = cfg.thresholdKey ? thresholds[cfg.thresholdKey] : Number.POSITIVE_INFINITY;
+    const amountInBracket = Math.max(0, Math.min(remaining, Math.max(0, upperBound - lowerBound)));
+    
+    if (amountInBracket > 0) {
+      const taxAmount = amountInBracket * cfg.rate;
+      totalTax += taxAmount;
+      segments.push({
+        rate: cfg.rate,
+        upTo: cfg.thresholdKey ? thresholds[cfg.thresholdKey] : null,
+        rangeStart: lowerBound,
+        rangeEnd: cfg.thresholdKey ? thresholds[cfg.thresholdKey] : null,
+        incomeAmount: amountInBracket,
+        taxAmount,
+      });
+      remaining -= amountInBracket;
+    }
+    lowerBound = upperBound;
+  }
+
+  return { tax: totalTax, segments };
+}
+
+export type TaxBracketSegment = {
+  rate: number;
+  upTo: number | null;
+  rangeStart: number;
+  rangeEnd: number | null;
+  incomeAmount: number;
+  taxAmount: number;
+};
+
+export function calculateBracketTax(
+  taxableIncome: number,
+  brackets: Array<{ rate: number; upTo: number | null }>,
+): { tax: number; marginalRate: number; segments: TaxBracketSegment[] } {
+  let remaining = taxableIncome;
+  let lowerBound = 0;
+  let totalTax = 0;
+  const usedSegments: TaxBracketSegment[] = [];
+
+  for (const bracket of brackets) {
+    if (remaining <= 0) break;
+    const upperBound = bracket.upTo ?? Number.POSITIVE_INFINITY;
+    const amountInBracket = Math.min(remaining, upperBound - lowerBound);
+    if (amountInBracket > 0) {
+      const taxAmount = amountInBracket * bracket.rate;
+      totalTax += taxAmount;
+      remaining -= amountInBracket;
+      usedSegments.push({
+        rate: bracket.rate,
+        upTo: bracket.upTo,
+        rangeStart: lowerBound,
+        rangeEnd: bracket.upTo,
+        incomeAmount: amountInBracket,
+        taxAmount,
+      });
+    }
+    lowerBound = upperBound;
+  }
+  const marginalRate = usedSegments.slice(-1)[0]?.rate ?? 0;
+  return { tax: totalTax, marginalRate, segments: usedSegments };
+}
 
 export type FieldType = "currency" | "percent" | "number";
 
@@ -34,6 +160,315 @@ export type TaxItemOutput = {
   highlight?: boolean;
 };
 
+export type FederalCreditConfig = {
+  id: string;
+  label: string;
+  aggregationField: string;
+};
+
+export const FEDERAL_CREDIT_CONFIGS: FederalCreditConfig[] = [
+  { id: "childTaxCredit", label: "Child Tax Credit", aggregationField: "childTaxCredit" },
+  { id: "educationCredits", label: "Education Credits", aggregationField: "educationCredits" },
+  { id: "retirementSavingsContributions", label: "Retirement Savings Contributions", aggregationField: "retirementSavings" },
+  { id: "other", label: "Other Federal Credit", aggregationField: "other" },
+];
+
+export type SelfEmploymentConfig = {
+  id: string;
+  label: string;
+  netEarningsRate: number;
+  ssMultiplier: number;
+};
+
+export const SELF_EMPLOYMENT_CONFIGS: SelfEmploymentConfig[] = [
+  { id: "selfEmployment", label: "Self-Employment Income", netEarningsRate: 0.9235, ssMultiplier: 2 },
+];
+
+export type TaxWarningConfig = {
+  id: string;
+  condition: (state: TaxCalculationState, inputs: TaxCalculationInputs, config: TaxYearConfig) => boolean;
+  message: (state: TaxCalculationState, inputs: TaxCalculationInputs, config: TaxYearConfig) => string;
+};
+
+function formatMoney(amount: number): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(amount);
+}
+
+export const TAX_WARNING_CONFIGS: TaxWarningConfig[] = [
+  {
+    id: "pretax-no-wages",
+    condition: (state, inputs, _config) => {
+      const pretaxResult = state.results.get("pretax-benefits");
+      const incomeResult = state.results.get("income-aggregation");
+      const rawPretaxTotal = inputs.pretaxBenefitSources.reduce((sum, s) => sum + s.amount, 0);
+      const wageIncome = (incomeResult?.metadata?.wageIncome as number) ?? 0;
+      return rawPretaxTotal > 0 && wageIncome <= 0;
+    },
+    message: () => "Pre-tax payroll benefits only apply to W-2 wages in this model, so these entries have no effect without wage income.",
+  },
+  {
+    id: "pretax-exceeds-wages",
+    condition: (state, inputs, _config) => {
+      const pretaxResult = state.results.get("pretax-benefits");
+      const incomeResult = state.results.get("income-aggregation");
+      const rawPretaxTotal = inputs.pretaxBenefitSources.reduce((sum, s) => sum + s.amount, 0);
+      const wageIncome = (incomeResult?.metadata?.wageIncome as number) ?? 0;
+      return rawPretaxTotal > wageIncome && wageIncome > 0;
+    },
+    message: () => "Pre-tax payroll benefits exceed W-2 wages, so the app scaled those entries down proportionally.",
+  },
+  {
+    id: "401k-cap",
+    condition: (state, inputs, config) => {
+      const pretaxResult = state.results.get("pretax-benefits");
+      const raw401k = inputs.pretaxBenefitSources
+        .filter(s => ELECTIVE_DEFERRAL_KINDS.includes(s.kind))
+        .reduce((sum, s) => sum + s.amount, 0);
+      const effective401k = (pretaxResult?.metadata?.effective401k as number) ?? 0;
+      return raw401k > effective401k && effective401k > 0;
+    },
+    message: (_state, _inputs, config) => `401(k) deferrals were capped at the ${config.standardDeduction.single > 0 ? Math.floor(config.standardDeduction.single * 1.5) : 24000} IRS elective deferral limit (${formatMoney(config.pretaxLimits.electiveDeferral401k)} per spouse).`,
+  },
+  {
+    id: "hsa-cap",
+    condition: (state, inputs, config) => {
+      const pretaxResult = state.results.get("pretax-benefits");
+      const rawHsa = inputs.pretaxBenefitSources
+        .filter(s => HSA_PRETAX_KINDS.includes(s.kind))
+        .reduce((sum, s) => sum + s.amount, 0);
+      const effectiveHsa = (pretaxResult?.metadata?.effectiveHsa as number) ?? 0;
+      return rawHsa > effectiveHsa && effectiveHsa > 0;
+    },
+    message: (_state, inputs, config) => {
+      const joint = inputs.filingStatus === "marriedJoint";
+      const hsaLimit = joint ? config.pretaxLimits.hsaFamily : config.pretaxLimits.hsaSelfOnly;
+      return `HSA payroll amounts were capped at the IRS limit (${formatMoney(hsaLimit)}).`;
+    },
+  },
+  {
+    id: "itemized-below-standard",
+    condition: (state, inputs, config) => {
+      const deductionResult = state.results.get("deduction-calculation");
+      const standardDeduction = config.standardDeduction[inputs.filingStatus];
+      const itemizedAmount = (deductionResult?.metadata?.itemizedDeductions as number) ?? 0;
+      return inputs.useItemizedDeductions && itemizedAmount < standardDeduction;
+    },
+    message: (_state, _inputs, config) => {
+      return ""; // Will be filled in
+    },
+    // This one needs a special message builder based on inputs
+  },
+  {
+    id: "ltcg-simplification",
+    condition: (state, _inputs, _config) => {
+      const incomeResult = state.results.get("income-aggregation");
+      const ltcg = (incomeResult?.metadata?.longTermCapGains as number) ?? 0;
+      return ltcg > 0;
+    },
+    message: () => "Long-term capital gains use a simplified 0% / 15% / 20% stacking worksheet and do not model qualified-dividend or special-gain edge cases.",
+  },
+  {
+    id: "niit-estimation",
+    condition: (state, _inputs, _config) => {
+      const niitResult = state.results.get("federal-niit");
+      return (niitResult?.amount ?? 0) > 0;
+    },
+    message: () => "Net investment income tax (NIIT) is estimated from short- and long-term gains only (Form 8960 is simplified).",
+  },
+  {
+    id: "credits-exceed-tax",
+    condition: (state, inputs, _config) => {
+      const creditsResult = state.results.get("tax-credits");
+      const ordinaryTax = state.results.get("federal-ordinary-tax");
+      const ltcgTax = state.results.get("federal-ltcg-tax");
+      const niit = state.results.get("federal-niit");
+      const creditsEntered = inputs.federalTaxCredits.reduce((sum, c) => sum + c.amount, 0);
+      const taxBeforeCredits = ((ordinaryTax?.amount ?? 0) + (ltcgTax?.amount ?? 0) + (niit?.amount ?? 0));
+      return creditsEntered > taxBeforeCredits && taxBeforeCredits >= 0;
+    },
+    message: (_state, inputs, _config) => {
+      const creditsEntered = inputs.federalTaxCredits.reduce((sum, c) => sum + c.amount, 0);
+      return `Federal credits (${formatMoney(creditsEntered)}) exceed modeled federal income tax; excess nonrefundable credits are not modeled as a cash refund.`;
+    },
+  },
+];
+
+export function buildTaxWarnings(
+  state: TaxCalculationState,
+  inputs: TaxCalculationInputs,
+  config: TaxYearConfig,
+): string[] {
+  const warnings: string[] = [];
+
+  for (const warningConfig of TAX_WARNING_CONFIGS) {
+    try {
+      if (warningConfig.condition(state, inputs, config)) {
+        const message = warningConfig.message(state, inputs, config);
+        if (message) {
+          warnings.push(message);
+        }
+      }
+    } catch (e) {
+      // Skip warnings that fail to evaluate
+    }
+  }
+
+  // Special handling for itemized vs standard
+  const deductionResult = state.results.get("deduction-calculation");
+  const standardDeduction = config.standardDeduction[inputs.filingStatus];
+  const itemizedAmount = (deductionResult?.metadata?.itemizedDeductions as number) ?? 0;
+  if (inputs.useItemizedDeductions && itemizedAmount < standardDeduction && itemizedAmount > 0) {
+    warnings.push(
+      `Your itemized deduction is below the ${formatMoney(standardDeduction)} standard deduction for this filing status, so a real return would usually prefer the standard deduction.`,
+    );
+  }
+
+  return warnings;
+}
+
+function calculateSelfEmploymentTax(
+  inputs: TaxCalculationInputs,
+  _state: TaxCalculationState,
+  config: TaxYearConfig,
+): TaxItemResult {
+  const seConfig = SELF_EMPLOYMENT_CONFIGS[0];
+  
+  const selfEmploymentIncome = inputs.incomeSources
+    .filter(s => s.kind === "selfEmployment")
+    .reduce((sum, s) => sum + s.amount, 0);
+  
+  const netEarnings = selfEmploymentIncome * seConfig.netEarningsRate;
+  
+  const wageBase = config.payroll.socialSecurityWageBase;
+  const ssRate = config.payroll.socialSecurityRate * seConfig.ssMultiplier;
+  const medicareRate = config.payroll.medicareRate * seConfig.ssMultiplier;
+  const additionalMedicareRate = config.payroll.additionalMedicareRate * seConfig.ssMultiplier;
+  
+  const additionalThreshold = config.payroll.additionalMedicareThreshold[inputs.filingStatus];
+  
+  const seSocialSecurityTax = Math.min(netEarnings, wageBase) * ssRate;
+  const seMedicareTax = netEarnings * medicareRate;
+  const additionalMedicare = netEarnings > additionalThreshold 
+    ? (netEarnings - additionalThreshold) * additionalMedicareRate 
+    : 0;
+  const selfEmploymentTax = seSocialSecurityTax + seMedicareTax + additionalMedicare;
+
+  return {
+    id: "self-employment-tax",
+    label: "Self-Employment Tax",
+    amount: selfEmploymentTax,
+    category: "tax",
+    metadata: {
+      selfEmploymentTax,
+      seSocialSecurityTax,
+      seMedicareTax,
+      additionalMedicareTax: additionalMedicare,
+      netEarnings,
+      selfEmploymentIncome,
+    },
+  };
+}
+
+function makeDisplayItemConfig(
+  type: string,
+  label: string,
+  category: DisplayCategory,
+  order: number,
+  sourceId: string,
+  sourceField: string,
+  options?: Partial<DisplayItemConfig>,
+): DisplayItemConfig {
+  return {
+    type,
+    label,
+    category,
+    format: "currency",
+    order,
+    sourceId,
+    sourceField,
+    color: options?.color ?? getCategoryColor(category),
+    tooltip: options?.tooltip,
+    highlight: options?.highlight,
+  };
+}
+
+function getCategoryColor(category: DisplayCategory): string {
+  const colors: Record<DisplayCategory, string> = {
+    income: "#22c55e",
+    pretax: "#a855f7",
+    deduction: "#f59e0b",
+    tax: "#ef4444",
+    credit: "#14b8a6",
+    summary: "#0d9488",
+  };
+  return colors[category];
+}
+
+export function buildDisplayItemsConfig(): DisplayItemConfig[] {
+  const configs: DisplayItemConfig[] = [];
+  let order = 100;
+
+  for (const cfg of INCOME_KIND_CONFIGS) {
+    configs.push(makeDisplayItemConfig(
+      cfg.id.replace(" ", "-").toLowerCase(),
+      cfg.label,
+      "income",
+      order++,
+      "income-aggregation",
+      cfg.aggregationField,
+    ));
+  }
+  configs.push(makeDisplayItemConfig("total-income", "Total Income", "income", order++, "income-aggregation", "amount", { tooltip: "Gross income from all sources", color: "#166534" }));
+
+  for (const cfg of PRETAX_BENEFIT_CONFIGS) {
+    const type = cfg.id === "401k" ? "401k" : cfg.id === "hsa" ? "hsa" : cfg.id === "traditionalIra" ? "traditional-ira" : cfg.id;
+    configs.push(makeDisplayItemConfig(
+      type,
+      cfg.label,
+      "pretax",
+      order++,
+      "pretax-benefits",
+      cfg.aggregationField,
+    ));
+  }
+  configs.push(makeDisplayItemConfig("total-pretax", "Total Pre-tax", "pretax", order++, "pretax-benefits", "amount", { tooltip: "Total pre-tax deductions", color: "#7e22ce" }));
+  configs.push(makeDisplayItemConfig("wages-after-pretax", "Wages After Pre-tax", "pretax", order++, "pretax-benefits", "wagesAfterPretax", { tooltip: "Wages after pre-tax deductions", color: "#9333ea" }));
+
+  configs.push(makeDisplayItemConfig("standard-deduction", "Standard Deduction", "deduction", order++, "deduction-calculation", "standardDeduction"));
+  configs.push(makeDisplayItemConfig("itemized-deductions", "Itemized Deductions", "deduction", order++, "deduction-calculation", "itemizedDeductions"));
+  configs.push(makeDisplayItemConfig("deduction-used", "Deduction Used", "deduction", order++, "deduction-calculation", "amount", { tooltip: "Higher of standard or itemized", color: "#d97706" }));
+
+  configs.push(makeDisplayItemConfig("ordinary-taxable-income", "Ordinary Taxable Income", "tax", order++, "federal-ordinary-tax", "ordinaryTaxableIncome"));
+  configs.push(makeDisplayItemConfig("ltcg-taxable-income", "LTCG Taxable Income", "tax", order++, "federal-ltcg-tax", "longTermTaxableIncome"));
+  configs.push(makeDisplayItemConfig("federal-ordinary-tax", "Federal Ordinary Tax", "tax", order++, "federal-ordinary-tax", "amount", { tooltip: "Federal income tax on ordinary income" }));
+  configs.push(makeDisplayItemConfig("federal-ltcg-tax", "Federal LTCG Tax", "tax", order++, "federal-ltcg-tax", "amount", { tooltip: "Federal tax on long-term capital gains" }));
+  configs.push(makeDisplayItemConfig("federal-niit", "Net Investment Income Tax", "tax", order++, "federal-niit", "amount", { tooltip: "3.8% NIIT on investment income" }));
+  configs.push(makeDisplayItemConfig("federal-income-tax", "Federal Income Tax", "tax", order++, "combined-federal", "taxBeforeCredits", { tooltip: "Total federal income tax before credits", color: "#dc2626" }));
+  configs.push(makeDisplayItemConfig("federal-income-tax-after-credits", "Federal Income Tax", "tax", order++, "combined-federal", "taxAfterCredits", { tooltip: "Federal income tax after credits", highlight: true, color: "#b91c1c" }));
+
+  configs.push(makeDisplayItemConfig("social-security-tax", "Social Security Tax", "tax", order++, "payroll-tax", "socialSecurityTax", { color: "#3b82f6" }));
+  configs.push(makeDisplayItemConfig("medicare-tax", "Medicare Tax", "tax", order++, "payroll-tax", "medicareTax", { color: "#3b82f6" }));
+  configs.push(makeDisplayItemConfig("payroll-tax", "Payroll Taxes", "tax", order++, "payroll-tax", "amount", { tooltip: "Social Security and Medicare", color: "#1d4ed8" }));
+
+  for (const cfg of FEDERAL_CREDIT_CONFIGS) {
+    configs.push(makeDisplayItemConfig(
+      `${cfg.id}-credit`,
+      cfg.label,
+      "credit",
+      order++,
+      "tax-credits",
+      cfg.aggregationField,
+      { color: "#14b8a6" },
+    ));
+  }
+
+  configs.push(makeDisplayItemConfig("take-home-pay", "Take-Home Pay", "summary", order++, "take-home-calculation", "amount", { tooltip: "Income after all taxes and deductions", highlight: true }));
+  configs.push(makeDisplayItemConfig("effective-tax-rate", "Effective Tax Rate", "summary", order++, "take-home-calculation", "effectiveRate", { format: "percent", tooltip: "Total tax / taxable income", highlight: true, color: "#0f766e" }));
+  configs.push(makeDisplayItemConfig("marginal-tax-rate", "Marginal Tax Rate", "summary", order++, "take-home-calculation", "marginalRate", { format: "percent", tooltip: "Highest federal bracket", color: "#115e59" }));
+
+  return configs;
+}
+
 export type TaxItemCalc<T extends TaxItemCategory = TaxItemCategory> = {
   id: string;
   category: T;
@@ -50,6 +485,36 @@ export type TaxItemCalc<T extends TaxItemCategory = TaxItemCategory> = {
   enabled: boolean;
 };
 
+export type DisplayCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary";
+
+export type DisplayItemFormat = "currency" | "percent" | "number";
+
+export type DisplayItem = {
+  type: string;
+  amount: number;
+  label: string;
+  category: DisplayCategory;
+  color?: string;
+  format: DisplayItemFormat;
+  order: number;
+  tooltip?: string;
+  highlight?: boolean;
+};
+
+export type DisplayItemConfig = {
+  type: string;
+  label: string;
+  category: DisplayCategory;
+  color?: string;
+  format: DisplayItemFormat;
+  order: number;
+  tooltip?: string;
+  highlight?: boolean;
+  sourceId: string;
+  sourceField: string;
+  defaultAmount?: number;
+};
+
 import type { YearValues, FilingStatus, ValidationContext, ValidationResult } from "./types";
 
 export type { YearValues, FilingStatus, ValidationContext, ValidationResult } from "./types";
@@ -59,36 +524,30 @@ function aggregateIncome(
   inputs: TaxCalculationInputs,
   _state: TaxCalculationState,
 ): TaxItemResult {
-  const wageIncome = inputs.incomeSources
-    .filter((s) => s.kind === "wages")
-    .reduce((sum, s) => sum + s.amount, 0);
+  const aggregated: Record<string, number> = {};
+  for (const cfg of INCOME_KIND_CONFIGS) {
+    aggregated[cfg.aggregationField] = 0;
+  }
 
-  const ordinaryIncome = inputs.incomeSources
-    .filter((s) => s.kind === "ordinary")
-    .reduce((sum, s) => sum + s.amount, 0);
+  for (const src of inputs.incomeSources) {
+    const cfg = INCOME_KIND_CONFIGS.find(c => c.id === src.kind);
+    if (cfg) {
+      aggregated[cfg.aggregationField] += src.amount;
+    }
+  }
 
-  const shortTermCapGains = inputs.incomeSources
-    .filter((s) => s.kind === "shortTermCapGains")
-    .reduce((sum, s) => sum + s.amount, 0);
+  let totalIncome = 0;
+  for (const amount of Object.values(aggregated)) {
+    totalIncome += amount;
+  }
 
-  const longTermCapGains = inputs.incomeSources
-    .filter((s) => s.kind === "longTermCapGains")
-    .reduce((sum, s) => sum + s.amount, 0);
-
-  const totalIncome = wageIncome + ordinaryIncome + shortTermCapGains + longTermCapGains;
-
+  const metadata: Record<string, unknown> = { ...aggregated, sources: inputs.incomeSources, totalIncome };
   return {
     id: "income-aggregation",
     label: "Total Income",
     amount: totalIncome,
     category: "income",
-    metadata: {
-      wageIncome,
-      ordinaryIncome,
-      shortTermCapGains,
-      longTermCapGains,
-      sources: inputs.incomeSources,
-    },
+    metadata,
   };
 }
 
@@ -97,75 +556,91 @@ function calculatePretaxBenefits(
   state: TaxCalculationState,
   config: TaxYearConfig,
 ): TaxItemResult {
+  const joint = inputs.filingStatus === "marriedJoint";
+  const limits = config.pretaxLimits;
+
+  const aggregated: Record<string, { spouse1: number; spouse2: number }> = {};
+  for (const cfg of PRETAX_BENEFIT_CONFIGS) {
+    aggregated[cfg.aggregationField] = { spouse1: 0, spouse2: 0 };
+  }
+
+  for (const src of inputs.pretaxBenefitSources) {
+    const cfg = PRETAX_BENEFIT_CONFIGS.find(c => c.id === src.kind);
+    if (!cfg) continue;
+
+    const isSpouse2 = src.id.includes("spouse2");
+    if (cfg.isSpouseSpecific) {
+      aggregated[cfg.aggregationField][isSpouse2 ? "spouse2" : "spouse1"] += src.amount;
+    } else {
+      aggregated[cfg.aggregationField].spouse1 += src.amount;
+    }
+  }
+
+  const metadata: Record<string, number | Record<string, number>> = {};
+  let totalPretax = 0;
+  let totalIra = 0;
+
+  for (const cfg of PRETAX_BENEFIT_CONFIGS) {
+    const agg = aggregated[cfg.aggregationField];
+    const limit = cfg.limitKey ? limits[cfg.limitKey!] : (cfg.limitFn ? cfg.limitFn(limits, joint) : undefined);
+
+    const effective1 = limit !== undefined ? Math.min(agg.spouse1, limit) : agg.spouse1;
+    const effective2 = cfg.isSpouseSpecific && limit !== undefined ? Math.min(agg.spouse2, limit) : agg.spouse2;
+
+    const effective = effective1 + effective2;
+    metadata[cfg.aggregationField] = effective;
+    metadata[`${cfg.aggregationField}Spouse1`] = effective1;
+    if (cfg.isSpouseSpecific) {
+      metadata[`${cfg.aggregationField}Spouse2`] = effective2;
+    }
+
+    if (cfg.id === "traditionalIra") {
+      totalIra += effective;
+    } else {
+      totalPretax += effective;
+    }
+  }
+
+  metadata.totalPretax = totalPretax;
+  metadata.traditionalIra = totalIra;
+
   const incomeResult = state.results.get("income-aggregation");
   const wageIncome = (incomeResult?.metadata?.wageIncome as number) ?? 0;
-
-  const joint = inputs.filingStatus === "marriedJoint";
-
-  const preTax401kSpouse1 = inputs.pretaxBenefitSources
-    .filter((s) => s.kind === "401k" && s.id.includes("spouse1"))
-    .reduce((sum, s) => sum + s.amount, 0);
-  const preTax401kSpouse2 = inputs.pretaxBenefitSources
-    .filter((s) => s.kind === "401k" && s.id.includes("spouse2"))
-    .reduce((sum, s) => sum + s.amount, 0);
-
-  const preTaxHsaSpouse1 = inputs.pretaxBenefitSources
-    .filter((s) => s.kind === "hsa" && s.id.includes("spouse1"))
-    .reduce((sum, s) => sum + s.amount, 0);
-  const preTaxHsaSpouse2 = inputs.pretaxBenefitSources
-    .filter((s) => s.kind === "hsa" && s.id.includes("spouse2"))
-    .reduce((sum, s) => sum + s.amount, 0);
-
-  const preTaxOther = inputs.pretaxBenefitSources
-    .filter((s) => s.kind === "other")
-    .reduce((sum, s) => sum + s.amount, 0);
-
-  const traditionalIraSpouse1 = inputs.pretaxBenefitSources
-    .filter((s) => s.kind === "traditionalIra" && s.id.includes("spouse1"))
-    .reduce((sum, s) => sum + s.amount, 0);
-  const traditionalIraSpouse2 = inputs.pretaxBenefitSources
-    .filter((s) => s.kind === "traditionalIra" && s.id.includes("spouse2"))
-    .reduce((sum, s) => sum + s.amount, 0);
-
-  const limit401k = config.pretaxLimits.electiveDeferral401k;
-  const effective401k1 = Math.min(preTax401kSpouse1, limit401k);
-  const effective401k2 = Math.min(preTax401kSpouse2, limit401k);
-
-  const limitHsa = joint ? config.pretaxLimits.hsaFamily : config.pretaxLimits.hsaSelfOnly;
-  const effectiveHsa1 = Math.min(preTaxHsaSpouse1, limitHsa);
-  const effectiveHsa2 = joint ? Math.min(preTaxHsaSpouse2, limitHsa) : 0;
-
-  const totalPretax = effective401k1 + effective401k2 + effectiveHsa1 + effectiveHsa2 + preTaxOther;
-  const totalIra = traditionalIraSpouse1 + traditionalIraSpouse2;
+  const wagesAfterPretax = Math.max(0, wageIncome - totalPretax - totalIra);
+  metadata.wagesAfterPretax = wagesAfterPretax;
 
   return {
     id: "pretax-benefits",
     label: "Pre-tax Benefits",
     amount: totalPretax,
     category: "pretax",
-    metadata: {
-      effective401k: effective401k1 + effective401k2,
-      effectiveHsa: effectiveHsa1 + effectiveHsa2,
-      effectiveOther: preTaxOther,
-      totalPretax,
-      traditionalIra: totalIra,
-      pretax401kSpouse1: effective401k1,
-      pretax401kSpouse2: effective401k2,
-      pretaxHsaSpouse1: effectiveHsa1,
-      pretaxHsaSpouse2: effectiveHsa2,
-      pretaxOther: preTaxOther,
-    },
+    metadata,
   };
 }
 
 function calculateDeduction(
   inputs: TaxCalculationInputs,
-  state: TaxCalculationState,
+  _state: TaxCalculationState,
   config: TaxYearConfig,
 ): TaxItemResult {
   const standardDeduction = config.standardDeduction[inputs.filingStatus];
   
-  const itemizedDeductions = inputs.itemizedDeductions.reduce((sum, d) => sum + d.amount, 0);
+  const itemizedAggregated: Record<string, number> = {};
+  for (const cfg of DEDUCTION_KIND_CONFIGS) {
+    itemizedAggregated[cfg.aggregationField] = 0;
+  }
+
+  for (const ded of inputs.itemizedDeductions) {
+    const cfg = DEDUCTION_KIND_CONFIGS.find(c => c.id === ded.kind);
+    if (cfg) {
+      itemizedAggregated[cfg.aggregationField] += ded.amount;
+    }
+  }
+
+  let itemizedDeductions = 0;
+  for (const amount of Object.values(itemizedAggregated)) {
+    itemizedDeductions += amount;
+  }
 
   const useItemized = inputs.useItemizedDeductions && itemizedDeductions > standardDeduction;
   const deductionAmount = useItemized ? itemizedDeductions : standardDeduction;
@@ -179,6 +654,7 @@ function calculateDeduction(
       kind: useItemized ? "itemized" : "standard",
       standardDeduction,
       itemizedDeductions,
+      ...itemizedAggregated,
     },
   };
 }
@@ -202,30 +678,15 @@ function calculateFederalOrdinaryTax(
   const ordinaryTaxableIncome = Math.max(0, ordinaryAfterPretax - deductionAmount);
 
   const brackets = config.federalBrackets[inputs.filingStatus];
-  let remaining = ordinaryTaxableIncome;
-  let lowerBound = 0;
-  let totalTax = 0;
-  const segments: Array<{ rangeStart: number; rangeEnd: number | null; incomeAmount: number; taxAmount: number; marginalRate: number }> = [];
+  const { tax: totalTax, marginalRate, segments } = calculateBracketTax(ordinaryTaxableIncome, brackets);
 
-  for (const bracket of brackets) {
-    if (remaining <= 0) break;
-
-    const upperBound = bracket.upTo ?? Number.POSITIVE_INFINITY;
-    const amountInBracket = Math.min(remaining, upperBound - lowerBound);
-    if (amountInBracket > 0) {
-      const taxAmount = amountInBracket * bracket.rate;
-      totalTax += taxAmount;
-      segments.push({
-        rangeStart: lowerBound,
-        rangeEnd: bracket.upTo,
-        incomeAmount: amountInBracket,
-        taxAmount,
-        marginalRate: bracket.rate,
-      });
-      remaining -= amountInBracket;
-    }
-    lowerBound = upperBound;
-  }
+  const formattedSegments = segments.map(s => ({
+    rangeStart: s.rangeStart,
+    rangeEnd: s.rangeEnd,
+    incomeAmount: s.incomeAmount,
+    taxAmount: s.taxAmount,
+    marginalRate: s.rate,
+  }));
 
   return {
     id: "federal-ordinary-tax",
@@ -234,7 +695,8 @@ function calculateFederalOrdinaryTax(
     category: "tax",
     metadata: {
       ordinaryTaxableIncome,
-      segments,
+      marginalRate,
+      segments: formattedSegments,
     },
   };
 }
@@ -255,34 +717,7 @@ function calculateFederalLtcgTax(
   const longTermTaxableIncome = Math.max(0, longTermCapGains - remainingDeduction);
 
   const ltcgThresholds = config.longTermCapGains[inputs.filingStatus];
-  const zeroRateMax = ltcgThresholds.zeroRateMax;
-  const fifteenRateMax = ltcgThresholds.fifteenRateMax;
-
-  let totalTax = 0;
-  let remaining = longTermTaxableIncome;
-  let lowerBound = ordinaryTaxableIncome;
-
-  if (remaining > 0) {
-    const inZeroRate = Math.max(0, Math.min(remaining, Math.max(0, zeroRateMax - lowerBound)));
-    if (inZeroRate > 0) {
-      totalTax += inZeroRate * 0;
-      remaining -= inZeroRate;
-      lowerBound += inZeroRate;
-    }
-  }
-
-  if (remaining > 0) {
-    const inFifteenRate = Math.max(0, Math.min(remaining, Math.max(0, fifteenRateMax - lowerBound)));
-    if (inFifteenRate > 0) {
-      totalTax += inFifteenRate * 0.15;
-      remaining -= inFifteenRate;
-      lowerBound += inFifteenRate;
-    }
-  }
-
-  if (remaining > 0) {
-    totalTax += remaining * 0.20;
-  }
+  const { tax: totalTax, segments } = calculateLtcgTax(longTermTaxableIncome, ltcgThresholds, ordinaryTaxableIncome);
 
   return {
     id: "federal-ltcg-tax",
@@ -292,6 +727,7 @@ function calculateFederalLtcgTax(
     metadata: {
       longTermTaxableIncome,
       longTermCapGains,
+      segments,
     },
   };
 }
@@ -311,11 +747,11 @@ function calculateFederalNiit(
 
   const magi = wageIncome + ordinaryIncome + shortTermCapGains + ((incomeResult?.metadata?.longTermCapGains as number) ?? 0);
   const netInvestmentIncome = shortTermCapGains + longTermTaxableIncome;
-  const threshold = config.payroll.additionalMedicareThreshold[inputs.filingStatus];
+  const threshold = config.niit.magiThreshold[inputs.filingStatus];
 
   const magiOverThreshold = Math.max(0, magi - threshold);
   const niitAmount = netInvestmentIncome > 0 && magiOverThreshold > 0
-    ? Math.min(netInvestmentIncome, magiOverThreshold) * 0.038
+    ? Math.min(netInvestmentIncome, magiOverThreshold) * config.niit.rate
     : 0;
 
   return {
@@ -334,13 +770,31 @@ function calculateFederalNiit(
 function calculateTaxCredits(
   inputs: TaxCalculationInputs,
   state: TaxCalculationState,
+  _config: TaxYearConfig,
 ): TaxItemResult {
   const ordinaryTax = state.results.get("federal-ordinary-tax");
   const ltcgTax = state.results.get("federal-ltcg-tax");
   const niit = state.results.get("federal-niit");
 
   const totalTaxLiability = (ordinaryTax?.amount ?? 0) + (ltcgTax?.amount ?? 0) + (niit?.amount ?? 0);
-  const creditsEntered = inputs.federalTaxCredits.reduce((sum, c) => sum + c.amount, 0);
+
+  const creditsAggregated: Record<string, number> = {};
+  for (const cfg of FEDERAL_CREDIT_CONFIGS) {
+    creditsAggregated[cfg.aggregationField] = 0;
+  }
+
+  for (const credit of inputs.federalTaxCredits) {
+    const cfg = FEDERAL_CREDIT_CONFIGS.find(c => c.id === credit.kind);
+    if (cfg) {
+      creditsAggregated[cfg.aggregationField] += credit.amount;
+    }
+  }
+
+  let creditsEntered = 0;
+  for (const amount of Object.values(creditsAggregated)) {
+    creditsEntered += amount;
+  }
+
   const creditsApplied = Math.min(creditsEntered, totalTaxLiability);
 
   return {
@@ -352,6 +806,7 @@ function calculateTaxCredits(
       creditsEntered,
       creditsApplied,
       totalTaxLiability,
+      ...creditsAggregated,
     },
   };
 }
@@ -404,18 +859,21 @@ function calculateTakeHome(
   const niit = state.results.get("federal-niit");
   const credits = state.results.get("tax-credits");
   const payrollTax = state.results.get("payroll-tax");
+  const selfEmploymentTaxResult = state.results.get("self-employment-tax");
 
   const totalIncome = incomeResult?.amount ?? 0;
   const preTaxTotal = pretaxResult?.amount ?? 0;
   const pretaxIra = (pretaxResult?.metadata?.traditionalIra as number) ?? 0;
   const federalTax = ((ordinaryTax?.amount ?? 0) + (ltcgTax?.amount ?? 0) + (niit?.amount ?? 0)) - (credits?.amount ?? 0);
   const payroll = payrollTax?.amount ?? 0;
+  const selfEmploymentTax = selfEmploymentTaxResult?.amount ?? 0;
 
   const wagesAfterPretax = Math.max(0, totalIncome - preTaxTotal - pretaxIra);
-  const takeHome = Math.max(0, totalIncome - preTaxTotal - federalTax - payroll - pretaxIra);
+  const takeHome = Math.max(0, totalIncome - preTaxTotal - federalTax - payroll - selfEmploymentTax - pretaxIra);
 
   const effectiveRateDenominator = Math.max(0, totalIncome - preTaxTotal - pretaxIra);
-  const effectiveRate = effectiveRateDenominator > 0 ? (federalTax + payroll) / effectiveRateDenominator : 0;
+  const totalTax = federalTax + payroll + selfEmploymentTax;
+  const effectiveRate = effectiveRateDenominator > 0 ? totalTax / effectiveRateDenominator : 0;
 
   return {
     id: "take-home-calculation",
@@ -430,6 +888,8 @@ function calculateTakeHome(
       payrollTax: payroll,
       pretaxIra,
       wagesAfterPretax,
+      selfEmploymentTax,
+      totalTax,
     },
   };
 }
@@ -556,13 +1016,27 @@ export const TAX_ITEM_CALCS: TaxItemCalc[] = [
     enabled: true,
   },
   {
+    id: "self-employment-tax",
+    label: "Self-Employment Tax",
+    description: "Calculates self-employment tax (Social Security and Medicare) on 1099 income",
+    category: "tax",
+    displayOrder: 8.5,
+    calcFn: calculateSelfEmploymentTax,
+    dependencies: ["income-aggregation"],
+    outputs: [
+      { key: "selfEmploymentTax", type: "currency", label: "Self-Employment Tax" },
+      { key: "netEarnings", type: "currency", label: "Net Earnings (92.35%)" },
+    ],
+    enabled: true,
+  },
+  {
     id: "take-home-calculation",
     label: "Take-Home Calculation",
     description: "Calculates final take-home pay after all taxes and deductions",
     category: "income",
     displayOrder: 9,
     calcFn: calculateTakeHome,
-    dependencies: ["income-aggregation", "pretax-benefits", "tax-credits", "payroll-tax"],
+    dependencies: ["income-aggregation", "pretax-benefits", "tax-credits", "payroll-tax", "self-employment-tax"],
     outputs: [
       { key: "takeHomePay", type: "currency", label: "Take-Home Pay", sankeyNodeKind: "keep", chartCategory: "keep", highlight: true },
       { key: "effectiveTaxRate", type: "percent", label: "Effective Tax Rate", highlight: true },
@@ -600,6 +1074,47 @@ export type FormInputItem = {
   showWhen?: (ctx: { filingStatus: FilingStatus; taxYear: number; isJoint?: boolean }) => boolean;
   getSpouseLabels?: (isJoint: boolean) => { single: string; joint: string; spouse1?: string; spouse2?: string };
 };
+
+export type PretaxBenefitConfig = {
+  id: string;
+  label: string;
+  limitKey?: keyof TaxYearConfig["pretaxLimits"];
+  limitFn?: (limits: TaxYearConfig["pretaxLimits"], joint: boolean) => number;
+  isSpouseSpecific: boolean;
+  aggregationField: string;
+};
+
+export const PRETAX_BENEFIT_CONFIGS: PretaxBenefitConfig[] = [
+  { id: "401k", label: "401(k) Deferrals", limitKey: "electiveDeferral401k", isSpouseSpecific: true, aggregationField: "401k" },
+  { id: "hsa", label: "HSA Contributions", limitFn: (limits, joint) => joint ? limits.hsaFamily : limits.hsaSelfOnly, isSpouseSpecific: true, aggregationField: "hsa" },
+  { id: "traditionalIra", label: "Traditional IRA", limitKey: "traditionalIraContribution", isSpouseSpecific: true, aggregationField: "ira" },
+  { id: "other", label: "Other Pre-tax", isSpouseSpecific: false, aggregationField: "other" },
+];
+
+export function getPretaxBenefitKindValues(): string[] {
+  const kinds: string[] = [];
+  for (const cfg of PRETAX_BENEFIT_CONFIGS) {
+    if (cfg.isSpouseSpecific) {
+      kinds.push(`preTax${cfg.id.charAt(0).toUpperCase() + cfg.id.slice(1)}Spouse1`);
+      kinds.push(`preTax${cfg.id.charAt(0).toUpperCase() + cfg.id.slice(1)}Spouse2`);
+    } else {
+      kinds.push(`preTax${cfg.id.charAt(0).toUpperCase() + cfg.id.slice(1)}`);
+    }
+  }
+  return kinds;
+}
+
+export function getPretaxBenefitConfig(id: string): PretaxBenefitConfig | undefined {
+  return PRETAX_BENEFIT_CONFIGS.find(c => c.id === id);
+}
+
+export function getPretaxLimit(configId: string, limits: TaxYearConfig["pretaxLimits"], joint: boolean): number | undefined {
+  const cfg = getPretaxBenefitConfig(configId);
+  if (!cfg) return undefined;
+  if (cfg.limitKey) return limits[cfg.limitKey];
+  if (cfg.limitFn) return cfg.limitFn(limits, joint);
+  return undefined;
+}
 
 export const FORM_INCOME_ITEMS: FormInputItem[] = [
   { id: "wages", category: "income", label: "W-2 Wages", shortLabel: "Wages", description: "Wages reported on Form W-2", displayOrder: 1, inputType: "currency", allowMultiple: false },
@@ -641,3 +1156,91 @@ export const ALL_FORM_ITEMS: FormInputItem[] = [
 export function getFormItemsByCategory(category: FormInputItem["category"]): FormInputItem[] {
   return ALL_FORM_ITEMS.filter(item => item.category === category);
 }
+
+export const DISPLAY_ITEMS_CONFIG: DisplayItemConfig[] = buildDisplayItemsConfig();
+
+function getResultById(results: Map<string, TaxItemResult>, sourceId: string): TaxItemResult | undefined {
+  return results.get(sourceId);
+}
+
+function extractFieldFromResult(result: TaxItemResult | undefined, field: string): number {
+  if (!result) return 0;
+  if (field === "amount") return result.amount;
+  return (result.metadata?.[field] as number) ?? 0;
+}
+
+export function buildDisplayItems(
+  inputs: TaxCalculationInputs,
+  state: TaxCalculationState,
+): DisplayItem[] {
+  const results = state.results;
+  const displayItems: DisplayItem[] = [];
+
+  const ordinaryTax = results.get("federal-ordinary-tax") as TaxItemResult | undefined;
+  const ltcgTax = results.get("federal-ltcg-tax") as TaxItemResult | undefined;
+  const niit = results.get("federal-niit") as TaxItemResult | undefined;
+  const credits = results.get("tax-credits") as TaxItemResult | undefined;
+
+  const taxBeforeCredits = ((ordinaryTax?.amount ?? 0) + (ltcgTax?.amount ?? 0) + (niit?.amount ?? 0));
+  const taxAfterCredits = Math.max(0, taxBeforeCredits - (credits?.amount ?? 0));
+
+  const taxSegments = ordinaryTax?.metadata?.segments as Array<{ marginalRate: number }> | undefined;
+  const marginalRate = taxSegments?.slice(-1)?.[0]?.marginalRate ?? 0;
+
+  for (const config of DISPLAY_ITEMS_CONFIG) {
+    let amount = 0;
+    
+    if (config.sourceId === "combined-federal") {
+      if (config.sourceField === "taxBeforeCredits") {
+        amount = taxBeforeCredits;
+      } else if (config.sourceField === "taxAfterCredits") {
+        amount = taxAfterCredits;
+      }
+    } else if (config.sourceId === "take-home-calculation" && config.sourceField === "marginalRate") {
+      amount = marginalRate;
+    } else if (config.sourceId === "pretax-benefits" && config.sourceField === "wagesAfterPretax") {
+      const pretaxResult = results.get("pretax-benefits") as TaxItemResult | undefined;
+      amount = (pretaxResult?.metadata?.wagesAfterPretax as number) ?? 0;
+    } else {
+      const result = getResultById(results, config.sourceId);
+      amount = extractFieldFromResult(result, config.sourceField);
+    }
+
+    displayItems.push({
+      type: config.type,
+      amount,
+      label: config.label,
+      category: config.category,
+      color: config.color,
+      format: config.format,
+      order: config.order,
+      tooltip: config.tooltip,
+      highlight: config.highlight,
+    });
+  }
+
+  return displayItems.sort((a, b) => a.order - b.order);
+}
+
+export function getDisplayItemsByCategory(
+  displayItems: DisplayItem[],
+  category: DisplayCategory,
+): DisplayItem[] {
+  return displayItems.filter(item => item.category === category);
+}
+
+export const PRETAX_BENEFIT_KIND_VALUES = PRETAX_BENEFIT_CONFIGS.flatMap(cfg => {
+  if (cfg.isSpouseSpecific) {
+    return [
+      `preTax${cfg.id.charAt(0).toUpperCase() + cfg.id.slice(1)}Spouse1`,
+      `preTax${cfg.id.charAt(0).toUpperCase() + cfg.id.slice(1)}Spouse2`,
+    ];
+  }
+  return [`preTax${cfg.id.charAt(0).toUpperCase() + cfg.id.slice(1)}`];
+});
+
+export const ITEMIZED_DEDUCTION_KIND_VALUES = DEDUCTION_KIND_CONFIGS.map(cfg => cfg.id as string);
+
+export const FEDERAL_TAX_CREDIT_KIND_VALUES = FEDERAL_CREDIT_CONFIGS.map(cfg => cfg.id as string);
+
+export const INCOME_KIND_VALUES = INCOME_KIND_CONFIGS.map(cfg => cfg.id as string);

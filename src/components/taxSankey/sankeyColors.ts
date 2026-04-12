@@ -1,55 +1,24 @@
 import type { ChartNode } from "~/components/taxSankey/chartTypes";
+import {
+  SANKEY_LINK_STROKE_DEFAULT,
+  SANKEY_NODE_FILL_DEFAULT,
+  SANKEY_NODE_STYLE_BY_KIND,
+} from "~/lib/config/sankeyOrder.config";
 
 export function linkStroke(targetNode: ChartNode): string {
-  if (targetNode.kind === "payrollOrdinaryStrip") return "var(--sankey-link-deferred)";
-  if (targetNode.kind === "taxesFederal" || targetNode.kind === "taxesPayroll") {
-    return "var(--sankey-link-tax)";
+  const row = SANKEY_NODE_STYLE_BY_KIND[targetNode.kind];
+  if (!row) return SANKEY_LINK_STROKE_DEFAULT;
+  if (targetNode.kind === "deductionBenefitSink" && row.linkStrokeBenefitAccounting) {
+    return targetNode.deductionBenefitSinkRole === "takeHome" ? row.linkStroke : row.linkStrokeBenefitAccounting;
   }
-  if (targetNode.kind === "federalCredits") return "var(--sankey-link-credits)";
-  if (targetNode.kind === "keep") return "var(--sankey-link-keep)";
-  if (targetNode.kind === "deferredSink") return "var(--sankey-link-deferred)";
-  if (targetNode.kind === "deductionBenefitSink") {
-    return targetNode.deductionBenefitSinkRole === "takeHome"
-      ? "var(--sankey-link-keep)"
-      : "var(--sankey-link-deferred)";
-  }
-  return "var(--sankey-link)";
+  return row.linkStroke;
 }
 
 export function nodeFill(node: ChartNode): string {
-  switch (node.kind) {
-    case "incomeSource":
-      return "var(--sankey-node-income)";
-    case "ordinaryTaxableIncome":
-      return "var(--sankey-node-3)";
-    case "longTermTaxableIncome":
-    case "ltcgDeductionShield":
-    case "ltcgBracket":
-      return "var(--sankey-node-ltcg)";
-    case "standardDeduction":
-    case "deduction":
-      return "var(--sankey-node-2)";
-    case "deductionShield":
-      return "var(--sankey-node-5)";
-    case "deductionBenefitSink":
-      return node.deductionBenefitSinkRole === "takeHome"
-        ? "var(--sankey-node-keep)"
-        : "var(--sankey-node-deferred)";
-    case "ordinaryBracket":
-      return "var(--sankey-node-4)";
-    case "payrollOrdinaryStrip":
-      return "var(--sankey-node-deferred)";
-    case "taxesFederal":
-    case "taxesPayroll":
-      return "var(--sankey-node-6)";
-    case "federalCredits":
-      return "var(--sankey-node-credits)";
-    case "keep":
-    case "pretaxContribution":
-      return "var(--sankey-node-keep)";
-    case "deferredSink":
-      return "var(--sankey-node-deferred)";
-    default:
-      return "var(--sankey-node-7)";
+  const row = SANKEY_NODE_STYLE_BY_KIND[node.kind];
+  if (!row) return SANKEY_NODE_FILL_DEFAULT;
+  if (node.kind === "deductionBenefitSink" && row.fillBenefitAccounting) {
+    return node.deductionBenefitSinkRole === "takeHome" ? row.fill : row.fillBenefitAccounting;
   }
+  return row.fill;
 }

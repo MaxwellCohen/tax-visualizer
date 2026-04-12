@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { calculateTaxes, newIncomeSource } from "~/lib/taxCalc";
+import { calculateTaxes, incomeSourcesToRows, newIncomeSource } from "~/lib/taxCalc";
+import { getTaxYearFromRows, getUseItemizedFromRows, rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
 import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { baseInput, withFederalCreditsTotal, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
@@ -54,8 +55,8 @@ describe("taxScenario sanitize helpers", () => {
 
   it("fallbackScenario", () => {
     const s = fallbackScenario(2025);
-    expect(s.taxYear).toBe(2025);
-    expect(s.incomeSources.length).toBeGreaterThan(0);
+    expect(getTaxYearFromRows(s.rows)).toBe(2025);
+    expect(s.rows.filter(r => r.type === "income").length).toBeGreaterThan(0);
   });
 });
 
@@ -65,66 +66,69 @@ describe("sanitizeScenarioInput", () => {
 
   it("falls back for non-object input", () => {
     const s = sanitizeScenarioInput(null, years, fallback);
-    expect(s.taxYear).toBe(fallback);
+    expect(getTaxYearFromRows(s.rows)).toBe(fallback);
   });
 
-  it("maps v4 payload and clamps pretax", () => {
+  it("clamps oversized 401(k) on v5 payload", () => {
     const raw = {
-      version: 4 as const,
-      taxYear: 2025,
-      filingStatus: "single" as const,
-      incomeSources: [{ id: "a", kind: "wages" as const, label: "x", amount: 10_000 }],
-      pretaxBenefitSources: [
-        { kind: "preTax401kSpouse1", label: "", amount: 999_999 },
+      version: 5 as const,
+      rows: [
+        { type: "setting" as const, id: "taxYear" as const, value: 2025 },
+        { type: "setting" as const, id: "filingStatus" as const, value: "single" as const },
+        { type: "income" as const, id: "a", kind: "wages" as const, label: "x", amount: 10_000 },
+        { type: "pretax" as const, id: "p1", kind: "preTax401kSpouse1" as const, label: "", amount: 999_999 },
+        { type: "setting" as const, id: "useItemizedDeductions" as const, value: false },
+        { type: "deduction" as const, id: "d1", kind: "otherItemized" as const, label: "", amount: 0 },
+        { type: "credit" as const, id: "c1", kind: "otherFederalCredit" as const, label: "", amount: 0 },
       ],
-      useItemizedDeductions: false,
-      itemizedDeductions: [{ kind: "otherItemized", label: "", amount: 0 }],
-      federalTaxCredits: [{ kind: "otherFederalCredit", label: "", amount: 0 }],
     };
     const s = sanitizeScenarioInput(raw, years, fallback);
-    expect(aggregatePretaxFromSources(s.pretaxBenefitSources, false).preTax401kSpouse1).toBe(23_500);
+    expect(
+      aggregatePretaxFromSources(rowsToTaxCalculationInputs(s.rows).pretaxBenefitSources, false).preTax401kSpouse1,
+    ).toBe(23_500);
   });
 
-  it("maps v4 pretax and itemized rows", () => {
+  it("maps v5 pretax and itemized rows", () => {
     const raw = {
-      version: 4 as const,
-      taxYear: 2025,
-      filingStatus: "single" as const,
-      incomeSources: [{ id: "a", kind: "wages" as const, label: "", amount: 50_000 }],
-      pretaxBenefitSources: [
-        { kind: "preTax401kSpouse1", label: "", amount: 5_000 },
-        { kind: "preTaxHsaSpouse1", label: "", amount: 1_000 },
-        { kind: "preTaxOther", label: "", amount: 2 },
+      version: 5 as const,
+      rows: [
+        { type: "setting" as const, id: "taxYear" as const, value: 2025 },
+        { type: "setting" as const, id: "filingStatus" as const, value: "single" as const },
+        { type: "income" as const, id: "a", kind: "wages" as const, label: "", amount: 50_000 },
+        { type: "pretax" as const, id: "p1", kind: "preTax401kSpouse1" as const, label: "", amount: 5_000 },
+        { type: "pretax" as const, id: "p2", kind: "preTaxHsaSpouse1" as const, label: "", amount: 1_000 },
+        { type: "pretax" as const, id: "p3", kind: "preTaxOther" as const, label: "", amount: 2 },
+        { type: "setting" as const, id: "useItemizedDeductions" as const, value: true },
+        { type: "deduction" as const, id: "d1", kind: "charitable" as const, label: "", amount: 20_000 },
+        { type: "credit" as const, id: "c1", kind: "otherFederalCredit" as const, label: "", amount: 0 },
       ],
-      useItemizedDeductions: true,
-      itemizedDeductions: [{ kind: "charitable", label: "", amount: 20_000 }],
-      federalTaxCredits: [{ kind: "otherFederalCredit", label: "", amount: 0 }],
     };
     const s = sanitizeScenarioInput(raw, years, fallback);
-    const p = aggregatePretaxFromSources(s.pretaxBenefitSources, false);
+    const p = aggregatePretaxFromSources(rowsToTaxCalculationInputs(s.rows).pretaxBenefitSources, false);
     expect(p.preTax401kSpouse1).toBe(5_000);
     expect(p.preTaxHsaSpouse1).toBe(1_000);
     expect(p.traditionalIraSpouse1).toBe(0);
-    expect(s.useItemizedDeductions).toBe(true);
-    expect(sumLabeledAmountSources(s.itemizedDeductions)).toBe(20_000);
+    expect(getUseItemizedFromRows(s.rows)).toBe(true);
+    expect(
+      sumLabeledAmountSources(rowsToTaxCalculationInputs(s.rows).itemizedDeductions),
+    ).toBe(20_000);
   });
 
-  it("fills income sources when missing on v4", () => {
-    const s = sanitizeScenarioInput({ version: 4, taxYear: 2025 }, years, fallback);
-    expect(s.incomeSources.length).toBeGreaterThan(0);
+  it("fills rows when empty on v5", () => {
+    const s = sanitizeScenarioInput({ version: 5, rows: [] }, years, fallback);
+    expect(s.rows.filter(r => r.type === "income").length).toBeGreaterThan(0);
   });
 
-  it("ignores non-v4 payloads and uses the default scenario for that tax year", () => {
+  it("ignores non-v5 payloads and uses the default scenario for that tax year", () => {
     const s = sanitizeScenarioInput(
       { version: 2, taxYear: 2025, filingStatus: "single" },
       years,
       fallback,
     );
     const expected = fallbackScenario(2025);
-    expect(s.taxYear).toBe(expected.taxYear);
-    expect(s.filingStatus).toBe(expected.filingStatus);
-    expect(s.useItemizedDeductions).toBe(expected.useItemizedDeductions);
-    expect(s.incomeSources.length).toBe(expected.incomeSources.length);
+    expect(getTaxYearFromRows(s.rows)).toBe(getTaxYearFromRows(expected.rows));
+    expect(getUseItemizedFromRows(s.rows)).toBe(getUseItemizedFromRows(expected.rows));
+    expect(s.rows.filter(r => r.type === "income").length).toBe(expected.rows.filter(r => r.type === "income").length);
   });
 });
 
@@ -134,14 +138,16 @@ describe("serialize / deserialize scenario", () => {
 
   it("roundtrips", () => {
     const input = baseInput({
-      pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 5_000 }),
-      federalTaxCredits: withFederalCreditsTotal(1_500),
+      pretaxRows: withPretaxTotals({ preTax401kSpouse1: 5_000 }),
+      creditRows: withFederalCreditsTotal(1_500),
     });
     const json = serializeScenarioInput(input);
     const back = deserializeScenarioInput(json, years, fallback);
     expect(back).not.toBeNull();
-    expect(aggregatePretaxFromSources(back!.pretaxBenefitSources, false).preTax401kSpouse1).toBe(5_000);
-    expect(sumLabeledAmountSources(back!.federalTaxCredits)).toBe(1_500);
+    expect(
+      aggregatePretaxFromSources(rowsToTaxCalculationInputs(back!.rows).pretaxBenefitSources, false).preTax401kSpouse1,
+    ).toBe(5_000);
+    expect(sumLabeledAmountSources(rowsToTaxCalculationInputs(back!.rows).federalTaxCredits)).toBe(1_500);
   });
 
   it("decodeURIComponent fallback for URL-encoded JSON", () => {
@@ -149,7 +155,7 @@ describe("serialize / deserialize scenario", () => {
     const encoded = encodeURIComponent(serializeScenarioInput(input));
     const back = deserializeScenarioInput(encoded, years, fallback);
     expect(back).not.toBeNull();
-    expect(back!.taxYear).toBe(2025);
+    expect(getTaxYearFromRows(back!.rows)).toBe(2025);
   });
 
   it("returns null for garbage", () => {
@@ -173,7 +179,7 @@ describe("buildScenarioSummaryText", () => {
   it("handles no positive income sources", () => {
     const r = calculateTaxes(
       baseInput({
-        incomeSources: [newIncomeSource({ kind: "wages", amount: 0 })],
+        incomeRows: incomeSourcesToRows([newIncomeSource({ kind: "wages", amount: 0 })]),
       }),
     );
     expect(r).not.toBeNull();

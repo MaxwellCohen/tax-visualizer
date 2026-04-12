@@ -1,5 +1,6 @@
-import { Show } from "solid-js";
+import { Show, createMemo } from "solid-js";
 import type { TaxResult } from "~/lib/taxCalc";
+import { resolveTaxChartMetrics } from "~/lib/taxResult.resolve";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 
 type TaxNarrativeProps = {
@@ -20,11 +21,11 @@ const percent = new Intl.NumberFormat("en-US", {
 });
 
 export default function TaxNarrative(props: TaxNarrativeProps) {
-  const result = () => props.result;
+  const m = createMemo(() => resolveTaxChartMetrics(props.result));
   const deductionLabel = () =>
-    result().deductionKind === "itemized"
-      ? `itemized deductions of ${money.format(result().deductionAmount)}`
-      : `the ${money.format(result().standardDeduction)} standard deduction`;
+    m().deductionKind === "itemized"
+      ? `itemized deductions of ${money.format(m().deductionAmount)}`
+      : `the ${money.format(m().standardDeduction)} standard deduction`;
 
   return (
     <section
@@ -38,29 +39,29 @@ export default function TaxNarrative(props: TaxNarrativeProps) {
       <CollapsibleBlock title="Plain-language summary" bodyClass="mt-4">
         <div class="space-y-3 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
           <p>
-            This scenario starts with {money.format(result().totalIncome)} of gross income. The app
-            treats {money.format(result().preTaxTotal)} as payroll pre-tax withholding
-            {result().traditionalIra > 0
-              ? ` and ${money.format(result().traditionalIra)} as deductible traditional IRA (outside payroll)`
+            This scenario starts with {money.format(m().totalIncome)} of gross income. The app
+            treats {money.format(m().preTaxTotal)} as payroll pre-tax withholding
+            {m().traditionalIra > 0
+              ? ` and ${money.format(m().traditionalIra)} as deductible traditional IRA (outside payroll)`
               : ""}
             , then applies {deductionLabel()} before calculating federal income tax.
           </p>
           <p>
-            In this model, {money.format(result().ordinaryTaxableIncome)} is taxed at ordinary federal
+            In this model, {money.format(m().ordinaryTaxableIncome)} is taxed at ordinary federal
             bracket rates (including short-term capital gains, which the IRS taxes like wages under
-            Topic 409), and {money.format(result().longTermTaxableIncome)} is treated as long-term
-            capital gains. Federal income tax is {money.format(result().federalIncomeTax)}
-            {result().federalNetInvestmentIncomeTax > 0
-              ? ` (including ${money.format(result().federalNetInvestmentIncomeTax)} estimated net investment income tax)`
+            Topic 409), and {money.format(m().longTermTaxableIncome)} is treated as long-term
+            capital gains. Federal income tax is {money.format(m().federalIncomeTax)}
+            {m().federalNetInvestmentIncomeTax > 0
+              ? ` (including ${money.format(m().federalNetInvestmentIncomeTax)} estimated net investment income tax)`
               : ""}
-            <Show when={result().federalTaxCreditsApplied > 0}>
-              {`, after ${money.format(result().federalTaxCreditsApplied)} of modeled federal credits`}
+            <Show when={m().federalTaxCreditsApplied > 0}>
+              {`, after ${money.format(m().federalTaxCreditsApplied)} of modeled federal credits`}
             </Show>{" "}
-            and payroll tax is {money.format(result().payrollTax)}.
+            and payroll tax is {money.format(m().payrollTax)}.
           </p>
           <p>
-            The result is {money.format(result().takeHomePay)} of modeled take-home pay, with an
-            effective tax rate of {percent.format(result().effectiveTaxRate)}. That rate is{" "}
+            The result is {money.format(m().takeHomePay)} of modeled take-home pay, with an
+            effective tax rate of {percent.format(m().effectiveTaxRate)}. That rate is{" "}
             <code>(federal income tax + payroll tax) / (gross income - payroll pre-tax - traditional IRA)</code>
             , so deferred and IRA dollars are not in the denominator (they use a 0% rate in this
             headline figure).

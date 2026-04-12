@@ -1,5 +1,7 @@
-import type { createForm } from "@tanstack/solid-form";
-import type { TaxInput } from "~/lib/taxCalc";
-
-/** `createForm<TaxInput>()` return type — `FormApi<TaxInput, undefined>` is too few type args and breaks `Field` inference. */
-export type TaxInputFormApi = ReturnType<typeof createForm<TaxInput>>;
+/**
+ * TanStack Form instance for tax row data (`TaxFormData` in `~/lib/taxForm.types`). Typed loosely:
+ * dynamic `rows[i].kind` paths are not representable as literal field names, and strict `FormApi`
+ * generics break `Field` inference.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type TaxInputFormApi = any;

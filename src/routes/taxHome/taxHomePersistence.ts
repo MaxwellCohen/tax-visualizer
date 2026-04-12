@@ -1,6 +1,6 @@
 import { createEffect, createSignal, onMount } from "solid-js";
 import type { Accessor, Setter } from "solid-js";
-import type { TaxInput } from "~/lib/taxCalc";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import { getAvailableTaxYears } from "~/lib/taxData";
 import {
   BASELINE_SCENARIO_STORAGE_KEY,
@@ -11,9 +11,9 @@ import {
 } from "~/lib/taxScenario";
 
 type PersistenceArgs = {
-  taxInput: Accessor<TaxInput>;
-  setTaxInput: Setter<TaxInput>;
-  setBaselineInput: Setter<TaxInput | null>;
+  taxInput: Accessor<TaxFormData>;
+  setTaxInput: Setter<TaxFormData>;
+  setBaselineInput: Setter<TaxFormData | null>;
 };
 
 export function wireTaxHomePersistence(args: PersistenceArgs): void {

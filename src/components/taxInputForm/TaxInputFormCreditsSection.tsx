@@ -1,27 +1,31 @@
-import { Index, Show } from "solid-js";
+import { Index, Show, createMemo } from "solid-js";
 import type { Accessor } from "solid-js";
 import Accordion from "~/components/Accordion";
-import type { TaxInput } from "~/lib/taxCalc";
+import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import type { FederalTaxCreditCaps } from "~/lib/taxData.types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { FederalTaxCreditSourceRow } from "~/components/taxInputForm/FederalTaxCreditSourceFields";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
+import { creditRowIndices } from "~/lib/taxForm.rows";
 
 const addLineBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 type Props = {
   form: TaxInputFormApi;
-  values: Accessor<TaxInput>;
+  values: Accessor<TaxFormData>;
   addFederalTaxCredit: () => void;
-  removeFederalTaxCreditAt: (index: number) => void;
+  removeFederalTaxCreditAt: (rowIndex: number) => void;
   clearAll: () => void;
   federalTaxCreditCaps: Accessor<FederalTaxCreditCaps | null>;
 };
 
 export function TaxInputFormCreditsSection(props: Props) {
-  const creditsTotal = () => sumLabeledAmountSources(props.values().federalTaxCredits);
+  const calc = createMemo(() => rowsToTaxCalculationInputs(props.values().rows));
+  const indices = createMemo(() => creditRowIndices(props.values().rows));
+  const creditsTotal = () => sumLabeledAmountSources(calc().federalTaxCredits);
 
   return (
     <Accordion
@@ -63,7 +67,7 @@ export function TaxInputFormCreditsSection(props: Props) {
                 class={`${taxInputFormTableThClass} whitespace-nowrap pr-3 text-right align-bottom`}
               >
                 <div class="flex justify-end gap-2">
-                  <Show when={props.values().federalTaxCredits.length > 0}>
+                  <Show when={indices().length > 0}>
                     <button
                       type="button"
                       class="shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--surface-alt) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--text-muted) transition-colors hover:border-(--warning-text) hover:text-(--warning-text)"
@@ -80,15 +84,17 @@ export function TaxInputFormCreditsSection(props: Props) {
             </tr>
           </thead>
           <tbody>
-            <Index each={props.values().federalTaxCredits}>
+            <Index each={indices()}>
               {(_src, idx) => {
-                const rowIndex = () => idx;
+                const rowIndex = () =>
+                  typeof idx === "function" ? (idx as () => number)() : (idx as number);
+                const absIndex = () => indices()[rowIndex()];
                 return (
                   <FederalTaxCreditSourceRow
                     form={props.form}
-                    index={rowIndex()}
-                    canRemove={props.values().federalTaxCredits.length > 1}
-                    onRemove={() => props.removeFederalTaxCreditAt(rowIndex())}
+                    rowIndex={absIndex()}
+                    canRemove={indices().length > 1}
+                    onRemove={() => props.removeFederalTaxCreditAt(absIndex())}
                     federalTaxCreditCaps={props.federalTaxCreditCaps}
                   />
                 );

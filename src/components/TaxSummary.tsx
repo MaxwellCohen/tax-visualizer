@@ -27,11 +27,14 @@ function MetricItem(props: { metric: MetricDisplay }) {
   };
   
   return (
+    <Show when={parseFloat(props.metric.value.replace(/[^0-9.-]/g, "")) > 0}>
+
     <TaxSummaryMetric 
       label={props.metric.label} 
       value={displayValue()} 
       highlight={props.metric.highlight}
-    />
+      />
+      </Show>
   );
 }
 

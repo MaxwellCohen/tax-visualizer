@@ -1,13 +1,6 @@
 import type { FilingStatus } from "~/lib/taxData";
-import { newIncomeSource } from "~/lib/taxCalc.incomeSource";
-import {
-  FEDERAL_TAX_CREDIT_KIND_VALUES,
-  newFederalTaxCreditSource,
-} from "~/lib/taxCalc.federalTaxCreditSource";
-import {
-  ITEMIZED_DEDUCTION_KIND_VALUES,
-  newItemizedDeductionSource,
-} from "~/lib/taxCalc.itemizedDeductionSource";
+import { FEDERAL_TAX_CREDIT_KIND_VALUES } from "~/lib/taxCalc.federalTaxCreditSource";
+import { ITEMIZED_DEDUCTION_KIND_VALUES } from "~/lib/taxCalc.itemizedDeductionSource";
 import {
   emptyAggregatedPretax,
   PRETAX_BENEFIT_KIND_VALUES,
@@ -18,8 +11,15 @@ import type {
   IncomeKind,
   ItemizedDeductionKind,
   PretaxBenefitKind,
-  TaxInput,
 } from "~/lib/taxCalc.types";
+import type { TaxFormData } from "~/lib/taxForm.types";
+import {
+  newCreditRow,
+  newDeductionRow,
+  newIncomeRow,
+  pretaxSourcesToRows,
+  taxFormDataFromParts,
+} from "~/lib/taxForm.factories";
 
 const DEFAULT_FILING_STATUS: FilingStatus = "single";
 
@@ -78,16 +78,16 @@ export function sanitizeFilingStatus(value: unknown): FilingStatus {
     : DEFAULT_FILING_STATUS;
 }
 
-export function fallbackScenario(fallbackYear: number): TaxInput {
-  return {
+export function fallbackScenario(fallbackYear: number): TaxFormData {
+  return taxFormDataFromParts({
     taxYear: fallbackYear,
     filingStatus: DEFAULT_FILING_STATUS,
-    incomeSources: [newIncomeSource({ kind: "wages", amount: 90_000 })],
-    pretaxBenefitSources: pretaxScalarsToMinimalSources(emptyAggregatedPretax()),
+    incomeRows: [newIncomeRow({ kind: "wages", amount: 90_000 })],
+    pretaxRows: pretaxSourcesToRows(pretaxScalarsToMinimalSources(emptyAggregatedPretax())),
     useItemizedDeductions: false,
-    itemizedDeductions: [newItemizedDeductionSource()],
-    federalTaxCredits: [newFederalTaxCreditSource()],
-  };
+    deductionRows: [newDeductionRow({ kind: "otherItemized" })],
+    creditRows: [newCreditRow()],
+  });
 }
 
 export function normalizeTaxYear(rawTaxYear: unknown, availableYears: number[], fallbackYear: number): number {

@@ -1,46 +1,50 @@
+import type { FederalTaxCreditSource, PretaxBenefitKind, PretaxBenefitSource } from "~/lib/taxCalc.types";
+import type { TaxFormCreditRow, TaxFormData, TaxFormDeductionRow, TaxFormIncomeRow, TaxFormPretaxRow } from "~/lib/taxForm.types";
+import type { FilingStatus } from "~/lib/taxData.types";
 import {
-  newFederalTaxCreditSource,
-  newIncomeSource,
-  newItemizedDeductionSource,
-  newPretaxBenefitSource,
-  type TaxInput,
-} from "~/lib/taxCalc";
-import { pretaxScalarsToMinimalSources } from "~/lib/taxCalc.pretaxBenefitSource";
-import type { AggregatedPretax } from "~/lib/taxCalc.pretaxBenefitSource";
+  federalCreditsToRows,
+  incomeSourcesToRows,
+  pretaxSourcesToRows,
+  taxFormDataFromParts,
+} from "~/lib/taxForm.factories";
 
-export function baseInput(overrides: Partial<TaxInput> = {}): TaxInput {
-  return {
-    taxYear: 2025,
-    filingStatus: "single",
-    incomeSources: [newIncomeSource({ kind: "wages", amount: 50_000 })],
-    pretaxBenefitSources: [newPretaxBenefitSource({ kind: "preTax401kSpouse1" })],
-    useItemizedDeductions: false,
-    itemizedDeductions: [newItemizedDeductionSource()],
-    federalTaxCredits: [newFederalTaxCreditSource()],
-    ...overrides,
-  };
+export type BaseInputOverrides = Partial<{
+  taxYear: number;
+  filingStatus: FilingStatus;
+  incomeRows: TaxFormIncomeRow[];
+  pretaxRows: TaxFormPretaxRow[];
+  useItemizedDeductions: boolean;
+  deductionRows: TaxFormDeductionRow[];
+  creditRows: TaxFormCreditRow[];
+}>;
+
+export function baseInput(overrides?: BaseInputOverrides): TaxFormData {
+  return taxFormDataFromParts({
+    taxYear: overrides?.taxYear ?? 2025,
+    filingStatus: overrides?.filingStatus ?? "single",
+    incomeRows:
+      overrides?.incomeRows ??
+      incomeSourcesToRows([{ id: "1", kind: "wages", label: "Wages", amount: 100_000 }]),
+    pretaxRows: overrides?.pretaxRows ?? [],
+    useItemizedDeductions: overrides?.useItemizedDeductions ?? false,
+    deductionRows: overrides?.deductionRows ?? [],
+    creditRows: overrides?.creditRows ?? [],
+  });
 }
 
-/** Test helper: build `pretaxBenefitSources` from aggregated amounts (one row per non-zero kind). */
-export function withPretaxTotals(p: Partial<AggregatedPretax>): TaxInput["pretaxBenefitSources"] {
-  const full: AggregatedPretax = {
-    preTax401kSpouse1: 0,
-    preTax401kSpouse2: 0,
-    preTaxHsaSpouse1: 0,
-    preTaxHsaSpouse2: 0,
-    preTaxOther: 0,
-    traditionalIraSpouse1: 0,
-    traditionalIraSpouse2: 0,
-    ...p,
-  };
-  return pretaxScalarsToMinimalSources(full);
+export function withPretaxTotals(partial: Partial<Record<string, number>>): TaxFormPretaxRow[] {
+  const sources: PretaxBenefitSource[] = Object.entries(partial).map(([kind, amount], i) => ({
+    id: String(i + 1),
+    kind: kind as PretaxBenefitKind,
+    label: kind,
+    amount: amount ?? 0,
+  }));
+  return pretaxSourcesToRows(sources);
 }
 
-/** One line with the given total (for tests that previously passed a scalar). */
-export function withItemizedTotal(amount: number): TaxInput["itemizedDeductions"] {
-  return [newItemizedDeductionSource({ amount })];
-}
-
-export function withFederalCreditsTotal(amount: number): TaxInput["federalTaxCredits"] {
-  return [newFederalTaxCreditSource({ amount })];
+export function withFederalCreditsTotal(amount: number): TaxFormCreditRow[] {
+  const sources: FederalTaxCreditSource[] = [
+    { id: "1", kind: "childTaxCredit", label: "Child Tax Credit", amount },
+  ];
+  return federalCreditsToRows(sources);
 }

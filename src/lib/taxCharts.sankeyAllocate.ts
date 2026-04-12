@@ -1,4 +1,5 @@
 import type { TaxResult } from "~/lib/taxCalc";
+import { incomeRowsFromTaxResult } from "~/lib/taxForm.rows";
 
 export function sankeyIncomeNodeId(sourceId: string): string {
   return `income-${sourceId}`;
@@ -22,39 +23,41 @@ export function allocateProportional(keys: WeightedKey[], total: number): { key:
 }
 
 export function ordinaryIncomeNodeEntries(result: TaxResult): WeightedKey[] {
-  return result.incomeSources
+  return incomeRowsFromTaxResult(result)
     .filter(
-      s =>
+      (s) =>
         s.amount > 0 &&
         (s.kind === "wages" || s.kind === "ordinary" || s.kind === "shortTermCapGains" || s.kind === "selfEmployment"),
     )
-    .map(s => ({ key: sankeyIncomeNodeId(s.id), weight: s.amount }));
+    .map((s) => ({ key: sankeyIncomeNodeId(s.id), weight: s.amount }));
 }
 
 export function ltcgIncomeNodeEntries(result: TaxResult): WeightedKey[] {
-  return result.incomeSources
-    .filter(s => s.amount > 0 && s.kind === "longTermCapGains")
-    .map(s => ({ key: sankeyIncomeNodeId(s.id), weight: s.amount }));
+  return incomeRowsFromTaxResult(result)
+    .filter((s) => s.amount > 0 && s.kind === "longTermCapGains")
+    .map((s) => ({ key: sankeyIncomeNodeId(s.id), weight: s.amount }));
 }
 
 export function allIncomeNodeEntries(result: TaxResult): WeightedKey[] {
-  return result.incomeSources.filter(s => s.amount > 0).map(s => ({
-    key: sankeyIncomeNodeId(s.id),
-    weight: s.amount,
-  }));
+  return incomeRowsFromTaxResult(result)
+    .filter((s) => s.amount > 0)
+    .map((s) => ({
+      key: sankeyIncomeNodeId(s.id),
+      weight: s.amount,
+    }));
 }
 
 export function wageIncomeNodeEntries(result: TaxResult): WeightedKey[] {
-  return result.incomeSources
-    .filter(s => s.amount > 0 && s.kind === "wages")
-    .map(s => ({ key: sankeyIncomeNodeId(s.id), weight: s.amount }));
+  return incomeRowsFromTaxResult(result)
+    .filter((s) => s.amount > 0 && s.kind === "wages")
+    .map((s) => ({ key: sankeyIncomeNodeId(s.id), weight: s.amount }));
 }
 
 /** Prefer wages for FICA-style routing; fall back to all income if there are no wage rows. */
 export function payrollSourceEntries(result: TaxResult): WeightedKey[] {
   const w = wageIncomeNodeEntries(result);
   if (w.length > 0) return w;
-  return result.incomeSources
-    .filter(s => s.amount > 0 && (s.kind === "wages" || s.kind === "selfEmployment" || s.kind === "ordinary"))
-    .map(s => ({ key: sankeyIncomeNodeId(s.id), weight: s.amount }));
+  return incomeRowsFromTaxResult(result)
+    .filter((s) => s.amount > 0 && (s.kind === "wages" || s.kind === "selfEmployment" || s.kind === "ordinary"))
+    .map((s) => ({ key: sankeyIncomeNodeId(s.id), weight: s.amount }));
 }

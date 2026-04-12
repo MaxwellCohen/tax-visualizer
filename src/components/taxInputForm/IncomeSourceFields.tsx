@@ -12,17 +12,18 @@ import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormType
 
 type IncomeSourceFieldsProps = {
   form: TaxInputFormApi;
-  index: number;
+  rowIndex: number;
   canRemove: boolean;
   onRemove: () => void;
 };
 
 export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
+  const p = `rows[${props.rowIndex}]`;
   return (
     <tr class={taxInputFormTableTrClass}>
       <td class={`${taxInputFormTableTdLabeled} pl-3`} data-label="Type">
-        <props.form.Field name={`incomeSources[${props.index}].kind`}>
-          {field => (
+        <props.form.Field name={`${p}.kind`}>
+          {(field: any) => (
             <FormStyledSelect
               label="Income type"
               hideLabel
@@ -38,8 +39,8 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
         </props.form.Field>
       </td>
       <td class={taxInputFormTableTdLabeled} data-label="Label (optional)">
-        <props.form.Field name={`incomeSources[${props.index}].label`}>
-          {field => (
+        <props.form.Field name={`${p}.label`}>
+          {(field: any) => (
             <input
               type="text"
               placeholder="e.g. Employer, Brokerage"
@@ -54,8 +55,8 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
         </props.form.Field>
       </td>
       <td class={taxInputFormTableTdLabeled} data-label="Amount">
-        <props.form.Field name={`incomeSources[${props.index}].amount`}>
-          {field => <FormCurrencyInput field={field} ariaLabel="Amount" />}
+        <props.form.Field name={`${p}.amount`}>
+          {(field: any) => <FormCurrencyInput field={field} ariaLabel="Amount" />}
         </props.form.Field>
       </td>
       <td class={taxInputFormTableTdActions}>

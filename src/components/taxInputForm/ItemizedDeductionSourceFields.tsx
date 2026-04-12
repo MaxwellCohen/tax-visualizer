@@ -1,5 +1,7 @@
 import { createMemo, type Accessor } from "solid-js";
-import type { ItemizedDeductionKind, TaxInput } from "~/lib/taxCalc";
+import type { ItemizedDeductionKind } from "~/lib/taxCalc";
+import { getFilingStatusFromRows } from "~/lib/taxCalc.inputs";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
 import {
@@ -16,7 +18,7 @@ import type { ItemizedDeductionCaps } from "~/lib/taxData.types";
 
 type Props = {
   form: TaxInputFormApi;
-  index: number;
+  rowIndex: number;
   canRemove: boolean;
   onRemove: () => void;
   itemizedCaps: Accessor<ItemizedDeductionCaps | null>;
@@ -28,11 +30,14 @@ const deductionDetailRowTdClass =
 export function ItemizedDeductionSourceRow(props: Props) {
   const kindOptions = createMemo(() => itemizedDeductionKindSelectOptions());
 
-  const kind = props.form.useStore((s: { values: TaxInput }): ItemizedDeductionKind | undefined =>
-    s.values.itemizedDeductions[props.index]?.kind,
-  );
+  const kind = props.form.useStore((s: { values: TaxFormData }): ItemizedDeductionKind | undefined => {
+    const r = s.values.rows[props.rowIndex];
+    return r?.type === "deduction" ? r.kind : undefined;
+  });
 
-  const filingStatus = props.form.useStore((s: { values: TaxInput }) => s.values.filingStatus);
+  const filingStatus = props.form.useStore((s: { values: TaxFormData }) =>
+    getFilingStatusFromRows(s.values.rows),
+  );
 
   const detail = createMemo(() =>
     getItemizedDeductionKindDetail(
@@ -42,12 +47,14 @@ export function ItemizedDeductionSourceRow(props: Props) {
     ),
   );
 
+  const p = `rows[${props.rowIndex}]`;
+
   return (
     <>
       <tr class={taxInputFormTableTrClass}>
         <td class={`${taxInputFormTableTdLabeled} pl-3`} data-label="Category">
-          <props.form.Field name={`itemizedDeductions[${props.index}].kind`}>
-            {field => (
+          <props.form.Field name={`${p}.kind`}>
+            {(field: any) => (
               <FormStyledSelect
                 label="Deduction category"
                 hideLabel
@@ -63,8 +70,8 @@ export function ItemizedDeductionSourceRow(props: Props) {
           </props.form.Field>
         </td>
         <td class={taxInputFormTableTdLabeled} data-label="Label (optional)">
-          <props.form.Field name={`itemizedDeductions[${props.index}].label`}>
-            {field => (
+          <props.form.Field name={`${p}.label`}>
+            {(field: any) => (
               <input
                 type="text"
                 placeholder="e.g. details, payee"
@@ -79,8 +86,8 @@ export function ItemizedDeductionSourceRow(props: Props) {
           </props.form.Field>
         </td>
         <td class={taxInputFormTableTdLabeled} data-label="Amount">
-          <props.form.Field name={`itemizedDeductions[${props.index}].amount`}>
-            {field => <FormCurrencyInput field={field} ariaLabel="Amount" />}
+          <props.form.Field name={`${p}.amount`}>
+            {(field: any) => <FormCurrencyInput field={field} ariaLabel="Amount" />}
           </props.form.Field>
         </td>
         <td class={taxInputFormTableTdActions}>

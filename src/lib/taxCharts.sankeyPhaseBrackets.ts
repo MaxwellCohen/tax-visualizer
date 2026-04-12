@@ -1,7 +1,13 @@
-import type { TaxResult } from "~/lib/taxCalc";
+import type { TaxChartMetrics } from "~/lib/taxForm.types";
 import { SANKEY_IDS } from "~/lib/taxCharts.sankey.constants";
 import { formatLtcgBracketLabel, formatOrdinaryBracketLabel } from "~/lib/taxCharts.sankeyFormat";
 import { addNode } from "~/lib/taxCharts.sankeyHelpers";
+import {
+  ltcgBracketNodeId,
+  ltcgSegmentKey,
+  ordinaryBracketNodeId,
+  ordinarySegmentKey,
+} from "~/lib/taxCharts.sankeySegmentKeys";
 import type { SankeyScratch } from "~/lib/taxCharts.sankeyScratch";
 import { bracketSliceRetainedWeight } from "~/lib/taxCharts.visualizationBundle";
 
@@ -24,12 +30,11 @@ function pushBracketIncomeLinkAndRetainedSlice(
   }
 }
 
-export function appendSankeyBracketNodes(result: TaxResult, s: SankeyScratch): void {
+export function appendSankeyBracketNodes(m: TaxChartMetrics, s: SankeyScratch): void {
   const oScale = s.ordinaryBracketLinkScale;
-  for (const segment of result.ordinaryFederalSegments) {
-    const segmentId = segment.id ?? `ordinary-${segment.rangeStart}`;
-    const nodeId = `ordinary-bracket-${segmentId}`;
-    const niitPart = s.niitBySegment.ordinary.get(segmentId) ?? 0;
+  for (const segment of m.ordinaryFederalSegments) {
+    const nodeId = ordinaryBracketNodeId(segment);
+    const niitPart = s.niitBySegment.ordinary.get(ordinarySegmentKey(segment)) ?? 0;
     const taxWithNiit = segment.taxAmount + niitPart;
     addNode(s.nodeMap, {
       id: nodeId,
@@ -53,10 +58,9 @@ export function appendSankeyBracketNodes(result: TaxResult, s: SankeyScratch): v
     );
   }
 
-  for (const segment of result.longTermCapitalGainsSegments) {
-    const segmentId = segment.id ?? `ltcg-${segment.rangeStart}`;
-    const nodeId = `ltcg-bracket-${segmentId}`;
-    const niitPart = s.niitBySegment.ltcg.get(segmentId) ?? 0;
+  for (const segment of m.longTermCapitalGainsSegments) {
+    const nodeId = ltcgBracketNodeId(segment);
+    const niitPart = s.niitBySegment.ltcg.get(ltcgSegmentKey(segment)) ?? 0;
     const taxWithNiit = segment.taxAmount + niitPart;
     addNode(s.nodeMap, {
       id: nodeId,

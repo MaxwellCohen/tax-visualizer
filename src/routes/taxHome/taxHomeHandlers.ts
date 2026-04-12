@@ -1,5 +1,6 @@
 import type { Accessor, Setter } from "solid-js";
-import type { TaxInput } from "~/lib/taxCalc";
+import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import type { ScenarioPreset } from "~/lib/taxScenario.types";
 import {
   BASELINE_SCENARIO_STORAGE_KEY,
@@ -12,10 +13,10 @@ export type TaxHomeHandlersCtx = {
   presets: ScenarioPreset[];
   availableYears: number[];
   defaultYear: number;
-  taxInput: Accessor<TaxInput>;
-  setTaxInput: Setter<TaxInput>;
-  baselineInput: Accessor<TaxInput | null>;
-  setBaselineInput: Setter<TaxInput | null>;
+  taxInput: Accessor<TaxFormData>;
+  setTaxInput: Setter<TaxFormData>;
+  baselineInput: Accessor<TaxFormData | null>;
+  setBaselineInput: Setter<TaxFormData | null>;
   taxResult: Accessor<ReturnType<typeof import("~/lib/taxCalc").calculateTaxes>>;
   showStatus: (message: string) => void;
 };
@@ -34,7 +35,7 @@ export function createTaxHomeHandlers(ctx: TaxHomeHandlersCtx) {
     applyPreset: (presetId: string) => {
       const preset = ctx.presets.find(entry => entry.id === presetId);
       if (!preset) return;
-      ctx.setTaxInput(preset.buildInput(ctx.taxInput().taxYear));
+      ctx.setTaxInput(preset.buildInput(getTaxYearFromRows(ctx.taxInput().rows)));
       ctx.showStatus(`Loaded preset: ${preset.label}.`);
     },
     copyShareLink: async () => {

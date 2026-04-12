@@ -3,6 +3,7 @@ import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { sankey } from "d3-sankey";
 import type { SankeyGraph } from "d3-sankey";
 import { SankeyChartSvg } from "~/components/taxSankey/SankeyChartSvg";
+import { taxSankeyNodeAlign } from "~/components/taxSankey/taxSankeyNodeAlign";
 import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
 import { compareSankeyLinks } from "~/components/taxSankey/compareSankeyLinks";
 import { compareSankeySiblings } from "~/components/taxSankey/compareSankeySiblings";
@@ -30,6 +31,7 @@ export default function TaxSankey(props: TaxSankeyProps) {
       .nodeId(node => node.id)
       .nodeWidth(18)
       .nodePadding(14)
+      .nodeAlign(taxSankeyNodeAlign)
       .nodeSort(compareSankeySiblings)
       .linkSort(compareSankeyLinks)
       .iterations(32)

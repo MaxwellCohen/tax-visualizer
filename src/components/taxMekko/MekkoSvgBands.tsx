@@ -65,10 +65,12 @@ export function MekkoSvgBands(props: Props) {
               <text
                 x={L.plotLeft + keepW / 2}
                 y={labelMidY}
-                text-anchor="middle"
-                font-size={rowH < 22 ? 9 : 10}
-                font-family="var(--font-body)"
                 fill="var(--mekko-segment-label)"
+                style={{
+                  "text-anchor": "middle",
+                  "font-size": `${rowH < 22 ? 9 : 10}px`,
+                  "font-family": "var(--font-body)",
+                }}
               >
                 {money.format(row.keep)}
               </text>
@@ -77,10 +79,12 @@ export function MekkoSvgBands(props: Props) {
               <text
                 x={L.plotLeft + keepW + taxW / 2}
                 y={labelMidY}
-                text-anchor="middle"
-                font-size={rowH < 22 ? 9 : 10}
-                font-family="var(--font-body)"
                 fill="var(--mekko-segment-label)"
+                style={{
+                  "text-anchor": "middle",
+                  "font-size": `${rowH < 22 ? 9 : 10}px`,
+                  "font-family": "var(--font-body)",
+                }}
               >
                 {money.format(row.tax)}
               </text>

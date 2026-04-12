@@ -1,5 +1,6 @@
 import { createMemo, type Accessor } from "solid-js";
-import type { PretaxBenefitKind, TaxInput } from "~/lib/taxCalc";
+import type { PretaxBenefitKind } from "~/lib/taxCalc";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
 import {
@@ -16,7 +17,7 @@ import type { PretaxBenefitLimits } from "~/lib/taxData.types";
 
 type Props = {
   form: TaxInputFormApi;
-  index: number;
+  rowIndex: number;
   canRemove: boolean;
   onRemove: () => void;
   isMarriedJoint: () => boolean;
@@ -29,9 +30,10 @@ const pretaxDetailRowTdClass =
 export function PretaxBenefitSourceRow(props: Props) {
   const kindOptions = createMemo(() => pretaxBenefitKindSelectOptions(props.isMarriedJoint()));
 
-  const kind = props.form.useStore((s: { values: TaxInput }): PretaxBenefitKind | undefined =>
-    s.values.pretaxBenefitSources[props.index]?.kind,
-  );
+  const kind = props.form.useStore((s: { values: TaxFormData }): PretaxBenefitKind | undefined => {
+    const r = s.values.rows[props.rowIndex];
+    return r?.type === "pretax" ? r.kind : undefined;
+  });
 
   const detail = createMemo(() =>
     getPretaxBenefitKindDetail(
@@ -41,12 +43,14 @@ export function PretaxBenefitSourceRow(props: Props) {
     ),
   );
 
+  const p = `rows[${props.rowIndex}]`;
+
   return (
     <>
       <tr class={taxInputFormTableTrClass}>
         <td class={`${taxInputFormTableTdLabeled} pl-3`} data-label="Type">
-          <props.form.Field name={`pretaxBenefitSources[${props.index}].kind`}>
-            {field => (
+          <props.form.Field name={`${p}.kind`}>
+            {(field: any) => (
               <FormStyledSelect
                 label="Benefit type"
                 hideLabel
@@ -62,8 +66,8 @@ export function PretaxBenefitSourceRow(props: Props) {
           </props.form.Field>
         </td>
         <td class={taxInputFormTableTdLabeled} data-label="Label (optional)">
-          <props.form.Field name={`pretaxBenefitSources[${props.index}].label`}>
-            {field => (
+          <props.form.Field name={`${p}.label`}>
+            {(field: any) => (
               <input
                 type="text"
                 placeholder="e.g. Employer plan, bank"
@@ -78,8 +82,8 @@ export function PretaxBenefitSourceRow(props: Props) {
           </props.form.Field>
         </td>
         <td class={taxInputFormTableTdLabeled} data-label="Amount">
-          <props.form.Field name={`pretaxBenefitSources[${props.index}].amount`}>
-            {field => <FormCurrencyInput field={field} ariaLabel="Amount" />}
+          <props.form.Field name={`${p}.amount`}>
+            {(field: any) => <FormCurrencyInput field={field} ariaLabel="Amount" />}
           </props.form.Field>
         </td>
         <td class={taxInputFormTableTdActions}>

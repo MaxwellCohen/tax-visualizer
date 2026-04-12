@@ -1,16 +1,25 @@
-import type { TaxResult } from "~/lib/taxCalc";
+import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import type { TaxResult } from "~/lib/taxForm.types";
+import { incomeRowsFromTaxResult } from "~/lib/taxForm.rows";
 import {
   allocateProportional,
   allIncomeNodeEntries,
   payrollSourceEntries,
 } from "~/lib/taxCharts.sankeyAllocate";
+import { SANKEY_PRIMARY_TERMINALS } from "~/lib/config/sankeyTerminals.config";
 import { SANKEY_IDS } from "~/lib/taxCharts.sankey.constants";
 import { addNode, splitTakeHomeAndPayrollByPool } from "~/lib/taxCharts.sankeyHelpers";
+import {
+  appendLinksFromTerminalOutflows,
+  normalizeTerminalOutflowsToInflow,
+  type TerminalOutflow,
+} from "~/lib/taxCharts.sankeySliceModel";
 import type { SankeyScratch } from "~/lib/taxCharts.sankeyScratch";
 import {
   allocateFederalCreditsTopMarginalSlices,
   takeHomeAttributableToBracketFlows,
 } from "~/lib/taxCharts.visualizationBundle";
+import { ltcgBracketNodeId, ordinaryBracketNodeId } from "~/lib/taxCharts.sankeySegmentKeys";
 
 type PoolSplit = Map<string, { keep: number; payroll: number }>;
 
@@ -27,73 +36,68 @@ function pushProportionalInflows(
   }
 }
 
+/**
+ * @param flowScale When {@link SankeyScratch.payrollTaxViaOrdinaryStrip} is set, ordinary-bracket
+ * inflows are scaled by {@link SankeyScratch.ordinaryBracketLinkScale}; scale outflows by the same
+ * factor so each bracket node conserves flow (in = federal + credits + payroll + take-home).
+ * @param bracketInflow Total width into this bracket node (must match link from taxable column).
+ */
 function pushBracketTaxAndKeepLinks(
   s: SankeyScratch,
   split: PoolSplit,
   nodeId: string,
   federalToTax: number,
   creditPortion: number,
+  flowScale: number,
+  bracketInflow: number,
 ): void {
   const part = split.get(nodeId) ?? { keep: 0, payroll: 0 };
-  if (federalToTax > 0) {
-    s.links.push({ sourceId: nodeId, targetId: SANKEY_IDS.taxesFederal, value: federalToTax });
-  }
-  if (part.payroll > 0) {
-    s.links.push({ sourceId: nodeId, targetId: SANKEY_IDS.taxesPayroll, value: part.payroll });
-  }
-  if (creditPortion > 0) {
-    s.links.push({ sourceId: nodeId, targetId: SANKEY_IDS.federalCredits, value: creditPortion });
-  }
-  if (part.keep > 0) {
-    s.links.push({ sourceId: nodeId, targetId: SANKEY_IDS.keep, value: part.keep });
-  }
+  const raw: TerminalOutflow[] = [
+    { terminalId: SANKEY_IDS.taxesFederal, amount: federalToTax * flowScale },
+    { terminalId: SANKEY_IDS.taxesPayroll, amount: part.payroll * flowScale },
+    { terminalId: SANKEY_IDS.federalCredits, amount: creditPortion * flowScale },
+    { terminalId: SANKEY_IDS.keep, amount: part.keep * flowScale },
+  ];
+  const outs = normalizeTerminalOutflowsToInflow(bracketInflow, raw);
+  appendLinksFromTerminalOutflows(s.links, nodeId, outs);
 }
 
-function addTaxesTakeHomeAndCreditsNodes(result: TaxResult, s: SankeyScratch): void {
-  const hasSE = (result.selfEmploymentTax ?? 0) > 0;
-  addNode(s.nodeMap, {
-    id: SANKEY_IDS.taxesFederal,
-    label: "Federal tax",
-    kind: "taxesFederal",
-    amount: result.federalIncomeTax,
-  });
-  addNode(s.nodeMap, {
-    id: SANKEY_IDS.taxesPayroll,
-    label: "Payroll tax",
-    kind: "taxesPayroll",
-    amount: result.payrollTax + (hasSE ? result.selfEmploymentTax : 0),
-  });
+function addTaxesTakeHomeAndCreditsNodes(m: TaxChartMetrics, s: SankeyScratch): void {
+  const hasSE = (m.selfEmploymentTax ?? 0) > 0;
+  for (const t of SANKEY_PRIMARY_TERMINALS) {
+    if (t.id === SANKEY_IDS.federalCredits && m.federalTaxCreditsApplied <= 0) continue;
+    const amount =
+      t.id === SANKEY_IDS.taxesFederal
+        ? m.federalIncomeTax
+        : t.id === SANKEY_IDS.taxesPayroll
+          ? m.payrollTax + (hasSE ? m.selfEmploymentTax : 0)
+          : t.id === SANKEY_IDS.federalCredits
+            ? m.federalTaxCreditsApplied
+            : m.takeHomePay;
+    addNode(s.nodeMap, {
+      id: t.id,
+      label: t.label,
+      kind: t.kind,
+      amount,
+    });
+  }
   if (hasSE) {
     addNode(s.nodeMap, {
       id: "self-employment-tax",
       label: "Self-employment tax",
       kind: "taxesPayroll",
-      amount: result.selfEmploymentTax,
+      amount: m.selfEmploymentTax,
     });
   }
-  if (result.federalTaxCreditsApplied > 0) {
-    addNode(s.nodeMap, {
-      id: SANKEY_IDS.federalCredits,
-      label: "Federal credits",
-      kind: "federalCredits",
-      amount: result.federalTaxCreditsApplied,
-    });
-  }
-  addNode(s.nodeMap, {
-    id: SANKEY_IDS.keep,
-    label: "Take-home",
-    kind: "keep",
-    amount: result.takeHomePay,
-  });
 }
 
 function buildPoolSplit(
-  result: TaxResult,
+  m: TaxChartMetrics,
   s: SankeyScratch,
 ): { split: PoolSplit; poolTotal: number; payrollRemainder: number } {
   const poolTotal = s.takeHomePoolSlices.reduce((acc, x) => acc + x.weight, 0);
-  const takeHomeForPools = takeHomeAttributableToBracketFlows(result);
-  const payrollForPoolSplit = s.payrollTaxViaOrdinaryStrip ? 0 : result.payrollTax;
+  const takeHomeForPools = takeHomeAttributableToBracketFlows(m);
+  const payrollForPoolSplit = s.payrollTaxViaOrdinaryStrip ? 0 : m.payrollTax;
   const split =
     poolTotal > 0
       ? splitTakeHomeAndPayrollByPool(s.takeHomePoolSlices, takeHomeForPools, payrollForPoolSplit)
@@ -102,108 +106,132 @@ function buildPoolSplit(
   for (const v of split.values()) {
     assignedPayroll += v.payroll;
   }
-  let payrollRemainder = Math.max(0, result.payrollTax - assignedPayroll);
+  let payrollRemainder = Math.max(0, m.payrollTax - assignedPayroll);
   if (s.payrollTaxViaOrdinaryStrip) {
-    payrollRemainder = Math.max(0, result.payrollTax - s.payrollStripFlowValue);
+    payrollRemainder = Math.max(0, m.payrollTax - s.payrollStripFlowValue);
   }
   return { split, poolTotal, payrollRemainder };
 }
 
-function linkBracketSegmentsToTaxKeep(result: TaxResult, s: SankeyScratch, split: PoolSplit): void {
-  const federalByNode = allocateFederalCreditsTopMarginalSlices(result);
-  for (const segment of result.ordinaryFederalSegments) {
-    const nodeId = `ordinary-bracket-${segment.id}`;
+function linkBracketSegmentsToTaxKeep(m: TaxChartMetrics, s: SankeyScratch, split: PoolSplit): void {
+  const federalByNode = allocateFederalCreditsTopMarginalSlices(m);
+  const ordScale = s.ordinaryBracketLinkScale;
+  for (const segment of m.ordinaryFederalSegments) {
+    const nodeId = ordinaryBracketNodeId(segment);
     const splitFed = federalByNode.get(nodeId) ?? { federalToTax: 0, creditPortion: 0 };
-    pushBracketTaxAndKeepLinks(s, split, nodeId, splitFed.federalToTax, splitFed.creditPortion);
+    const bracketInflow = segment.incomeAmount * ordScale;
+    pushBracketTaxAndKeepLinks(s, split, nodeId, splitFed.federalToTax, splitFed.creditPortion, ordScale, bracketInflow);
   }
 
-  for (const segment of result.longTermCapitalGainsSegments) {
-    const nodeId = `ltcg-bracket-${segment.id}`;
+  for (const segment of m.longTermCapitalGainsSegments) {
+    const nodeId = ltcgBracketNodeId(segment);
     const splitFed = federalByNode.get(nodeId) ?? { federalToTax: 0, creditPortion: 0 };
-    pushBracketTaxAndKeepLinks(s, split, nodeId, splitFed.federalToTax, splitFed.creditPortion);
+    const bracketInflow = segment.incomeAmount;
+    pushBracketTaxAndKeepLinks(s, split, nodeId, splitFed.federalToTax, splitFed.creditPortion, 1, bracketInflow);
   }
 }
 
-function linkFederalCreditsToKeep(result: TaxResult, s: SankeyScratch): void {
-  if (result.federalTaxCreditsApplied <= 0) return;
+function linkFederalCreditsToKeep(m: TaxChartMetrics, s: SankeyScratch): void {
+  if (m.federalTaxCreditsApplied <= 0) return;
+  const inn = s.links
+    .filter((l) => l.targetId === SANKEY_IDS.federalCredits)
+    .reduce((a, l) => a + l.value, 0);
+  if (inn <= 0) return;
   s.links.push({
     sourceId: SANKEY_IDS.federalCredits,
     targetId: SANKEY_IDS.keep,
-    value: result.federalTaxCreditsApplied,
+    value: inn,
   });
 }
 
 function linkIncomeSourceFallback(
+  m: TaxChartMetrics,
   result: TaxResult,
   s: SankeyScratch,
   poolTotal: number,
 ): void {
   if (poolTotal > 0) return;
-  const hasSE = (result.selfEmploymentTax ?? 0) > 0;
-  if (result.takeHomePay <= 0 && result.payrollTax <= 0 && (!hasSE || result.selfEmploymentTax <= 0)) return;
+  const hasSE = (m.selfEmploymentTax ?? 0) > 0;
+  if (m.takeHomePay <= 0 && m.payrollTax <= 0 && (!hasSE || m.selfEmploymentTax <= 0)) return;
 
-  routePayrollTaxFallback(result, s, hasSE);
-  routeTakeHomeFallback(result, s);
-  routeCreditsFallback(result, s);
+  routePayrollTaxFallback(m, result, s, hasSE);
+  routeTakeHomeFallback(m, result, s);
+  routeCreditsFallback(m, result, s);
 }
 
-function routePayrollTaxFallback(result: TaxResult, s: SankeyScratch, hasSE: boolean): void {
+function routePayrollTaxFallback(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch, hasSE: boolean): void {
   const payrollKeys = payrollSourceEntries(result);
   if (payrollKeys.length === 0) return;
 
-  const totalPayrollTax = result.payrollTax + (hasSE ? result.selfEmploymentTax : 0);
+  const totalPayrollTax = m.payrollTax + (hasSE ? m.selfEmploymentTax : 0);
   const payrollForFallback = s.payrollTaxViaOrdinaryStrip
     ? Math.max(0, totalPayrollTax - s.payrollStripFlowValue)
     : totalPayrollTax;
 
   if (payrollForFallback <= 0) return;
 
-  if (hasSE && result.selfEmploymentTax > 0) {
-    routeSelfEmploymentTax(result, s, payrollKeys);
+  if (hasSE && m.selfEmploymentTax > 0) {
+    routeSelfEmploymentTax(m, result, s, payrollKeys);
   } else {
     pushProportionalInflows(s, payrollKeys, payrollForFallback, SANKEY_IDS.taxesPayroll);
   }
 }
 
-function routeSelfEmploymentTax(result: TaxResult, s: SankeyScratch, payrollKeys: { key: string; weight: number }[]): void {
-  const seKeys = result.incomeSources
-    .filter(src => src.kind === "selfEmployment" && src.amount > 0)
-    .map(src => ({ key: `income-${src.id}`, weight: src.amount }));
+function routeSelfEmploymentTax(
+  m: TaxChartMetrics,
+  result: TaxResult,
+  s: SankeyScratch,
+  payrollKeys: { key: string; weight: number }[],
+): void {
+  const seKeys = incomeRowsFromTaxResult(result)
+    .filter((src) => src.kind === "selfEmployment" && src.amount > 0)
+    .map((src) => ({ key: `income-${src.id}`, weight: src.amount }));
 
   if (seKeys.length > 0) {
-    pushProportionalInflows(s, seKeys, result.selfEmploymentTax, "self-employment-tax");
+    pushProportionalInflows(s, seKeys, m.selfEmploymentTax, "self-employment-tax");
   }
 
-  const regularPayrollKeys = payrollKeys.filter(k =>
-    result.incomeSources.some(src => `income-${src.id}` === k.key && src.kind === "wages")
+  const regularPayrollKeys = payrollKeys.filter((k) =>
+    incomeRowsFromTaxResult(result).some((src) => `income-${src.id}` === k.key && src.kind === "wages"),
   );
-  if (regularPayrollKeys.length > 0 && result.payrollTax > 0) {
-    pushProportionalInflows(s, regularPayrollKeys, result.payrollTax, SANKEY_IDS.taxesPayroll);
+  if (regularPayrollKeys.length > 0 && m.payrollTax > 0) {
+    pushProportionalInflows(s, regularPayrollKeys, m.payrollTax, SANKEY_IDS.taxesPayroll);
   }
 }
 
-function routeTakeHomeFallback(result: TaxResult, s: SankeyScratch): void {
+function routeTakeHomeFallback(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
   const allKeys = allIncomeNodeEntries(result);
-  const takeHomeExCredits = takeHomeAttributableToBracketFlows(result);
+  const takeHomeExCredits = takeHomeAttributableToBracketFlows(m);
   if (takeHomeExCredits > 0 && allKeys.length > 0) {
     pushProportionalInflows(s, allKeys, takeHomeExCredits, SANKEY_IDS.keep);
   }
 }
 
-function routeCreditsFallback(result: TaxResult, s: SankeyScratch): void {
+function routeCreditsFallback(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
   const allKeys = allIncomeNodeEntries(result);
-  if (result.federalTaxCreditsApplied > 0 && allKeys.length > 0) {
-    pushProportionalInflows(s, allKeys, result.federalTaxCreditsApplied, SANKEY_IDS.federalCredits);
+  if (m.federalTaxCreditsApplied > 0 && allKeys.length > 0) {
+    pushProportionalInflows(s, allKeys, m.federalTaxCreditsApplied, SANKEY_IDS.federalCredits);
     s.links.push({
       sourceId: SANKEY_IDS.federalCredits,
       targetId: SANKEY_IDS.keep,
-      value: result.federalTaxCreditsApplied,
+      value: m.federalTaxCreditsApplied,
     });
   }
 }
 
-export function appendSankeyTaxKeepAndFallback(result: TaxResult, s: SankeyScratch): void {
-  addTaxesTakeHomeAndCreditsNodes(result, s);
+export function appendSankeyTaxKeepAndFallback(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
+  addTaxesTakeHomeAndCreditsNodes(m, s);
+  // Direct flow: ordinary taxable -> payroll taxes (FICA)
+  if (m.payrollTax > 0 && m.ordinaryTaxableIncome > 0) {
+    const hasOrdinary = m.ordinaryFederalSegments.length > 0;
+    if (!hasOrdinary || !s.payrollTaxViaOrdinaryStrip) {
+      s.links.push({
+        sourceId: SANKEY_IDS.ordinaryTaxableIncome,
+        targetId: SANKEY_IDS.taxesPayroll,
+        value: m.payrollTax,
+      });
+    }
+  }
   if (s.payrollTaxViaOrdinaryStrip && s.payrollStripFlowValue > 0) {
     s.links.push({
       sourceId: SANKEY_IDS.payrollOrdinaryStrip,
@@ -211,11 +239,11 @@ export function appendSankeyTaxKeepAndFallback(result: TaxResult, s: SankeyScrat
       value: s.payrollStripFlowValue,
     });
   }
-  const { split, poolTotal, payrollRemainder } = buildPoolSplit(result, s);
-  linkBracketSegmentsToTaxKeep(result, s, split);
+  const { split, poolTotal, payrollRemainder } = buildPoolSplit(m, s);
+  linkBracketSegmentsToTaxKeep(m, s, split);
   /** When `poolTotal === 0`, fallback flows split from income source nodes instead. */
   if (poolTotal > 0) {
-    linkFederalCreditsToKeep(result, s);
+    linkFederalCreditsToKeep(m, s);
   }
   if (payrollRemainder > 0) {
     const keys = payrollSourceEntries(result);
@@ -223,5 +251,5 @@ export function appendSankeyTaxKeepAndFallback(result: TaxResult, s: SankeyScrat
       pushProportionalInflows(s, keys, payrollRemainder, SANKEY_IDS.taxesPayroll);
     }
   }
-  linkIncomeSourceFallback(result, s, poolTotal);
+  linkIncomeSourceFallback(m, result, s, poolTotal);
 }

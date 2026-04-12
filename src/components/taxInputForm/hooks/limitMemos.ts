@@ -1,17 +1,19 @@
 import { createMemo } from "solid-js";
 import type { Accessor } from "solid-js";
-import type { TaxInput } from "~/lib/taxCalc";
+import { getTaxYearFromRows, rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
 import { getFederalTaxCreditCaps, getItemizedDeductionCaps, getPretaxLimits, getTaxYearConfig } from "~/lib/taxData";
 
-export function createLimitMemos(values: Accessor<TaxInput>) {
-  const selectedTaxConfig = createMemo(() => getTaxYearConfig(values().taxYear));
-  const pretaxLimits = createMemo(() => getPretaxLimits(values().taxYear));
-  const itemizedCaps = createMemo(() => getItemizedDeductionCaps(values().taxYear));
-  const federalTaxCreditCaps = createMemo(() => getFederalTaxCreditCaps(values().taxYear));
-  const isMarriedJoint = createMemo(() => values().filingStatus === "marriedJoint");
+export function createLimitMemos(values: Accessor<TaxFormData>) {
+  const calcInputs = createMemo(() => rowsToTaxCalculationInputs(values().rows));
+  const selectedTaxConfig = createMemo(() => getTaxYearConfig(getTaxYearFromRows(values().rows)));
+  const pretaxLimits = createMemo(() => getPretaxLimits(getTaxYearFromRows(values().rows)));
+  const itemizedCaps = createMemo(() => getItemizedDeductionCaps(getTaxYearFromRows(values().rows)));
+  const federalTaxCreditCaps = createMemo(() => getFederalTaxCreditCaps(getTaxYearFromRows(values().rows)));
+  const isMarriedJoint = createMemo(() => calcInputs().filingStatus === "marriedJoint");
   const preTaxBenefitsTotal = createMemo(() => {
-    const v = values();
+    const v = calcInputs();
     const j = v.filingStatus === "marriedJoint";
     const pt = aggregatePretaxFromSources(v.pretaxBenefitSources, j);
     const k401 = pt.preTax401kSpouse1 + (j ? pt.preTax401kSpouse2 : 0);
@@ -25,13 +27,13 @@ export function createLimitMemos(values: Accessor<TaxInput>) {
     const lim = pretaxLimits();
     if (!lim) return undefined;
     if (!isMarriedJoint()) return lim.hsaSelfOnly;
-    const pt = aggregatePretaxFromSources(values().pretaxBenefitSources, true);
+    const pt = aggregatePretaxFromSources(calcInputs().pretaxBenefitSources, true);
     return Math.max(0, lim.hsaFamily - pt.preTaxHsaSpouse2);
   });
   const maxHsaSpouse2 = createMemo(() => {
     const lim = pretaxLimits();
     if (!lim || !isMarriedJoint()) return undefined;
-    const pt = aggregatePretaxFromSources(values().pretaxBenefitSources, true);
+    const pt = aggregatePretaxFromSources(calcInputs().pretaxBenefitSources, true);
     return Math.max(0, lim.hsaFamily - pt.preTaxHsaSpouse1);
   });
 

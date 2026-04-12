@@ -1,4 +1,5 @@
-import { TAX_DATA_BY_YEAR } from "~/lib/taxData.constants";
+import { getYearValues, YEAR_VALUES_BY_YEAR } from "~/lib/config/yearValues";
+import { getTaxYearStatus, yearValuesToTaxYearConfig } from "~/lib/taxData.fromYearValues";
 import type {
   FederalTaxCreditCaps,
   ItemizedDeductionCaps,
@@ -7,13 +8,17 @@ import type {
 } from "~/lib/taxData.types";
 
 export function getAvailableTaxYears(): number[] {
-  return Object.keys(TAX_DATA_BY_YEAR)
+  return Object.keys(YEAR_VALUES_BY_YEAR)
     .map(Number)
     .sort((a, b) => b - a);
 }
 
 export function getTaxYearConfig(taxYear: number): TaxYearConfig | null {
-  return TAX_DATA_BY_YEAR[taxYear] ?? null;
+  const yv = getYearValues(taxYear);
+  if (!yv) {
+    return null;
+  }
+  return yearValuesToTaxYearConfig(yv, getTaxYearStatus(taxYear));
 }
 
 export function isPlanningTaxYear(taxYear: number): boolean {

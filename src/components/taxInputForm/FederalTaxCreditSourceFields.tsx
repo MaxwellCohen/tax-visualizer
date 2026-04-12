@@ -1,5 +1,6 @@
 import { createMemo, type Accessor } from "solid-js";
-import type { FederalTaxCreditKind, TaxInput } from "~/lib/taxCalc";
+import type { FederalTaxCreditKind } from "~/lib/taxCalc";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
 import {
@@ -16,7 +17,7 @@ import type { FederalTaxCreditCaps } from "~/lib/taxData.types";
 
 type Props = {
   form: TaxInputFormApi;
-  index: number;
+  rowIndex: number;
   canRemove: boolean;
   onRemove: () => void;
   federalTaxCreditCaps: Accessor<FederalTaxCreditCaps | null>;
@@ -28,9 +29,10 @@ const creditDetailRowTdClass =
 export function FederalTaxCreditSourceRow(props: Props) {
   const kindOptions = createMemo(() => federalTaxCreditKindSelectOptions());
 
-  const kind = props.form.useStore((s: { values: TaxInput }): FederalTaxCreditKind | undefined =>
-    s.values.federalTaxCredits[props.index]?.kind,
-  );
+  const kind = props.form.useStore((s: { values: TaxFormData }): FederalTaxCreditKind | undefined => {
+    const r = s.values.rows[props.rowIndex];
+    return r?.type === "credit" ? r.kind : undefined;
+  });
 
   const detail = createMemo(() =>
     getFederalTaxCreditKindDetail(
@@ -39,12 +41,14 @@ export function FederalTaxCreditSourceRow(props: Props) {
     ),
   );
 
+  const p = `rows[${props.rowIndex}]`;
+
   return (
     <>
       <tr class={taxInputFormTableTrClass}>
         <td class={`${taxInputFormTableTdLabeled} pl-3`} data-label="Credit type">
-          <props.form.Field name={`federalTaxCredits[${props.index}].kind`}>
-            {field => (
+          <props.form.Field name={`${p}.kind`}>
+            {(field: any) => (
               <FormStyledSelect
                 label="Credit type"
                 hideLabel
@@ -60,8 +64,8 @@ export function FederalTaxCreditSourceRow(props: Props) {
           </props.form.Field>
         </td>
         <td class={taxInputFormTableTdLabeled} data-label="Label (optional)">
-          <props.form.Field name={`federalTaxCredits[${props.index}].label`}>
-            {field => (
+          <props.form.Field name={`${p}.label`}>
+            {(field: any) => (
               <input
                 type="text"
                 placeholder="e.g. dependents, institution"
@@ -76,8 +80,8 @@ export function FederalTaxCreditSourceRow(props: Props) {
           </props.form.Field>
         </td>
         <td class={taxInputFormTableTdLabeled} data-label="Amount">
-          <props.form.Field name={`federalTaxCredits[${props.index}].amount`}>
-            {field => <FormCurrencyInput field={field} ariaLabel="Amount" />}
+          <props.form.Field name={`${p}.amount`}>
+            {(field: any) => <FormCurrencyInput field={field} ariaLabel="Amount" />}
           </props.form.Field>
         </td>
         <td class={taxInputFormTableTdActions}>

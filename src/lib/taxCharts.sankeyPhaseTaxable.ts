@@ -1,4 +1,5 @@
-import type { TaxResult } from "~/lib/taxCalc";
+import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import type { TaxResult } from "~/lib/taxForm.types";
 import { SANKEY_IDS } from "~/lib/taxCharts.sankey.constants";
 import {
   allocateProportional,
@@ -9,16 +10,16 @@ import {
 import { addNode } from "~/lib/taxCharts.sankeyHelpers";
 import type { SankeyScratch } from "~/lib/taxCharts.sankeyScratch";
 
-export function appendSankeyTaxableIncomeNodes(result: TaxResult, s: SankeyScratch): void {
-  addLtcgDeductionShield(result, s);
-  addLongTermTaxableIncome(result, s);
-  addOrdinaryTaxableIncome(result, s);
+export function appendSankeyTaxableIncomeNodes(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
+  addLtcgDeductionShield(m, result, s);
+  addLongTermTaxableIncome(m, result, s);
+  addOrdinaryTaxableIncome(m, result, s);
 }
 
-function addLtcgDeductionShield(result: TaxResult, s: SankeyScratch): void {
+function addLtcgDeductionShield(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
   const ltcgShieldedByDeduction = Math.max(
     0,
-    result.longTermCapitalGainsGrossIncome - result.longTermTaxableIncome,
+    m.longTermCapitalGainsGrossIncome - m.longTermTaxableIncome,
   );
   if (ltcgShieldedByDeduction <= 0) return;
 
@@ -34,40 +35,40 @@ function addLtcgDeductionShield(result: TaxResult, s: SankeyScratch): void {
   createProportionalLinks(s, lt, ltcgShieldedByDeduction, SANKEY_IDS.ltcgDeductionShield);
 }
 
-function addLongTermTaxableIncome(result: TaxResult, s: SankeyScratch): void {
-  if (result.longTermTaxableIncome <= 0) return;
+function addLongTermTaxableIncome(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
+  if (m.longTermTaxableIncome <= 0) return;
 
   addNode(s.nodeMap, {
     id: SANKEY_IDS.longTermTaxableIncome,
     label: "Long-term taxable",
     kind: "longTermTaxableIncome",
-    amount: result.longTermTaxableIncome,
+    amount: m.longTermTaxableIncome,
   });
 
   const ltRaw = ltcgIncomeNodeEntries(result);
   const lt = ltRaw.length > 0 ? ltRaw : allIncomeNodeEntries(result);
-  createProportionalLinks(s, lt, result.longTermTaxableIncome, SANKEY_IDS.longTermTaxableIncome);
+  createProportionalLinks(s, lt, m.longTermTaxableIncome, SANKEY_IDS.longTermTaxableIncome);
 }
 
-function addOrdinaryTaxableIncome(result: TaxResult, s: SankeyScratch): void {
-  if (result.ordinaryTaxableIncome <= 0) return;
+function addOrdinaryTaxableIncome(m: TaxChartMetrics, result: TaxResult, s: SankeyScratch): void {
+  if (m.ordinaryTaxableIncome <= 0) return;
 
   const ordinaryTaxableLabel =
-    result.shortTermCapGainsGrossIncome > 0
+    m.shortTermCapGainsGrossIncome > 0
       ? "Ordinary taxable (incl. short-term gains)"
       : "Ordinary taxable";
   addNode(s.nodeMap, {
     id: SANKEY_IDS.ordinaryTaxableIncome,
     label: ordinaryTaxableLabel,
     kind: "ordinaryTaxableIncome",
-    amount: result.ordinaryTaxableIncome,
+    amount: m.ordinaryTaxableIncome,
   });
 
   const ordRaw = ordinaryIncomeNodeEntries(result);
   const ord = ordRaw.length > 0 ? ordRaw : allIncomeNodeEntries(result);
-  createProportionalLinks(s, ord, result.ordinaryTaxableIncome, SANKEY_IDS.ordinaryTaxableIncome);
+  createProportionalLinks(s, ord, m.ordinaryTaxableIncome, SANKEY_IDS.ordinaryTaxableIncome);
 
-  addPayrollStripIfNeeded(result, s);
+  addPayrollStripIfNeeded(m, s);
 }
 
 function createProportionalLinks(
@@ -85,12 +86,12 @@ function createProportionalLinks(
   }
 }
 
-function addPayrollStripIfNeeded(result: TaxResult, s: SankeyScratch): void {
-  const hasOrdinaryBrackets = result.ordinaryFederalSegments.length > 0;
-  if (!hasOrdinaryBrackets || result.payrollTax <= 0) return;
+function addPayrollStripIfNeeded(m: TaxChartMetrics, s: SankeyScratch): void {
+  const hasOrdinaryBrackets = m.ordinaryFederalSegments.length > 0;
+  if (!hasOrdinaryBrackets || m.payrollTax <= 0) return;
 
-  const stripVal = Math.min(result.payrollTax, result.ordinaryTaxableIncome);
-  const scale = (result.ordinaryTaxableIncome - stripVal) / result.ordinaryTaxableIncome;
+  const stripVal = Math.min(m.payrollTax, m.ordinaryTaxableIncome);
+  const scale = (m.ordinaryTaxableIncome - stripVal) / m.ordinaryTaxableIncome;
   if (stripVal <= 0 || scale <= 0.001) return;
 
   s.payrollTaxViaOrdinaryStrip = true;

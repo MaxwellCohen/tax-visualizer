@@ -1,3 +1,9 @@
+import type {
+  FederalTaxCreditSource,
+  IncomeSource,
+  ItemizedDeductionSource,
+  PretaxBenefitSource,
+} from "~/lib/taxCalc.types";
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 
 export type TaxItemCategory = "income" | "pretax" | "deduction" | "credit" | "tax";
@@ -20,31 +26,11 @@ export type TaxItemResult = {
 export type TaxCalculationInputs = {
   taxYear: number;
   filingStatus: FilingStatus;
-  incomeSources: Array<{
-    id: string;
-    kind: string;
-    label: string;
-    amount: number;
-  }>;
-  pretaxBenefitSources: Array<{
-    id: string;
-    kind: string;
-    label: string;
-    amount: number;
-  }>;
+  incomeSources: IncomeSource[];
+  pretaxBenefitSources: PretaxBenefitSource[];
   useItemizedDeductions: boolean;
-  itemizedDeductions: Array<{
-    id: string;
-    kind: string;
-    label: string;
-    amount: number;
-  }>;
-  federalTaxCredits: Array<{
-    id: string;
-    kind: string;
-    label: string;
-    amount: number;
-  }>;
+  itemizedDeductions: ItemizedDeductionSource[];
+  federalTaxCredits: FederalTaxCreditSource[];
 };
 
 export type TaxItemDefinition = {

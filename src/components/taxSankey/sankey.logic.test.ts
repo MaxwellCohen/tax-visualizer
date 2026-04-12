@@ -143,7 +143,7 @@ describe("sankeyLinkPath", () => {
     const tgt = { x0: 5, x1: 6, y0: 3, y1: 5 } as ChartNode;
     const d = sankeyLinkPath({ source: src, target: tgt } as ChartLink);
     expect(typeof d).toBe("string");
-    expect(d.length).toBeGreaterThan(10);
+    expect(d!.length).toBeGreaterThan(10);
   });
 });
 
@@ -193,7 +193,7 @@ describe("sankeyColors", () => {
     expect(nodeFill(N({ id: "ob", kind: "ordinaryBracket", label: "" }))).toContain("sankey-node-4");
     expect(nodeFill(N({ id: "tx", kind: "taxesFederal", label: "" }))).toContain("sankey-node-6");
     expect(nodeFill(N({ id: "k", kind: "keep", label: "" }))).toContain("keep");
-    const fallbackNode = { id: "unk", label: "", kind: "not-a-real-kind" } as ChartNode;
+    const fallbackNode = { id: "unk", label: "", kind: "not-a-real-kind" } as unknown as ChartNode;
     expect(nodeFill(fallbackNode)).toContain("sankey-node-7");
   });
 });

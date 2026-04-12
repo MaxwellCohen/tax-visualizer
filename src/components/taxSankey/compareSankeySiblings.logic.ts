@@ -49,13 +49,13 @@ function compareDeductionSiblings(a: ChartNode, b: ChartNode): number | null {
 }
 
 /**
- * When nodes share a depth, order top → bottom: long-term (capital gains) brackets, payroll strip,
- * then ordinary rate brackets — payroll sits at the top of the ordinary block but below LTCG.
+ * When nodes share a depth, order top → bottom: payroll (FICA) strip first, then long-term gain
+ * brackets, then ordinary rate brackets — payroll sits above all marginal-rate band bars.
  */
 function compareCapitalGainsPayrollOrdinaryStack(a: ChartNode, b: ChartNode): number | null {
   const tier = (n: ChartNode): number | null => {
-    if (n.kind === "ltcgBracket") return 0;
-    if (n.kind === "payrollOrdinaryStrip") return 1;
+    if (n.kind === "payrollOrdinaryStrip") return 0;
+    if (n.kind === "ltcgBracket") return 1;
     if (n.kind === "ordinaryBracket") return 2;
     return null;
   };

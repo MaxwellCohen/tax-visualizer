@@ -1,5 +1,4 @@
-import { Index, Show } from "solid-js";
-import type { FormApi } from "@tanstack/solid-form";
+import { Index, Show, createMemo } from "solid-js";
 import type { Accessor } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { PretaxBenefitSourceRow } from "~/components/taxInputForm/PretaxBenefitSourceFields";
@@ -8,18 +7,18 @@ import {
   pretaxFieldCaptionClass,
   taxInputFormTableThClass,
 } from "~/components/taxInputForm/shared";
-import type { TaxInput } from "~/lib/taxCalc";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import type { PretaxBenefitLimits } from "~/lib/taxData.types";
-
-type FormLike = FormApi<TaxInput, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined>;
+import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
+import { pretaxRowIndices } from "~/lib/taxForm.rows";
 
 type Props = {
-  form: FormLike;
-  values: Accessor<TaxInput>;
+  form: TaxInputFormApi;
+  values: Accessor<TaxFormData>;
   preTaxBenefitsTotal: Accessor<number>;
   isMarriedJoint: Accessor<boolean>;
   addPretaxBenefit: () => void;
-  removePretaxBenefitAt: (i: number) => void;
+  removePretaxBenefitAt: (rowIndex: number) => void;
   clearAll: () => void;
   pretaxLimits: Accessor<PretaxBenefitLimits | null>;
 };
@@ -28,6 +27,8 @@ const addBenefitBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 export function TaxInputFormPreTaxSection(props: Props) {
+  const indices = createMemo(() => pretaxRowIndices(props.values().rows));
+
   return (
     <Accordion
       summary={
@@ -75,7 +76,7 @@ export function TaxInputFormPreTaxSection(props: Props) {
                 class={`${taxInputFormTableThClass} whitespace-nowrap pr-3 text-right align-bottom`}
               >
                 <div class="flex justify-end gap-2">
-                  <Show when={props.values().pretaxBenefitSources.length > 0}>
+                  <Show when={indices().length > 0}>
                     <button
                       type="button"
                       class="shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--surface-alt) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--text-muted) transition-colors hover:border-(--warning-text) hover:text-(--warning-text)"
@@ -96,15 +97,17 @@ export function TaxInputFormPreTaxSection(props: Props) {
             </tr>
           </thead>
           <tbody>
-            <Index each={props.values().pretaxBenefitSources}>
+            <Index each={indices()}>
               {(_src, idx) => {
-                const rowIndex = () => idx;
+                const rowIndex = () =>
+                  typeof idx === "function" ? (idx as () => number)() : (idx as number);
+                const absIndex = () => indices()[rowIndex()];
                 return (
                   <PretaxBenefitSourceRow
                     form={props.form}
-                    index={rowIndex()}
-                    canRemove={props.values().pretaxBenefitSources.length > 1}
-                    onRemove={() => props.removePretaxBenefitAt(rowIndex())}
+                    rowIndex={absIndex()}
+                    canRemove={indices().length > 1}
+                    onRemove={() => props.removePretaxBenefitAt(absIndex())}
                     isMarriedJoint={() => props.isMarriedJoint()}
                     pretaxLimits={props.pretaxLimits}
                   />
