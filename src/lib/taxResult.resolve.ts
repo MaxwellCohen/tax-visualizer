@@ -1,60 +1,58 @@
-import type { DeductionKind, TaxSegment } from "~/lib/taxCalc.types";
-import {
-  TAX_CHART_METRICS_KEYS,
-  TAX_RESULT_ROW_IDS_KEEP_WHEN_VALUE_ZERO,
-} from "~/lib/config/pipelineTaxResult.config";
+import type { DeductionKind } from "~/lib/taxCalc.types";
+import { taxMetricsRecordFromLines } from "~/lib/config/chartMetricsRegistry";
+import { SEGMENT_METADATA_ROW_IDS, TAX_CHART_METRICS_KEYS } from "~/lib/config/pipelineTaxResult.config";
 import type { TaxChartMetrics, TaxComputedRow, TaxResult, TaxResultRow } from "~/lib/taxForm.types";
 import { isComputedRow } from "~/lib/taxForm.types";
 
-const KEEP_WHEN_VALUE_ZERO = new Set<string>(TAX_RESULT_ROW_IDS_KEEP_WHEN_VALUE_ZERO);
-
-/**
- * Index computed rows for chart metrics. Omits rows with `value === 0` except ids in
- * {@link TAX_RESULT_ROW_IDS_KEEP_WHEN_VALUE_ZERO} (segment metadata and deduction kind).
- */
-function computedByIdForCharts(rows: TaxResultRow[]): Map<string, TaxComputedRow> {
-  const m = new Map<string, TaxComputedRow>();
-  for (const row of rows) {
-    if (!isComputedRow(row)) continue;
-    if (row.value === 0 && !KEEP_WHEN_VALUE_ZERO.has(row.id)) continue;
-    m.set(row.id, row);
+function deductionKindFromRows(rows: TaxResultRow[]): DeductionKind {
+  for (const r of rows) {
+    if (r.type === "setting" && r.id === "useItemizedDeductions") {
+      return r.value ? "itemized" : "standard";
+    }
   }
-  return m;
+  return "standard";
 }
 
-function num(map: Map<string, TaxComputedRow>, id: string): number {
-  return map.get(id)?.value ?? 0;
-}
+/** Reconstructs {@link TaxChartMetrics} from {@link TaxResult.rows} when `metricLines` is absent. */
+function chartMetricsFromComputedRowsOnly(result: TaxResult): TaxChartMetrics {
+  const rows = result.rows;
+  const byId = new Map<string, TaxComputedRow>();
+  for (const row of rows) {
+    if (isComputedRow(row)) {
+      byId.set(row.id, row);
+    }
+  }
 
-function segments(map: Map<string, TaxComputedRow>, id: string): TaxSegment[] {
-  const meta = map.get(id)?.metadata;
-  const segs = meta?.segments;
-  return Array.isArray(segs) ? (segs as TaxSegment[]) : [];
-}
+  const deductionKind = deductionKindFromRows(rows);
 
-function deductionKindFromRows(map: Map<string, TaxComputedRow>): DeductionKind {
-  const meta = map.get("deductionKind")?.metadata;
-  const k = meta?.kind;
-  return k === "itemized" || k === "standard" ? k : "standard";
-}
-
-/** Builds {@link TaxChartMetrics} from {@link TaxResultRow} list (computed row ids match metric keys). */
-export function buildTaxChartMetricsFromRows(rows: TaxResultRow[]): TaxChartMetrics {
-  const m = computedByIdForCharts(rows);
   const out = {} as TaxChartMetrics;
   for (const key of TAX_CHART_METRICS_KEYS) {
-    if (key === "ordinaryFederalSegments" || key === "longTermCapitalGainsSegments") {
-      out[key] = segments(m, key);
-    } else if (key === "deductionKind") {
-      out[key] = deductionKindFromRows(m);
-    } else {
-      out[key] = num(m, key);
+    if (key === "deductionKind") {
+      (out as Record<string, unknown>)[key] = deductionKind;
+      continue;
     }
+    const row = byId.get(key);
+    if (!row) {
+      if (SEGMENT_METADATA_ROW_IDS.has(key)) {
+        (out as Record<string, unknown>)[key] = [];
+      } else {
+        (out as Record<string, unknown>)[key] = 0;
+      }
+      continue;
+    }
+    (out as Record<string, unknown>)[key] =
+      typeof row.value === "number" && Number.isFinite(row.value) ? row.value : 0;
   }
   return out;
 }
 
-/** Single place: row ids → chart/summary metrics */
+/**
+ * Chart metrics for display. Prefer {@link TaxResult.metricLines}; otherwise reconstruct from computed rows
+ * (segments will be empty).
+ */
 export function resolveTaxChartMetrics(result: TaxResult): TaxChartMetrics {
-  return buildTaxChartMetricsFromRows(result.rows);
+  if (result.metricLines?.length) {
+    return taxMetricsRecordFromLines(result.metricLines);
+  }
+  return chartMetricsFromComputedRowsOnly(result);
 }

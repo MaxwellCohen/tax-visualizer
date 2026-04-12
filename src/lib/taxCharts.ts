@@ -12,12 +12,11 @@ export {
   ltcgBracketNodeId,
 } from "~/lib/taxCharts.sankeySegmentKeys";
 export {
-  INCOME_KIND_CHART_ORDER,
   INCOME_KIND_CHART_ORDER_BY_KIND,
   INCOME_KIND_SANKEY_ORDER,
   SANKEY_LINK_STROKE_DEFAULT,
   SANKEY_NODE_FILL_DEFAULT,
-  SANKEY_NODE_LAYOUT,
+  
   SANKEY_NODE_STYLE_BY_KIND,
   SANKEY_VISUAL_COLUMN_BY_KIND,
   SANKEY_VISUAL_SEMANTIC_MAX,
@@ -33,7 +32,7 @@ export {
   allocateFederalCreditsTopMarginalSlices,
   bracketSliceRetainedWeight,
   deductionShieldAccountingOutflow,
-  federalIncomeTaxCreditApplyRatio,
+  
   takeHomeAttributableToBracketFlows,
   type FederalSliceAfterCredits,
 } from "~/lib/taxCharts.visualizationBundle";

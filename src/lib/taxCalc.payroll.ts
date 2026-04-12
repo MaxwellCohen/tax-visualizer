@@ -1,7 +1,7 @@
 import { getTaxYearConfig } from "~/lib/taxData";
 import type { FilingStatus } from "~/lib/taxData";
 
-export function calculatePayrollTax(wages: number, taxYear: number, filingStatus: FilingStatus) {
+function calculatePayrollTax(wages: number, taxYear: number, filingStatus: FilingStatus) {
   const config = getTaxYearConfig(taxYear);
   if (!config) {
     return { socialSecurityTax: 0, medicareTax: 0, payrollTax: 0 };
@@ -17,7 +17,7 @@ export function calculatePayrollTax(wages: number, taxYear: number, filingStatus
   return { socialSecurityTax, medicareTax, payrollTax };
 }
 
-export function calculateSelfEmploymentTax(
+function calculateSelfEmploymentTax(
   selfEmploymentIncome: number,
   taxYear: number,
   filingStatus: FilingStatus,

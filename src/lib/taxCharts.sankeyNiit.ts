@@ -1,4 +1,5 @@
 import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import { getLongTermCapitalGainsSegments, getOrdinaryFederalSegments } from "~/lib/config/chartMetricsRegistry";
 import type { TaxSegment } from "~/lib/taxCalc.types";
 import { ltcgSegmentKey, ordinarySegmentKey } from "~/lib/taxCharts.sankeySegmentKeys";
 
@@ -37,7 +38,7 @@ export function netInvestmentIncomeTaxPerSegment(m: TaxChartMetrics): {
     });
   };
 
-  allocatePool(ordinaryPool, m.ordinaryFederalSegments, m.ordinaryTaxableIncome, ordinary, ordinarySegmentKey);
-  allocatePool(ltcgPool, m.longTermCapitalGainsSegments, m.longTermTaxableIncome, ltcg, ltcgSegmentKey);
+  allocatePool(ordinaryPool, getOrdinaryFederalSegments(m), m.ordinaryTaxableIncome, ordinary, ordinarySegmentKey);
+  allocatePool(ltcgPool, getLongTermCapitalGainsSegments(m), m.longTermTaxableIncome, ltcg, ltcgSegmentKey);
   return { ordinary, ltcg };
 }

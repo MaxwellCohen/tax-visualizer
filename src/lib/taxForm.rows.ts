@@ -32,14 +32,14 @@ export function incomeRowsFromTaxResult(result: TaxResult): TaxFormIncomeRow[] {
   return result.rows.filter((r): r is TaxFormIncomeRow => r.type === "income");
 }
 
-export function pretaxRowsFromTaxResult(result: TaxResult): TaxFormPretaxRow[] {
+function pretaxRowsFromTaxResult(result: TaxResult): TaxFormPretaxRow[] {
   return result.rows.filter((r): r is TaxFormPretaxRow => r.type === "pretax");
 }
 
-export function deductionRowsFromTaxResult(result: TaxResult): TaxFormDeductionRow[] {
+function deductionRowsFromTaxResult(result: TaxResult): TaxFormDeductionRow[] {
   return result.rows.filter((r): r is TaxFormDeductionRow => r.type === "deduction");
 }
 
-export function creditRowsFromTaxResult(result: TaxResult): TaxFormCreditRow[] {
+function creditRowsFromTaxResult(result: TaxResult): TaxFormCreditRow[] {
   return result.rows.filter((r): r is TaxFormCreditRow => r.type === "credit");
 }

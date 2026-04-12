@@ -44,13 +44,13 @@ export const INCOME_KINDS_CONFIG: IncomeKindConfig[] = INCOME_KIND_SANKEY_ORDER.
   };
 });
 
-export const INCOME_KINDS_MAP: Record<IncomeKind, IncomeKindConfig> = Object.fromEntries(
+const INCOME_KINDS_MAP: Record<IncomeKind, IncomeKindConfig> = Object.fromEntries(
   INCOME_KINDS_CONFIG.map((c) => [c.kind, c])
 ) as Record<IncomeKind, IncomeKindConfig>;
 
-export const INCOME_KIND_CHART_ORDER: IncomeKind[] = INCOME_KINDS_CONFIG.map(c => c.kind);
+const INCOME_KIND_CHART_ORDER: IncomeKind[] = INCOME_KINDS_CONFIG.map(c => c.kind);
 
-export function incomeKindChartOrder(kind: IncomeKind): number {
+function incomeKindChartOrder(kind: IncomeKind): number {
   const idx = INCOME_KIND_CHART_ORDER.indexOf(kind);
   return idx >= 0 ? idx : 99;
 }
@@ -59,6 +59,6 @@ export function incomeKindLabel(kind: IncomeKind): string {
   return INCOME_KINDS_MAP[kind]?.label ?? kind;
 }
 
-export function incomeKindDefaultLabel(kind: IncomeKind): string {
+function incomeKindDefaultLabel(kind: IncomeKind): string {
   return INCOME_KINDS_MAP[kind]?.defaultDisplayLabel ?? kind;
 }

@@ -9,12 +9,7 @@ import type {
 } from "~/lib/taxForm.types";
 
 export function getTaxYearFromRows(rows: TaxFormRow[]): number {
-  for (const row of rows) {
-    if (row.type === "setting" && row.id === "taxYear") {
-      return row.value;
-    }
-  }
-  return new Date().getFullYear();
+  return rows.find(row => row.type === "setting" && row.id === "taxYear")?.value ?? new Date().getFullYear();
 }
 
 export function getFilingStatusFromRows(rows: TaxFormRow[]): FilingStatus {

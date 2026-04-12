@@ -2,21 +2,38 @@ import { getFilingStatusFromRows, getTaxYearFromRows } from "~/lib/taxCalc.input
 import type { TaxFormData, TaxFormRow } from "~/lib/taxForm.types";
 import { getTaxYearConfig } from "~/lib/taxData";
 
+/** Form boundary: coerce non-finite amounts so the tax engine only sees real numbers or zero. */
+function finiteAmount(n: number): number {
+  return Number.isFinite(n) ? n : 0;
+}
+
+function sanitizeNumericRows(rows: TaxFormRow[]): TaxFormRow[] {
+  return rows.map((row) => {
+    if (row.type === "income" || row.type === "pretax" || row.type === "deduction" || row.type === "credit") {
+      return { ...row, amount: finiteAmount(row.amount) };
+    }
+    return row;
+  });
+}
+
 export function clampTaxFormData(data: TaxFormData): TaxFormData {
   const taxYear = getTaxYearFromRows(data.rows);
   const filingStatus = getFilingStatusFromRows(data.rows);
   const config = getTaxYearConfig(taxYear);
   if (!config) {
-    return data;
+    return { rows: sanitizeNumericRows(data.rows) };
   }
 
   const joint = filingStatus === "marriedJoint";
 
   const rows: TaxFormRow[] = data.rows.map((row) => {
+    if (row.type === "income" || row.type === "deduction" || row.type === "credit") {
+      return { ...row, amount: finiteAmount(row.amount) };
+    }
     if (row.type !== "pretax") {
       return row;
     }
-    let amount = row.amount;
+    let amount = finiteAmount(row.amount);
     const kind = row.kind as string;
     if (kind === "401k" || kind === "preTax401kSpouse1" || kind === "preTax401kSpouse2") {
       amount = Math.min(amount, config.pretaxLimits.electiveDeferral401k);

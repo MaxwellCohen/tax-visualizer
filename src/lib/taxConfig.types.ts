@@ -5,6 +5,35 @@ import type {
   PretaxBenefitSource,
 } from "~/lib/taxCalc.types";
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
+import type {
+  DeductionCalculationResult,
+  FederalLtcgTaxResult,
+  FederalNiitResult,
+  FederalOrdinaryTaxResult,
+  IncomeAggregationResult,
+  PayrollTaxResult,
+  PretaxBenefitsResult,
+  SelfEmploymentTaxResult,
+  TakeHomeResult,
+  TaxCreditsResult,
+  TaxItemResult,
+} from "~/lib/taxItemResult.types";
+
+export type { TaxItemResult } from "~/lib/taxItemResult.types";
+
+/** All pipeline intermediates from inputs + year config (replaces `TaxItemResult[]` on state). */
+export type TaxPipelineSnapshot = {
+  income: IncomeAggregationResult;
+  pretax: PretaxBenefitsResult;
+  deduction: DeductionCalculationResult;
+  federalOrdinary: FederalOrdinaryTaxResult;
+  federalLtcg: FederalLtcgTaxResult;
+  niit: FederalNiitResult;
+  taxCredits: TaxCreditsResult;
+  payroll: PayrollTaxResult;
+  selfEmployment: SelfEmploymentTaxResult;
+  takeHome: TakeHomeResult;
+};
 
 export type TaxItemCategory = "income" | "pretax" | "deduction" | "credit" | "tax";
 
@@ -12,15 +41,6 @@ export type ValidationResult = {
   valid: boolean;
   errors: string[];
   warnings: string[];
-};
-
-export type TaxItemResult = {
-  id: string;
-  label: string;
-  amount: number;
-  category: TaxItemCategory;
-  subcategory?: string;
-  metadata?: Record<string, unknown>;
 };
 
 export type TaxCalculationInputs = {
@@ -51,10 +71,7 @@ export type TaxItemDefinition = {
 
 export type TaxCalculationState = {
   inputs: TaxCalculationInputs;
-  results: Map<string, TaxItemResult>;
-  warnings: string[];
   errors: string[];
-  metadata: Record<string, unknown>;
 };
 
 export type CalculationStep = {
@@ -100,12 +117,16 @@ export type TaxConfig = {
   visualization: VisualizationConfig;
 };
 
+function taxItemResultById<const T extends TaxItemResult["id"]>(
+  results: TaxItemResult[],
+  id: T,
+): Extract<TaxItemResult, { id: T }> | undefined {
+  return results.find((r) => r.id === id) as Extract<TaxItemResult, { id: T }> | undefined;
+}
+
 export function createInitialState(inputs: TaxCalculationInputs): TaxCalculationState {
   return {
     inputs,
-    results: new Map(),
-    warnings: [],
     errors: [],
-    metadata: {},
   };
 }

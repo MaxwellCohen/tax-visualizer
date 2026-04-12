@@ -1,4 +1,5 @@
 import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import { getLongTermCapitalGainsSegments, getOrdinaryFederalSegments } from "~/lib/config/chartMetricsRegistry";
 import type { TaxResult } from "~/lib/taxForm.types";
 import { incomeRowsFromTaxResult } from "~/lib/taxForm.rows";
 import {
@@ -116,14 +117,14 @@ function buildPoolSplit(
 function linkBracketSegmentsToTaxKeep(m: TaxChartMetrics, s: SankeyScratch, split: PoolSplit): void {
   const federalByNode = allocateFederalCreditsTopMarginalSlices(m);
   const ordScale = s.ordinaryBracketLinkScale;
-  for (const segment of m.ordinaryFederalSegments) {
+  for (const segment of getOrdinaryFederalSegments(m)) {
     const nodeId = ordinaryBracketNodeId(segment);
     const splitFed = federalByNode.get(nodeId) ?? { federalToTax: 0, creditPortion: 0 };
     const bracketInflow = segment.incomeAmount * ordScale;
     pushBracketTaxAndKeepLinks(s, split, nodeId, splitFed.federalToTax, splitFed.creditPortion, ordScale, bracketInflow);
   }
 
-  for (const segment of m.longTermCapitalGainsSegments) {
+  for (const segment of getLongTermCapitalGainsSegments(m)) {
     const nodeId = ltcgBracketNodeId(segment);
     const splitFed = federalByNode.get(nodeId) ?? { federalToTax: 0, creditPortion: 0 };
     const bracketInflow = segment.incomeAmount;
@@ -223,7 +224,7 @@ export function appendSankeyTaxKeepAndFallback(m: TaxChartMetrics, result: TaxRe
   addTaxesTakeHomeAndCreditsNodes(m, s);
   // Direct flow: ordinary taxable -> payroll taxes (FICA)
   if (m.payrollTax > 0 && m.ordinaryTaxableIncome > 0) {
-    const hasOrdinary = m.ordinaryFederalSegments.length > 0;
+    const hasOrdinary = getOrdinaryFederalSegments(m).length > 0;
     if (!hasOrdinary || !s.payrollTaxViaOrdinaryStrip) {
       s.links.push({
         sourceId: SANKEY_IDS.ordinaryTaxableIncome,

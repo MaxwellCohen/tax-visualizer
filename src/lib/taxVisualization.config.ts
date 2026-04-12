@@ -2,17 +2,7 @@ import type { TaxResult } from "~/lib/taxForm.types";
 import type { TaxChartMetrics } from "~/lib/taxForm.types";
 import { resolveTaxChartMetrics } from "~/lib/taxResult.resolve";
 import type { VisualizationConfig, VisualizationMetric, VisualizationFootnote } from "~/lib/taxConfig.types";
-import {
-  INCOME_KIND_CONFIGS,
-  PRETAX_BENEFIT_CONFIGS,
-  FEDERAL_CREDIT_CONFIGS,
-} from "~/lib/config/taxItems";
-import {
-  chartMetricNumeric,
-  INCOME_AGGREGATION_FIELD_TO_CHART_METRIC_KEY,
-  pretaxKindIdToChartMetricKey,
-  VISUALIZATION_METRIC_ID_TO_CHART_KEY,
-} from "~/lib/config/pipelineTaxResult.config";
+import { CHART_METRICS_REGISTRY, chartMetricNumeric } from "~/lib/config/pipelineTaxResult.config";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -39,92 +29,24 @@ export type MetricConfig = {
   category: "income" | "pretax" | "deduction" | "tax" | "credits" | "takehome" | "rate";
 };
 
-function visualizationMetricGetter(id: string): (m: TaxChartMetrics) => number {
-  const chartKey = VISUALIZATION_METRIC_ID_TO_CHART_KEY[id] ?? id;
-  return (m) => chartMetricNumeric(m, chartKey as keyof TaxChartMetrics);
-}
-
-function mapCategoryToMetricCategory(category: string): MetricConfig["category"] {
-  const map: Record<string, MetricConfig["category"]> = {
-    income: "income",
-    pretax: "pretax",
-    deduction: "deduction",
-    tax: "tax",
-    credit: "credits",
-    summary: "takehome",
-  };
-  return map[category] ?? "income";
-}
-
-function buildMetricConfig(
-  id: string,
-  getValue: (m: TaxChartMetrics) => number,
-  label: string,
-  category: string,
-  order: number,
-  options?: { highlight?: boolean; showWhen?: (m: TaxChartMetrics) => boolean; format?: "currency" | "percent" | "number" },
-): MetricConfig {
-  return {
-    id,
-    label,
-    getValue,
-    format: options?.format ?? "currency",
-    displayOrder: order,
-    category: mapCategoryToMetricCategory(category),
-    highlight: options?.highlight,
-    showWhen: options?.showWhen,
-  };
-}
-
-export function buildDefaultMetricsConfig(): MetricConfig[] {
+/** Default Tax Summary rows: derived from {@link CHART_METRICS_REGISTRY} `summary` hints (single ordering source). */
+function buildDefaultMetricsConfig(): MetricConfig[] {
   const configs: MetricConfig[] = [];
-  let order = 1;
-
-  for (const cfg of INCOME_KIND_CONFIGS) {
-    const chartKey = INCOME_AGGREGATION_FIELD_TO_CHART_METRIC_KEY[cfg.aggregationField as keyof typeof INCOME_AGGREGATION_FIELD_TO_CHART_METRIC_KEY];
-    configs.push(
-      buildMetricConfig(cfg.id, (m) => chartMetricNumeric(m, chartKey), cfg.label, "income", order++),
-    );
+  for (const e of CHART_METRICS_REGISTRY) {
+    if (!e.summary) continue;
+    const s = e.summary;
+    configs.push({
+      id: s.summaryId,
+      label: s.label,
+      getValue: (m) => chartMetricNumeric(m, e.metricsKey),
+      format: s.format ?? "currency",
+      displayOrder: s.displayOrder,
+      category: s.category,
+      highlight: s.highlight,
+      showWhen: s.showWhen,
+    });
   }
-  configs.push(buildMetricConfig("total-income", visualizationMetricGetter("total-income"), "Total Income", "income", order++));
-
-  for (const cfg of PRETAX_BENEFIT_CONFIGS) {
-    const metricId =
-      cfg.id === "401k" ? "preTax401k" : cfg.id === "hsa" ? "preTaxHsa" : cfg.id === "other" ? "preTaxOther" : cfg.id;
-    const chartKey = pretaxKindIdToChartMetricKey(cfg.id);
-    configs.push(buildMetricConfig(metricId, (m) => chartMetricNumeric(m, chartKey), cfg.label, "pretax", order++));
-  }
-  configs.push(buildMetricConfig("wages-after-pretax", visualizationMetricGetter("wages-after-pretax"), "Wages After Pre-tax", "pretax", order++));
-
-  configs.push(buildMetricConfig("standard-deduction", visualizationMetricGetter("standard-deduction"), "Standard Deduction", "deduction", order++));
-  configs.push(buildMetricConfig("deduction-amount", visualizationMetricGetter("deduction-amount"), "Deduction Used", "deduction", order++));
-
-  configs.push(buildMetricConfig("ordinary-taxable-income", visualizationMetricGetter("ordinary-taxable-income"), "Ordinary Taxable", "income", order++));
-  configs.push(buildMetricConfig("long-term-taxable-income", visualizationMetricGetter("long-term-taxable-income"), "LTCG Taxable", "income", order++));
-
-  configs.push(buildMetricConfig("federal-ordinary-tax", visualizationMetricGetter("federal-ordinary-tax"), "Federal Ord. Tax", "tax", order++));
-  configs.push(buildMetricConfig("federal-ltcg-tax", visualizationMetricGetter("federal-ltcg-tax"), "Federal LTCG Tax", "tax", order++));
-  configs.push(buildMetricConfig("federal-niit", visualizationMetricGetter("federal-niit"), "Net Investment Income Tax", "tax", order++));
-  configs.push(buildMetricConfig("federal-income-tax", visualizationMetricGetter("federal-income-tax"), "Federal Income Tax", "tax", order++));
-  configs.push(buildMetricConfig("federal-income-tax-before-credits", visualizationMetricGetter("federal-income-tax-before-credits"), "Fed Tax Before Credits", "tax", order++));
-
-  for (const cfg of FEDERAL_CREDIT_CONFIGS) {
-    const id = `${cfg.aggregationField}Credit`;
-    configs.push(buildMetricConfig(id, (m) => (m as unknown as Record<string, number>)[cfg.aggregationField] ?? 0, cfg.label, "credits", order++));
-  }
-
-  configs.push(buildMetricConfig("social-security-tax", visualizationMetricGetter("social-security-tax"), "Social Security Tax", "tax", order++));
-  configs.push(buildMetricConfig("medicare-tax", visualizationMetricGetter("medicare-tax"), "Medicare Tax", "tax", order++));
-  configs.push(buildMetricConfig("payroll-tax", visualizationMetricGetter("payroll-tax"), "Payroll Taxes", "tax", order++));
-
-  configs.push(buildMetricConfig("take-home-pay", visualizationMetricGetter("take-home-pay"), "Take-Home Pay", "summary", order++, { highlight: true }));
-  configs.push(buildMetricConfig("effective-rate", visualizationMetricGetter("effective-rate"), "Effective Tax Rate", "rate", order++, { highlight: true, format: "percent" }));
-  configs.push(buildMetricConfig("marginal-rate", (m) => {
-    const ord = m.ordinaryFederalSegments;
-    if (ord && ord.length > 0) return ord[ord.length - 1].marginalRate;
-    return 0;
-  }, "Marginal Rate", "rate", order++, { format: "percent" }));
-
+  configs.sort((a, b) => a.displayOrder - b.displayOrder);
   return configs;
 }
 
@@ -172,7 +94,7 @@ function formatValue(value: number | undefined, format: "currency" | "percent" |
   }
 }
 
-export const FOOTNOTE_TEMPLATES: Record<string, (m: TaxChartMetrics) => string> = {
+const FOOTNOTE_TEMPLATES: Record<string, (m: TaxChartMetrics) => string> = {
   "effective-rate-formula": () => `(federal income tax + payroll tax + self-employment tax) / (gross income - payroll pre-tax - traditional IRA + net SE earnings)`,
   "take-home-formula": () => `gross income - payroll pre-tax - federal income tax - payroll tax - self-employment tax - traditional IRA`,
   "pretax-breakdown": (m) => {
@@ -241,11 +163,11 @@ export function computeFootnotes(result: TaxResult, config?: FootnoteConfig[]): 
     .sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
-export function getMetricByCategory(result: TaxResult, category: MetricConfig["category"]): MetricDisplay[] {
+function getMetricByCategory(result: TaxResult, category: MetricConfig["category"]): MetricDisplay[] {
   return computeMetrics(result).filter((m) => m.category === category);
 }
 
-export function getHighlightedMetrics(result: TaxResult): MetricDisplay[] {
+function getHighlightedMetrics(result: TaxResult): MetricDisplay[] {
   return computeMetrics(result).filter((m) => m.highlight);
 }
 

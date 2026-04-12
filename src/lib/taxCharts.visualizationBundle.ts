@@ -1,4 +1,5 @@
 import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import { getLongTermCapitalGainsSegments, getOrdinaryFederalSegments } from "~/lib/config/chartMetricsRegistry";
 import { netInvestmentIncomeTaxPerSegment } from "~/lib/taxCharts.sankeyNiit";
 import { ltcgSegmentKey, ordinarySegmentKey } from "~/lib/taxCharts.sankeySegmentKeys";
 
@@ -19,7 +20,7 @@ export function allocateFederalCreditsTopMarginalSlices(m: TaxChartMetrics): Map
   const rows: Row[] = [];
   const niitBySegment = netInvestmentIncomeTaxPerSegment(m);
 
-  for (const segment of m.ordinaryFederalSegments) {
+  for (const segment of getOrdinaryFederalSegments(m)) {
     const segmentId = ordinarySegmentKey(segment);
     const nodeId = `ordinary-bracket-${segmentId}`;
     const niitPart = niitBySegment.ordinary.get(segmentId) ?? 0;
@@ -29,7 +30,7 @@ export function allocateFederalCreditsTopMarginalSlices(m: TaxChartMetrics): Map
       marginalRate: segment.marginalRate,
     });
   }
-  for (const segment of m.longTermCapitalGainsSegments) {
+  for (const segment of getLongTermCapitalGainsSegments(m)) {
     const segmentId = ltcgSegmentKey(segment);
     const nodeId = `ltcg-bracket-${segmentId}`;
     const niitPart = niitBySegment.ltcg.get(segmentId) ?? 0;
@@ -73,7 +74,7 @@ export function allocateFederalCreditsTopMarginalSlices(m: TaxChartMetrics): Map
  * Uniform ratio of net federal tax to federal tax before credits (handy when a proportional split is enough).
  * Bracket-level Mekko/Sankey flows prefer {@link allocateFederalCreditsTopMarginalSlices}.
  */
-export function federalIncomeTaxCreditApplyRatio(m: TaxChartMetrics): number {
+function federalIncomeTaxCreditApplyRatio(m: TaxChartMetrics): number {
   const before = m.federalIncomeTaxBeforeCredits;
   if (before <= 0) {
     return m.federalIncomeTax <= 0 ? 0 : 1;

@@ -5,7 +5,6 @@ import TaxModelGuide from "~/components/TaxModelGuide";
 import TaxNarrative from "~/components/TaxNarrative";
 import TaxSankey from "~/components/TaxSankey";
 import TaxSummary from "~/components/TaxSummary";
-import TaxWarnings from "~/components/TaxWarnings";
 import type { TaxResult } from "~/lib/taxCalc";
 import { TaxYearInvalid } from "./TaxYearInvalid";
 
@@ -22,7 +21,6 @@ export function HomeTaxResults(props: HomeTaxResultsProps) {
         <>
           <TaxSankey result={result()} />
           <TaxMekko result={result()} />
-          <TaxWarnings warnings={result().warnings} />
           <TaxSummary
             result={result()}
             baselineResult={props.baselineResult()}

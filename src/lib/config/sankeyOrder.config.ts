@@ -13,7 +13,7 @@ export const INCOME_KIND_SANKEY_ORDER: SankeyOrderKind[] = [
   { kind: "selfEmployment", order: 4 },
 ];
 
-export const INCOME_KIND_CHART_ORDER: IncomeKind[] = INCOME_KIND_SANKEY_ORDER.map((k) => k.kind as IncomeKind);
+const INCOME_KIND_CHART_ORDER: IncomeKind[] = INCOME_KIND_SANKEY_ORDER.map((k) => k.kind as IncomeKind);
 
 /**
  * One row per Sankey `kind`: vertical order, semantic column, rect fill, and link stroke (for links
@@ -39,7 +39,7 @@ export type SankeyNodeLayoutEntry = {
   linkStrokeBenefitAccounting?: string;
 };
 
-export const SANKEY_NODE_LAYOUT: SankeyNodeLayoutEntry[] = [
+const SANKEY_NODE_LAYOUT: SankeyNodeLayoutEntry[] = [
   { kind: "incomeSource", order: 0, column: 0, fill: "var(--sankey-node-income)", linkStroke: "var(--sankey-link)" },
 
   {

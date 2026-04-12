@@ -39,7 +39,7 @@ describe("computeMekkoLayout", () => {
   it("returns layout for non-empty rows", () => {
     const result = calculateTaxes(baseInput())!;
     const metrics = resolveTaxChartMetrics(result);
-    const rows = buildMekkoRows(metrics);
+    const rows = result.display?.mekko.rows ?? buildMekkoRows(metrics);
     const layout = computeMekkoLayout(metrics, rows);
     expect(layout).toBeDefined();
     expect(layout!.rowLayouts.length).toBe(rows.length);

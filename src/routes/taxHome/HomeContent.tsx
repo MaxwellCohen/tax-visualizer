@@ -8,7 +8,6 @@ import TaxModelGuide from "~/components/TaxModelGuide";
 import TaxNarrative from "~/components/TaxNarrative";
 import TaxSankey from "~/components/TaxSankey";
 import TaxSummary from "~/components/TaxSummary";
-import TaxWarnings from "~/components/TaxWarnings";
 import { calculateTaxes, type TaxFormData } from "~/lib/taxCalc";
 import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
 import { getAvailableTaxYears, isPlanningTaxYear } from "~/lib/taxData";
@@ -64,7 +63,6 @@ export function HomeContent() {
           <>
             <TaxSankey result={result()} />
             <TaxMekko result={result()} />
-            <TaxWarnings warnings={result().warnings} />
             <TaxSummary
               result={result()}
               baselineResult={baselineResult()}

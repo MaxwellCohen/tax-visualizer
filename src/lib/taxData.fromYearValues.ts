@@ -10,7 +10,7 @@ import type {
 const FILING_STATUSES: FilingStatus[] = ["single", "marriedJoint", "marriedSeparate", "headOfHousehold"];
 
 /** Whether a modeled tax year uses final IRS figures or planning/provisional values. */
-export const TAX_YEAR_STATUS: Record<number, "final" | "planning"> = {
+const TAX_YEAR_STATUS: Record<number, "final" | "planning"> = {
   2023: "final",
   2024: "final",
   2025: "final",

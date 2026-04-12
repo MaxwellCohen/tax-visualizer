@@ -77,7 +77,7 @@ export default function TaxModelGuide(props: TaxModelGuideProps) {
           </GuideColumn>
 
           <GuideColumn title="Why your result may differ">
-            {props.result.notes.map(note => (
+            {(props.result.notes ?? []).map((note) => (
               <li>{note}</li>
             ))}
             {props.isPlanningYear ? (

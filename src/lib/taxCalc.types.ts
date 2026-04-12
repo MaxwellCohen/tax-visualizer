@@ -9,6 +9,16 @@ export type TaxSegment = {
   marginalRate: number;
 };
 
+/** Long-term capital gains bracket slice (stacking worksheet). */
+export type LtcgTaxSegment = {
+  rate: number;
+  upTo: number | null;
+  rangeStart: number;
+  rangeEnd: number | null;
+  incomeAmount: number;
+  taxAmount: number;
+};
+
 export type IncomeSource = {
   id: string;
   kind: IncomeKind;

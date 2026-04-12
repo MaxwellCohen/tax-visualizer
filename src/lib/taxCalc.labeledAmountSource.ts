@@ -21,12 +21,12 @@ export function newIncomeSource(overrides?: Partial<Omit<IncomeSource, "id">>): 
   return { id: r.id, kind: r.kind, label: r.label, amount: r.amount };
 }
 
-export function newFederalTaxCreditSource(overrides?: Partial<Omit<FederalTaxCreditSource, "id">>): FederalTaxCreditSource {
+function newFederalTaxCreditSource(overrides?: Partial<Omit<FederalTaxCreditSource, "id">>): FederalTaxCreditSource {
   const r = newCreditRow(overrides);
   return { id: r.id, kind: r.kind, label: r.label, amount: r.amount };
 }
 
-export function newItemizedDeductionSource(overrides?: Partial<Omit<ItemizedDeductionSource, "id">>): ItemizedDeductionSource {
+function newItemizedDeductionSource(overrides?: Partial<Omit<ItemizedDeductionSource, "id">>): ItemizedDeductionSource {
   const r = newDeductionRow(overrides);
   return { id: r.id, kind: r.kind, label: r.label, amount: r.amount };
 }

@@ -1,73 +1,33 @@
 import { describe, expect, it } from "vitest";
-import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import { CHART_METRICS_REGISTRY } from "~/lib/config/chartMetricsRegistry";
 import {
+  CHART_METRICS_NOT_EMITTED_AS_COMPUTED_ROWS,
   PIPELINE_COMPUTED_ROW_ORDER,
-  PIPELINE_FLAT_SPECS,
   TAX_CHART_METRICS_KEYS,
 } from "~/lib/config/pipelineTaxResult.config";
 
 describe("pipelineTaxResult.config", () => {
-  it("TAX_CHART_METRICS_KEYS lists each TaxChartMetrics key exactly once", () => {
+  it("TAX_CHART_METRICS_KEYS matches the chart metrics registry (unique, full list)", () => {
     const keys = new Set<string>(TAX_CHART_METRICS_KEYS);
     expect(keys.size).toBe(TAX_CHART_METRICS_KEYS.length);
-
-    type K = keyof TaxChartMetrics;
-    const all: K[] = [
-      "totalIncome",
-      "wageIncome",
-      "selfEmploymentIncome",
-      "ordinaryGrossIncome",
-      "shortTermCapGainsGrossIncome",
-      "longTermCapitalGainsGrossIncome",
-      "preTax401k",
-      "preTaxHsa",
-      "preTaxOther",
-      "preTaxTotal",
-      "traditionalIra",
-      "wagesAfterPretax",
-      "deductionKind",
-      "standardDeduction",
-      "deductionAmount",
-      "deductionAllocatedToOrdinary",
-      "deductionAllocatedToLongTermGross",
-      "ordinaryTaxableIncome",
-      "longTermTaxableIncome",
-      "taxableIncome",
-      "ordinaryFederalSegments",
-      "longTermCapitalGainsSegments",
-      "federalOrdinaryIncomeTax",
-      "federalLongTermCapGainsTax",
-      "federalNetInvestmentIncomeTax",
-      "netInvestmentIncome",
-      "federalIncomeTaxBeforeCredits",
-      "federalTaxCredits",
-      "federalTaxCreditsApplied",
-      "federalIncomeTax",
-      "payrollTax",
-      "selfEmploymentTax",
-      "socialSecurityTax",
-      "medicareTax",
-      "takeHomePay",
-      "effectiveTaxRate",
-    ];
-    for (const k of all) {
-      expect(keys.has(k), `missing ${k}`).toBe(true);
+    expect(TAX_CHART_METRICS_KEYS.length).toBe(CHART_METRICS_REGISTRY.length);
+    for (let i = 0; i < TAX_CHART_METRICS_KEYS.length; i++) {
+      expect(TAX_CHART_METRICS_KEYS[i]).toBe(CHART_METRICS_REGISTRY[i]!.metricsKey);
     }
   });
 
-  it("PIPELINE_FLAT_SPECS covers every chart metric key", () => {
-    const fromSpecs = new Set(PIPELINE_FLAT_SPECS.map((e) => e.key));
-    for (const k of TAX_CHART_METRICS_KEYS) {
-      expect(fromSpecs.has(k), `PIPELINE_FLAT_SPECS missing ${k}`).toBe(true);
+  it("computed row order is chart keys minus non-row metrics", () => {
+    expect(PIPELINE_COMPUTED_ROW_ORDER.length).toBe(
+      TAX_CHART_METRICS_KEYS.length - CHART_METRICS_NOT_EMITTED_AS_COMPUTED_ROWS.size,
+    );
+    const chartSet = new Set<string>(TAX_CHART_METRICS_KEYS);
+    const rowSet = new Set<string>(PIPELINE_COMPUTED_ROW_ORDER);
+    for (const k of CHART_METRICS_NOT_EMITTED_AS_COMPUTED_ROWS) {
+      expect(chartSet.has(k)).toBe(true);
+      expect(rowSet.has(k)).toBe(false);
     }
-  });
-
-  it("PIPELINE_COMPUTED_ROW_ORDER matches chart keys length and set", () => {
-    expect(PIPELINE_COMPUTED_ROW_ORDER.length).toBe(TAX_CHART_METRICS_KEYS.length);
-    const orderSet = new Set(PIPELINE_COMPUTED_ROW_ORDER);
-    expect(orderSet.size).toBe(TAX_CHART_METRICS_KEYS.length);
-    for (const k of TAX_CHART_METRICS_KEYS) {
-      expect(orderSet.has(k)).toBe(true);
+    for (const k of PIPELINE_COMPUTED_ROW_ORDER) {
+      expect(chartSet.has(k)).toBe(true);
     }
   });
 });

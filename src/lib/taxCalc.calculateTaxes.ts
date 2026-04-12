@@ -1,16 +1,25 @@
 /**
  * Single entry point for federal + payroll modeling. Produces {@link TaxResult} consumed by the
  * summary table, Sankey, and Mekko; charts do not recompute tax—only layout and allocation rules.
+ *
+ * **Data flow (registry evaluation contract):**
+ *
+ * 1. Resolve tax rules only: {@link getTaxYearConfig} from the form’s tax year (no tax math).
+ * 2. **Form data** + **{@link TaxYearConfig}** feed {@link computeTaxMetricLines}, which loops
+ *    {@link CHART_METRICS_REGISTRY} in order. Each `compute(ctx)` reads form rows, config, and
+ *    {@link ChartMetricComputeContext.accreted} state filled by prior steps in the same pass.
+ * 3. Row → {@link TaxCalculationInputs} via {@link rowsToTaxCalculationInputs} is normalization
+ *    for the model, not a separate pipeline precompute (see `chartMetricsRegistry` module header).
  */
+import { computeTaxMetricLines, taxMetricsRecordFromLines } from "~/lib/config/chartMetricsRegistry";
 import { clampTaxFormData } from "~/lib/taxCalc.clamp";
-import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
-import { runCalculationPipeline, buildTaxResultFromPipeline } from "~/lib/taxCalc.pipeline";
-import { buildTaxWarnings } from "~/lib/config/taxItems";
-import type { TaxFormData } from "~/lib/taxForm.types";
-import type { TaxResult } from "~/lib/taxForm.types";
+import { metricsToComputedRows } from "~/lib/taxCalc.pipeline";
+import { buildTaxResultDisplayBundle } from "~/lib/taxResult.display";
+import type { TaxFormData, TaxMetricLine, TaxResult } from "~/lib/taxForm.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
 import { getTaxYearConfig } from "~/lib/taxData";
-import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
+import { getTaxYearFromRows, rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
+
 
 export function calculateTaxes(raw: TaxFormData, config?: TaxYearConfig): TaxResult | null {
   const data = clampTaxFormData(raw);
@@ -19,12 +28,31 @@ export function calculateTaxes(raw: TaxFormData, config?: TaxYearConfig): TaxRes
   if (!taxConfig) {
     return null;
   }
+  const inputs = rowsToTaxCalculationInputs(data.rows);
 
-  const normalizedInputs = rowsToTaxCalculationInputs(data.rows);
-  const state = runCalculationPipeline(normalizedInputs, taxConfig);
+  let metricLines: TaxMetricLine[];
+  try {
+    metricLines = computeTaxMetricLines(data.rows, inputs, taxConfig);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      rows: [...data.rows],
+      notes: [],
+      errors: [`Tax calculation error: ${message}`],
+    };
+  }
 
-  const warnings = buildTaxWarnings(state, normalizedInputs, taxConfig);
-  state.warnings = warnings;
-
-  return buildTaxResultFromPipeline(data.rows, state, warnings);
+  const chartMetrics = taxMetricsRecordFromLines(metricLines);
+  const computedRows = metricsToComputedRows(chartMetrics);
+  const rows: TaxResult["rows"] = [...(data.rows), ...computedRows];
+  const base: TaxResult = {
+    rows,
+    metricLines,
+    notes: [],
+    errors: [],
+  };
+  return {
+    ...base,
+    display: buildTaxResultDisplayBundle(chartMetrics, base),
+  };
 }

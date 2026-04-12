@@ -7,6 +7,7 @@ import type {
   PretaxBenefitKind,
   TaxSegment,
 } from "~/lib/taxCalc.types";
+import type { MekkoRow, SankeyChartData } from "~/lib/taxCharts.types";
 
 /** Single setting key in the form row list */
 export type TaxFormSettingId = "taxYear" | "filingStatus" | "useItemizedDeductions";
@@ -60,27 +61,32 @@ export type TaxFormData = {
   rows: TaxFormRow[];
 };
 
-/** Pipeline output line: numeric metrics and structured metadata (e.g. bracket segments) */
-export type TaxComputedRow = {
+/** Numeric pipeline output line */
+export type TaxComputedNumericRow = {
   type: "computed";
   id: string;
   value: number;
   label?: string;
-  metadata?: Record<string, unknown>;
 };
+
+
+
+export type TaxComputedRow = TaxComputedNumericRow ;
 
 export type TaxResultRow = TaxFormRow | TaxComputedRow;
 
-/** Echo of input rows + appended computed rows; warnings/notes at top level */
-export type TaxResult = {
-  rows: TaxResultRow[];
-  warnings: string[];
-  notes: string[];
-  errors: string[];
-  metadata: Record<string, unknown>;
+/** Pre-built Mekko band rows (aligned with Sankey federal credit split). */
+export type TaxResultMekkoDisplay = {
+  rows: MekkoRow[];
 };
 
-/** Resolved metrics for charts/summary (built from {@link TaxResult.rows} only) */
+/** Pre-built Sankey graph + Mekko rows; produced with {@link TaxResult.metricLines} in the pipeline. */
+export type TaxResultDisplay = {
+  sankey: SankeyChartData;
+  mekko: TaxResultMekkoDisplay;
+};
+
+/** Resolved metrics for charts/summary (record view of metric lines). */
 export type TaxChartMetrics = {
   totalIncome: number;
   wageIncome: number;
@@ -118,6 +124,72 @@ export type TaxChartMetrics = {
   medicareTax: number;
   takeHomePay: number;
   effectiveTaxRate: number;
+  /** Top ordinary federal bracket rate (from pipeline take-home). */
+  marginalFederalRate: number;
+  /** Per-credit amounts entered (from pipeline tax credits). */
+  childTaxCredit: number;
+  educationCredits: number;
+  retirementSavings: number;
+  federalCreditOther: number;
+};
+
+/** Detailed tax breakdown list (driven by chart metrics registry `detailedDisplay` metadata). */
+export type DisplayCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary";
+
+export type DisplayItemFormat = "currency" | "percent" | "number";
+
+export type DisplayItemConfig = {
+  type: string;
+  label: string;
+  category: DisplayCategory;
+  color?: string;
+  format: DisplayItemFormat;
+  order: number;
+  tooltip?: string;
+  highlight?: boolean;
+  /** Resolved via {@link TaxChartMetrics} from the chart metrics registry. */
+  metricsKey: keyof TaxChartMetrics;
+  defaultAmount?: number;
+};
+
+export type DisplayItem = {
+  type: string;
+  amount: number;
+  label: string;
+  category: DisplayCategory;
+  color?: string;
+  format: DisplayItemFormat;
+  order: number;
+  tooltip?: string;
+  highlight?: boolean;
+};
+
+/** How a single registry metric stores its computed value on a line. */
+export type TaxMetricValueKind = "number" | "segments" | "deductionKind";
+
+export type TaxMetricComputedValue = number | TaxSegment[] | DeductionKind;
+
+/** One evaluated chart metric line (canonical pipeline output). */
+export type TaxMetricLine = {
+  id: string;
+  metricsKey: keyof TaxChartMetrics;
+  valueKind: TaxMetricValueKind;
+  value: TaxMetricComputedValue;
+  emitAsComputedRow: boolean;
+};
+
+/**
+ * Echo of input rows + appended computed rows. Successful runs include {@link TaxMetricLine} and
+ * {@link TaxResultDisplay} so charts do not recompute tax or duplicate allocation helpers.
+ */
+export type TaxResult = {
+  rows: TaxResultRow[];
+  /** Present when the tax pipeline completed; ordered per the chart metrics registry. */
+  metricLines?: TaxMetricLine[];
+  /** Present with `metricLines` when charts were built in the pipeline. */
+  display?: TaxResultDisplay;
+  notes: string[];
+  errors: string[];
 };
 
 export function isComputedRow(row: TaxResultRow): row is TaxComputedRow {

@@ -11,12 +11,13 @@ type TaxMekkoProps = {
 };
 
 export default function TaxMekko(props: TaxMekkoProps) {
-  const layout = createMemo(() => {
-    const m = resolveTaxChartMetrics(props.result);
-    return computeMekkoLayout(m, buildMekkoRows(m));
-  });
-
   const metrics = createMemo(() => resolveTaxChartMetrics(props.result));
+
+  const layout = createMemo(() => {
+    const m = metrics();
+    const rows = props.result.display?.mekko.rows ?? buildMekkoRows(m);
+    return computeMekkoLayout(m, rows);
+  });
 
   return (
     <section

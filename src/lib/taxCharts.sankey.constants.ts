@@ -1,7 +1,7 @@
 import type { IncomeKind } from "~/lib/taxCalc.types";
 import { INCOME_KIND_CHART_ORDER_BY_KIND } from "~/lib/config/sankeyOrder.config";
 
-export { INCOME_KIND_CHART_ORDER_BY_KIND };
+{ INCOME_KIND_CHART_ORDER_BY_KIND };
 
 export const SANKEY_IDS = {
   ordinaryTaxableIncome: "ordinary-taxable-income",

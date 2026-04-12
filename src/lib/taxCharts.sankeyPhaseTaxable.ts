@@ -1,4 +1,5 @@
 import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import { getOrdinaryFederalSegments } from "~/lib/config/chartMetricsRegistry";
 import type { TaxResult } from "~/lib/taxForm.types";
 import { SANKEY_IDS } from "~/lib/taxCharts.sankey.constants";
 import {
@@ -87,7 +88,7 @@ function createProportionalLinks(
 }
 
 function addPayrollStripIfNeeded(m: TaxChartMetrics, s: SankeyScratch): void {
-  const hasOrdinaryBrackets = m.ordinaryFederalSegments.length > 0;
+  const hasOrdinaryBrackets = getOrdinaryFederalSegments(m).length > 0;
   if (!hasOrdinaryBrackets || m.payrollTax <= 0) return;
 
   const stripVal = Math.min(m.payrollTax, m.ordinaryTaxableIncome);
