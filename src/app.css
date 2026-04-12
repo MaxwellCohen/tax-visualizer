@@ -27,6 +27,7 @@ html[data-theme="light"] {
   --sankey-node-4: #7c3aed;
   --sankey-node-5: #0284c7;
   --sankey-node-6: #dc2626;
+  --sankey-node-credits: #ca8a04;
   --sankey-node-7: #475569;
   --sankey-node-income: #0f766e;
   --sankey-node-ltcg: #0369a1;
@@ -34,8 +35,10 @@ html[data-theme="light"] {
   --sankey-node-deferred: #0e7490;
   --sankey-link: rgba(13, 148, 136, 0.22);
   --sankey-link-tax: rgba(220, 38, 38, 0.45);
+  --sankey-link-credits: rgba(202, 138, 4, 0.5);
   --sankey-link-keep: rgba(22, 163, 74, 0.45);
   --sankey-link-deferred: rgba(14, 116, 144, 0.45);
+  --sankey-link-label: #3f3f38;
   --sankey-label: #1a1a19;
 
   --mekko-keep: #5a9a6a;
@@ -75,6 +78,7 @@ html[data-theme="dark"] {
   --sankey-node-4: #a78bfa;
   --sankey-node-5: #38bdf8;
   --sankey-node-6: #f87171;
+  --sankey-node-credits: #eab308;
   --sankey-node-7: #94a3b8;
   --sankey-node-income: #14b8a6;
   --sankey-node-ltcg: #0ea5e9;
@@ -82,8 +86,10 @@ html[data-theme="dark"] {
   --sankey-node-deferred: #22d3ee;
   --sankey-link: rgba(45, 212, 191, 0.28);
   --sankey-link-tax: rgba(248, 113, 113, 0.5);
+  --sankey-link-credits: rgba(234, 179, 8, 0.55);
   --sankey-link-keep: rgba(74, 222, 128, 0.5);
   --sankey-link-deferred: rgba(34, 211, 238, 0.5);
+  --sankey-link-label: #c8c8c0;
   --sankey-label: #e8e6e3;
 
   --mekko-keep: #6dae7c;

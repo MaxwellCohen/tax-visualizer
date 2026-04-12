@@ -18,6 +18,14 @@ export function compareSankeyLinks(a: ChartLink, b: ChartLink): number {
   }
 
   if (targetA === targetB) {
+    // d3-sankey stacks targetLinks in sort order; first link attaches at the top of the target node.
+    if (targetA.kind === "keep") {
+      const aFromCredits = sourceA.kind === "federalCredits";
+      const bFromCredits = sourceB.kind === "federalCredits";
+      if (aFromCredits !== bFromCredits) {
+        return aFromCredits ? -1 : 1;
+      }
+    }
     return compareLinkedNodes(sourceA, sourceB);
   }
 

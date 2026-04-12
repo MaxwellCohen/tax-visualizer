@@ -1,3 +1,5 @@
+import { newFederalTaxCreditSource } from "~/lib/taxCalc.federalTaxCreditSource";
+import { newItemizedDeductionSource } from "~/lib/taxCalc.itemizedDeductionSource";
 import { newIncomeSource } from "~/lib/taxCalc.incomeSource";
 import { pretaxScalarsToMinimalSources } from "~/lib/taxCalc.pretaxBenefitSource";
 import type { ScenarioPreset } from "~/lib/taxScenario.types";
@@ -21,7 +23,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         traditionalIraSpouse2: 0,
       }),
       useItemizedDeductions: false,
-      itemizedDeductions: 0,
+      itemizedDeductions: [newItemizedDeductionSource()],
+      federalTaxCredits: [newFederalTaxCreditSource()],
     }),
   },
   {
@@ -45,7 +48,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         traditionalIraSpouse2: 0,
       }),
       useItemizedDeductions: false,
-      itemizedDeductions: 0,
+      itemizedDeductions: [newItemizedDeductionSource()],
+      federalTaxCredits: [newFederalTaxCreditSource()],
     }),
   },
   {
@@ -66,7 +70,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         traditionalIraSpouse2: 0,
       }),
       useItemizedDeductions: false,
-      itemizedDeductions: 0,
+      itemizedDeductions: [newItemizedDeductionSource()],
+      federalTaxCredits: [newFederalTaxCreditSource()],
     }),
   },
   {
@@ -90,7 +95,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         traditionalIraSpouse2: 0,
       }),
       useItemizedDeductions: false,
-      itemizedDeductions: 0,
+      itemizedDeductions: [newItemizedDeductionSource()],
+      federalTaxCredits: [newFederalTaxCreditSource()],
     }),
   },
 ];

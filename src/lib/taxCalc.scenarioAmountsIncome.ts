@@ -5,6 +5,7 @@ export type IncomeTotals = {
   sources: IncomeSource[];
   totalIncome: number;
   wageIncome: number;
+  selfEmploymentIncome: number;
   ordinaryGrossIncome: number;
   shortTermCapGainsGrossIncome: number;
   longTermCapitalGainsGrossIncome: number;
@@ -20,8 +21,11 @@ export function normalizeSourcesAndIncomeTotals(input: TaxInput): IncomeTotals {
   const wageIncome = sources
     .filter(source => source.kind === "wages")
     .reduce((sum, source) => sum + source.amount, 0);
+  const selfEmploymentIncome = sources
+    .filter(source => source.kind === "selfEmployment")
+    .reduce((sum, source) => sum + source.amount, 0);
   const ordinaryGrossIncome = sources
-    .filter(source => source.kind === "wages" || source.kind === "ordinary" || source.kind === "shortTermCapGains")
+    .filter(source => source.kind === "wages" || source.kind === "ordinary" || source.kind === "shortTermCapGains" || source.kind === "selfEmployment")
     .reduce((sum, source) => sum + source.amount, 0);
   const shortTermCapGainsGrossIncome = sources
     .filter(source => source.kind === "shortTermCapGains")
@@ -34,6 +38,7 @@ export function normalizeSourcesAndIncomeTotals(input: TaxInput): IncomeTotals {
     sources,
     totalIncome,
     wageIncome,
+    selfEmploymentIncome,
     ordinaryGrossIncome,
     shortTermCapGainsGrossIncome,
     longTermCapitalGainsGrossIncome,

@@ -16,3 +16,29 @@ export function calculatePayrollTax(wages: number, taxYear: number, filingStatus
 
   return { socialSecurityTax, medicareTax, payrollTax };
 }
+
+export function calculateSelfEmploymentTax(
+  selfEmploymentIncome: number,
+  taxYear: number,
+  filingStatus: FilingStatus,
+) {
+  const config = getTaxYearConfig(taxYear);
+  if (!config || selfEmploymentIncome <= 0) {
+    return { selfEmploymentTax: 0, seSocialSecurityTax: 0, seMedicareTax: 0, additionalMedicareTax: 0, netEarnings: 0 };
+  }
+
+  const payroll = config.payroll;
+  const netEarnings = selfEmploymentIncome * 0.9235;
+
+  const seSocialSecurityTax = Math.min(netEarnings, payroll.socialSecurityWageBase) * (payroll.socialSecurityRate * 2);
+  const seMedicareTax = netEarnings * (payroll.medicareRate * 2);
+  
+  const additionalThreshold = payroll.additionalMedicareThreshold[filingStatus];
+  const additionalMedicareTax = netEarnings > additionalThreshold
+    ? (netEarnings - additionalThreshold) * (payroll.additionalMedicareRate * 2)
+    : 0;
+
+  const selfEmploymentTax = seSocialSecurityTax + seMedicareTax + additionalMedicareTax;
+
+  return { selfEmploymentTax, seSocialSecurityTax, seMedicareTax, additionalMedicareTax, netEarnings };
+}

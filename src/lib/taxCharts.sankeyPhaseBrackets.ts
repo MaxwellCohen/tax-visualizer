@@ -3,29 +3,33 @@ import { SANKEY_IDS } from "~/lib/taxCharts.sankey.constants";
 import { formatLtcgBracketLabel, formatOrdinaryBracketLabel } from "~/lib/taxCharts.sankeyFormat";
 import { addNode } from "~/lib/taxCharts.sankeyHelpers";
 import type { SankeyScratch } from "~/lib/taxCharts.sankeyScratch";
+import { bracketSliceRetainedWeight } from "~/lib/taxCharts.visualizationBundle";
 
 function pushBracketIncomeLinkAndRetainedSlice(
   s: SankeyScratch,
   sourceId: string,
   nodeId: string,
-  incomeAmount: number,
+  linkFlowValue: number,
   taxWithNiit: number,
+  economicIncomeAmount: number,
 ): void {
   s.links.push({
     sourceId,
     targetId: nodeId,
-    value: incomeAmount,
+    value: linkFlowValue,
   });
-  const retainedAmount = Math.max(0, incomeAmount - taxWithNiit);
+  const retainedAmount = bracketSliceRetainedWeight(economicIncomeAmount, taxWithNiit);
   if (retainedAmount > 0) {
     s.takeHomePoolSlices.push({ sourceId: nodeId, weight: retainedAmount });
   }
 }
 
 export function appendSankeyBracketNodes(result: TaxResult, s: SankeyScratch): void {
+  const oScale = s.ordinaryBracketLinkScale;
   for (const segment of result.ordinaryFederalSegments) {
-    const nodeId = `ordinary-bracket-${segment.id}`;
-    const niitPart = s.niitBySegment.ordinary.get(segment.id) ?? 0;
+    const segmentId = segment.id ?? `ordinary-${segment.rangeStart}`;
+    const nodeId = `ordinary-bracket-${segmentId}`;
+    const niitPart = s.niitBySegment.ordinary.get(segmentId) ?? 0;
     const taxWithNiit = segment.taxAmount + niitPart;
     addNode(s.nodeMap, {
       id: nodeId,
@@ -38,18 +42,21 @@ export function appendSankeyBracketNodes(result: TaxResult, s: SankeyScratch): v
       rangeStart: segment.rangeStart,
       rangeEnd: segment.rangeEnd,
     });
+    const linkFlow = segment.incomeAmount * oScale;
     pushBracketIncomeLinkAndRetainedSlice(
       s,
       SANKEY_IDS.ordinaryTaxableIncome,
       nodeId,
-      segment.incomeAmount,
+      linkFlow,
       taxWithNiit,
+      segment.incomeAmount,
     );
   }
 
   for (const segment of result.longTermCapitalGainsSegments) {
-    const nodeId = `ltcg-bracket-${segment.id}`;
-    const niitPart = s.niitBySegment.ltcg.get(segment.id) ?? 0;
+    const segmentId = segment.id ?? `ltcg-${segment.rangeStart}`;
+    const nodeId = `ltcg-bracket-${segmentId}`;
+    const niitPart = s.niitBySegment.ltcg.get(segmentId) ?? 0;
     const taxWithNiit = segment.taxAmount + niitPart;
     addNode(s.nodeMap, {
       id: nodeId,
@@ -68,6 +75,7 @@ export function appendSankeyBracketNodes(result: TaxResult, s: SankeyScratch): v
       nodeId,
       segment.incomeAmount,
       taxWithNiit,
+      segment.incomeAmount,
     );
   }
 }

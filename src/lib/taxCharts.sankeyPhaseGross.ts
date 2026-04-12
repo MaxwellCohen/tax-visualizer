@@ -1,5 +1,5 @@
 import { incomeSourceDisplayLabel, type TaxResult } from "~/lib/taxCalc";
-import { SANKEY_IDS } from "~/lib/taxCharts.sankey.constants";
+import { sankeyIncomeNodeId } from "~/lib/taxCharts.sankeyAllocate";
 import { addNode, sortedIncomeSources } from "~/lib/taxCharts.sankeyHelpers";
 import { sankeyPretaxRowsFromResult } from "~/lib/taxCharts.sankeyPretaxRows";
 import { netInvestmentIncomeTaxPerSegment } from "~/lib/taxCharts.sankeyNiit";
@@ -15,20 +15,17 @@ export function initSankeyScratch(result: TaxResult): SankeyScratch {
     niitBySegment: netInvestmentIncomeTaxPerSegment(result),
     pretaxRows,
     preTaxTotal,
+    payrollTaxViaOrdinaryStrip: false,
+    ordinaryBracketLinkScale: 1,
+    payrollStripFlowValue: 0,
   };
 }
 
-export function appendSankeyGrossAndIncome(result: TaxResult, s: SankeyScratch): void {
-  addNode(s.nodeMap, {
-    id: SANKEY_IDS.grossIncome,
-    label: "Gross income",
-    kind: "grossIncome",
-    amount: result.totalIncome,
-  });
-
+/** Left column: one node per income row (flows go straight into taxable buckets and other paths). */
+export function appendSankeyIncomeSourceNodes(result: TaxResult, s: SankeyScratch): void {
   for (const source of sortedIncomeSources(result)) {
     if (source.amount <= 0) continue;
-    const nodeId = `income-${source.id}`;
+    const nodeId = sankeyIncomeNodeId(source.id);
     addNode(s.nodeMap, {
       id: nodeId,
       label: incomeSourceDisplayLabel(source),
@@ -36,6 +33,5 @@ export function appendSankeyGrossAndIncome(result: TaxResult, s: SankeyScratch):
       amount: source.amount,
       incomeKind: source.kind,
     });
-    s.links.push({ sourceId: nodeId, targetId: SANKEY_IDS.grossIncome, value: source.amount });
   }
 }

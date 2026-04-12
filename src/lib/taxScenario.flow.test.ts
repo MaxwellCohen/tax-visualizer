@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { calculateTaxes, newIncomeSource } from "~/lib/taxCalc";
 import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
-import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
+import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
+import { baseInput, withFederalCreditsTotal, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import {
   buildScenarioSummaryText,
   deserializeScenarioInput,
@@ -14,6 +15,8 @@ import {
   normalizeTaxYear,
   sanitizeFilingStatus,
   sanitizeIncomeKind,
+  sanitizeFederalTaxCreditKind,
+  sanitizeItemizedDeductionKind,
   sanitizeMoney,
 } from "~/lib/taxScenario.sanitizeHelpers";
 
@@ -32,6 +35,16 @@ describe("taxScenario sanitize helpers", () => {
   it("sanitizeFilingStatus", () => {
     expect(sanitizeFilingStatus("marriedJoint")).toBe("marriedJoint");
     expect(sanitizeFilingStatus("nope")).toBe("single");
+  });
+
+  it("sanitizeItemizedDeductionKind", () => {
+    expect(sanitizeItemizedDeductionKind("salt")).toBe("salt");
+    expect(sanitizeItemizedDeductionKind("bogus")).toBe("otherItemized");
+  });
+
+  it("sanitizeFederalTaxCreditKind", () => {
+    expect(sanitizeFederalTaxCreditKind("childTaxCredit")).toBe("childTaxCredit");
+    expect(sanitizeFederalTaxCreditKind("bogus")).toBe("otherFederalCredit");
   });
 
   it("normalizeTaxYear", () => {
@@ -55,36 +68,37 @@ describe("sanitizeScenarioInput", () => {
     expect(s.taxYear).toBe(fallback);
   });
 
-  it("maps v2 payload and clamps pretax", () => {
+  it("maps v4 payload and clamps pretax", () => {
     const raw = {
-      version: 2,
+      version: 4 as const,
       taxYear: 2025,
-      filingStatus: "single",
-      incomeSources: [{ id: "a", kind: "wages", label: "x", amount: 10_000 }],
-      preTax401kSpouse1: 999_999,
-      preTax401kSpouse2: 0,
-      preTaxHsaSpouse1: 0,
-      preTaxHsaSpouse2: 0,
-      preTaxOther: 0,
-      traditionalIraSpouse1: 0,
-      traditionalIraSpouse2: 0,
+      filingStatus: "single" as const,
+      incomeSources: [{ id: "a", kind: "wages" as const, label: "x", amount: 10_000 }],
+      pretaxBenefitSources: [
+        { kind: "preTax401kSpouse1", label: "", amount: 999_999 },
+      ],
       useItemizedDeductions: false,
-      itemizedDeductions: 0,
+      itemizedDeductions: [{ kind: "otherItemized", label: "", amount: 0 }],
+      federalTaxCredits: [{ kind: "otherFederalCredit", label: "", amount: 0 }],
     };
     const s = sanitizeScenarioInput(raw, years, fallback);
     expect(aggregatePretaxFromSources(s.pretaxBenefitSources, false).preTax401kSpouse1).toBe(23_500);
   });
 
-  it("maps v1 legacy keys", () => {
+  it("maps v4 pretax and itemized rows", () => {
     const raw = {
+      version: 4 as const,
       taxYear: 2025,
-      filingStatus: "single",
+      filingStatus: "single" as const,
       incomeSources: [{ id: "a", kind: "wages" as const, label: "", amount: 50_000 }],
-      preTax401k: 5_000,
-      preTaxHsa: 1_000,
-      preTaxOther: 2,
+      pretaxBenefitSources: [
+        { kind: "preTax401kSpouse1", label: "", amount: 5_000 },
+        { kind: "preTaxHsaSpouse1", label: "", amount: 1_000 },
+        { kind: "preTaxOther", label: "", amount: 2 },
+      ],
       useItemizedDeductions: true,
-      itemizedDeductions: 20_000,
+      itemizedDeductions: [{ kind: "charitable", label: "", amount: 20_000 }],
+      federalTaxCredits: [{ kind: "otherFederalCredit", label: "", amount: 0 }],
     };
     const s = sanitizeScenarioInput(raw, years, fallback);
     const p = aggregatePretaxFromSources(s.pretaxBenefitSources, false);
@@ -92,11 +106,25 @@ describe("sanitizeScenarioInput", () => {
     expect(p.preTaxHsaSpouse1).toBe(1_000);
     expect(p.traditionalIraSpouse1).toBe(0);
     expect(s.useItemizedDeductions).toBe(true);
+    expect(sumLabeledAmountSources(s.itemizedDeductions)).toBe(20_000);
   });
 
-  it("fills income sources when missing", () => {
-    const s = sanitizeScenarioInput({ version: 2, taxYear: 2025 }, years, fallback);
+  it("fills income sources when missing on v4", () => {
+    const s = sanitizeScenarioInput({ version: 4, taxYear: 2025 }, years, fallback);
     expect(s.incomeSources.length).toBeGreaterThan(0);
+  });
+
+  it("ignores non-v4 payloads and uses the default scenario for that tax year", () => {
+    const s = sanitizeScenarioInput(
+      { version: 2, taxYear: 2025, filingStatus: "single" },
+      years,
+      fallback,
+    );
+    const expected = fallbackScenario(2025);
+    expect(s.taxYear).toBe(expected.taxYear);
+    expect(s.filingStatus).toBe(expected.filingStatus);
+    expect(s.useItemizedDeductions).toBe(expected.useItemizedDeductions);
+    expect(s.incomeSources.length).toBe(expected.incomeSources.length);
   });
 });
 
@@ -105,11 +133,15 @@ describe("serialize / deserialize scenario", () => {
   const fallback = 2025;
 
   it("roundtrips", () => {
-    const input = baseInput({ pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 5_000 }) });
+    const input = baseInput({
+      pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 5_000 }),
+      federalTaxCredits: withFederalCreditsTotal(1_500),
+    });
     const json = serializeScenarioInput(input);
     const back = deserializeScenarioInput(json, years, fallback);
     expect(back).not.toBeNull();
     expect(aggregatePretaxFromSources(back!.pretaxBenefitSources, false).preTax401kSpouse1).toBe(5_000);
+    expect(sumLabeledAmountSources(back!.federalTaxCredits)).toBe(1_500);
   });
 
   it("decodeURIComponent fallback for URL-encoded JSON", () => {

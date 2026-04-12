@@ -1,5 +1,6 @@
 import type { FilingStatus } from "~/lib/taxData";
-import type { IncomeKind, PretaxBenefitKind } from "~/lib/taxCalc";
+import type { FederalTaxCreditKind, IncomeKind, ItemizedDeductionKind, PretaxBenefitKind } from "~/lib/taxCalc";
+import { INCOME_KINDS_CONFIG, incomeKindLabel } from "~/lib/taxData.incomeKinds.config";
 import { isPretaxSpouse2Kind } from "~/lib/taxCalc.pretaxBenefitSource";
 
 export const filingStatusOptions: Array<{ value: FilingStatus; label: string }> = [
@@ -9,12 +10,9 @@ export const filingStatusOptions: Array<{ value: FilingStatus; label: string }> 
   { value: "headOfHousehold", label: "Head of household" },
 ];
 
-export const incomeKindOptions: Array<{ value: IncomeKind; label: string }> = [
-  { value: "wages", label: "W-2 wages" },
-  { value: "ordinary", label: "Other ordinary income" },
-  { value: "shortTermCapGains", label: "Short-term capital gains" },
-  { value: "longTermCapGains", label: "Long-term capital gains" },
-];
+export const incomeKindOptions: Array<{ value: IncomeKind; label: string }> = INCOME_KINDS_CONFIG.map(
+  (c) => ({ value: c.kind, label: c.label })
+);
 
 export function parseCurrencyInput(rawValue: string): number {
   const parsed = Number(rawValue);
@@ -53,7 +51,7 @@ export const pretaxFieldCaptionClass =
 export { money } from "~/lib/moneyFormat";
 
 export function labelForIncomeKind(kind: IncomeKind): string {
-  return incomeKindOptions.find(o => o.value === kind)?.label ?? kind;
+  return incomeKindLabel(kind);
 }
 
 const pretaxBenefitLabels: Record<
@@ -61,12 +59,28 @@ const pretaxBenefitLabels: Record<
   { single: string; joint: string }
 > = {
   preTax401kSpouse1: {
-    single: "401(k) / 403(b)",
-    joint: "401(k) / 403(b) — Spouse 1",
+    single: "401(k) deferrals",
+    joint: "401(k) deferrals — Spouse 1",
+  },
+  preTax403bSpouse1: {
+    single: "403(b) deferrals",
+    joint: "403(b) deferrals — Spouse 1",
+  },
+  preTax457bSpouse1: {
+    single: "457(b) deferrals (limits differ for some plans)",
+    joint: "457(b) deferrals — Spouse 1 (limits differ for some plans)",
   },
   preTax401kSpouse2: {
     single: "",
-    joint: "401(k) / 403(b) — Spouse 2",
+    joint: "401(k) deferrals — Spouse 2",
+  },
+  preTax403bSpouse2: {
+    single: "",
+    joint: "403(b) deferrals — Spouse 2",
+  },
+  preTax457bSpouse2: {
+    single: "",
+    joint: "457(b) deferrals — Spouse 2 (limits differ for some plans)",
   },
   preTaxHsaSpouse1: {
     single: "HSA (payroll)",
@@ -77,8 +91,32 @@ const pretaxBenefitLabels: Record<
     joint: "HSA (payroll) — Spouse 2",
   },
   preTaxOther: {
-    single: "Other (FSA, transit, etc.)",
-    joint: "Other (FSA, transit, etc.)",
+    single: "Other payroll pre-tax (catch-all)",
+    joint: "Other payroll pre-tax (catch-all)",
+  },
+  preTaxHealthFsaSpouse1: {
+    single: "Health FSA (payroll)",
+    joint: "Health FSA — Spouse 1",
+  },
+  preTaxHealthFsaSpouse2: {
+    single: "",
+    joint: "Health FSA — Spouse 2",
+  },
+  preTaxDependentCareFsaSpouse1: {
+    single: "Dependent care FSA (payroll)",
+    joint: "Dependent care FSA — Spouse 1",
+  },
+  preTaxDependentCareFsaSpouse2: {
+    single: "",
+    joint: "Dependent care FSA — Spouse 2",
+  },
+  preTaxCommuterSpouse1: {
+    single: "Commuter / parking (payroll)",
+    joint: "Commuter / parking — Spouse 1",
+  },
+  preTaxCommuterSpouse2: {
+    single: "",
+    joint: "Commuter / parking — Spouse 2",
   },
   traditionalIraSpouse1: {
     single: "Traditional IRA (deductible)",
@@ -103,4 +141,47 @@ export function pretaxBenefitKindSelectOptions(isMarriedJoint: boolean): Array<{
       return { value, label };
     })
     .filter(o => o.label.length > 0);
+}
+
+const itemizedDeductionKindLabels: Record<ItemizedDeductionKind, string> = {
+  medicalDental: "Medical & dental",
+  salt: "State & local taxes (SALT)",
+  mortgageInterest: "Home mortgage interest",
+  investmentInterest: "Investment interest",
+  charitable: "Charitable contributions",
+  casualtyTheft: "Casualty & theft losses",
+  otherItemized: "Other itemized",
+};
+
+export function itemizedDeductionKindSelectOptions(): Array<{
+  value: ItemizedDeductionKind;
+  label: string;
+}> {
+  return (Object.keys(itemizedDeductionKindLabels) as ItemizedDeductionKind[]).map(value => ({
+    value,
+    label: itemizedDeductionKindLabels[value],
+  }));
+}
+
+const federalTaxCreditKindLabels: Record<FederalTaxCreditKind, string> = {
+  childTaxCredit: "Child tax credit",
+  creditForOtherDependents: "Credit for other dependents",
+  childAndDependentCare: "Child and dependent care credit",
+  educationCredits: "Education credits (AOTC / LLC)",
+  retirementSavingsContributions: "Retirement savings contributions (saver's) credit",
+  foreignTaxCredit: "Foreign tax credit",
+  residentialCleanEnergy: "Residential clean energy credit",
+  electricVehicleCredit: "Clean vehicle / EV credit",
+  generalBusinessCredit: "General business credit",
+  otherFederalCredit: "Other federal credit",
+};
+
+export function federalTaxCreditKindSelectOptions(): Array<{
+  value: FederalTaxCreditKind;
+  label: string;
+}> {
+  return (Object.keys(federalTaxCreditKindLabels) as FederalTaxCreditKind[]).map(value => ({
+    value,
+    label: federalTaxCreditKindLabels[value],
+  }));
 }

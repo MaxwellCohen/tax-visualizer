@@ -1,16 +1,87 @@
+import { Show } from "solid-js";
 import type { TaxResult } from "~/lib/taxCalc";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
-import { currencyFormatter, deltaLabel, percentFormatter } from "~/components/taxSummary/format";
-import { TaxSummaryFootnotes } from "~/components/taxSummary/TaxSummaryFootnotes";
+import { computeMetrics, computeFootnotes, getBaselineComparison, type MetricDisplay, type FootnoteDisplay } from "~/lib/taxVisualization.config";
 import { TaxSummaryMetric } from "~/components/taxSummary/TaxSummaryMetric";
+
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
 
 type TaxSummaryProps = {
   result: TaxResult;
   baselineResult?: TaxResult | null;
 };
 
+function MetricItem(props: { metric: MetricDisplay }) {
+  const displayValue = () => {
+    if (props.metric.category === "credits") {
+      const numValue = parseFloat(props.metric.value.replace(/[^0-9.-]/g, ""));
+      if (numValue > 0) {
+        return "-" + props.metric.value;
+      }
+    }
+    return props.metric.value;
+  };
+  
+  return (
+    <TaxSummaryMetric 
+      label={props.metric.label} 
+      value={displayValue()} 
+      highlight={props.metric.highlight}
+    />
+  );
+}
+
+function BaselineComparison(props: { result: TaxResult; baseline: TaxResult }) {
+  const comparisons = () => getBaselineComparison(props.result, props.baseline);
+  
+  return (
+    <div class="grid gap-3 md:grid-cols-3">
+      {comparisons().map((comp) => (
+        <TaxSummaryMetric
+          label={`Vs baseline ${comp.label.toLowerCase()}`}
+          value={comp.delta ?? comp.currentValue}
+          highlight={comp.isPositiveDelta !== undefined ? 
+            (comp.id === "take-home-pay" ? comp.isPositiveDelta : !comp.isPositiveDelta) 
+            : false}
+        />
+      ))}
+    </div>
+  );
+}
+
+function FootnotesDisplay(props: { footnotes: FootnoteDisplay[] }) {
+  if (props.footnotes.length === 0) return null;
+  
+  return (
+    <>
+      <div class="space-y-1.5 text-xs leading-relaxed" style={{ color: "var(--text-faint)" }}>
+        {props.footnotes.filter(f => ["effective-rate-formula", "take-home-formula"].includes(f.id)).map((f) => (
+          <p>
+            {f.id === "effective-rate-formula" ? "Effective tax rate = " : "Take-home pay = "}
+            <code>{f.text}</code>.
+          </p>
+        ))}
+      </div>
+      <p class="text-xs" style={{ color: "var(--text-faint)" }}>
+        {props.footnotes.filter(f => ["pretax-breakdown", "federal-tax-breakdown", "taxable-income-breakdown", "payroll-breakdown"].includes(f.id)).map((f, i) => (
+          <>
+            {i > 0 && <br />}
+            {f.text}
+          </>
+        ))}
+      </p>
+    </>
+  );
+}
+
 export default function TaxSummary(props: TaxSummaryProps) {
-  const baseline = () => props.baselineResult ?? null;
+  const metrics = () => computeMetrics(props.result);
+  const footnotes = () => computeFootnotes(props.result);
+  
   return (
     <section
       class="rounded-xl p-5"
@@ -22,40 +93,14 @@ export default function TaxSummary(props: TaxSummaryProps) {
     >
       <CollapsibleBlock title="Tax Summary" bodyClass="mt-4 space-y-4">
         <div class="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
-          <TaxSummaryMetric label="Total Income" value={currencyFormatter.format(props.result.totalIncome)} />
-          <TaxSummaryMetric label="Payroll pre-tax" value={currencyFormatter.format(props.result.preTaxTotal)} />
-          <TaxSummaryMetric
-            label="Traditional IRA"
-            value={currencyFormatter.format(props.result.traditionalIra)}
-          />
-          <TaxSummaryMetric label="Federal Income Tax" value={currencyFormatter.format(props.result.federalIncomeTax)} />
-          <TaxSummaryMetric label="Payroll Taxes" value={currencyFormatter.format(props.result.payrollTax)} />
-          <TaxSummaryMetric label="Deductions" value={currencyFormatter.format(props.result.deductionAmount)} />
-          <TaxSummaryMetric label="Take-Home Pay" value={currencyFormatter.format(props.result.takeHomePay)} highlight />
-          <TaxSummaryMetric label="Effective Tax Rate" value={percentFormatter.format(props.result.effectiveTaxRate)} highlight />
+          {metrics().map((m) => (
+            <MetricItem metric={m} />
+          ))}
         </div>
-        {baseline() ? (
-          <div class="grid gap-3 md:grid-cols-3">
-            <TaxSummaryMetric
-              label="Vs baseline take-home"
-              value={deltaLabel(props.result.takeHomePay, baseline()!.takeHomePay, currencyFormatter)}
-              highlight
-            />
-            <TaxSummaryMetric
-              label="Vs baseline federal tax"
-              value={deltaLabel(
-                props.result.federalIncomeTax,
-                baseline()!.federalIncomeTax,
-                currencyFormatter,
-              )}
-            />
-            <TaxSummaryMetric
-              label="Vs baseline payroll tax"
-              value={deltaLabel(props.result.payrollTax, baseline()!.payrollTax, currencyFormatter)}
-            />
-          </div>
-        ) : null}
-        <TaxSummaryFootnotes result={props.result} />
+        <Show when={props.baselineResult}>
+          <BaselineComparison result={props.result} baseline={props.baselineResult!} />
+        </Show>
+        <FootnotesDisplay footnotes={footnotes()} />
       </CollapsibleBlock>
     </section>
   );

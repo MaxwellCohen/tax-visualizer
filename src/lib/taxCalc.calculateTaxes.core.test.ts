@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateTaxes, newIncomeSource } from "~/lib/taxCalc";
-import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
+import { baseInput, withFederalCreditsTotal, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 
 describe("calculateTaxes core", () => {
   it("returns null for unknown tax year", () => {
@@ -16,7 +16,16 @@ describe("calculateTaxes core", () => {
     expect(r!.federalOrdinaryIncomeTax).toBeCloseTo(expectedOrdinary, 5);
     expect(r!.federalLongTermCapGainsTax).toBe(0);
     expect(r!.federalNetInvestmentIncomeTax).toBe(0);
+    expect(r!.federalIncomeTaxBeforeCredits).toBeCloseTo(expectedOrdinary, 5);
     expect(r!.federalIncomeTax).toBeCloseTo(expectedOrdinary, 5);
+  });
+
+  it("applies nonrefundable federal credits up to liability", () => {
+    const r = calculateTaxes(baseInput({ federalTaxCredits: withFederalCreditsTotal(2_000) }));
+    expect(r).not.toBeNull();
+    const before = r!.federalIncomeTaxBeforeCredits;
+    expect(r!.federalTaxCreditsApplied).toBe(Math.min(2_000, before));
+    expect(r!.federalIncomeTax).toBeCloseTo(Math.max(0, before - 2_000), 5);
   });
 
   it("2025 single: payroll tax on full wages when no pretax", () => {
@@ -35,6 +44,18 @@ describe("calculateTaxes core", () => {
     expect(r!.ordinaryTaxableIncome).toBe(40_000 - 15_750);
     expect(r!.socialSecurityTax).toBeCloseTo(40_000 * 0.062, 5);
     expect(r!.medicareTax).toBeCloseTo(40_000 * 0.0145, 5);
+  });
+
+  it("effective tax rate divides by income net of pretax and IRA (shielded deferrals out of denominator)", () => {
+    const r = calculateTaxes(
+      baseInput({ pretaxBenefitSources: withPretaxTotals({ preTax401kSpouse1: 10_000 }) }),
+    );
+    expect(r).not.toBeNull();
+    const tax = r!.federalIncomeTax + r!.payrollTax;
+    const denom = r!.totalIncome - r!.preTaxTotal - r!.traditionalIra;
+    expect(denom).toBe(40_000);
+    expect(r!.effectiveTaxRate).toBeCloseTo(tax / denom, 8);
+    expect(tax / r!.totalIncome).toBeLessThan(r!.effectiveTaxRate);
   });
 
   it("HSA payroll reduces FICA base like 401(k)", () => {

@@ -1,11 +1,14 @@
 import type { TaxInput } from "~/lib/taxCalc.types";
 import { SCENARIO_PRESETS } from "~/lib/taxScenario.presets.constants";
 import { sanitizeScenarioInput } from "~/lib/taxScenario.sanitizeScenarioInput";
-import type { ScenarioPreset, SerializedScenarioV3 } from "~/lib/taxScenario.types";
+import type { ScenarioPreset, SerializedScenario } from "~/lib/taxScenario.types";
 
 export function serializeScenarioInput(input: TaxInput): string {
-  const payload: SerializedScenarioV3 = {
-    version: 3,
+  const hasNonEmptyItemized = input.itemizedDeductions.some(d => d.amount > 0);
+  const hasNonEmptyCredits = input.federalTaxCredits.some(c => c.amount > 0);
+
+  const payload: SerializedScenario = {
+    version: 4,
     taxYear: input.taxYear,
     filingStatus: input.filingStatus,
     incomeSources: input.incomeSources.map(source => ({
@@ -21,7 +24,22 @@ export function serializeScenarioInput(input: TaxInput): string {
       amount: row.amount,
     })),
     useItemizedDeductions: input.useItemizedDeductions,
-    itemizedDeductions: input.itemizedDeductions,
+    ...(hasNonEmptyItemized && {
+      itemizedDeductions: input.itemizedDeductions.map(row => ({
+        id: row.id,
+        kind: row.kind,
+        label: row.label,
+        amount: row.amount,
+      })),
+    }),
+    ...(hasNonEmptyCredits && {
+      federalTaxCredits: input.federalTaxCredits.map(row => ({
+        id: row.id,
+        kind: row.kind,
+        label: row.label,
+        amount: row.amount,
+      })),
+    }),
   };
   return JSON.stringify(payload);
 }

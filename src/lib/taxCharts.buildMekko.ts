@@ -1,11 +1,11 @@
 import type { TaxResult } from "~/lib/taxCalc";
+import { allocateFederalCreditsTopMarginalSlices } from "~/lib/taxCharts.visualizationBundle";
 import { formatLtcgBracketLabel } from "~/lib/taxCharts.sankeyFormat";
-import { netInvestmentIncomeTaxPerSegment } from "~/lib/taxCharts.sankeyNiit";
 import type { MekkoRow } from "~/lib/taxCharts.types";
 
 export function buildMekkoRows(result: TaxResult): MekkoRow[] {
   const rows: MekkoRow[] = [];
-  const niitBySegment = netInvestmentIncomeTaxPerSegment(result);
+  const federalByNode = allocateFederalCreditsTopMarginalSlices(result);
 
   if (result.deductionAmount > 0) {
     rows.push({
@@ -20,8 +20,8 @@ export function buildMekkoRows(result: TaxResult): MekkoRow[] {
 
   for (const segment of result.ordinaryFederalSegments) {
     if (segment.incomeAmount <= 0) continue;
-    const niitPart = niitBySegment.ordinary.get(segment.id) ?? 0;
-    const tax = segment.taxAmount + niitPart;
+    const nodeId = `ordinary-bracket-${segment.id}`;
+    const tax = federalByNode.get(nodeId)?.federalToTax ?? 0;
     rows.push({
       id: `ordinary-${segment.id}`,
       label: `Ord. ${Math.round(segment.marginalRate * 100)}%`,
@@ -35,8 +35,8 @@ export function buildMekkoRows(result: TaxResult): MekkoRow[] {
 
   for (const segment of result.longTermCapitalGainsSegments) {
     if (segment.incomeAmount <= 0) continue;
-    const niitPart = niitBySegment.ltcg.get(segment.id) ?? 0;
-    const tax = segment.taxAmount + niitPart;
+    const nodeId = `ltcg-bracket-${segment.id}`;
+    const tax = federalByNode.get(nodeId)?.federalToTax ?? 0;
     rows.push({
       id: `ltcg-${segment.id}`,
       label: formatLtcgBracketLabel(segment),

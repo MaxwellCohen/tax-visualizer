@@ -1,27 +1,42 @@
+/**
+ * Single entry point for federal + payroll modeling. Produces {@link TaxResult} consumed by the
+ * summary table, Sankey, and Mekko; charts do not recompute tax—only layout and allocation rules.
+ * 
+ * This function accepts form information (TaxInput) and tax configuration (TaxYearConfig),
+ * then calculates all tax items using a configurable pipeline.
+ */
+import { clampTaxInputToYearLimits } from "~/lib/taxCalc.clamp";
 import { getTaxYearConfig } from "~/lib/taxData";
-import { buildTaxWarnings } from "~/lib/taxCalc.warnings";
-import { calculatePayrollTax } from "~/lib/taxCalc.payroll";
+import { toTaxResult } from "~/lib/taxCalc.toTaxResult";
 import { prepareScenarioAmounts } from "~/lib/taxCalc.scenarioAmounts";
 import { computeFederalNiitLayer } from "~/lib/taxCalc.federalNiitLayer";
-import { toTaxResult } from "~/lib/taxCalc.toTaxResult";
-import { toMoneyValue } from "~/lib/taxCalc.money";
+import { calculatePayrollTax, calculateSelfEmploymentTax } from "~/lib/taxCalc.payroll";
+import { buildTaxWarnings } from "~/lib/taxCalc.warnings";
+import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { TAX_RESULT_NOTES } from "~/lib/taxCalc.resultNotes.constants";
 import type { TaxInput, TaxResult } from "~/lib/taxCalc.types";
+import type { TaxYearConfig } from "~/lib/taxData.types";
 
-export function calculateTaxes(input: TaxInput): TaxResult | null {
-  const config = getTaxYearConfig(input.taxYear);
-  if (!config) {
+export function calculateTaxes(rawInput: TaxInput, config?: TaxYearConfig): TaxResult | null {
+  const input = clampTaxInputToYearLimits(rawInput);
+  const taxConfig = config ?? getTaxYearConfig(input.taxYear);
+  if (!taxConfig) {
     return null;
   }
 
-  const p = prepareScenarioAmounts(input, config);
+  const p = prepareScenarioAmounts(input, taxConfig);
 
   const deductionKind = input.useItemizedDeductions ? "itemized" : "standard";
-  const standardDeduction = config.standardDeduction[input.filingStatus];
-  const itemizedDeductions = toMoneyValue(input.itemizedDeductions);
+  const standardDeduction = taxConfig.standardDeduction[input.filingStatus];
+  const itemizedDeductions = sumLabeledAmountSources(input.itemizedDeductions);
   const deductionAmount = deductionKind === "itemized" ? itemizedDeductions : standardDeduction;
 
-  const fed = computeFederalNiitLayer(input, config, p, deductionAmount);
+  const fed = computeFederalNiitLayer(input, taxConfig, p, deductionAmount);
+
+  const federalIncomeTaxBeforeCredits = fed.federalIncomeTax;
+  const federalTaxCreditsEntered = sumLabeledAmountSources(input.federalTaxCredits);
+  const federalTaxCreditsApplied = Math.min(federalTaxCreditsEntered, federalIncomeTaxBeforeCredits);
+  const federalIncomeTaxAfterCredits = Math.max(0, federalIncomeTaxBeforeCredits - federalTaxCreditsApplied);
 
   const wagesForPayroll = Math.max(0, p.wageIncome - p.effective401 - p.effectiveHsa - p.effectiveOther);
   const { socialSecurityTax, medicareTax, payrollTax } = calculatePayrollTax(
@@ -30,11 +45,21 @@ export function calculateTaxes(input: TaxInput): TaxResult | null {
     input.filingStatus,
   );
 
+  const { selfEmploymentTax, netEarnings } = calculateSelfEmploymentTax(
+    p.selfEmploymentIncome, // Already net from computePretaxIraSlice
+    input.taxYear,
+    input.filingStatus,
+  );
+
   const takeHomePay = Math.max(
     0,
-    p.totalIncome - p.preTaxTotal - fed.federalIncomeTax - payrollTax - p.effectiveIra,
+    p.totalIncome - p.preTaxTotal - federalIncomeTaxAfterCredits - payrollTax - selfEmploymentTax - p.effectiveIra,
   );
-  const effectiveTaxRate = p.totalIncome > 0 ? (fed.federalIncomeTax + payrollTax) / p.totalIncome : 0;
+  const effectiveRateDenominator = Math.max(0, p.totalIncome - p.preTaxTotal - p.effectiveIra + netEarnings);
+  const effectiveTaxRate =
+    effectiveRateDenominator > 0
+      ? (federalIncomeTaxAfterCredits + payrollTax + selfEmploymentTax) / effectiveRateDenominator
+      : 0;
 
   const warnings = buildTaxWarnings({
     input,
@@ -53,6 +78,8 @@ export function calculateTaxes(input: TaxInput): TaxResult | null {
     itemizedDeductions,
     longTermCapitalGainsGrossIncome: p.longTermCapitalGainsGrossIncome,
     federalNetInvestmentIncomeTax: fed.federalNetInvestmentIncomeTax,
+    federalIncomeTaxBeforeCredits,
+    federalTaxCreditsEntered,
   });
 
   return toTaxResult({
@@ -62,9 +89,14 @@ export function calculateTaxes(input: TaxInput): TaxResult | null {
     standardDeduction,
     deductionAmount,
     fed,
+    federalIncomeTaxBeforeCredits,
+    federalTaxCreditsEntered,
+    federalTaxCreditsApplied,
+    federalIncomeTaxAfterCredits,
     socialSecurityTax,
     medicareTax,
     payrollTax,
+    selfEmploymentTax,
     takeHomePay,
     effectiveTaxRate,
     warnings,

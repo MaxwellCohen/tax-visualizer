@@ -1,6 +1,7 @@
 import { createMemo } from "solid-js";
 import type { Accessor } from "solid-js";
 import type { TaxInput } from "~/lib/taxCalc";
+import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import type { TaxYearConfig } from "~/lib/taxData.types";
 
 export function createDeductionMemos(
@@ -11,7 +12,7 @@ export function createDeductionMemos(
     () => selectedTaxConfig()?.standardDeduction[values().filingStatus] ?? 0,
   );
   const itemizedBeatsStandard = createMemo(
-    () => values().itemizedDeductions >= standardDeduction(),
+    () => sumLabeledAmountSources(values().itemizedDeductions) >= standardDeduction(),
   );
   return { standardDeduction, itemizedBeatsStandard };
 }

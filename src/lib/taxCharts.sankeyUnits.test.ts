@@ -11,7 +11,7 @@ import type { SankeyChartNode } from "~/lib/taxCharts.types";
 describe("taxCharts.sankey units", () => {
   it("addNode dedupes by id", () => {
     const m = new Map<string, SankeyChartNode>();
-    const n: SankeyChartNode = { id: "a", label: "A", kind: "grossIncome", amount: 1 };
+    const n: SankeyChartNode = { id: "a", label: "A", kind: "incomeSource", amount: 1 };
     addNode(m, n);
     addNode(m, n);
     expect(m.size).toBe(1);
@@ -36,20 +36,51 @@ describe("taxCharts.sankey units", () => {
     expect(splitTakeHomeAndPayrollByPool([{ sourceId: "x", weight: 0 }], 100, 10).size).toBe(0);
     const m = splitTakeHomeAndPayrollByPool(
       [
-        { sourceId: "a", weight: 1 },
-        { sourceId: "b", weight: 1 },
+        { sourceId: "ordinary-bracket-a", weight: 1 },
+        { sourceId: "ordinary-bracket-b", weight: 1 },
       ],
       101,
       7,
     );
-    expect(m.get("a")!.keep + m.get("b")!.keep).toBe(101);
-    expect(m.get("a")!.payroll + m.get("b")!.payroll).toBe(7);
+    expect(m.get("ordinary-bracket-a")!.keep + m.get("ordinary-bracket-b")!.keep).toBe(101);
+    expect(m.get("ordinary-bracket-a")!.payroll + m.get("ordinary-bracket-b")!.payroll).toBe(7);
+  });
+
+  it("splitTakeHomeAndPayrollByPool does not assign payroll to LTCG bracket slices", () => {
+    const m = splitTakeHomeAndPayrollByPool(
+      [
+        { sourceId: "ordinary-bracket-0", weight: 100 },
+        { sourceId: "ltcg-bracket-ltcg-15", weight: 50 },
+      ],
+      200,
+      30,
+    );
+    expect(m.get("ltcg-bracket-ltcg-15")!.payroll).toBe(0);
+    expect(m.get("ordinary-bracket-0")!.payroll).toBe(30);
+  });
+
+  it("splitTakeHomeAndPayrollByPool does not assign payroll to deduction-shield", () => {
+    const m = splitTakeHomeAndPayrollByPool(
+      [
+        { sourceId: "deduction-shield", weight: 100 },
+        { sourceId: "ordinary-bracket-x", weight: 50 },
+      ],
+      1000,
+      300,
+    );
+    expect(m.get("deduction-shield")!.payroll).toBe(0);
+    expect(m.get("ordinary-bracket-x")!.payroll).toBe(300);
+  });
+
+  it("splitTakeHomeAndPayrollByPool leaves payroll at zero on all slices when only deduction-shield", () => {
+    const m = splitTakeHomeAndPayrollByPool([{ sourceId: "deduction-shield", weight: 100 }], 500, 50);
+    expect(m.get("deduction-shield")!.payroll).toBe(0);
+    expect(m.get("deduction-shield")!.keep).toBe(500);
   });
 
   it("formatOrdinaryBracketLabel open-ended range", () => {
     const seg: TaxSegment = {
       id: "x",
-      kind: "ordinaryFederal",
       incomeAmount: 1,
       taxAmount: 0,
       marginalRate: 0.22,
@@ -64,7 +95,6 @@ describe("taxCharts.sankey units", () => {
   it("formatLtcgBracketLabel", () => {
     const seg: TaxSegment = {
       id: "x",
-      kind: "longTermCapGains",
       incomeAmount: 1,
       taxAmount: 0,
       marginalRate: 0.15,

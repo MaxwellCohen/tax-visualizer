@@ -40,9 +40,9 @@ describe("compareSankeySiblings", () => {
   });
 
   it("falls back to SANKEY_SIBLING_RANK for mixed kinds", () => {
-    const g = N({ id: "g", kind: "grossIncome", label: "G" });
+    const i = N({ id: "i", kind: "incomeSource", label: "I", incomeKind: "wages" });
     const k = N({ id: "k", kind: "keep", label: "K" });
-    expect(compareSankeySiblings(g, k)).not.toBe(0);
+    expect(compareSankeySiblings(i, k)).not.toBe(0);
   });
 
   it("orders ordinaryBracket by marginal rate then range start", () => {
@@ -109,7 +109,7 @@ describe("compareSankeySiblings", () => {
 
 describe("compareSankeyLinks", () => {
   it("sorts by shared source targets", () => {
-    const s = N({ id: "s", kind: "grossIncome", label: "S" });
+    const s = N({ id: "s", kind: "incomeSource", label: "S", incomeKind: "wages" });
     const t1 = N({ id: "t1", kind: "keep", label: "A" });
     const t2 = N({ id: "t2", kind: "keep", label: "B" });
     const a: ChartLink = { source: s, target: t1, value: 1 } as ChartLink;
@@ -119,16 +119,16 @@ describe("compareSankeyLinks", () => {
 
   it("sorts by shared target sources", () => {
     const t = N({ id: "t", kind: "keep", label: "T" });
-    const s1 = N({ id: "s1", kind: "grossIncome", label: "A" });
-    const s2 = N({ id: "s2", kind: "grossIncome", label: "B" });
+    const s1 = N({ id: "s1", kind: "incomeSource", label: "A", incomeKind: "wages" });
+    const s2 = N({ id: "s2", kind: "incomeSource", label: "B", incomeKind: "wages" });
     const a: ChartLink = { source: s1, target: t, value: 1 } as ChartLink;
     const b: ChartLink = { source: s2, target: t, value: 1 } as ChartLink;
     expect(compareSankeyLinks(a, b)).not.toBe(0);
   });
 
   it("breaks ties by comparing sources then targets", () => {
-    const s1 = N({ id: "s1", kind: "grossIncome", label: "M" });
-    const s2 = N({ id: "s2", kind: "grossIncome", label: "N" });
+    const s1 = N({ id: "s1", kind: "incomeSource", label: "M", incomeKind: "wages" });
+    const s2 = N({ id: "s2", kind: "incomeSource", label: "N", incomeKind: "wages" });
     const t1 = N({ id: "t1", kind: "keep", label: "A" });
     const t2 = N({ id: "t2", kind: "keep", label: "B" });
     const a: ChartLink = { source: s1, target: t1, value: 1 } as ChartLink;
@@ -149,14 +149,19 @@ describe("sankeyLinkPath", () => {
 
 describe("sankeyColors", () => {
   it("linkStroke by target kind", () => {
-    expect(linkStroke(N({ id: "t", kind: "taxes", label: "T" }))).toContain("tax");
+    expect(linkStroke(N({ id: "t", kind: "taxesFederal", label: "T" }))).toContain("tax");
     expect(linkStroke(N({ id: "k", kind: "keep", label: "K" }))).toContain("keep");
     expect(linkStroke(N({ id: "d", kind: "deferredSink", label: "D" }))).toContain("deferred");
-    expect(linkStroke(N({ id: "x", kind: "grossIncome", label: "X" }))).toBe("var(--sankey-link)");
+    expect(
+      linkStroke(N({ id: "s", kind: "deductionBenefitSink", label: "", deductionBenefitSinkRole: "takeHome" })),
+    ).toContain("keep");
+    expect(
+      linkStroke(N({ id: "s2", kind: "deductionBenefitSink", label: "", deductionBenefitSinkRole: "accounting" })),
+    ).toContain("deferred");
+    expect(linkStroke(N({ id: "x", kind: "ordinaryTaxableIncome", label: "X" }))).toBe("var(--sankey-link)");
   });
 
   it("nodeFill covers representative kinds", () => {
-    expect(nodeFill(N({ id: "1", kind: "grossIncome", label: "" }))).toContain("sankey-node-1");
     expect(nodeFill(N({ id: "2", kind: "ltcgBracket", label: "" }))).toContain("ltcg");
     expect(nodeFill(N({ id: "3", kind: "pretaxContribution", label: "" }))).toContain("keep");
     expect(nodeFill(N({ id: "i", kind: "incomeSource", label: "" }))).toContain("income");
@@ -165,8 +170,28 @@ describe("sankeyColors", () => {
     expect(nodeFill(N({ id: "s", kind: "standardDeduction", label: "" }))).toContain("sankey-node-2");
     expect(nodeFill(N({ id: "d", kind: "deduction", label: "" }))).toContain("sankey-node-2");
     expect(nodeFill(N({ id: "ds", kind: "deductionShield", label: "" }))).toContain("sankey-node-5");
+    expect(
+      nodeFill(
+        N({
+          id: "dbs",
+          kind: "deductionBenefitSink",
+          label: "",
+          deductionBenefitSinkRole: "accounting",
+        }),
+      ),
+    ).toContain("deferred");
+    expect(
+      nodeFill(
+        N({
+          id: "dbs2",
+          kind: "deductionBenefitSink",
+          label: "",
+          deductionBenefitSinkRole: "takeHome",
+        }),
+      ),
+    ).toContain("keep");
     expect(nodeFill(N({ id: "ob", kind: "ordinaryBracket", label: "" }))).toContain("sankey-node-4");
-    expect(nodeFill(N({ id: "tx", kind: "taxes", label: "" }))).toContain("sankey-node-6");
+    expect(nodeFill(N({ id: "tx", kind: "taxesFederal", label: "" }))).toContain("sankey-node-6");
     expect(nodeFill(N({ id: "k", kind: "keep", label: "" }))).toContain("keep");
     const fallbackNode = { id: "unk", label: "", kind: "not-a-real-kind" } as ChartNode;
     expect(nodeFill(fallbackNode)).toContain("sankey-node-7");

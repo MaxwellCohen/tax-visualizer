@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   getAvailableTaxYears,
+  getFederalTaxCreditCaps,
+  getItemizedDeductionCaps,
   getPretaxLimits,
   getTaxYearConfig,
   isPlanningTaxYear,
@@ -30,5 +32,14 @@ describe("taxData accessors", () => {
     const cfg = getTaxYearConfig(y);
     expect(getPretaxLimits(y)).toEqual(cfg?.pretaxLimits ?? null);
     expect(getPretaxLimits(1900)).toBeNull();
+  });
+
+  it("getItemizedDeductionCaps and getFederalTaxCreditCaps mirror config", () => {
+    const y = 2025;
+    const cfg = getTaxYearConfig(y);
+    expect(getItemizedDeductionCaps(y)).toEqual(cfg?.itemizedCaps ?? null);
+    expect(getFederalTaxCreditCaps(y)).toEqual(cfg?.federalTaxCreditCaps ?? null);
+    expect(getItemizedDeductionCaps(1900)).toBeNull();
+    expect(getFederalTaxCreditCaps(1900)).toBeNull();
   });
 });

@@ -1,21 +1,16 @@
-import { clampTaxInputPretaxToLimits } from "~/lib/taxCalc.clamp";
-import type { TaxInput } from "~/lib/taxCalc.types";
-import type { PretaxBenefitSource } from "~/lib/taxCalc.pretaxBenefitSource";
-import { pretaxScalarsToMinimalSources } from "~/lib/taxCalc.pretaxBenefitSource";
+import { clampTaxInputToYearLimits } from "~/lib/taxCalc.clamp";
+import type { TaxInput, FederalTaxCreditSource, ItemizedDeductionSource, PretaxBenefitSource } from "~/lib/taxCalc.types";
 import {
   fallbackScenario,
   normalizeTaxYear,
   sanitizeFilingStatus,
   sanitizeIncomeKind,
   sanitizeMoney,
+  sanitizeFederalTaxCreditKind,
+  sanitizeItemizedDeductionKind,
   sanitizePretaxBenefitKind,
 } from "~/lib/taxScenario.sanitizeHelpers";
-import type {
-  SerializedScenario,
-  SerializedScenarioV1,
-  SerializedScenarioV2,
-  SerializedScenarioV3,
-} from "~/lib/taxScenario.types";
+import type { SerializedScenario } from "~/lib/taxScenario.types";
 
 function sanitizePretaxBenefitSourcesList(
   raw: unknown,
@@ -30,21 +25,49 @@ function sanitizePretaxBenefitSourcesList(
   }));
 }
 
+function sanitizeFederalTaxCreditSourcesList(
+  raw: unknown,
+  fallback: FederalTaxCreditSource[],
+): FederalTaxCreditSource[] {
+  if (!Array.isArray(raw) || raw.length === 0) return fallback.map(r => ({ ...r }));
+  return raw.map((row, index) => ({
+    id: typeof row?.id === "string" && row.id.trim() ? row.id : `ftc-${index}`,
+    kind: sanitizeFederalTaxCreditKind(row?.kind),
+    label: typeof row?.label === "string" ? row.label : "",
+    amount: sanitizeMoney(row?.amount),
+  }));
+}
+
+function sanitizeItemizedDeductionSourcesList(
+  raw: unknown,
+  fallback: ItemizedDeductionSource[],
+): ItemizedDeductionSource[] {
+  if (!Array.isArray(raw) || raw.length === 0) return fallback.map(r => ({ ...r }));
+  return raw.map((row, index) => ({
+    id: typeof row?.id === "string" && row.id.trim() ? row.id : `itm-${index}`,
+    kind: sanitizeItemizedDeductionKind(row?.kind),
+    label: typeof row?.label === "string" ? row.label : "",
+    amount: sanitizeMoney(row?.amount),
+  }));
+}
+
 function buildTaxInputCore(
   taxYear: number,
   filingStatus: TaxInput["filingStatus"],
   incomeSources: TaxInput["incomeSources"],
   pretaxBenefitSources: TaxInput["pretaxBenefitSources"],
   useItemizedDeductions: boolean,
-  itemizedDeductions: number,
+  itemizedDeductions: ItemizedDeductionSource[],
+  federalTaxCredits: FederalTaxCreditSource[],
 ): TaxInput {
-  return clampTaxInputPretaxToLimits({
+  return clampTaxInputToYearLimits({
     taxYear,
     filingStatus,
     incomeSources,
     pretaxBenefitSources,
     useItemizedDeductions,
     itemizedDeductions,
+    federalTaxCredits,
   });
 }
 
@@ -59,6 +82,11 @@ export function sanitizeScenarioInput(
 
   const raw = rawValue as Partial<SerializedScenario>;
   const taxYear = normalizeTaxYear(raw.taxYear, availableYears, fallbackYear);
+
+  if (raw.version !== 4) {
+    return fallbackScenario(taxYear);
+  }
+
   const incomeSources =
     Array.isArray(raw.incomeSources) && raw.incomeSources.length > 0
       ? raw.incomeSources.map((source, index) => ({
@@ -70,59 +98,17 @@ export function sanitizeScenarioInput(
       : fallbackScenario(taxYear).incomeSources;
 
   const fb = fallbackScenario(taxYear);
+  const pretaxBenefitSources = sanitizePretaxBenefitSourcesList(raw.pretaxBenefitSources, fb.pretaxBenefitSources);
+  const itemizedDeductions = sanitizeItemizedDeductionSourcesList(raw.itemizedDeductions, fb.itemizedDeductions);
+  const federalTaxCredits = sanitizeFederalTaxCreditSourcesList(raw.federalTaxCredits, fb.federalTaxCredits);
 
-  if (raw.version === 3) {
-    const v3 = raw as Partial<SerializedScenarioV3>;
-    const pretaxBenefitSources = sanitizePretaxBenefitSourcesList(v3.pretaxBenefitSources, fb.pretaxBenefitSources);
-    return buildTaxInputCore(
-      taxYear,
-      sanitizeFilingStatus(raw.filingStatus),
-      incomeSources,
-      pretaxBenefitSources,
-      Boolean(raw.useItemizedDeductions),
-      sanitizeMoney(raw.itemizedDeductions),
-    );
-  }
-
-  const v2 = raw as Partial<SerializedScenarioV2>;
-  if (raw.version === 2) {
-    const agg = {
-      preTax401kSpouse1: sanitizeMoney(v2.preTax401kSpouse1),
-      preTax401kSpouse2: sanitizeMoney(v2.preTax401kSpouse2),
-      preTaxHsaSpouse1: sanitizeMoney(v2.preTaxHsaSpouse1),
-      preTaxHsaSpouse2: sanitizeMoney(v2.preTaxHsaSpouse2),
-      preTaxOther: sanitizeMoney(v2.preTaxOther),
-      traditionalIraSpouse1: sanitizeMoney(v2.traditionalIraSpouse1 ?? 0),
-      traditionalIraSpouse2: sanitizeMoney(v2.traditionalIraSpouse2 ?? 0),
-    };
-    const pretaxBenefitSources = pretaxScalarsToMinimalSources(agg);
-    return buildTaxInputCore(
-      taxYear,
-      sanitizeFilingStatus(raw.filingStatus),
-      incomeSources,
-      pretaxBenefitSources,
-      Boolean(raw.useItemizedDeductions),
-      sanitizeMoney(raw.itemizedDeductions),
-    );
-  }
-
-  const v1 = raw as SerializedScenarioV1;
-  const agg = {
-    preTax401kSpouse1: sanitizeMoney(v1.preTax401k),
-    preTax401kSpouse2: 0,
-    preTaxHsaSpouse1: sanitizeMoney(v1.preTaxHsa),
-    preTaxHsaSpouse2: 0,
-    preTaxOther: sanitizeMoney(v1.preTaxOther),
-    traditionalIraSpouse1: 0,
-    traditionalIraSpouse2: 0,
-  };
-  const pretaxBenefitSources = pretaxScalarsToMinimalSources(agg);
   return buildTaxInputCore(
     taxYear,
     sanitizeFilingStatus(raw.filingStatus),
     incomeSources,
     pretaxBenefitSources,
     Boolean(raw.useItemizedDeductions),
-    sanitizeMoney(raw.itemizedDeductions),
+    itemizedDeductions,
+    federalTaxCredits,
   );
 }

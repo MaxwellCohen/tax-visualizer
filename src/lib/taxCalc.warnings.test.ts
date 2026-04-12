@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildTaxWarnings, type TaxWarningContext } from "~/lib/taxCalc.warnings";
-import { baseInput } from "~/lib/taxCalc.test.helpers";
+import { baseInput, withItemizedTotal } from "~/lib/taxCalc.test.helpers";
 
 function ctx(partial: Partial<TaxWarningContext>): TaxWarningContext {
   return {
@@ -20,6 +20,8 @@ function ctx(partial: Partial<TaxWarningContext>): TaxWarningContext {
     itemizedDeductions: 0,
     longTermCapitalGainsGrossIncome: 0,
     federalNetInvestmentIncomeTax: 0,
+    federalIncomeTaxBeforeCredits: 0,
+    federalTaxCreditsEntered: 0,
     ...partial,
   };
 }
@@ -64,7 +66,7 @@ describe("buildTaxWarnings", () => {
 
   it("warns when itemized is below standard", () => {
     const w = ctx({
-      input: baseInput({ useItemizedDeductions: true, itemizedDeductions: 5_000 }),
+      input: baseInput({ useItemizedDeductions: true, itemizedDeductions: withItemizedTotal(5_000) }),
       itemizedDeductions: 5_000,
     });
     expect(buildTaxWarnings(w).some(m => m.includes("below the"))).toBe(true);
@@ -78,6 +80,14 @@ describe("buildTaxWarnings", () => {
   it("warns when NIIT is positive", () => {
     const w = ctx({ federalNetInvestmentIncomeTax: 50 });
     expect(buildTaxWarnings(w).some(m => m.includes("Net investment income tax"))).toBe(true);
+  });
+
+  it("warns when federal credits exceed modeled liability", () => {
+    const w = ctx({
+      federalIncomeTaxBeforeCredits: 5_000,
+      federalTaxCreditsEntered: 8_000,
+    });
+    expect(buildTaxWarnings(w).some(m => m.includes("exceed modeled federal income tax"))).toBe(true);
   });
 
   it("returns empty when nothing applies", () => {

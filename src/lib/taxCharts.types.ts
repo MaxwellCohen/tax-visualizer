@@ -1,24 +1,33 @@
 import type { IncomeKind } from "~/lib/taxCalc.types";
 
 type SankeyNodeKind =
-  | "grossIncome"
   | "incomeSource"
   | "pretaxContribution"
   | "deferredSink"
   | "standardDeduction"
   | "deduction"
   | "deductionShield"
+  | "deductionBenefitSink"
   | "ordinaryTaxableIncome"
+  | "payrollOrdinaryStrip"
   | "longTermTaxableIncome"
+  | "ltcgDeductionShield"
   | "ordinaryBracket"
   | "ltcgBracket"
-  | "taxes"
+  | "taxesFederal"
+  | "taxesPayroll"
+  | "federalCredits"
   | "keep";
+
+/** How to present the terminal after `deduction-shield` for the deduction slice only (pretax still uses deferred sinks). */
+export type DeductionBenefitSinkRole = "takeHome" | "accounting";
 
 export type SankeyChartNode = {
   id: string;
   label: string;
   kind: SankeyNodeKind;
+  /** Set on `deductionBenefitSink`: standard deduction is framed as take-home; itemized as non-cash accounting. */
+  deductionBenefitSinkRole?: DeductionBenefitSinkRole;
   amount?: number;
   incomeKind?: IncomeKind;
   incomeAmount?: number;

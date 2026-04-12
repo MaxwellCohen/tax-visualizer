@@ -8,7 +8,8 @@ function taxInputSignature(input: TaxInput): string {
     incomeSources: input.incomeSources.map(s => [s.kind, s.label, s.amount]),
     pretaxBenefitSources: input.pretaxBenefitSources.map(s => [s.kind, s.label, s.amount]),
     useItemizedDeductions: input.useItemizedDeductions,
-    itemizedDeductions: input.itemizedDeductions,
+    itemizedDeductions: input.itemizedDeductions.map(s => [s.kind, s.label, s.amount]),
+    federalTaxCredits: input.federalTaxCredits.map(s => [s.kind, s.label, s.amount]),
   });
 }
 

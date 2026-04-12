@@ -8,6 +8,10 @@ import type { TaxYearConfig } from "~/lib/taxData.types";
 export type FederalNiitLayer = {
   ordinaryTaxableIncome: number;
   longTermTaxableIncome: number;
+  /** Portion of the deduction that offsets ordinary (+ short-term gain) income after IRA adjustments. */
+  deductionAllocatedToOrdinary: number;
+  /** Portion of the deduction that offsets long-term gain gross (for Sankey: not drawn from LTCG income rows). */
+  deductionAllocatedToLongTermGross: number;
   federalOrdinary: ReturnType<typeof calculateFederalTaxBreakdown>;
   federalLongTermCapGains: ReturnType<typeof calculateLongTermCapGainsTax>;
   federalNetInvestmentIncomeTax: number;
@@ -21,10 +25,12 @@ export function computeFederalNiitLayer(
   p: PreparedScenarioAmounts,
   deductionAmount: number,
 ): FederalNiitLayer {
-  const deductionAppliedToOrdinary = Math.min(deductionAmount, p.ordinaryAfterIra);
-  const ordinaryTaxableIncome = p.ordinaryAfterIra - deductionAppliedToOrdinary;
-  const remainingDeduction = Math.max(0, deductionAmount - deductionAppliedToOrdinary);
+  const deductionAllocatedToOrdinary = Math.min(deductionAmount, p.ordinaryAfterIra);
+  const ordinaryTaxableIncome = p.ordinaryAfterIra - deductionAllocatedToOrdinary;
+  const remainingDeduction = Math.max(0, deductionAmount - deductionAllocatedToOrdinary);
   const longTermTaxableIncome = Math.max(0, p.longTermCapitalGainsGrossIncome - remainingDeduction);
+  const deductionAllocatedToLongTermGross =
+    p.longTermCapitalGainsGrossIncome - longTermTaxableIncome;
 
   const federalOrdinary = calculateFederalTaxBreakdown(
     ordinaryTaxableIncome,
@@ -37,14 +43,14 @@ export function computeFederalNiitLayer(
     config.longTermCapGains[input.filingStatus],
   );
 
-  const deductionToOrdinary = Math.min(deductionAmount, p.ordinaryAfterIra);
+  const deductionToOrdinary = deductionAllocatedToOrdinary;
   const deductionFromShortTermCapGains = Math.max(0, deductionToOrdinary - p.nonInvestmentAfterIra);
   const shortTermCapGainsTaxableForNiit = Math.max(
     0,
     p.shortTermCapGainsGrossIncome - deductionFromShortTermCapGains,
   );
   const netInvestmentIncomeAmount = shortTermCapGainsTaxableForNiit + longTermTaxableIncome;
-  const magiForNiit = p.ordinaryAfterIra + p.longTermCapitalGainsGrossIncome;
+  const magiForNiit = p.ordinaryAfterIra + p.longTermCapitalGainsGrossIncome + (p.selfEmploymentIncome * 0.9235);
   const magiOverNiitThreshold = Math.max(
     0,
     magiForNiit - FEDERAL_NIIT.magiThreshold[input.filingStatus],
@@ -60,6 +66,8 @@ export function computeFederalNiitLayer(
   return {
     ordinaryTaxableIncome,
     longTermTaxableIncome,
+    deductionAllocatedToOrdinary,
+    deductionAllocatedToLongTermGross,
     federalOrdinary,
     federalLongTermCapGains,
     federalNetInvestmentIncomeTax,

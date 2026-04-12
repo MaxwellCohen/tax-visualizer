@@ -9,8 +9,6 @@ import type { TaxInput } from "~/lib/taxCalc";
 type Props = {
   form: TaxInputFormApi;
   values: Accessor<TaxInput>;
-  incomeSourcesOpen: boolean;
-  setIncomeSourcesOpen: (v: boolean) => void;
   addSource: () => void;
   removeSourceAt: (i: number) => void;
 };
@@ -28,8 +26,6 @@ export function TaxInputFormIncomeSection(props: Props) {
 
   return (
     <Accordion
-      open={props.incomeSourcesOpen}
-      onOpenChange={props.setIncomeSourcesOpen}
       summary={
         <>
           <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-(--text-faint) [font-family:var(--font-heading)]">
@@ -38,7 +34,6 @@ export function TaxInputFormIncomeSection(props: Props) {
           <span class="text-sm tabular-nums text-(--text-muted)">{money.format(incomeTotal())}</span>
         </>
       }
-      action={props.incomeSourcesOpen ? "Collapse" : "Edit"}
       bodyClass="space-y-4"
     >
       <p class="text-xs leading-relaxed text-(--text-muted)">

@@ -1,6 +1,11 @@
 import { createForm } from "@tanstack/solid-form";
 import type { TaxInput } from "~/lib/taxCalc";
-import { newIncomeSource, newPretaxBenefitSource } from "~/lib/taxCalc";
+import {
+  newFederalTaxCreditSource,
+  newIncomeSource,
+  newItemizedDeductionSource,
+  newPretaxBenefitSource,
+} from "~/lib/taxCalc";
 
 export type TaxInputFormOuterProps = {
   value: TaxInput;
@@ -37,5 +42,49 @@ export function createTaxInputForm(props: TaxInputFormOuterProps) {
     void form.removeFieldValue("pretaxBenefitSources", index);
   };
 
-  return { form, values, addSource, removeSourceAt, addPretaxBenefit, removePretaxBenefitAt };
+  const addItemizedDeduction = () => {
+    form.pushFieldValue("itemizedDeductions", newItemizedDeductionSource());
+  };
+
+  const removeItemizedDeductionAt = (index: number) => {
+    if (values().itemizedDeductions.length <= 1) return;
+    void form.removeFieldValue("itemizedDeductions", index);
+  };
+
+  const addFederalTaxCredit = () => {
+    form.pushFieldValue("federalTaxCredits", newFederalTaxCreditSource());
+  };
+
+  const removeFederalTaxCreditAt = (index: number) => {
+    if (values().federalTaxCredits.length <= 1) return;
+    void form.removeFieldValue("federalTaxCredits", index);
+  };
+
+  const clearAllPretaxBenefits = () => {
+    form.setFieldValue("pretaxBenefitSources", []);
+  };
+
+  const clearAllItemizedDeductions = () => {
+    form.setFieldValue("itemizedDeductions", []);
+  };
+
+  const clearAllFederalTaxCredits = () => {
+    form.setFieldValue("federalTaxCredits", []);
+  };
+
+  return {
+    form,
+    values,
+    addSource,
+    removeSourceAt,
+    addPretaxBenefit,
+    removePretaxBenefitAt,
+    clearAllPretaxBenefits,
+    addItemizedDeduction,
+    removeItemizedDeductionAt,
+    clearAllItemizedDeductions,
+    addFederalTaxCredit,
+    removeFederalTaxCreditAt,
+    clearAllFederalTaxCredits,
+  };
 }

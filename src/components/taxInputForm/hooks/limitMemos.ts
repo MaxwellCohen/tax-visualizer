@@ -2,11 +2,13 @@ import { createMemo } from "solid-js";
 import type { Accessor } from "solid-js";
 import type { TaxInput } from "~/lib/taxCalc";
 import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
-import { getPretaxLimits, getTaxYearConfig } from "~/lib/taxData";
+import { getFederalTaxCreditCaps, getItemizedDeductionCaps, getPretaxLimits, getTaxYearConfig } from "~/lib/taxData";
 
 export function createLimitMemos(values: Accessor<TaxInput>) {
   const selectedTaxConfig = createMemo(() => getTaxYearConfig(values().taxYear));
   const pretaxLimits = createMemo(() => getPretaxLimits(values().taxYear));
+  const itemizedCaps = createMemo(() => getItemizedDeductionCaps(values().taxYear));
+  const federalTaxCreditCaps = createMemo(() => getFederalTaxCreditCaps(values().taxYear));
   const isMarriedJoint = createMemo(() => values().filingStatus === "marriedJoint");
   const preTaxBenefitsTotal = createMemo(() => {
     const v = values();
@@ -36,6 +38,8 @@ export function createLimitMemos(values: Accessor<TaxInput>) {
   return {
     selectedTaxConfig,
     pretaxLimits,
+    itemizedCaps,
+    federalTaxCreditCaps,
     isMarriedJoint,
     preTaxBenefitsTotal,
     maxElective401,

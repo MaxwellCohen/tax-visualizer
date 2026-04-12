@@ -14,6 +14,8 @@ export type PretaxIraSlice = {
   preTaxTotal: number;
   wagesAfterPretax: number;
   ordinaryGrossForTax: number;
+  /** Net self-employment earnings (after 92.35% adjustment). */
+  selfEmploymentIncome: number;
   effectiveIra: number;
   nonInvestmentOrdinaryGross: number;
   nonInvestmentAfterIra: number;

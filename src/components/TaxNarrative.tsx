@@ -1,3 +1,4 @@
+import { Show } from "solid-js";
 import type { TaxResult } from "~/lib/taxCalc";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 
@@ -51,13 +52,18 @@ export default function TaxNarrative(props: TaxNarrativeProps) {
             capital gains. Federal income tax is {money.format(result().federalIncomeTax)}
             {result().federalNetInvestmentIncomeTax > 0
               ? ` (including ${money.format(result().federalNetInvestmentIncomeTax)} estimated net investment income tax)`
-              : ""}{" "}
+              : ""}
+            <Show when={result().federalTaxCreditsApplied > 0}>
+              {`, after ${money.format(result().federalTaxCreditsApplied)} of modeled federal credits`}
+            </Show>{" "}
             and payroll tax is {money.format(result().payrollTax)}.
           </p>
           <p>
             The result is {money.format(result().takeHomePay)} of modeled take-home pay, with an
-            effective tax rate of {percent.format(result().effectiveTaxRate)}. That effective rate is
-            just <code>(federal income tax + payroll tax) / total income</code>.
+            effective tax rate of {percent.format(result().effectiveTaxRate)}. That rate is{" "}
+            <code>(federal income tax + payroll tax) / (gross income - payroll pre-tax - traditional IRA)</code>
+            , so deferred and IRA dollars are not in the denominator (they use a 0% rate in this
+            headline figure).
           </p>
           {props.isPlanningYear ? (
             <p>

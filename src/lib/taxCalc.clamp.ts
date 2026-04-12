@@ -1,4 +1,5 @@
 import { getTaxYearConfig } from "~/lib/taxData";
+import { clampTaxInputItemizedAndCreditsToLimits } from "~/lib/taxCalc.clampItemizedCredits";
 import type { TaxInput } from "~/lib/taxCalc.types";
 import {
   aggregatePretaxFromSources,
@@ -22,4 +23,9 @@ export function clampTaxInputPretaxToLimits(input: TaxInput): TaxInput {
     ...input,
     pretaxBenefitSources: nextSources,
   };
+}
+
+/** Applies pretax limits, then Schedule A SALT and federal per-credit caps from `TAX_DATA_BY_YEAR`. */
+export function clampTaxInputToYearLimits(input: TaxInput): TaxInput {
+  return clampTaxInputItemizedAndCreditsToLimits(clampTaxInputPretaxToLimits(input));
 }

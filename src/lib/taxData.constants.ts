@@ -1,5 +1,45 @@
 import { buildFederalBrackets } from "~/lib/taxData.build";
-import type { LongTermCapGainsThresholds, NiitRules, TaxYearConfig } from "~/lib/taxData.types";
+import type {
+  FederalTaxCreditCaps,
+  ItemizedDeductionCaps,
+  LongTermCapGainsThresholds,
+  NiitRules,
+  TaxYearConfig,
+} from "~/lib/taxData.types";
+
+/** TCJA Schedule A SALT cap (per return; MFS typically half of joint-style cap). Update when law changes. */
+const ITEMIZED_CAPS_TCJA: ItemizedDeductionCaps = {
+  saltMax: {
+    single: 10_000,
+    marriedJoint: 10_000,
+    marriedSeparate: 5_000,
+    headOfHousehold: 10_000,
+  },
+};
+
+/**
+ * Modeled maximum total entry per federal credit kind (sum of all rows of that kind).
+ * Figures follow common IRS ceilings; adjust by year when Rev. Proc. / IRC amounts change.
+ */
+const FEDERAL_TAX_CREDIT_CAPS_2023_2025: FederalTaxCreditCaps = {
+  childTaxCredit: 40_000,
+  creditForOtherDependents: 10_000,
+  childAndDependentCare: 8_000,
+  educationCredits: 10_000,
+  retirementSavingsContributions: 2_000,
+  foreignTaxCredit: 9_000_000_000,
+  residentialCleanEnergy: 100_000,
+  electricVehicleCredit: 40_000,
+  generalBusinessCredit: 1_000_000,
+  otherFederalCredit: 2_000_000,
+};
+
+/** Planning-year bumps for credits with indexed or policy-driven caps. */
+const FEDERAL_TAX_CREDIT_CAPS_2026: FederalTaxCreditCaps = {
+  ...FEDERAL_TAX_CREDIT_CAPS_2023_2025,
+  residentialCleanEnergy: 110_000,
+  electricVehicleCredit: 45_000,
+};
 
 /** NIIT MAGI thresholds and Additional Medicare wage thresholds share these IRS filing-status breakpoints. */
 const THRESHOLDS_200K_250K_125K_200K = {
@@ -99,6 +139,8 @@ export const TAX_DATA_BY_YEAR: Record<number, TaxYearConfig> = {
       hsaFamily: 7_750,
       traditionalIraContribution: 6_500,
     },
+    itemizedCaps: ITEMIZED_CAPS_TCJA,
+    federalTaxCreditCaps: FEDERAL_TAX_CREDIT_CAPS_2023_2025,
     status: "final",
   },
   2024: {
@@ -120,6 +162,8 @@ export const TAX_DATA_BY_YEAR: Record<number, TaxYearConfig> = {
       hsaFamily: 8_300,
       traditionalIraContribution: 7_000,
     },
+    itemizedCaps: ITEMIZED_CAPS_TCJA,
+    federalTaxCreditCaps: FEDERAL_TAX_CREDIT_CAPS_2023_2025,
     status: "final",
   },
   2025: {
@@ -141,6 +185,8 @@ export const TAX_DATA_BY_YEAR: Record<number, TaxYearConfig> = {
       hsaFamily: 8_550,
       traditionalIraContribution: 7_000,
     },
+    itemizedCaps: ITEMIZED_CAPS_TCJA,
+    federalTaxCreditCaps: FEDERAL_TAX_CREDIT_CAPS_2023_2025,
     status: "final",
   },
   2026: {
@@ -162,6 +208,8 @@ export const TAX_DATA_BY_YEAR: Record<number, TaxYearConfig> = {
       hsaFamily: 8_750,
       traditionalIraContribution: 7_150,
     },
+    itemizedCaps: ITEMIZED_CAPS_TCJA,
+    federalTaxCreditCaps: FEDERAL_TAX_CREDIT_CAPS_2026,
     status: "planning",
   },
 };

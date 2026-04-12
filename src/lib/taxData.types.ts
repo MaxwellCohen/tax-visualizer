@@ -1,3 +1,5 @@
+import type { FederalTaxCreditKind } from "~/lib/taxCalc.types";
+
 export type FilingStatus = "single" | "marriedJoint" | "marriedSeparate" | "headOfHousehold";
 
 export type FederalTaxBracket = {
@@ -40,11 +42,28 @@ export type PretaxBenefitLimits = {
   traditionalIraContribution: number;
 };
 
+/**
+ * Schedule A dollar caps that can change with legislation (see `TAX_DATA_BY_YEAR[year].itemizedCaps`).
+ * Only SALT is enforced in this app’s itemized model.
+ */
+export type ItemizedDeductionCaps = {
+  /** Maximum combined state and local tax deduction (federal Schedule A). */
+  saltMax: FilingStatusRecord<number>;
+};
+
+/**
+ * Modeled ceiling on total entered amount per credit kind (sum across all rows of that kind).
+ * IRS phase-outs and eligibility are not applied; entries are clamped before the nonrefundable tax cap.
+ */
+export type FederalTaxCreditCaps = Record<FederalTaxCreditKind, number>;
+
 export type TaxYearConfig = {
   standardDeduction: FilingStatusRecord<number>;
   federalBrackets: FilingStatusRecord<FederalTaxBracket[]>;
   longTermCapGains: LongTermCapGainsThresholds;
   payroll: PayrollRules;
   pretaxLimits: PretaxBenefitLimits;
+  itemizedCaps: ItemizedDeductionCaps;
+  federalTaxCreditCaps: Record<FederalTaxCreditKind, number>;
   status?: "final" | "planning";
 };

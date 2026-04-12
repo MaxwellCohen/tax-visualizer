@@ -34,7 +34,6 @@ export function calculateFederalTaxBreakdown(
       totalTax += taxAmount;
       segments.push({
         id: `ordinary-${index}`,
-        kind: "ordinaryFederal",
         incomeAmount: amountInBracket,
         taxAmount,
         marginalRate: bracket.rate,

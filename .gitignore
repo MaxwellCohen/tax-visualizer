@@ -26,3 +26,8 @@ gitignore
 # System Files
 .DS_Store
 Thumbs.db
+
+
+.opencode
+.fallow/
+.fallow/cache.bin

@@ -27,14 +27,21 @@ export function wireTaxHomePersistence(args: PersistenceArgs): void {
     const urlInput = sharedScenario
       ? deserializeScenarioInput(sharedScenario, availableYears, defaultYear)
       : null;
-    const storedScenario = window.localStorage.getItem(SAVED_SCENARIO_STORAGE_KEY);
-    const savedInput = storedScenario
-      ? deserializeScenarioInput(storedScenario, availableYears, defaultYear)
-      : null;
-    const storedBaseline = window.localStorage.getItem(BASELINE_SCENARIO_STORAGE_KEY);
-    const savedBaseline = storedBaseline
-      ? deserializeScenarioInput(storedBaseline, availableYears, defaultYear)
-      : null;
+    let savedInput: ReturnType<typeof deserializeScenarioInput> = null;
+    let savedBaseline: ReturnType<typeof deserializeScenarioInput> = null;
+
+    try {
+      const storedScenario = window.localStorage.getItem(SAVED_SCENARIO_STORAGE_KEY);
+      savedInput = storedScenario
+        ? deserializeScenarioInput(storedScenario, availableYears, defaultYear)
+        : null;
+      const storedBaseline = window.localStorage.getItem(BASELINE_SCENARIO_STORAGE_KEY);
+      savedBaseline = storedBaseline
+        ? deserializeScenarioInput(storedBaseline, availableYears, defaultYear)
+        : null;
+    } catch (e) {
+      console.warn("Failed to read scenarios from localStorage:", e);
+    }
 
     if (urlInput) {
       args.setTaxInput(urlInput);
@@ -54,7 +61,15 @@ export function wireTaxHomePersistence(args: PersistenceArgs): void {
     const encoded = serializeScenarioInput(args.taxInput());
     const url = new URL(window.location.href);
     url.searchParams.set(SCENARIO_QUERY_PARAM, encoded);
+    if (url.toString().length > 2000) {
+      console.warn("URL exceeds 2000 characters, truncating scenario data");
+      return;
+    }
     window.history.replaceState({}, "", url);
-    window.localStorage.setItem(SAVED_SCENARIO_STORAGE_KEY, encoded);
+    try {
+      window.localStorage.setItem(SAVED_SCENARIO_STORAGE_KEY, encoded);
+    } catch (e) {
+      console.warn("Failed to save scenario to localStorage:", e);
+    }
   });
 }

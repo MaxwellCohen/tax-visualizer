@@ -1,11 +1,5 @@
 import type { IncomeKind, IncomeSource } from "~/lib/taxCalc.types";
-
-const DEFAULT_LABEL_BY_KIND: Record<IncomeKind, string> = {
-  wages: "W-2 wages",
-  ordinary: "Other income",
-  shortTermCapGains: "Short-term capital gains",
-  longTermCapGains: "Long-term capital gains",
-};
+import { incomeKindDefaultLabel } from "~/lib/taxData.incomeKinds.config";
 
 let incomeSourceSeq = 0;
 
@@ -29,5 +23,5 @@ export function newIncomeSource(overrides?: Partial<Omit<IncomeSource, "id">>): 
 
 export function incomeSourceDisplayLabel(source: IncomeSource): string {
   const trimmed = source.label.trim();
-  return trimmed || DEFAULT_LABEL_BY_KIND[source.kind];
+  return trimmed || incomeKindDefaultLabel(source.kind);
 }

@@ -1,4 +1,10 @@
-import { newIncomeSource, newPretaxBenefitSource, type TaxInput } from "~/lib/taxCalc";
+import {
+  newFederalTaxCreditSource,
+  newIncomeSource,
+  newItemizedDeductionSource,
+  newPretaxBenefitSource,
+  type TaxInput,
+} from "~/lib/taxCalc";
 import { pretaxScalarsToMinimalSources } from "~/lib/taxCalc.pretaxBenefitSource";
 import type { AggregatedPretax } from "~/lib/taxCalc.pretaxBenefitSource";
 
@@ -9,7 +15,8 @@ export function baseInput(overrides: Partial<TaxInput> = {}): TaxInput {
     incomeSources: [newIncomeSource({ kind: "wages", amount: 50_000 })],
     pretaxBenefitSources: [newPretaxBenefitSource({ kind: "preTax401kSpouse1" })],
     useItemizedDeductions: false,
-    itemizedDeductions: 0,
+    itemizedDeductions: [newItemizedDeductionSource()],
+    federalTaxCredits: [newFederalTaxCreditSource()],
     ...overrides,
   };
 }
@@ -27,4 +34,13 @@ export function withPretaxTotals(p: Partial<AggregatedPretax>): TaxInput["pretax
     ...p,
   };
   return pretaxScalarsToMinimalSources(full);
+}
+
+/** One line with the given total (for tests that previously passed a scalar). */
+export function withItemizedTotal(amount: number): TaxInput["itemizedDeductions"] {
+  return [newItemizedDeductionSource({ amount })];
+}
+
+export function withFederalCreditsTotal(amount: number): TaxInput["federalTaxCredits"] {
+  return [newFederalTaxCreditSource({ amount })];
 }

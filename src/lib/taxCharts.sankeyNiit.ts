@@ -30,7 +30,7 @@ export function netInvestmentIncomeTaxPerSegment(result: TaxResult): {
       const last = i === segments.length - 1;
       const part = last ? Math.max(0, pool - allocated) : Math.round((pool * seg.incomeAmount) / totalIncome);
       allocated += part;
-      into.set(seg.id, part);
+      into.set(seg.id ?? `seg-${i}`, part);
     });
   };
 

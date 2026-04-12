@@ -18,6 +18,8 @@ export type TaxWarningContext = {
   itemizedDeductions: number;
   longTermCapitalGainsGrossIncome: number;
   federalNetInvestmentIncomeTax: number;
+  federalIncomeTaxBeforeCredits: number;
+  federalTaxCreditsEntered: number;
 };
 
 function pushPretaxVersusWageWarnings(ctx: TaxWarningContext, out: string[]): void {
@@ -94,6 +96,15 @@ export function buildTaxWarnings(ctx: TaxWarningContext): string[] {
   if (ctx.federalNetInvestmentIncomeTax > 0) {
     warnings.push(
       "Net investment income tax (NIIT) is estimated from short- and long-term gains only (Form 8960 is simplified; MAGI excludes some real-world adjustments).",
+    );
+  }
+
+  if (
+    ctx.federalTaxCreditsEntered > ctx.federalIncomeTaxBeforeCredits &&
+    ctx.federalIncomeTaxBeforeCredits >= 0
+  ) {
+    warnings.push(
+      `Federal credits (${taxCalcMoney.format(ctx.federalTaxCreditsEntered)}) exceed modeled federal income tax before credits (${taxCalcMoney.format(ctx.federalIncomeTaxBeforeCredits)}); excess nonrefundable credits are not modeled as a cash refund.`,
     );
   }
 

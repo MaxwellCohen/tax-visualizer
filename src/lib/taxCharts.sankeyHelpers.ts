@@ -1,5 +1,5 @@
 import { incomeSourceDisplayLabel, type TaxResult } from "~/lib/taxCalc";
-import { INCOME_KIND_CHART_ORDER } from "~/lib/taxCharts.sankey.constants";
+import { INCOME_KIND_CHART_ORDER_BY_KIND } from "~/lib/config/sankeyOrder.config";
 import type { SankeyChartNode } from "~/lib/taxCharts.types";
 
 export function addNode(nodeMap: Map<string, SankeyChartNode>, node: SankeyChartNode): void {
@@ -10,13 +10,19 @@ export function addNode(nodeMap: Map<string, SankeyChartNode>, node: SankeyChart
 
 export function sortedIncomeSources(result: TaxResult) {
   return [...result.incomeSources].sort((a, b) => {
-    const kindDiff = INCOME_KIND_CHART_ORDER[a.kind] - INCOME_KIND_CHART_ORDER[b.kind];
+    const kindDiff = INCOME_KIND_CHART_ORDER_BY_KIND[a.kind] - INCOME_KIND_CHART_ORDER_BY_KIND[b.kind];
     if (kindDiff !== 0) return kindDiff;
     return incomeSourceDisplayLabel(a).localeCompare(incomeSourceDisplayLabel(b));
   });
 }
 
-/** Split take-home and payroll across bracket/shield slices by retained weight (replaces a pass-through "after federal" node). */
+/**
+ * Split take-home across all pool slices by weight.
+ * Payroll tax (FICA) is split only across **ordinary** bracket slices — same idea as long-term
+ * gains not bearing payroll: capital-gain paths get federal preferential tax ribbons but no payroll
+ * ribbons. `deduction-shield` is also excluded. When no ordinary bracket slice exists, payroll stays
+ * unassigned here; callers add split `income-* → taxes-payroll` remainder links.
+ */
 export function splitTakeHomeAndPayrollByPool(
   slices: { sourceId: string; weight: number }[],
   takeHomePay: number,
@@ -26,15 +32,31 @@ export function splitTakeHomeAndPayrollByPool(
   const pool = slices.reduce((s, x) => s + x.weight, 0);
   if (pool <= 0 || slices.length === 0) return out;
 
+  const payrollSlices = slices.filter(x => x.sourceId.startsWith("ordinary-bracket-"));
+  const payrollPool = payrollSlices.reduce((s, x) => s + x.weight, 0);
+
   let accKeep = 0;
-  let accPayroll = 0;
   slices.forEach((slice, i) => {
     const last = i === slices.length - 1;
     const keep = last ? Math.max(0, takeHomePay - accKeep) : Math.round((slice.weight / pool) * takeHomePay);
-    const payroll = last ? Math.max(0, payrollTax - accPayroll) : Math.round((slice.weight / pool) * payrollTax);
     accKeep += keep;
-    accPayroll += payroll;
-    out.set(slice.sourceId, { keep, payroll });
+    out.set(slice.sourceId, { keep, payroll: 0 });
   });
+
+  if (payrollTax <= 0 || payrollPool <= 0) {
+    return out;
+  }
+
+  let accPayroll = 0;
+  payrollSlices.forEach((slice, i) => {
+    const last = i === payrollSlices.length - 1;
+    const payroll = last
+      ? Math.max(0, payrollTax - accPayroll)
+      : Math.round((slice.weight / payrollPool) * payrollTax);
+    accPayroll += payroll;
+    const prev = out.get(slice.sourceId)!;
+    out.set(slice.sourceId, { keep: prev.keep, payroll });
+  });
+
   return out;
 }

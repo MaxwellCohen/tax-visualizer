@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
+import { TaxInputFormCreditsSection } from "~/components/taxInputForm/TaxInputFormCreditsSection";
 import { TaxInputFormDeductionSection } from "~/components/taxInputForm/TaxInputFormDeductionSection";
 import { TaxInputFormFilingSection } from "~/components/taxInputForm/TaxInputFormFilingSection";
 import { TaxInputFormIncomeSection } from "~/components/taxInputForm/TaxInputFormIncomeSection";
@@ -7,21 +7,31 @@ import { TaxInputFormPreTaxSection } from "~/components/taxInputForm/TaxInputFor
 import { createDeductionMemos } from "~/components/taxInputForm/hooks/deductionMemos";
 import { createTaxInputForm, type TaxInputFormOuterProps } from "~/components/taxInputForm/hooks/formCore";
 import { createLimitMemos } from "~/components/taxInputForm/hooks/limitMemos";
-import { wirePretaxCapEffect } from "~/components/taxInputForm/hooks/pretaxCapEffect";
+import { wireTaxYearLimitsEffect } from "~/components/taxInputForm/hooks/taxYearLimitsEffect";
 type TaxInputFormProps = TaxInputFormOuterProps & {
   availableYears: number[];
 };
 
 export default function TaxInputForm(props: TaxInputFormProps) {
-  const { form, values, addSource, removeSourceAt, addPretaxBenefit, removePretaxBenefitAt } =
-    createTaxInputForm(props);
+  const {
+    form,
+    values,
+    addSource,
+    removeSourceAt,
+    addPretaxBenefit,
+    removePretaxBenefitAt,
+    clearAllPretaxBenefits,
+    addItemizedDeduction,
+    removeItemizedDeductionAt,
+    clearAllItemizedDeductions,
+    addFederalTaxCredit,
+    removeFederalTaxCreditAt,
+    clearAllFederalTaxCredits,
+  } = createTaxInputForm(props);
   const limits = createLimitMemos(values);
   const deduction = createDeductionMemos(values, limits.selectedTaxConfig);
 
-  wirePretaxCapEffect(form, values, limits.pretaxLimits);
-
-  const [preTaxBenefitsOpen, setPreTaxBenefitsOpen] = createSignal(true);
-  const [incomeSourcesOpen, setIncomeSourcesOpen] = createSignal(true);
+  wireTaxYearLimitsEffect(form, values);
 
   return (
     <form
@@ -37,20 +47,17 @@ export default function TaxInputForm(props: TaxInputFormProps) {
         <TaxInputFormIncomeSection
           form={form}
           values={values}
-          incomeSourcesOpen={incomeSourcesOpen()}
-          setIncomeSourcesOpen={setIncomeSourcesOpen}
           addSource={addSource}
           removeSourceAt={removeSourceAt}
         />
         <TaxInputFormPreTaxSection
           form={form}
           values={values}
-          preTaxBenefitsOpen={preTaxBenefitsOpen()}
-          setPreTaxBenefitsOpen={setPreTaxBenefitsOpen}
           preTaxBenefitsTotal={limits.preTaxBenefitsTotal}
           isMarriedJoint={limits.isMarriedJoint}
           addPretaxBenefit={addPretaxBenefit}
           removePretaxBenefitAt={removePretaxBenefitAt}
+          clearAll={clearAllPretaxBenefits}
           pretaxLimits={limits.pretaxLimits}
         />
         <TaxInputFormDeductionSection
@@ -58,6 +65,18 @@ export default function TaxInputForm(props: TaxInputFormProps) {
           values={values}
           standardDeduction={deduction.standardDeduction}
           itemizedBeatsStandard={deduction.itemizedBeatsStandard}
+          addItemizedDeduction={addItemizedDeduction}
+          removeItemizedDeductionAt={removeItemizedDeductionAt}
+          clearAll={clearAllItemizedDeductions}
+          itemizedCaps={limits.itemizedCaps}
+        />
+        <TaxInputFormCreditsSection
+          form={form}
+          values={values}
+          addFederalTaxCredit={addFederalTaxCredit}
+          removeFederalTaxCreditAt={removeFederalTaxCreditAt}
+          clearAll={clearAllFederalTaxCredits}
+          federalTaxCreditCaps={limits.federalTaxCreditCaps}
         />
       </CollapsibleBlock>
     </form>

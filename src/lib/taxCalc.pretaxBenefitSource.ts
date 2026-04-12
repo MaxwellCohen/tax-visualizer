@@ -1,36 +1,27 @@
-import { toMoneyValue } from "~/lib/taxCalc.money";
+import type { PretaxBenefitSource, PretaxBenefitKind } from "~/lib/taxCalc.types";
 import type { PretaxBenefitLimits } from "~/lib/taxData.types";
 
-export type PretaxBenefitKind =
-  | "preTax401kSpouse1"
-  | "preTax401kSpouse2"
-  | "preTaxHsaSpouse1"
-  | "preTaxHsaSpouse2"
-  | "preTaxOther"
-  | "traditionalIraSpouse1"
-  | "traditionalIraSpouse2";
+export const PRETAX_BENEFIT_KIND_VALUES = [
+  "preTax401kSpouse1",
+  "preTax403bSpouse1",
+  "preTax457bSpouse1",
+  "preTax401kSpouse2",
+  "preTax403bSpouse2",
+  "preTax457bSpouse2",
+  "preTaxHsaSpouse1",
+  "preTaxHsaSpouse2",
+  "preTaxOther",
+  "preTaxHealthFsaSpouse1",
+  "preTaxHealthFsaSpouse2",
+  "preTaxDependentCareFsaSpouse1",
+  "preTaxDependentCareFsaSpouse2",
+  "preTaxCommuterSpouse1",
+  "preTaxCommuterSpouse2",
+  "traditionalIraSpouse1",
+  "traditionalIraSpouse2",
+] as const;
 
-export type PretaxBenefitSource = {
-  id: string;
-  kind: PretaxBenefitKind;
-  /** Optional note (e.g. employer); not used in tax math. */
-  label: string;
-  amount: number;
-};
-
-/** Same numeric slots as the previous flat `TaxInput` pretax fields (aggregated from rows). */
-export type AggregatedPretax = {
-  preTax401kSpouse1: number;
-  preTax401kSpouse2: number;
-  preTaxHsaSpouse1: number;
-  preTaxHsaSpouse2: number;
-  preTaxOther: number;
-  traditionalIraSpouse1: number;
-  traditionalIraSpouse2: number;
-};
-
-/** Iteration order for serialization / migration. */
-export const ALL_PRETAX_BENEFIT_KINDS: readonly PretaxBenefitKind[] = [
+export const AGGREGATED_PRETAX_KEYS = [
   "preTax401kSpouse1",
   "preTax401kSpouse2",
   "preTaxHsaSpouse1",
@@ -38,29 +29,7 @@ export const ALL_PRETAX_BENEFIT_KINDS: readonly PretaxBenefitKind[] = [
   "preTaxOther",
   "traditionalIraSpouse1",
   "traditionalIraSpouse2",
-];
-
-const SPOUSE2_KINDS = new Set<PretaxBenefitKind>([
-  "preTax401kSpouse2",
-  "preTaxHsaSpouse2",
-  "traditionalIraSpouse2",
-]);
-
-export function isPretaxSpouse2Kind(kind: PretaxBenefitKind): boolean {
-  return SPOUSE2_KINDS.has(kind);
-}
-
-export function emptyAggregatedPretax(): AggregatedPretax {
-  return {
-    preTax401kSpouse1: 0,
-    preTax401kSpouse2: 0,
-    preTaxHsaSpouse1: 0,
-    preTaxHsaSpouse2: 0,
-    preTaxOther: 0,
-    traditionalIraSpouse1: 0,
-    traditionalIraSpouse2: 0,
-  };
-}
+] as const;
 
 let pretaxBenefitSeq = 0;
 
@@ -84,7 +53,64 @@ export function newPretaxBenefitSource(
   };
 }
 
-/** Sum row amounts by kind. Rows with spouse-2 kinds are ignored when `joint` is false. */
+export type AggregatedPretax = Record<typeof AGGREGATED_PRETAX_KEYS[number], number>;
+
+const SPOUSE2_KINDS = new Set<PretaxBenefitKind>([
+  "preTax401kSpouse2",
+  "preTax403bSpouse2",
+  "preTax457bSpouse2",
+  "preTaxHsaSpouse2",
+  "preTaxHealthFsaSpouse2",
+  "preTaxDependentCareFsaSpouse2",
+  "preTaxCommuterSpouse2",
+  "traditionalIraSpouse2",
+]);
+
+export function isPretaxSpouse2Kind(kind: PretaxBenefitKind): boolean {
+  return SPOUSE2_KINDS.has(kind);
+}
+
+export function aggregatedKeyForKind(kind: PretaxBenefitKind): keyof AggregatedPretax {
+  switch (kind) {
+    case "preTax401kSpouse1":
+    case "preTax403bSpouse1":
+    case "preTax457bSpouse1":
+      return "preTax401kSpouse1";
+    case "preTax401kSpouse2":
+    case "preTax403bSpouse2":
+    case "preTax457bSpouse2":
+      return "preTax401kSpouse2";
+    case "preTaxHsaSpouse1":
+      return "preTaxHsaSpouse1";
+    case "preTaxHsaSpouse2":
+      return "preTaxHsaSpouse2";
+    case "preTaxOther":
+    case "preTaxHealthFsaSpouse1":
+    case "preTaxHealthFsaSpouse2":
+    case "preTaxDependentCareFsaSpouse1":
+    case "preTaxDependentCareFsaSpouse2":
+    case "preTaxCommuterSpouse1":
+    case "preTaxCommuterSpouse2":
+      return "preTaxOther";
+    case "traditionalIraSpouse1":
+      return "traditionalIraSpouse1";
+    case "traditionalIraSpouse2":
+      return "traditionalIraSpouse2";
+  }
+}
+
+export function emptyAggregatedPretax(): AggregatedPretax {
+  return {
+    preTax401kSpouse1: 0,
+    preTax401kSpouse2: 0,
+    preTaxHsaSpouse1: 0,
+    preTaxHsaSpouse2: 0,
+    preTaxOther: 0,
+    traditionalIraSpouse1: 0,
+    traditionalIraSpouse2: 0,
+  };
+}
+
 export function aggregatePretaxFromSources(
   sources: PretaxBenefitSource[],
   joint: boolean,
@@ -92,17 +118,62 @@ export function aggregatePretaxFromSources(
   const out = emptyAggregatedPretax();
   for (const s of sources) {
     if (!joint && isPretaxSpouse2Kind(s.kind)) continue;
-    const add = toMoneyValue(s.amount);
-    out[s.kind] += add;
+    out[aggregatedKeyForKind(s.kind)] += s.amount;
   }
   return out;
 }
 
-function distributeKindAmount(rows: PretaxBenefitSource[], kind: PretaxBenefitKind, targetTotal: number): void {
-  const matched = rows.filter(r => r.kind === kind);
+export function clampAggregatedPretaxToLimits(
+  agg: AggregatedPretax,
+  lim: PretaxBenefitLimits,
+  joint: boolean,
+): AggregatedPretax {
+  const c401 = lim.electiveDeferral401k;
+  const p1 = Math.min(agg.preTax401kSpouse1, c401);
+  const p2 = joint ? Math.min(agg.preTax401kSpouse2, c401) : 0;
+
+  let h1 = agg.preTaxHsaSpouse1;
+  let h2 = joint ? agg.preTaxHsaSpouse2 : 0;
+  if (joint) {
+    h1 = Math.min(h1, lim.hsaFamily);
+    h2 = Math.min(h2, Math.max(0, lim.hsaFamily - h1));
+  } else {
+    h1 = Math.min(h1, lim.hsaSelfOnly);
+    h2 = 0;
+  }
+
+  const iraCap = lim.traditionalIraContribution;
+  const i1 = Math.min(agg.traditionalIraSpouse1, iraCap);
+  const i2 = joint ? Math.min(agg.traditionalIraSpouse2, iraCap) : 0;
+
+  return {
+    preTax401kSpouse1: p1,
+    preTax401kSpouse2: joint ? p2 : 0,
+    preTaxHsaSpouse1: h1,
+    preTaxHsaSpouse2: joint ? h2 : 0,
+    preTaxOther: agg.preTaxOther,
+    traditionalIraSpouse1: i1,
+    traditionalIraSpouse2: joint ? i2 : 0,
+  };
+}
+
+export function filterPretaxSourcesForFiling(
+  sources: PretaxBenefitSource[],
+  joint: boolean,
+): PretaxBenefitSource[] {
+  if (joint) return sources;
+  return sources.filter(s => !isPretaxSpouse2Kind(s.kind));
+}
+
+function distributeSlotAmount(
+  rows: PretaxBenefitSource[],
+  slot: keyof AggregatedPretax,
+  targetTotal: number,
+): void {
+  const matched = rows.filter(r => aggregatedKeyForKind(r.kind) === slot);
   if (matched.length === 0) return;
-  const sum = matched.reduce((a, r) => a + toMoneyValue(r.amount), 0);
-  const t = Math.max(0, toMoneyValue(targetTotal));
+  const sum = matched.reduce((a, r) => a + r.amount, 0);
+  const t = Math.max(0, targetTotal);
   if (matched.length === 1) {
     matched[0].amount = t;
     return;
@@ -126,72 +197,37 @@ function distributeKindAmount(rows: PretaxBenefitSource[], kind: PretaxBenefitKi
   });
 }
 
-/** Apply per-kind totals to rows (proportional split when multiple rows share a kind). */
 export function distributeAggregatedPretaxToSources(
   sources: PretaxBenefitSource[],
   target: AggregatedPretax,
 ): PretaxBenefitSource[] {
   const rows = sources.map(s => ({ ...s }));
-  for (const k of ALL_PRETAX_BENEFIT_KINDS) {
-    distributeKindAmount(rows, k, target[k]);
+  for (const slot of AGGREGATED_PRETAX_KEYS) {
+    distributeSlotAmount(rows, slot, target[slot]);
   }
   return rows;
 }
 
-/** IRS caps applied to aggregated amounts (same rules as legacy flat fields). */
-export function clampAggregatedPretaxToLimits(
-  agg: AggregatedPretax,
-  lim: PretaxBenefitLimits,
-  joint: boolean,
-): AggregatedPretax {
-  const c401 = lim.electiveDeferral401k;
-  const p1 = Math.min(toMoneyValue(agg.preTax401kSpouse1), c401);
-  const p2 = joint ? Math.min(toMoneyValue(agg.preTax401kSpouse2), c401) : 0;
-
-  let h1 = toMoneyValue(agg.preTaxHsaSpouse1);
-  let h2 = joint ? toMoneyValue(agg.preTaxHsaSpouse2) : 0;
-  if (joint) {
-    h1 = Math.min(h1, lim.hsaFamily);
-    h2 = Math.min(h2, Math.max(0, lim.hsaFamily - h1));
-  } else {
-    h1 = Math.min(h1, lim.hsaSelfOnly);
-    h2 = 0;
-  }
-
-  const iraCap = lim.traditionalIraContribution;
-  const i1 = Math.min(toMoneyValue(agg.traditionalIraSpouse1), iraCap);
-  const i2 = joint ? Math.min(toMoneyValue(agg.traditionalIraSpouse2), iraCap) : 0;
-
-  return {
-    preTax401kSpouse1: p1,
-    preTax401kSpouse2: joint ? p2 : 0,
-    preTaxHsaSpouse1: h1,
-    preTaxHsaSpouse2: joint ? h2 : 0,
-    preTaxOther: toMoneyValue(agg.preTaxOther),
-    traditionalIraSpouse1: i1,
-    traditionalIraSpouse2: joint ? i2 : 0,
-  };
-}
-
-export function filterPretaxSourcesForFiling(
-  sources: PretaxBenefitSource[],
-  joint: boolean,
-): PretaxBenefitSource[] {
-  if (joint) return sources;
-  return sources.filter(s => !isPretaxSpouse2Kind(s.kind));
-}
-
-/** One row per non-zero scalar (migration from legacy flat fields); at least one row. */
 export function pretaxScalarsToMinimalSources(agg: AggregatedPretax): PretaxBenefitSource[] {
   const rows: PretaxBenefitSource[] = [];
-  for (const k of ALL_PRETAX_BENEFIT_KINDS) {
-    const amt = toMoneyValue(agg[k]);
+  for (const slot of AGGREGATED_PRETAX_KEYS) {
+    const amt = agg[slot];
     if (amt > 0) {
-      rows.push(newPretaxBenefitSource({ kind: k, amount: amt }));
+      rows.push({
+        id: crypto.randomUUID ? crypto.randomUUID() : `ptx-${Math.random()}`,
+        kind: slot,
+        label: "",
+        amount: amt,
+      });
     }
   }
   if (rows.length === 0) {
-    rows.push(newPretaxBenefitSource({ kind: "preTax401kSpouse1" }));
+    rows.push({
+      id: crypto.randomUUID ? crypto.randomUUID() : `ptx-${Math.random()}`,
+      kind: "preTax401kSpouse1",
+      label: "",
+      amount: 0,
+    });
   }
   return rows;
 }

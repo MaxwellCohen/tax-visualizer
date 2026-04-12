@@ -57,10 +57,13 @@ export default function TaxSankey(props: TaxSankeyProps) {
     >
       <CollapsibleBlock title="Tax Flow" bodyClass="mt-4">
         <p class="mb-4 max-w-3xl text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          How to read this: start at gross income, then follow the flows into pre-tax payroll
-          benefits, deductions, federal tax buckets, taxes, and modeled take-home pay. The
-          &quot;shielded income&quot; path is a visual explanation of income removed by deductions, not
-          a literal cash account. Short-term capital gains still show as their own income stream on
+          How to read this: each income row on the left flows into ordinary or long-term taxable
+          income (by source), then follow the flows into pre-tax payroll
+          benefits, deductions, federal tax buckets, taxes, federal credits (when entered — drawn from the highest
+          marginal-rate slice first), separate federal-tax and payroll-tax bars, and a single take-home bar. The
+          &quot;shielded income&quot; path is a visual explanation of income removed by deductions and payroll
+          pre-tax amounts, not a literal cash account. Payroll tax ribbons attach only to ordinary / LTCG
+          ordinary bracket paths only (FICA does not apply to long-term gains, so LTCG bands have no payroll ribbons); payroll tax also appears as its own band beside ordinary brackets under ordinary taxable. Any remainder or from income rows as a fallback. Short-term capital gains still show as their own income stream on
           the left, but federal tax on them is not a separate band: the IRS taxes them as ordinary
           income, so that tax is included in the ordinary bracket slices (and any NIIT share in those
           slices&apos; totals).

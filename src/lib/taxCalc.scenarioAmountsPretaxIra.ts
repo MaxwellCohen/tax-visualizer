@@ -24,7 +24,8 @@ function computeScaled401HsaAndOrdinaryBase(
   inc: IncomeTotals,
   joint: boolean,
 ): Pretax401HsaScaled {
-  const { wageIncome, ordinaryGrossIncome } = inc;
+  const { wageIncome, ordinaryGrossIncome, selfEmploymentIncome } = inc;
+  const netSelfEmployment = selfEmploymentIncome * 0.9235;
   const cap401 = lim.electiveDeferral401k;
   const uncapped401_1 = toMoneyValue(pt.preTax401kSpouse1);
   const uncapped401_2 = joint ? toMoneyValue(pt.preTax401kSpouse2) : 0;
@@ -47,13 +48,14 @@ function computeScaled401HsaAndOrdinaryBase(
 
   const rawOther = toMoneyValue(pt.preTaxOther);
   const rawPretaxTotal = raw401 + rawHsa + rawOther;
-  const pretaxScale = wageIncome <= 0 ? 0 : rawPretaxTotal > wageIncome ? wageIncome / rawPretaxTotal : 1;
+  const wagesForScaling = wageIncome + netSelfEmployment;
+  const pretaxScale = wagesForScaling <= 0 ? 0 : rawPretaxTotal > wagesForScaling ? wagesForScaling / rawPretaxTotal : 1;
   const effective401 = raw401 * pretaxScale;
   const effectiveHsa = rawHsa * pretaxScale;
   const effectiveOther = rawOther * pretaxScale;
   const preTaxTotal = effective401 + effectiveHsa + effectiveOther;
-  const wagesAfterPretax = Math.max(0, wageIncome - preTaxTotal);
-  const ordinaryGrossForTax = wagesAfterPretax + (ordinaryGrossIncome - wageIncome);
+  const wagesAfterPretax = Math.max(0, wageIncome - effective401 - effectiveHsa - effectiveOther);
+  const ordinaryGrossForTax = wagesAfterPretax + (ordinaryGrossIncome - wageIncome) + netSelfEmployment;
 
   return {
     pretaxCapped401,
@@ -131,6 +133,7 @@ export function computePretaxIraSlice(
 
   const scaled = computeScaled401HsaAndOrdinaryBase(pt, lim, inc, joint);
   const ira = computeIraSlicePart(pt, lim, inc, joint, scaled.ordinaryGrossForTax, scaled.wagesAfterPretax);
+  const netSelfEmployment = inc.selfEmploymentIncome * 0.9235;
 
   return {
     joint,
@@ -146,6 +149,7 @@ export function computePretaxIraSlice(
     preTaxTotal: scaled.preTaxTotal,
     wagesAfterPretax: scaled.wagesAfterPretax,
     ordinaryGrossForTax: scaled.ordinaryGrossForTax,
+    selfEmploymentIncome: netSelfEmployment,
     effectiveIra: ira.effectiveIra,
     nonInvestmentOrdinaryGross: ira.nonInvestmentOrdinaryGross,
     nonInvestmentAfterIra: ira.nonInvestmentAfterIra,

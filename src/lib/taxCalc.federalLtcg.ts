@@ -24,7 +24,6 @@ export function calculateLongTermCapGainsTax(
     totalTax += taxAmount;
     segments.push({
       id: `ltcg-${Math.round(rate * 100)}`,
-      kind: "longTermCapGains",
       incomeAmount: amount,
       taxAmount,
       marginalRate: rate,

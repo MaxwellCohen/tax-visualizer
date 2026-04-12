@@ -1,5 +1,7 @@
 export {
   getAvailableTaxYears,
+  getFederalTaxCreditCaps,
+  getItemizedDeductionCaps,
   getPretaxLimits,
   getTaxYearConfig,
   isPlanningTaxYear,

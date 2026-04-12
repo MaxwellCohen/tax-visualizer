@@ -24,6 +24,10 @@ describe("taxData.constants", () => {
       expect(cfg.pretaxLimits.electiveDeferral401k).toBeGreaterThan(0);
       expect(cfg.pretaxLimits.hsaSelfOnly).toBeGreaterThan(0);
       expect(cfg.pretaxLimits.hsaFamily).toBeGreaterThan(cfg.pretaxLimits.hsaSelfOnly);
+      expect(cfg.itemizedCaps.saltMax.single).toBe(10_000);
+      expect(cfg.itemizedCaps.saltMax.marriedSeparate).toBe(5_000);
+      expect(cfg.federalTaxCreditCaps.childTaxCredit).toBeGreaterThan(0);
+      expect(cfg.federalTaxCreditCaps.retirementSavingsContributions).toBeGreaterThan(0);
       expect(cfg.status === "final" || cfg.status === "planning").toBe(true);
     }
   });

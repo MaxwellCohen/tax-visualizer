@@ -1,6 +1,6 @@
 import type { ChartNode } from "~/components/taxSankey/chartTypes";
 import { SANKEY_SIBLING_RANK } from "~/components/taxSankey/sankeySiblingRank.constants";
-import { INCOME_KIND_CHART_ORDER } from "~/lib/taxCharts";
+import { INCOME_KIND_CHART_ORDER_BY_KIND } from "~/lib/config/sankeyOrder.config";
 
 function compareOrdinaryVsLongTermTaxable(a: ChartNode, b: ChartNode): number | null {
   if (a.kind === "ordinaryTaxableIncome" && b.kind === "longTermTaxableIncome") return 1;
@@ -13,7 +13,7 @@ function compareIncomeSourceSiblings(a: ChartNode, b: ChartNode): number | null 
   const ka = a.incomeKind;
   const kb = b.incomeKind;
   if (ka && kb) {
-    const kindDiff = INCOME_KIND_CHART_ORDER[ka] - INCOME_KIND_CHART_ORDER[kb];
+    const kindDiff = INCOME_KIND_CHART_ORDER_BY_KIND[ka] - INCOME_KIND_CHART_ORDER_BY_KIND[kb];
     if (kindDiff !== 0) return kindDiff;
   }
   return a.label.localeCompare(b.label);
@@ -40,12 +40,41 @@ function compareDeferredSinkSiblings(a: ChartNode, b: ChartNode): number | null 
   return a.label.localeCompare(b.label);
 }
 
+function compareDeductionSiblings(a: ChartNode, b: ChartNode): number | null {
+  if (a.kind !== "standardDeduction" && a.kind !== "deduction") return null;
+  if (b.kind !== "standardDeduction" && b.kind !== "deduction") return null;
+  if (a.kind === "deduction" && b.kind === "standardDeduction") return 1;
+  if (a.kind === "standardDeduction" && b.kind === "deduction") return -1;
+  return null;
+}
+
+/**
+ * When nodes share a depth, order top → bottom: long-term (capital gains) brackets, payroll strip,
+ * then ordinary rate brackets — payroll sits at the top of the ordinary block but below LTCG.
+ */
+function compareCapitalGainsPayrollOrdinaryStack(a: ChartNode, b: ChartNode): number | null {
+  const tier = (n: ChartNode): number | null => {
+    if (n.kind === "ltcgBracket") return 0;
+    if (n.kind === "payrollOrdinaryStrip") return 1;
+    if (n.kind === "ordinaryBracket") return 2;
+    return null;
+  };
+  const ta = tier(a);
+  const tb = tier(b);
+  if (ta === null || tb === null) return null;
+  if (ta !== tb) return ta - tb;
+  return null;
+}
+
 export function compareSankeySiblings(a: ChartNode, b: ChartNode): number {
   const taxable = compareOrdinaryVsLongTermTaxable(a, b);
   if (taxable !== null) return taxable;
 
   const income = compareIncomeSourceSiblings(a, b);
   if (income !== null) return income;
+
+  const stack = compareCapitalGainsPayrollOrdinaryStack(a, b);
+  if (stack !== null) return stack;
 
   const ord = compareOrdinaryBracketSiblings(a, b);
   if (ord !== null) return ord;
@@ -55,6 +84,9 @@ export function compareSankeySiblings(a: ChartNode, b: ChartNode): number {
 
   const def = compareDeferredSinkSiblings(a, b);
   if (def !== null) return def;
+
+  const deduction = compareDeductionSiblings(a, b);
+  if (deduction !== null) return deduction;
 
   return SANKEY_SIBLING_RANK[a.kind] - SANKEY_SIBLING_RANK[b.kind];
 }

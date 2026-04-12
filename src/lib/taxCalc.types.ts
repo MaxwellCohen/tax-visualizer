@@ -1,87 +1,200 @@
 import type { FilingStatus } from "~/lib/taxData.types";
-import type { PretaxBenefitSource } from "~/lib/taxCalc.pretaxBenefitSource";
 
-export type IncomeKind = "wages" | "ordinary" | "shortTermCapGains" | "longTermCapGains";
+export type IncomeKind = "wages" | "ordinary" | "shortTermCapGains" | "longTermCapGains" | "selfEmployment";
 
-export type { PretaxBenefitKind, PretaxBenefitSource } from "~/lib/taxCalc.pretaxBenefitSource";
+export type TaxResultEntry = {
+  kind: string;
+  value: number;
+  label?: string;
+  category?: string;
+  marginalRate?: number;
+  rangeStart?: number;
+  rangeEnd?: number | null;
+};
+
+export type TaxSegment = {
+  id?: string;
+  rangeStart: number;
+  rangeEnd: number | null;
+  incomeAmount: number;
+  taxAmount: number;
+  marginalRate: number;
+};
 
 export type IncomeSource = {
   id: string;
   kind: IncomeKind;
-  /** Shown in charts; if empty, a default by kind is used. */
   label: string;
   amount: number;
 };
+
+export type PretaxBenefitKind = 
+  | "preTax401kSpouse1"
+  | "preTax403bSpouse1"
+  | "preTax457bSpouse1"
+  | "preTax401kSpouse2"
+  | "preTax403bSpouse2"
+  | "preTax457bSpouse2"
+  | "preTaxHsaSpouse1"
+  | "preTaxHsaSpouse2"
+  | "preTaxOther"
+  | "preTaxHealthFsaSpouse1"
+  | "preTaxHealthFsaSpouse2"
+  | "preTaxDependentCareFsaSpouse1"
+  | "preTaxDependentCareFsaSpouse2"
+  | "preTaxCommuterSpouse1"
+  | "preTaxCommuterSpouse2"
+  | "traditionalIraSpouse1"
+  | "traditionalIraSpouse2";
+
+export type PretaxBenefitSource = {
+  id: string;
+  kind: PretaxBenefitKind;
+  label: string;
+  amount: number;
+};
+
+export type ItemizedDeductionKind = 
+  | "medicalDental"
+  | "salt"
+  | "mortgageInterest"
+  | "investmentInterest"
+  | "charitable"
+  | "casualtyTheft"
+  | "otherItemized";
+
+export type ItemizedDeductionSource = {
+  id: string;
+  kind: ItemizedDeductionKind;
+  label: string;
+  amount: number;
+};
+
+export type FederalTaxCreditKind = 
+  | "childTaxCredit"
+  | "creditForOtherDependents"
+  | "childAndDependentCare"
+  | "educationCredits"
+  | "retirementSavingsContributions"
+  | "foreignTaxCredit"
+  | "residentialCleanEnergy"
+  | "electricVehicleCredit"
+  | "generalBusinessCredit"
+  | "otherFederalCredit";
+
+export type FederalTaxCreditSource = {
+  id: string;
+  kind: FederalTaxCreditKind;
+  label: string;
+  amount: number;
+};
+
+export type DeductionKind = "standard" | "itemized";
 
 export type TaxInput = {
   taxYear: number;
   filingStatus: FilingStatus;
   incomeSources: IncomeSource[];
-  /**
-   * Pre-tax payroll + deductible traditional IRA lines. Multiple rows may share a kind; amounts aggregate
-   * before caps and wage scaling in `taxCalc`.
-   */
   pretaxBenefitSources: PretaxBenefitSource[];
   useItemizedDeductions: boolean;
-  itemizedDeductions: number;
-};
-
-export type DeductionKind = "standard" | "itemized";
-type TaxSegmentKind = "ordinaryFederal" | "longTermCapGains";
-
-export type TaxSegment = {
-  id: string;
-  kind: TaxSegmentKind;
-  incomeAmount: number;
-  taxAmount: number;
-  marginalRate: number;
-  rangeStart: number;
-  rangeEnd: number | null;
+  itemizedDeductions: ItemizedDeductionSource[];
+  federalTaxCredits: FederalTaxCreditSource[];
 };
 
 export type TaxResult = {
+  entries: TaxResultEntry[];
   taxYear: number;
   filingStatus: FilingStatus;
   incomeSources: IncomeSource[];
+  ordinaryFederalSegments: TaxSegment[];
+  longTermCapitalGainsSegments: TaxSegment[];
+  warnings: string[];
+  notes: string[];
+  get(kind: string): number | undefined;
   totalIncome: number;
   wageIncome: number;
+  selfEmploymentIncome: number;
   ordinaryGrossIncome: number;
-  /** Gross short-term capital gains (before deductions); taxed as ordinary income (IRS Topic 409). */
   shortTermCapGainsGrossIncome: number;
   longTermCapitalGainsGrossIncome: number;
-  /** Effective amounts after capping to total W-2 wages (pro-rated if over). */
   preTax401k: number;
   preTaxHsa: number;
   preTaxOther: number;
-  /** Payroll pre-tax only (401(k), HSA, other); traditional IRA is separate. */
   preTaxTotal: number;
-  /** Effective deductible traditional IRA after IRS per-person and compensation caps in this model. */
   traditionalIra: number;
   wagesAfterPretax: number;
   deductionKind: DeductionKind;
   standardDeduction: number;
   deductionAmount: number;
-  /** Ordinary + short-term + wages slice after deductions (federal ordinary brackets). */
+  deductionAllocatedToOrdinary: number;
+  deductionAllocatedToLongTermGross: number;
   ordinaryTaxableIncome: number;
-  /** Long-term capital gain amount after deductions (preferential LTCG rates). */
   longTermTaxableIncome: number;
   taxableIncome: number;
-  /** Federal tax on ordinary taxable income (progressive brackets). */
   federalOrdinaryIncomeTax: number;
-  /** Federal tax on long-term gains (0% / 15% / 20% stacked on ordinary taxable income). */
   federalLongTermCapGainsTax: number;
-  /** §1411 net investment income tax (simplified: investment income ×3.8% capped by MAGI over threshold). */
   federalNetInvestmentIncomeTax: number;
-  /** Sum of taxable STCG + taxable LTCG used as net investment income for the NIIT estimate. */
   netInvestmentIncome: number;
+  federalIncomeTaxBeforeCredits: number;
+  federalTaxCredits: number;
+  federalTaxCreditsApplied: number;
   federalIncomeTax: number;
   payrollTax: number;
+  selfEmploymentTax: number;
   socialSecurityTax: number;
   medicareTax: number;
   takeHomePay: number;
   effectiveTaxRate: number;
-  ordinaryFederalSegments: TaxSegment[];
-  longTermCapitalGainsSegments: TaxSegment[];
-  warnings: string[];
-  notes: string[];
 };
+
+let incomeSourceSeq = 0;
+let pretaxBenefitSeq = 0;
+let itemizedDeductionSeq = 0;
+let federalTaxCreditSeq = 0;
+
+function newId(prefix: string): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${prefix}-${++incomeSourceSeq}`;
+}
+
+export function newIncomeSource(overrides?: Partial<Omit<IncomeSource, "id">>): IncomeSource {
+  return {
+    id: newId("inc"),
+    kind: "wages",
+    label: "",
+    amount: 0,
+    ...overrides,
+  };
+}
+
+export function newPretaxBenefitSource(overrides?: Partial<Omit<PretaxBenefitSource, "id">>): PretaxBenefitSource {
+  return {
+    id: newId("ptx"),
+    kind: "preTax401kSpouse1",
+    label: "",
+    amount: 0,
+    ...overrides,
+  };
+}
+
+export function newItemizedDeductionSource(overrides?: Partial<Omit<ItemizedDeductionSource, "id">>): ItemizedDeductionSource {
+  return {
+    id: newId("itm"),
+    kind: "otherItemized",
+    label: "",
+    amount: 0,
+    ...overrides,
+  };
+}
+
+export function newFederalTaxCreditSource(overrides?: Partial<Omit<FederalTaxCreditSource, "id">>): FederalTaxCreditSource {
+  return {
+    id: newId("crd"),
+    kind: "childTaxCredit",
+    label: "",
+    amount: 0,
+    ...overrides,
+  };
+}
