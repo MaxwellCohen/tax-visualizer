@@ -4,19 +4,15 @@ import type { TaxResult } from "~/lib/taxForm.types";
 import { buildMekkoRows } from "~/lib/taxCharts";
 import { MekkoChartSvg } from "~/components/taxMekko/MekkoChartSvg";
 import { computeMekkoLayout } from "~/components/taxMekko/mekkoLayout";
-import { resolveTaxChartMetrics } from "~/lib/taxResult.resolve";
 
 type TaxMekkoProps = {
   result: TaxResult;
 };
 
 export default function TaxMekko(props: TaxMekkoProps) {
-  const metrics = createMemo(() => resolveTaxChartMetrics(props.result));
-
   const layout = createMemo(() => {
-    const m = metrics();
-    const rows = props.result.display?.mekko.rows ?? buildMekkoRows(m);
-    return computeMekkoLayout(m, rows);
+    const rows = props.result.display?.mekko.rows ?? buildMekkoRows(props.result);
+    return computeMekkoLayout(props.result, rows);
   });
 
   return (
@@ -46,7 +42,7 @@ export default function TaxMekko(props: TaxMekkoProps) {
             </p>
           }
         >
-          {L => <MekkoChartSvg L={L} metrics={metrics()} />}
+          {L => <MekkoChartSvg L={L} result={props.result} />}
         </Show>
       </CollapsibleBlock>
     </section>

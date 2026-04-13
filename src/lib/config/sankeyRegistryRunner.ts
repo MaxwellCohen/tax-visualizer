@@ -18,10 +18,3 @@ export function runSankeyRegistryAppendersForPhase(
   }
 }
 
-/** Registry rows that participate in Sankey via `phase` + optional `append` (for tooling). */
-export function chartMetricsRegistryEntriesWithSankeyAppend(): readonly ChartRegistryEntry[] {
-  return CHART_REGISTRY.filter(
-    (e): e is ChartRegistryEntry & { sankey: NonNullable<ChartRegistryEntry["sankey"]> } =>
-      e.sankey != null && (e.sankey.phase != null || e.sankey.append != null),
-  );
-}

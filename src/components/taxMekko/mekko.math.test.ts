@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateTaxes, resolveTaxChartMetrics } from "~/lib/taxCalc";
+import { calculateTaxes } from "~/lib/taxCalc";
 import { baseInput } from "~/lib/taxCalc.test.helpers";
 import { buildMekkoRows } from "~/lib/taxCharts";
 import { computeMekkoLayout } from "~/components/taxMekko/mekkoLayout";
@@ -38,9 +38,8 @@ describe("incomeScale", () => {
 describe("computeMekkoLayout", () => {
   it("returns layout for non-empty rows", () => {
     const result = calculateTaxes(baseInput())!;
-    const metrics = resolveTaxChartMetrics(result);
-    const rows = result.display?.mekko.rows ?? buildMekkoRows(metrics);
-    const layout = computeMekkoLayout(metrics, rows);
+    const rows = result.display?.mekko.rows ?? buildMekkoRows(result);
+    const layout = computeMekkoLayout(result, rows);
     expect(layout).toBeDefined();
     expect(layout!.rowLayouts.length).toBe(rows.length);
     expect(layout!.yTicks.length).toBeGreaterThan(0);
@@ -48,7 +47,6 @@ describe("computeMekkoLayout", () => {
 
   it("returns undefined when no rows", () => {
     const result = calculateTaxes(baseInput())!;
-    const metrics = resolveTaxChartMetrics(result);
-    expect(computeMekkoLayout(metrics, [])).toBeUndefined();
+    expect(computeMekkoLayout(result, [])).toBeUndefined();
   });
 });

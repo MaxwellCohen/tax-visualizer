@@ -1,4 +1,4 @@
-import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import { getLongTermCapitalGainsSegments, getOrdinaryFederalSegments } from "~/lib/taxChartMetricRead";
 import { SANKEY_IDS } from "~/lib/taxCharts.sankey.constants";
 import { formatLtcgBracketLabel, formatOrdinaryBracketLabel } from "~/lib/taxCharts.sankeyFormat";
 import type { SankeyChartNode } from "~/lib/taxCharts.types";
@@ -38,9 +38,9 @@ function pushBracketIncomeLinkAndRetainedSlice(
 
 /** Registry `ordinaryFederalSegments` — ordinary bracket column nodes + links from OTI. */
 export function appendOrdinaryBracketSankey(ctx: SankeyMetricAppendContext): void {
-  const { m, s } = ctx;
+  const { result, s } = ctx;
   const oScale = s.ordinaryBracketLinkScale;
-  for (const segment of m.ordinaryFederalSegments) {
+  for (const segment of getOrdinaryFederalSegments(result)) {
     const nodeId = ordinaryBracketNodeId(segment);
     const niitPart = s.niitBySegment.ordinary.get(ordinarySegmentKey(segment)) ?? 0;
     const taxWithNiit = segment.taxAmount + niitPart;
@@ -69,8 +69,8 @@ export function appendOrdinaryBracketSankey(ctx: SankeyMetricAppendContext): voi
 
 /** Registry `longTermCapitalGainsSegments` — LTCG bracket column + links from LTCG taxable. */
 export function appendLtcgBracketSankey(ctx: SankeyMetricAppendContext): void {
-  const { m, s } = ctx;
-  for (const segment of m.longTermCapitalGainsSegments) {
+  const { result, s } = ctx;
+  for (const segment of getLongTermCapitalGainsSegments(result)) {
     const nodeId = ltcgBracketNodeId(segment);
     const niitPart = s.niitBySegment.ltcg.get(ltcgSegmentKey(segment)) ?? 0;
     const taxWithNiit = segment.taxAmount + niitPart;

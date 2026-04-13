@@ -1,7 +1,7 @@
 import { createMemo, createSignal, Show, type Setter } from "solid-js";
 import { render, screen, waitFor } from "@solidjs/testing-library";
 import { describe, expect, it } from "vitest";
-import { calculateTaxes, incomeSourcesToRows, resolveTaxChartMetrics, type TaxFormData } from "~/lib/taxCalc";
+import { calculateTaxes, getOrdinaryFederalSegments, incomeSourcesToRows, type TaxFormData } from "~/lib/taxCalc";
 import { getAvailableTaxYears } from "~/lib/taxData";
 import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { HomeTaxResults } from "./HomeTaxResults";
@@ -23,8 +23,7 @@ describe("HomeTaxResults", () => {
     const defaultYear = getAvailableTaxYears()[0] ?? 2024;
     const r = calculateTaxes(starterScenario(defaultYear));
     expect(r).not.toBeNull();
-    const m = resolveTaxChartMetrics(r!);
-    expect(m.ordinaryFederalSegments?.length).toBeGreaterThan(0);
+    expect(getOrdinaryFederalSegments(r!).length).toBeGreaterThan(0);
   });
 
   it("updates when taxResult goes from null to a value", async () => {

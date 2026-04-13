@@ -6,11 +6,9 @@
 import type { TaxCalculationState } from "~/lib/taxConfig.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
 import { createInitialState } from "~/lib/taxConfig.types";
-import { CHART_REGISTRY } from "~/lib/config/chartMetricsRegistry";
-import { chartMetricNumeric, computeTaxChartMetrics } from "~/lib/config/pipelineTaxResult.config";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
 import type { TaxSegment } from "~/lib/taxCalc.types";
-import type { TaxChartMetrics, TaxComputedRow, TaxComputedSegmentRow, TaxFormRow } from "~/lib/taxForm.types";
+import type { TaxComputedRow, TaxComputedSegmentRow, TaxFormRow, TaxMetricLine } from "~/lib/taxForm.types";
 
 export { createInitialState } from "~/lib/taxConfig.types";
 export type { TaxCalculationInputs, TaxCalculationState, TaxItemResult } from "~/lib/taxConfig.types";
@@ -24,22 +22,22 @@ export function runCalculationPipeline(rows: TaxFormRow[], config: TaxYearConfig
 
 export type TaxSerializedPipelineRow = TaxComputedRow | TaxComputedSegmentRow;
 
-/** Serialize chart metrics to result rows ({@link CHART_REGISTRY} order; segment metrics use {@link TaxComputedSegmentRow}). */
-export function metricsToComputedRows(metrics: TaxChartMetrics): TaxSerializedPipelineRow[] {
+/** Serialize pipeline metric lines onto {@link TaxResult.rows} (same order as {@link TaxMetricLine}[]). */
+export function metricLinesToComputedRows(lines: readonly TaxMetricLine[]): TaxSerializedPipelineRow[] {
   const rows: TaxSerializedPipelineRow[] = [];
-  for (const entry of CHART_REGISTRY) {
-    const key = entry.metricsKey;
-    if (entry.valueKind === "segments") {
+  for (const line of lines) {
+    if (line.valueKind === "segments") {
       rows.push({
         type: "computed-segments",
-        id: key,
-        segments: Array.isArray(metrics[key]) ? (metrics[key] as TaxSegment[]) : [],
+        id: line.metricsKey,
+        segments: Array.isArray(line.value) ? (line.value as TaxSegment[]) : [],
       });
-    } else {
+    } else if (line.valueKind === "number") {
+      const v = line.value;
       rows.push({
         type: "computed",
-        id: key,
-        value: chartMetricNumeric(metrics, key),
+        id: line.metricsKey,
+        value: typeof v === "number" && Number.isFinite(v) ? v : 0,
       });
     }
   }

@@ -23,10 +23,8 @@
  */
 import type { DeductionKind, IncomeKind, TaxSegment } from "~/lib/taxCalc.types";
 import type {
-  DisplayItem,
   DisplayItemConfig,
   DisplayItemFormat,
-  TaxChartMetrics,
   TaxFormRow,
   TaxMetricComputedValue,
   TaxMetricLine,
@@ -603,7 +601,8 @@ export type ChartMetricSummaryHint = {
   displayOrder: number;
   format?: "currency" | "percent" | "number";
   highlight?: boolean;
-  showWhen?: (m: TaxChartMetrics) => boolean;
+  /** Omit from summary when this row’s metric value is zero or negative. */
+  hideWhenZero?: boolean;
 };
 
 function incomeSummary(incomeKindId: string, displayOrder: number): ChartMetricSummaryHint {
@@ -637,7 +636,7 @@ function federalCreditSummary(cfg: (typeof FEDERAL_CREDIT_CONFIGS)[number], disp
 
 
 /** Builds the context passed to each registry `compute`; tax math runs only inside those computes. */
-export function buildChartMetricComputeContext(
+function buildChartMetricComputeContext(
   formRows: TaxFormRow[],
   inputs: TaxCalculationInputs,
   config: TaxYearConfig,
@@ -663,7 +662,7 @@ export type ChartMetricDetailedDisplayHint = {
 };
 
 export type ChartRegistryEntry = {
-  metricsKey: keyof TaxChartMetrics;
+  metricsKey: string;
   valueKind: ChartMetricValueKind;
   /** Optional display id → chart key (see VISUALIZATION_METRIC_ID_TO_CHART_KEY). */
   visualizationSourceId?: string;
@@ -1186,7 +1185,7 @@ export const CHART_REGISTRY: readonly ChartRegistryEntry[] = [
       label: "Self-Employment Tax",
       category: "tax",
       displayOrder: 27,
-      showWhen: (m) => m.selfEmploymentTax > 0,
+      hideWhenZero: true,
     },
     detailedDisplay: {
       order: 123,
@@ -1388,7 +1387,7 @@ function collectStructuralNodesFromRegistry(registry: readonly ChartRegistryEntr
 }
 
 /** Derived from `sankey.structuralNode(s)` on {@link CHART_REGISTRY} rows. */
-export const SANKEY_NODE_LAYOUT: readonly SankeyNodeLayoutEntry[] = collectStructuralNodesFromRegistry(CHART_REGISTRY);
+const SANKEY_NODE_LAYOUT: readonly SankeyNodeLayoutEntry[] = collectStructuralNodesFromRegistry(CHART_REGISTRY);
 
 /** Fallback when a node kind is not listed (e.g. future kinds). */
 export const SANKEY_NODE_FILL_DEFAULT = "var(--sankey-node-7)";
@@ -1419,11 +1418,13 @@ export const SEGMENT_METRIC_KEYS_FROM_REGISTRY = new Set(
 /** Pipeline serialization order (matches registry array order). */
 export const PIPELINE_COMPUTED_ROW_ORDER_FULL_FROM_REGISTRY = CHART_REGISTRY.map((e) => e.metricsKey);
 
-/** Fold metric lines into the record shape used by charts (single adapter). */
-export function taxMetricsRecordFromLines(lines: readonly TaxMetricLine[]): TaxChartMetrics {
-  const m = {} as TaxChartMetrics;
+/** Internal fold for legacy callers; UI should read {@link TaxResult.metricLines} / rows instead. */
+export function taxMetricsRecordFromLines(
+  lines: readonly TaxMetricLine[],
+): Partial<Record<string, TaxMetricComputedValue>> {
+  const m: Partial<Record<string, TaxMetricComputedValue>> = {};
   for (const line of lines) {
-    (m as Record<string, unknown>)[line.metricsKey as string] = line.value;
+    m[line.metricsKey] = line.value;
   }
   return m;
 }
@@ -1431,7 +1432,7 @@ export function taxMetricsRecordFromLines(lines: readonly TaxMetricLine[]): TaxC
 /**
  * Single driver: builds {@link TaxMetricLine}[] by iterating {@link CHART_REGISTRY} in order. Each `compute`
  * fills {@link ChartMetricComputeContext.accreted} via `accrete*` helpers and returns the metric value. Produces
- * {@link TaxChartMetrics} via {@link taxMetricsRecordFromLines}.
+ * {@link taxMetricsRecordFromLines} when a folded record is needed.
  */
 export function computeTaxMetricLines(
   formRows: TaxFormRow[],
@@ -1451,37 +1452,20 @@ export function computeTaxChartMetricsFromRegistry(
   formRows: TaxFormRow[],
   _state: TaxCalculationState,
   config: TaxYearConfig,
-): TaxChartMetrics {
+): Partial<Record<string, TaxMetricComputedValue>> {
   const lines = computeTaxMetricLines(formRows, _state.inputs, config);
   return taxMetricsRecordFromLines(lines);
 }
 
 /** Build VISUALIZATION_METRIC_ID_TO_CHART_KEY from registry `visualizationSourceId` fields. */
-export function buildVisualizationMetricIdToChartKey(): Partial<Record<string, keyof TaxChartMetrics>> {
-  const out: Partial<Record<string, keyof TaxChartMetrics>> = {};
+export function buildVisualizationMetricIdToChartKey(): Partial<Record<string, string>> {
+  const out: Partial<Record<string, string>> = {};
   for (const e of CHART_REGISTRY) {
     if (e.visualizationSourceId) {
       out[e.visualizationSourceId] = e.metricsKey;
     }
   }
   return out;
-}
-
-/** Stable keys for segment arrays (from registry; use instead of string literals in charts). */
-const METRIC_KEY_ORDINARY_FEDERAL_SEGMENTS = CHART_REGISTRY.find(
-  (e) => e.metricsKey === "ordinaryFederalSegments",
-)!.metricsKey;
-
-const METRIC_KEY_LONG_TERM_CAPGAINS_SEGMENTS = CHART_REGISTRY.find(
-  (e) => e.metricsKey === "longTermCapitalGainsSegments",
-)!.metricsKey;
-
-export function getOrdinaryFederalSegments(m: TaxChartMetrics): TaxSegment[] {
-  return m[METRIC_KEY_ORDINARY_FEDERAL_SEGMENTS] as TaxSegment[];
-}
-
-export function getLongTermCapitalGainsSegments(m: TaxChartMetrics): TaxSegment[] {
-  return m[METRIC_KEY_LONG_TERM_CAPGAINS_SEGMENTS] as TaxSegment[];
 }
 
 function getCategoryColor(category: DisplayItemConfig["category"]): string {
@@ -1494,11 +1478,6 @@ function getCategoryColor(category: DisplayItemConfig["category"]): string {
     summary: "#0d9488",
   };
   return colors[category];
-}
-
-function chartMetricNumericForDisplay(m: TaxChartMetrics, key: keyof TaxChartMetrics): number {
-  const v = m[key];
-  return typeof v === "number" && Number.isFinite(v) ? v : 0;
 }
 
 /** Detailed breakdown rows from registry `detailedDisplay` metadata. */
@@ -1523,24 +1502,5 @@ function buildDisplayItemsConfig(): DisplayItemConfig[] {
     .sort((a, b) => a.order - b.order);
 }
 
+/** Registry order for the detailed breakdown panel (see {@link buildDisplayItems} in `~/lib/taxDisplayItems`). */
 export const DISPLAY_ITEMS_CONFIG: DisplayItemConfig[] = buildDisplayItemsConfig();
-
-/** Display items from resolved chart metrics (same values as this registry). */
-export function buildDisplayItems(m: TaxChartMetrics): DisplayItem[] {
-  const displayItems: DisplayItem[] = [];
-  for (const config of DISPLAY_ITEMS_CONFIG) {
-    const amount = chartMetricNumericForDisplay(m, config.metricsKey);
-    displayItems.push({
-      type: config.type,
-      amount,
-      label: config.label,
-      category: config.category,
-      color: config.color,
-      format: config.format,
-      order: config.order,
-      tooltip: config.tooltip,
-      highlight: config.highlight,
-    });
-  }
-  return displayItems.sort((a, b) => a.order - b.order);
-}

@@ -15,7 +15,7 @@ const PRETAX_MODELING_NOTES: Record<string, string> = {
 };
 
 /** Map row `kind` (e.g. `preTax401kSpouse1`) to `FORM_PRETAX_ITEMS[].id` for labels and limit copy. */
-export function pretaxKindToFormItemId(kind: string): string {
+function pretaxKindToFormItemId(kind: string): string {
   const k = kind.toLowerCase();
   if (k.includes("401k") || k.includes("403b") || k.includes("457")) return "401k";
   if (k.includes("hsa")) return "hsa";

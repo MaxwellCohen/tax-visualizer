@@ -1,4 +1,4 @@
-import type { TaxChartMetrics, TaxResult, TaxResultDisplay } from "~/lib/taxForm.types";
+import type { TaxResult, TaxResultDisplay } from "~/lib/taxForm.types";
 import { buildMekkoRows } from "~/lib/taxCharts.buildMekko";
 import { allocateFederalCreditsTopMarginalSlices } from "~/lib/taxCharts.visualizationBundle";
 import { SANKEY_BUILD_PHASES, initSankeyScratch } from "~/lib/config/sankeyBuildPhases.config";
@@ -6,12 +6,12 @@ import { SANKEY_BUILD_PHASES, initSankeyScratch } from "~/lib/config/sankeyBuild
 /**
  * Builds Sankey graph + Mekko rows once from pipeline metrics. Federal credit split is shared between both.
  */
-export function buildTaxResultDisplayBundle(m: TaxChartMetrics, result: TaxResult): TaxResultDisplay {
-  const federalCreditsByBracket = allocateFederalCreditsTopMarginalSlices(m);
-  const mekkoRows = buildMekkoRows(m, federalCreditsByBracket);
-  const s = initSankeyScratch(m, result);
+export function buildTaxResultDisplayBundle(result: TaxResult): TaxResultDisplay {
+  const federalCreditsByBracket = allocateFederalCreditsTopMarginalSlices(result);
+  const mekkoRows = buildMekkoRows(result, federalCreditsByBracket);
+  const s = initSankeyScratch(result);
   for (const phase of SANKEY_BUILD_PHASES) {
-    phase.append(m, result, s);
+    phase.append(result, s);
   }
   return {
     sankey: {

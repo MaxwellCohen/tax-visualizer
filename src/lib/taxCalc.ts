@@ -10,7 +10,6 @@ export type {
   TaxResult,
   TaxResultDisplay,
   TaxResultMekkoDisplay,
-  TaxChartMetrics,
   TaxComputedRow,
   TaxComputedSegmentRow,
   TaxResultRow,
@@ -43,16 +42,22 @@ export {
   runCalculationPipeline,
   createInitialState,
   computeTaxChartMetrics,
-  metricsToComputedRows,
+  metricLinesToComputedRows,
 } from "~/lib/taxCalc.pipeline";
 export type { TaxSerializedPipelineRow } from "~/lib/taxCalc.pipeline";
-export { resolveTaxChartMetrics } from "~/lib/taxResult.resolve";
 export {
-  buildDisplayItems,
+  chartMetricNumeric,
+  chartMetricSegments,
+  deductionKindFromTaxResult,
+  getLongTermCapitalGainsSegments,
+  getOrdinaryFederalSegments,
+} from "~/lib/taxChartMetricRead";
+export {
   computeTaxMetricLines,
   DISPLAY_ITEMS_CONFIG,
   taxMetricsRecordFromLines,
 } from "~/lib/config/chartMetricsRegistry";
+export { buildDisplayItems } from "~/lib/taxDisplayItems";
 export type { ChartMetricSummaryHint, ChartMetricSummaryCategory } from "~/lib/config/chartMetricsRegistry";
 
 export { PRETAX_BENEFIT_CONFIGS, INCOME_KIND_CONFIGS, DEDUCTION_KIND_CONFIGS, FEDERAL_CREDIT_CONFIGS, SELF_EMPLOYMENT_CONFIGS, calculateBracketTax, calculateLtcgTax } from "~/lib/config/taxItems";
@@ -62,7 +67,6 @@ export { PRETAX_BENEFIT_KIND_VALUES } from "~/lib/taxCalc.pretaxBenefitSource";
 export { ITEMIZED_DEDUCTION_KIND_VALUES } from "~/lib/taxCalc.itemizedDeductionSource";
 export { FEDERAL_TAX_CREDIT_KIND_VALUES } from "~/lib/taxCalc.federalTaxCreditSource";
 
-export { chartMetricNumeric } from "~/lib/config/pipelineTaxResult.config";
 export type { MetricDisplay } from "~/lib/taxVisualization.config";
 
 export {

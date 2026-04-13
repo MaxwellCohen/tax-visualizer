@@ -1,7 +1,4 @@
 import type { TaxResult } from "~/lib/taxForm.types";
-import type { TaxChartMetrics } from "~/lib/taxForm.types";
-import { resolveTaxChartMetrics } from "~/lib/taxResult.resolve";
-import type { VisualizationConfig, VisualizationMetric, VisualizationFootnote } from "~/lib/taxConfig.types";
 import { CHART_REGISTRY, chartMetricNumeric } from "~/lib/config/pipelineTaxResult.config";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -16,7 +13,7 @@ const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
 
-export type MetricValueGetter = (m: TaxChartMetrics) => number | undefined;
+export type MetricValueGetter = (result: TaxResult) => number | undefined;
 
 export type MetricConfig = {
   id: string;
@@ -24,7 +21,8 @@ export type MetricConfig = {
   getValue: MetricValueGetter;
   format: "currency" | "percent" | "number";
   highlight?: boolean;
-  showWhen?: (m: TaxChartMetrics) => boolean;
+  showWhen?: (result: TaxResult) => boolean;
+  hideWhenZero?: boolean;
   displayOrder: number;
   category: "income" | "pretax" | "deduction" | "tax" | "credits" | "takehome" | "rate";
 };
@@ -38,12 +36,12 @@ function buildDefaultMetricsConfig(): MetricConfig[] {
     configs.push({
       id: s.summaryId,
       label: s.label,
-      getValue: (m) => chartMetricNumeric(m, e.metricsKey),
+      getValue: (result) => chartMetricNumeric(result, e.metricsKey),
       format: s.format ?? "currency",
       displayOrder: s.displayOrder,
       category: s.category,
       highlight: s.highlight,
-      showWhen: s.showWhen,
+      hideWhenZero: s.hideWhenZero,
     });
   }
   configs.sort((a, b) => a.displayOrder - b.displayOrder);
@@ -63,12 +61,17 @@ export type MetricDisplay = {
 
 export function computeMetrics(result: TaxResult, config?: MetricConfig[]): MetricDisplay[] {
   const metrics = config ?? DEFAULT_METRICS;
-  const chart = resolveTaxChartMetrics(result);
 
   return metrics
-    .filter((row) => !row.showWhen || row.showWhen(chart))
+    .filter((row) => {
+      if (row.hideWhenZero) {
+        const v = row.getValue(result);
+        if (v == null || v <= 0) return false;
+      }
+      return !row.showWhen || row.showWhen(result);
+    })
     .map((row) => {
-      const value = row.getValue(chart);
+      const value = row.getValue(result);
       const formatted = formatValue(value, row.format);
       return {
         id: row.id,
@@ -94,40 +97,55 @@ function formatValue(value: number | undefined, format: "currency" | "percent" |
   }
 }
 
-const FOOTNOTE_TEMPLATES: Record<string, (m: TaxChartMetrics) => string> = {
-  "effective-rate-formula": () => `(federal income tax + payroll tax + self-employment tax) / (gross income - payroll pre-tax - traditional IRA + net SE earnings)`,
-  "take-home-formula": () => `gross income - payroll pre-tax - federal income tax - payroll tax - self-employment tax - traditional IRA`,
-  "pretax-breakdown": (m) => {
+const FOOTNOTE_TEMPLATES: Record<string, (result: TaxResult) => string> = {
+  "effective-rate-formula": () =>
+    `(federal income tax + payroll tax + self-employment tax) / (gross income - payroll pre-tax - traditional IRA + net SE earnings)`,
+  "take-home-formula": () =>
+    `gross income - payroll pre-tax - federal income tax - payroll tax - self-employment tax - traditional IRA`,
+  "pretax-breakdown": (result) => {
     const parts: string[] = [];
-    if (m.preTax401k > 0) parts.push(`401(k) ${currencyFormatter.format(m.preTax401k)}`);
-    if (m.preTaxHsa > 0) parts.push(`HSA ${currencyFormatter.format(m.preTaxHsa)}`);
-    if (m.preTaxOther > 0) parts.push(`other ${currencyFormatter.format(m.preTaxOther)}`);
-    if (m.traditionalIra > 0) parts.push(`IRA ${currencyFormatter.format(m.traditionalIra)}`);
+    if (chartMetricNumeric(result, "preTax401k") > 0) {
+      parts.push(`401(k) ${currencyFormatter.format(chartMetricNumeric(result, "preTax401k"))}`);
+    }
+    if (chartMetricNumeric(result, "preTaxHsa") > 0) {
+      parts.push(`HSA ${currencyFormatter.format(chartMetricNumeric(result, "preTaxHsa"))}`);
+    }
+    if (chartMetricNumeric(result, "preTaxOther") > 0) {
+      parts.push(`other ${currencyFormatter.format(chartMetricNumeric(result, "preTaxOther"))}`);
+    }
+    if (chartMetricNumeric(result, "traditionalIra") > 0) {
+      parts.push(`IRA ${currencyFormatter.format(chartMetricNumeric(result, "traditionalIra"))}`);
+    }
     return parts.length > 0 ? parts.join(" · ") : "";
   },
-  "federal-tax-breakdown": (m) => {
+  "federal-tax-breakdown": (result) => {
     const parts: string[] = [];
-    parts.push(`ordinary ${currencyFormatter.format(m.federalOrdinaryIncomeTax)}`);
-    parts.push(`long-term capital gain ${currencyFormatter.format(m.federalLongTermCapGainsTax)}`);
-    if (m.federalNetInvestmentIncomeTax > 0) parts.push(`NIIT ${currencyFormatter.format(m.federalNetInvestmentIncomeTax)}`);
-    if (m.selfEmploymentTax > 0) parts.push(`SE tax ${currencyFormatter.format(m.selfEmploymentTax)}`);
+    parts.push(`ordinary ${currencyFormatter.format(chartMetricNumeric(result, "federalOrdinaryIncomeTax"))}`);
+    parts.push(
+      `long-term capital gain ${currencyFormatter.format(chartMetricNumeric(result, "federalLongTermCapGainsTax"))}`,
+    );
+    if (chartMetricNumeric(result, "federalNetInvestmentIncomeTax") > 0) {
+      parts.push(`NIIT ${currencyFormatter.format(chartMetricNumeric(result, "federalNetInvestmentIncomeTax"))}`);
+    }
+    if (chartMetricNumeric(result, "selfEmploymentTax") > 0) {
+      parts.push(`SE tax ${currencyFormatter.format(chartMetricNumeric(result, "selfEmploymentTax"))}`);
+    }
     return parts.join(" · ");
   },
-  "taxable-income-breakdown": (m) => {
+  "taxable-income-breakdown": (result) => {
     const parts: string[] = [];
-    parts.push(`ordinary ${currencyFormatter.format(m.ordinaryTaxableIncome)}`);
-    parts.push(`taxable LTCG ${currencyFormatter.format(m.longTermTaxableIncome)}`);
+    parts.push(`ordinary ${currencyFormatter.format(chartMetricNumeric(result, "ordinaryTaxableIncome"))}`);
+    parts.push(`taxable LTCG ${currencyFormatter.format(chartMetricNumeric(result, "longTermTaxableIncome"))}`);
     return parts.join(" · ");
   },
-  "payroll-breakdown": (m) => {
+  "payroll-breakdown": (result) => {
     const parts: string[] = [];
-    parts.push(`Social Security ${currencyFormatter.format(m.socialSecurityTax)}`);
-    if (m.selfEmploymentTax > 0) {
-      const se = m.selfEmploymentTax;
-      const seBase = se - (m.medicareTax * 2); 
+    parts.push(`Social Security ${currencyFormatter.format(chartMetricNumeric(result, "socialSecurityTax"))}`);
+    if (chartMetricNumeric(result, "selfEmploymentTax") > 0) {
+      const se = chartMetricNumeric(result, "selfEmploymentTax");
       parts.push(`SE ${currencyFormatter.format(se)}`);
     }
-    parts.push(`Medicare ${currencyFormatter.format(m.medicareTax)}`);
+    parts.push(`Medicare ${currencyFormatter.format(chartMetricNumeric(result, "medicareTax"))}`);
     return parts.join(" + ");
   },
 };
@@ -151,24 +169,15 @@ export type FootnoteDisplay = {
 
 export function computeFootnotes(result: TaxResult, config?: FootnoteConfig[]): FootnoteDisplay[] {
   const footnotes = config ?? DEFAULT_FOOTNOTES;
-  const chart = resolveTaxChartMetrics(result);
 
   return footnotes
     .map((f) => ({
       id: f.id,
-      text: FOOTNOTE_TEMPLATES[f.templateKey]?.(chart) ?? "",
+      text: FOOTNOTE_TEMPLATES[f.templateKey]?.(result) ?? "",
       displayOrder: f.displayOrder,
     }))
     .filter((f) => f.text)
     .sort((a, b) => a.displayOrder - b.displayOrder);
-}
-
-function getMetricByCategory(result: TaxResult, category: MetricConfig["category"]): MetricDisplay[] {
-  return computeMetrics(result).filter((m) => m.category === category);
-}
-
-function getHighlightedMetrics(result: TaxResult): MetricDisplay[] {
-  return computeMetrics(result).filter((m) => m.highlight);
 }
 
 export function getBaselineComparison(
@@ -177,10 +186,10 @@ export function getBaselineComparison(
   metrics?: MetricConfig[],
 ): Array<{ id: string; label: string; currentValue: string; delta?: string; isPositiveDelta?: boolean }> {
   if (!baseline) return [];
-  
+
   const currentMetrics = computeMetrics(result, metrics);
   const baselineMetrics = computeMetrics(baseline, metrics);
-  
+
   return currentMetrics
     .filter((m) => ["take-home-pay", "federal-income-tax", "payroll-tax"].includes(m.id))
     .map((m) => computeBaselineComparison(m, baselineMetrics, result, baseline));
@@ -190,7 +199,7 @@ function computeBaselineComparison(
   m: MetricDisplay,
   baselineMetrics: MetricDisplay[],
   result: TaxResult,
-  baseline: TaxResult
+  baseline: TaxResult,
 ) {
   const baselineMetric = baselineMetrics.find((bm) => bm.id === m.id);
   const currentValue = m.value;
@@ -213,20 +222,23 @@ function computeBaselineComparison(
 function calculateDelta(
   metricId: string,
   result: TaxResult,
-  baseline: TaxResult
+  baseline: TaxResult,
 ): { diff: number; isPositive: boolean } {
-  const r = resolveTaxChartMetrics(result);
-  const b = resolveTaxChartMetrics(baseline);
   switch (metricId) {
-    case "take-home-pay":
-      const takeHomeDiff = r.takeHomePay - b.takeHomePay;
+    case "take-home-pay": {
+      const takeHomeDiff =
+        chartMetricNumeric(result, "takeHomePay") - chartMetricNumeric(baseline, "takeHomePay");
       return { diff: takeHomeDiff, isPositive: takeHomeDiff > 0 };
-    case "federal-income-tax":
-      const fedDiff = r.federalIncomeTax - b.federalIncomeTax;
+    }
+    case "federal-income-tax": {
+      const fedDiff =
+        chartMetricNumeric(result, "federalIncomeTax") - chartMetricNumeric(baseline, "federalIncomeTax");
       return { diff: fedDiff, isPositive: fedDiff < 0 };
-    case "payroll-tax":
-      const payrollDiff = r.payrollTax - b.payrollTax;
+    }
+    case "payroll-tax": {
+      const payrollDiff = chartMetricNumeric(result, "payrollTax") - chartMetricNumeric(baseline, "payrollTax");
       return { diff: payrollDiff, isPositive: payrollDiff < 0 };
+    }
     default:
       return { diff: 0, isPositive: false };
   }

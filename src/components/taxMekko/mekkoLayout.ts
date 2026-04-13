@@ -1,5 +1,6 @@
-import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import type { TaxResult } from "~/lib/taxForm.types";
 import type { MekkoRow } from "~/lib/taxCharts";
+import { chartMetricNumeric } from "~/lib/taxChartMetricRead";
 import { H, PAD_B, PAD_L, PAD_R, PAD_T, SUMMARY_GAP, SUMMARY_H, W } from "~/components/taxMekko/constants";
 import { incomeY, incomeYAxis } from "~/components/taxMekko/incomeScale";
 
@@ -26,8 +27,8 @@ export type MekkoLayout = {
   }>;
 };
 
-export function computeMekkoLayout(m: TaxChartMetrics, rows: MekkoRow[]): MekkoLayout | undefined {
-  const totalIncome = m.totalIncome;
+export function computeMekkoLayout(result: TaxResult, rows: MekkoRow[]): MekkoLayout | undefined {
+  const totalIncome = chartMetricNumeric(result, "totalIncome");
   if (rows.length === 0) return undefined;
 
   const stackTotal = rows.reduce((s, row) => s + row.total, 0);
@@ -42,11 +43,15 @@ export function computeMekkoLayout(m: TaxChartMetrics, rows: MekkoRow[]): MekkoL
   const plotH = plotBottom - plotTop;
   const { yMax, yTicks } = incomeYAxis(visualTotal, plotH);
 
-  const takeShare = totalIncome > 0 ? m.takeHomePay / totalIncome : 0;
+  const takeShare = totalIncome > 0 ? chartMetricNumeric(result, "takeHomePay") / totalIncome : 0;
   const pretaxShare =
-    totalIncome > 0 ? (m.preTaxTotal + m.traditionalIra) / totalIncome : 0;
+    totalIncome > 0
+      ? (chartMetricNumeric(result, "preTaxTotal") + chartMetricNumeric(result, "traditionalIra")) / totalIncome
+      : 0;
   const taxShare =
-    totalIncome > 0 ? (m.federalIncomeTax + m.payrollTax) / totalIncome : 0;
+    totalIncome > 0
+      ? (chartMetricNumeric(result, "federalIncomeTax") + chartMetricNumeric(result, "payrollTax")) / totalIncome
+      : 0;
 
   let cumulative = 0;
   const rowLayouts = rows.map((row: MekkoRow) => {

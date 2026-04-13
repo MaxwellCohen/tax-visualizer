@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateTaxes, incomeSourcesToRows, resolveTaxChartMetrics } from "~/lib/taxCalc";
+import { calculateTaxes, chartMetricNumeric, incomeSourcesToRows } from "~/lib/taxCalc";
 import { baseInput, withFederalCreditsTotal } from "~/lib/taxCalc.test.helpers";
 import { buildSankeyChartData } from "~/lib/taxCharts.sankeyGraph";
 
@@ -38,13 +38,13 @@ describe("buildSankeyChartData flow conservation", () => {
       }),
     );
     expect(result).not.toBeNull();
-    const m = resolveTaxChartMetrics(result!);
-    expect(m.ordinaryTaxableIncome).toBeGreaterThan(0);
-    expect(m.payrollTax).toBeGreaterThan(0);
+    const oti = chartMetricNumeric(result!, "ordinaryTaxableIncome");
+    expect(oti).toBeGreaterThan(0);
+    expect(chartMetricNumeric(result!, "payrollTax")).toBeGreaterThan(0);
     const { links } = buildSankeyChartData(result!);
     const fromOti = links.filter(l => l.sourceId === "ordinary-taxable-income");
     const otiOut = fromOti.reduce((s, l) => s + l.value, 0);
-    expect(Math.abs(otiOut - (m.ordinaryTaxableIncome ?? 0))).toBeLessThanOrEqual(1.5);
+    expect(Math.abs(otiOut - oti)).toBeLessThanOrEqual(1.5);
     assertSankeyConserved(links);
   });
 
@@ -83,8 +83,7 @@ describe("buildSankeyChartData flow conservation", () => {
       }),
     );
     expect(result).not.toBeNull();
-    const m = resolveTaxChartMetrics(result!);
-    expect(m.federalNetInvestmentIncomeTax).toBeGreaterThan(0);
+    expect(chartMetricNumeric(result!, "federalNetInvestmentIncomeTax")).toBeGreaterThan(0);
     assertSankeyConserved(buildSankeyChartData(result!).links);
   });
 });

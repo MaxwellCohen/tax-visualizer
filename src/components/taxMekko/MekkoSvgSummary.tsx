@@ -1,17 +1,23 @@
 import { Show } from "solid-js";
-import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import type { TaxResult } from "~/lib/taxForm.types";
+import { chartMetricNumeric } from "~/lib/taxChartMetricRead";
 import { PAD_T, SUMMARY_H, pct } from "~/components/taxMekko/constants";
 import { money } from "~/lib/moneyFormat";
 import type { MekkoLayout } from "~/components/taxMekko/mekkoLayout";
 
 type Props = {
   L: MekkoLayout;
-  metrics: TaxChartMetrics;
+  result: TaxResult;
 };
 
 export function MekkoSvgSummary(props: Props) {
   const L = props.L;
-  const m = props.metrics;
+  const r = props.result;
+  const takeHomePay = chartMetricNumeric(r, "takeHomePay");
+  const preTaxTotal = chartMetricNumeric(r, "preTaxTotal");
+  const traditionalIra = chartMetricNumeric(r, "traditionalIra");
+  const federalIncomeTax = chartMetricNumeric(r, "federalIncomeTax");
+  const payrollTax = chartMetricNumeric(r, "payrollTax");
   return (
     <>
       <text
@@ -33,7 +39,7 @@ export function MekkoSvgSummary(props: Props) {
           fill="var(--mekko-keep)"
           rx={2}
         >
-          <title>{`Take-home pay ${money.format(m.takeHomePay)} (${pct.format(L.takeShare)})`}</title>
+          <title>{`Take-home pay ${money.format(takeHomePay)} (${pct.format(L.takeShare)})`}</title>
         </rect>
         <rect
           x={L.takeShare * L.plotW}
@@ -43,7 +49,7 @@ export function MekkoSvgSummary(props: Props) {
           fill="var(--mekko-pretax)"
           rx={2}
         >
-          <title>{`Payroll pre-tax & deductible IRA ${money.format(m.preTaxTotal + m.traditionalIra)} (${pct.format(L.pretaxShare)})`}</title>
+          <title>{`Payroll pre-tax & deductible IRA ${money.format(preTaxTotal + traditionalIra)} (${pct.format(L.pretaxShare)})`}</title>
         </rect>
         <rect
           x={(L.takeShare + L.pretaxShare) * L.plotW}
@@ -53,7 +59,7 @@ export function MekkoSvgSummary(props: Props) {
           fill="var(--mekko-tax)"
           rx={2}
         >
-          <title>{`Taxes ${money.format(m.federalIncomeTax + m.payrollTax)} (${pct.format(L.taxShare)})`}</title>
+          <title>{`Taxes ${money.format(federalIncomeTax + payrollTax)} (${pct.format(L.taxShare)})`}</title>
         </rect>
         <Show when={L.takeShare * L.plotW > 56}>
           <text

@@ -1,21 +1,20 @@
 import { incomeSourceDisplayLabel } from "~/lib/taxCalc";
-import type { TaxChartMetrics } from "~/lib/taxForm.types";
 import type { TaxResult } from "~/lib/taxForm.types";
 import { sankeyIncomeNodeId } from "~/lib/taxCharts.sankeyAllocate";
 import { addNode, sortedIncomeRows } from "~/lib/taxCharts.sankeyHelpers";
-import { sankeyPretaxRowsFromMetrics } from "~/lib/taxCharts.sankeyPretaxRows";
+import { sankeyPretaxRowsFromResult } from "~/lib/taxCharts.sankeyPretaxRows";
 import { netInvestmentIncomeTaxPerSegment } from "~/lib/taxCharts.sankeyNiit";
 import { incomeRowsFromTaxResult } from "~/lib/taxForm.rows";
 import type { SankeyScratch } from "~/lib/taxCharts.sankeyScratch";
 
-export function initSankeyScratch(m: TaxChartMetrics, result: TaxResult): SankeyScratch {
-  const pretaxRows = sankeyPretaxRowsFromMetrics(m);
+export function initSankeyScratch(result: TaxResult): SankeyScratch {
+  const pretaxRows = sankeyPretaxRowsFromResult(result);
   const preTaxTotal = pretaxRows.reduce((s, row) => s + Math.max(0, row.amount), 0);
   return {
     nodeMap: new Map(),
     links: [],
     takeHomePoolSlices: [],
-    niitBySegment: netInvestmentIncomeTaxPerSegment(m),
+    niitBySegment: netInvestmentIncomeTaxPerSegment(result),
     pretaxRows,
     preTaxTotal,
     payrollTaxViaOrdinaryStrip: false,

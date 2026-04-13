@@ -16,4 +16,4 @@ export function getYearValues(year: number): YearValues | undefined {
   return YEAR_VALUES_BY_YEAR[year];
 }
 
-{ YEAR_VALUES_2023, YEAR_VALUES_2024, YEAR_VALUES_2025, YEAR_VALUES_2026 };
+export { YEAR_VALUES_2023, YEAR_VALUES_2024, YEAR_VALUES_2025, YEAR_VALUES_2026 };

@@ -1,4 +1,4 @@
-import type { TaxChartMetrics } from "~/lib/taxForm.types";
+import type { TaxResult } from "~/lib/taxForm.types";
 import { H, W } from "~/components/taxMekko/constants";
 import { MekkoSvgAxes } from "~/components/taxMekko/MekkoSvgAxes";
 import { MekkoSvgBands } from "~/components/taxMekko/MekkoSvgBands";
@@ -7,7 +7,7 @@ import type { MekkoLayout } from "~/components/taxMekko/mekkoLayout";
 
 type Props = {
   L: MekkoLayout;
-  metrics: TaxChartMetrics;
+  result: TaxResult;
 };
 
 export function MekkoChartSvg(props: Props) {
@@ -21,7 +21,7 @@ export function MekkoChartSvg(props: Props) {
         border: "1px solid var(--border-subtle)",
       }}
     >
-      <MekkoSvgSummary L={props.L} metrics={props.metrics} />
+      <MekkoSvgSummary L={props.L} result={props.result} />
       <MekkoSvgAxes L={props.L} />
       <MekkoSvgBands L={props.L} />
     </svg>

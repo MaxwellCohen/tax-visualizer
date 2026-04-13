@@ -1,5 +1,10 @@
-import type { TaxChartMetrics } from "~/lib/taxForm.types";
-import { getLongTermCapitalGainsSegments, getOrdinaryFederalSegments } from "~/lib/config/chartMetricsRegistry";
+import type { TaxResult } from "~/lib/taxForm.types";
+import {
+  chartMetricNumeric,
+  deductionKindFromTaxResult,
+  getLongTermCapitalGainsSegments,
+  getOrdinaryFederalSegments,
+} from "~/lib/taxChartMetricRead";
 import {
   allocateFederalCreditsTopMarginalSlices,
   type FederalSliceAfterCredits,
@@ -14,24 +19,25 @@ import {
 import type { MekkoRow } from "~/lib/taxCharts.types";
 
 export function buildMekkoRows(
-  m: TaxChartMetrics,
+  result: TaxResult,
   federalByNode?: Map<string, FederalSliceAfterCredits>,
 ): MekkoRow[] {
   const rows: MekkoRow[] = [];
-  const federalByNodeResolved = federalByNode ?? allocateFederalCreditsTopMarginalSlices(m);
+  const federalByNodeResolved = federalByNode ?? allocateFederalCreditsTopMarginalSlices(result);
 
-  if (m.deductionAmount > 0) {
+  const deductionAmount = chartMetricNumeric(result, "deductionAmount");
+  if (deductionAmount > 0) {
     rows.push({
       id: "deduction",
-      label: m.deductionKind === "itemized" ? "Itemized" : "Std Ded",
-      total: m.deductionAmount,
-      keep: m.deductionAmount,
+      label: deductionKindFromTaxResult(result) === "itemized" ? "Itemized" : "Std Ded",
+      total: deductionAmount,
+      keep: deductionAmount,
       tax: 0,
       kind: "deduction",
     });
   }
 
-  for (const segment of getOrdinaryFederalSegments(m)) {
+  for (const segment of getOrdinaryFederalSegments(result)) {
     if (segment.incomeAmount <= 0) continue;
     const nodeId = ordinaryBracketNodeId(segment);
     const tax = federalByNodeResolved.get(nodeId)?.federalToTax ?? 0;
@@ -46,7 +52,7 @@ export function buildMekkoRows(
     });
   }
 
-  for (const segment of getLongTermCapitalGainsSegments(m)) {
+  for (const segment of getLongTermCapitalGainsSegments(result)) {
     if (segment.incomeAmount <= 0) continue;
     const nodeId = ltcgBracketNodeId(segment);
     const tax = federalByNodeResolved.get(nodeId)?.federalToTax ?? 0;

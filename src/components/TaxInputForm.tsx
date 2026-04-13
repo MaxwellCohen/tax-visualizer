@@ -33,12 +33,7 @@ export default function TaxInputForm(props: TaxInputFormProps) {
 
   return (
     <form
-      class="rounded-xl p-5"
-      style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        "box-shadow": "var(--shadow)",
-      }}
+      class="rounded-xl p-5 background-surface border-border shadow-shadow"
     >
       <CollapsibleBlock title="Filing details & income" bodyClass="mt-4 space-y-4">
         <TaxInputFormFilingSection form={form} values={values} availableYears={props.availableYears} />

@@ -91,52 +91,6 @@ export type TaxResultDisplay = {
   mekko: TaxResultMekkoDisplay;
 };
 
-/** Resolved metrics for charts/summary (record view of metric lines). */
-export type TaxChartMetrics = {
-  totalIncome: number;
-  wageIncome: number;
-  selfEmploymentIncome: number;
-  ordinaryGrossIncome: number;
-  shortTermCapGainsGrossIncome: number;
-  longTermCapitalGainsGrossIncome: number;
-  preTax401k: number;
-  preTaxHsa: number;
-  preTaxOther: number;
-  preTaxTotal: number;
-  traditionalIra: number;
-  wagesAfterPretax: number;
-  deductionKind: DeductionKind;
-  standardDeduction: number;
-  deductionAmount: number;
-  deductionAllocatedToOrdinary: number;
-  deductionAllocatedToLongTermGross: number;
-  ordinaryTaxableIncome: number;
-  longTermTaxableIncome: number;
-  taxableIncome: number;
-  ordinaryFederalSegments: TaxSegment[];
-  longTermCapitalGainsSegments: TaxSegment[];
-  federalOrdinaryIncomeTax: number;
-  federalLongTermCapGainsTax: number;
-  federalNetInvestmentIncomeTax: number;
-  netInvestmentIncome: number;
-  federalIncomeTaxBeforeCredits: number;
-  federalTaxCredits: number;
-  federalTaxCreditsApplied: number;
-  federalIncomeTax: number;
-  payrollTax: number;
-  selfEmploymentTax: number;
-  socialSecurityTax: number;
-  medicareTax: number;
-  takeHomePay: number;
-  effectiveTaxRate: number;
-  /** Top ordinary federal bracket rate (from pipeline take-home). */
-  marginalFederalRate: number;
-  /** Per-credit amounts entered (from pipeline tax credits). */
-  childTaxCredit: number;
-  educationCredits: number;
-  retirementSavings: number;
-  federalCreditOther: number;
-};
 
 /** Detailed tax breakdown list (driven by chart metrics registry `detailedDisplay` metadata). */
 export type DisplayCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary";
@@ -152,8 +106,7 @@ export type DisplayItemConfig = {
   order: number;
   tooltip?: string;
   highlight?: boolean;
-  /** Resolved via {@link TaxChartMetrics} from the chart metrics registry. */
-  metricsKey: keyof TaxChartMetrics;
+  metricsKey: string;
   defaultAmount?: number;
 };
 
@@ -177,7 +130,7 @@ export type TaxMetricComputedValue = number | TaxSegment[] | DeductionKind;
 /** One evaluated chart metric line (canonical pipeline output). */
 export type TaxMetricLine = {
   id: string;
-  metricsKey: keyof TaxChartMetrics;
+  metricsKey: string;
   valueKind: TaxMetricValueKind;
   value: TaxMetricComputedValue;
 };

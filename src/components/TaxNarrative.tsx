@@ -1,6 +1,6 @@
 import { Show, createMemo } from "solid-js";
 import type { TaxResult } from "~/lib/taxCalc";
-import { resolveTaxChartMetrics } from "~/lib/taxResult.resolve";
+import { chartMetricNumeric, deductionKindFromTaxResult } from "~/lib/taxChartMetricRead";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 
 type TaxNarrativeProps = {
@@ -21,11 +21,29 @@ const percent = new Intl.NumberFormat("en-US", {
 });
 
 export default function TaxNarrative(props: TaxNarrativeProps) {
-  const m = createMemo(() => resolveTaxChartMetrics(props.result));
+  const v = createMemo(() => {
+    const r = props.result;
+    return {
+      totalIncome: chartMetricNumeric(r, "totalIncome"),
+      preTaxTotal: chartMetricNumeric(r, "preTaxTotal"),
+      traditionalIra: chartMetricNumeric(r, "traditionalIra"),
+      ordinaryTaxableIncome: chartMetricNumeric(r, "ordinaryTaxableIncome"),
+      longTermTaxableIncome: chartMetricNumeric(r, "longTermTaxableIncome"),
+      federalIncomeTax: chartMetricNumeric(r, "federalIncomeTax"),
+      federalNetInvestmentIncomeTax: chartMetricNumeric(r, "federalNetInvestmentIncomeTax"),
+      federalTaxCreditsApplied: chartMetricNumeric(r, "federalTaxCreditsApplied"),
+      payrollTax: chartMetricNumeric(r, "payrollTax"),
+      takeHomePay: chartMetricNumeric(r, "takeHomePay"),
+      effectiveTaxRate: chartMetricNumeric(r, "effectiveTaxRate"),
+      deductionAmount: chartMetricNumeric(r, "deductionAmount"),
+      standardDeduction: chartMetricNumeric(r, "standardDeduction"),
+    };
+  });
+
   const deductionLabel = () =>
-    m().deductionKind === "itemized"
-      ? `itemized deductions of ${money.format(m().deductionAmount)}`
-      : `the ${money.format(m().standardDeduction)} standard deduction`;
+    deductionKindFromTaxResult(props.result) === "itemized"
+      ? `itemized deductions of ${money.format(v().deductionAmount)}`
+      : `the ${money.format(v().standardDeduction)} standard deduction`;
 
   return (
     <section
@@ -39,37 +57,36 @@ export default function TaxNarrative(props: TaxNarrativeProps) {
       <CollapsibleBlock title="Plain-language summary" bodyClass="mt-4">
         <div class="space-y-3 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
           <p>
-            This scenario starts with {money.format(m().totalIncome)} of gross income. The app
-            treats {money.format(m().preTaxTotal)} as payroll pre-tax withholding
-            {m().traditionalIra > 0
-              ? ` and ${money.format(m().traditionalIra)} as deductible traditional IRA (outside payroll)`
+            This scenario starts with {money.format(v().totalIncome)} of gross income. The app treats{" "}
+            {money.format(v().preTaxTotal)} as payroll pre-tax withholding
+            {v().traditionalIra > 0
+              ? ` and ${money.format(v().traditionalIra)} as deductible traditional IRA (outside payroll)`
               : ""}
             , then applies {deductionLabel()} before calculating federal income tax.
           </p>
           <p>
-            In this model, {money.format(m().ordinaryTaxableIncome)} is taxed at ordinary federal
-            bracket rates (including short-term capital gains, which the IRS taxes like wages under
-            Topic 409), and {money.format(m().longTermTaxableIncome)} is treated as long-term
-            capital gains. Federal income tax is {money.format(m().federalIncomeTax)}
-            {m().federalNetInvestmentIncomeTax > 0
-              ? ` (including ${money.format(m().federalNetInvestmentIncomeTax)} estimated net investment income tax)`
+            In this model, {money.format(v().ordinaryTaxableIncome)} is taxed at ordinary federal bracket rates
+            (including short-term capital gains, which the IRS taxes like wages under Topic 409), and{" "}
+            {money.format(v().longTermTaxableIncome)} is treated as long-term capital gains. Federal income tax is{" "}
+            {money.format(v().federalIncomeTax)}
+            {v().federalNetInvestmentIncomeTax > 0
+              ? ` (including ${money.format(v().federalNetInvestmentIncomeTax)} estimated net investment income tax)`
               : ""}
-            <Show when={m().federalTaxCreditsApplied > 0}>
-              {`, after ${money.format(m().federalTaxCreditsApplied)} of modeled federal credits`}
+            <Show when={v().federalTaxCreditsApplied > 0}>
+              {`, after ${money.format(v().federalTaxCreditsApplied)} of modeled federal credits`}
             </Show>{" "}
-            and payroll tax is {money.format(m().payrollTax)}.
+            and payroll tax is {money.format(v().payrollTax)}.
           </p>
           <p>
-            The result is {money.format(m().takeHomePay)} of modeled take-home pay, with an
-            effective tax rate of {percent.format(m().effectiveTaxRate)}. That rate is{" "}
-            <code>(federal income tax + payroll tax) / (gross income - payroll pre-tax - traditional IRA)</code>
-            , so deferred and IRA dollars are not in the denominator (they use a 0% rate in this
-            headline figure).
+            The result is {money.format(v().takeHomePay)} of modeled take-home pay, with an effective tax rate of{" "}
+            {percent.format(v().effectiveTaxRate)}. That rate is{" "}
+            <code>(federal income tax + payroll tax) / (gross income - payroll pre-tax - traditional IRA)</code>, so
+            deferred and IRA dollars are not in the denominator (they use a 0% rate in this headline figure).
           </p>
           {props.isPlanningYear ? (
             <p>
-              The selected year uses planning figures for inflation-adjusted tax data, so treat it as
-              directional rather than final IRS filing guidance.
+              The selected year uses planning figures for inflation-adjusted tax data, so treat it as directional
+              rather than final IRS filing guidance.
             </p>
           ) : null}
         </div>

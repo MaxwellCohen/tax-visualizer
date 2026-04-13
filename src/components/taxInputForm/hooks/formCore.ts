@@ -10,7 +10,7 @@ import {
   pretaxRowIndices,
   settingRowIndex,
 } from "~/lib/taxForm.rows";
-import { newCreditRow, newDeductionRow, newIncomeRow, newPretaxRow } from "~/lib/taxForm.factories";
+import { newIncomeRow, newPretaxRow } from "~/lib/taxForm.factories";
 
 export type TaxInputFormOuterProps = {
   value: TaxFormData;
