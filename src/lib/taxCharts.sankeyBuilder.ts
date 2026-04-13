@@ -207,8 +207,8 @@ function buildTaxableNodes(
       }
     }
 
-    const hasOrdinaryBrackets = getOrdinaryFederalSegments(result).length > 0;
-    if (payrollTax > 0 && hasOrdinaryBrackets) {
+    const hasRealSegments = getOrdinaryFederalSegments(result).length > 0;
+    if (payrollTax > 0 && ordinaryTaxable > 0 && hasRealSegments) {
       const stripVal = Math.min(payrollTax, ordinaryTaxable);
       if (stripVal > 0) {
         const stripId = SANKEY_IDS.payrollOrdinaryStrip;
@@ -314,6 +314,19 @@ function buildBracketNodes(
   const payrollTax = getMetricNumber(result, "payrollTax");
   const selfEmploymentTax = getMetricNumber(result, "selfEmploymentTax");
   const totalPayroll = payrollTax + selfEmploymentTax;
+
+  let segments = ordinarySegments;
+  if (segments.length === 0 && ordinaryTaxable > 0) {
+    segments = [{
+      id: "0",
+      rangeStart: 0,
+      rangeEnd: ordinaryTaxable,
+      incomeAmount: ordinaryTaxable,
+      taxAmount: 0,
+      marginalRate: 0,
+    }];
+  }
+
   const oScale = ordinaryTaxable > 0 && totalPayroll > 0 && ordinarySegments.length > 0
     ? Math.max(0, (ordinaryTaxable - Math.min(totalPayroll, ordinaryTaxable)) / ordinaryTaxable)
     : 1;
@@ -321,7 +334,7 @@ function buildBracketNodes(
   const federalByNode = allocateFederalCreditsTopMarginalSlices(result);
   const takeHomeForPools = takeHomeAttributableToBracketFlows(result);
 
-  for (const segment of ordinarySegments) {
+  for (const segment of segments) {
     const nodeId = ordinaryBracketNodeId(segment);
     const niitPart = niitBySegment.ordinary.get(ordinarySegmentKey(segment)) ?? 0;
     const taxWithNiit = segment.taxAmount + niitPart;
@@ -346,20 +359,16 @@ function buildBracketNodes(
     });
 
     const splitFed = federalByNode.get(nodeId) ?? { federalToTax: 0, creditPortion: 0 };
-    const federalToTax = splitFed.federalToTax * oScale;
-    const creditPortion = splitFed.creditPortion * oScale;
 
     takeHomePoolSlices.push({ sourceId: nodeId, weight: segment.incomeAmount - taxWithNiit });
   }
 
-  const poolTotal = takeHomePoolSlices.reduce((acc, x) => acc + x.weight, 0);
   const split = splitTakeHomeAndPayrollByPool(takeHomePoolSlices, takeHomeForPools, totalPayroll);
 
-  for (let i = 0; i < ordinarySegments.length; i++) {
-    const segment = ordinarySegments[i];
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
     const nodeId = ordinaryBracketNodeId(segment);
     const niitPart = niitBySegment.ordinary.get(ordinarySegmentKey(segment)) ?? 0;
-    const taxWithNiit = segment.taxAmount + niitPart;
     
     const splitFed = federalByNode.get(nodeId) ?? { federalToTax: 0, creditPortion: 0 };
     const federalToTax = splitFed.federalToTax * oScale;
@@ -368,8 +377,11 @@ function buildBracketNodes(
 
     const poolPart = split.get(nodeId) ?? { keep: 0, payroll: 0 };
     
+    const payrollPortion = poolPart.payroll;
+    
     const rawOutflows = [
       { terminalId: SANKEY_IDS.taxesFederal, amount: federalToTax },
+      { terminalId: SANKEY_IDS.taxesPayroll, amount: payrollPortion },
       { terminalId: SANKEY_IDS.keep, amount: poolPart.keep + creditPortion },
     ];
 
@@ -477,7 +489,7 @@ function buildTaxKeepNodes(
   niitBySegment: { ordinary: Map<string, number>; ltcg: Map<string, number> },
 ): void {
   const federalTax = getMetricNumber(result, "federalIncomeTax");
-  const payrollTax = getMetricNumber(result, "payrollTax");
+  const payrollTaxKeep = getMetricNumber(result, "payrollTax");
   const selfEmploymentTax = getMetricNumber(result, "selfEmploymentTax");
   const takeHome = getMetricNumber(result, "takeHomePay");
   const creditsApplied = getMetricNumber(result, "federalTaxCreditsApplied");
@@ -489,7 +501,7 @@ function buildTaxKeepNodes(
     amount: federalTax,
   });
 
-  const totalPayroll = payrollTax + selfEmploymentTax;
+  const totalPayroll = payrollTaxKeep + selfEmploymentTax;
   if (totalPayroll > 0) {
     addNode(nodeMap, {
       id: SANKEY_IDS.taxesPayroll,
@@ -533,12 +545,44 @@ function buildTaxKeepNodes(
 
   const shieldNode = nodeMap.get("deduction-shield");
   const shieldAmount = shieldNode?.amount ?? 0;
+  const preTaxTotal = getMetricNumber(result, "preTaxTotal");
+  const deductionAmount = getMetricNumber(result, "deductionAmount");
+  const payrollTax = getMetricNumber(result, "payrollTax");
+  const wageIncome = getMetricNumber(result, "wageIncome");
+  
   if (shieldAmount > 0 && takeHome > 0) {
-    links.push({
-      sourceId: "deduction-shield",
-      targetId: SANKEY_IDS.keep,
-      value: shieldAmount,
-    });
+    if (preTaxTotal > 0) {
+      links.push({
+        sourceId: "deduction-shield",
+        targetId: SANKEY_IDS.keep,
+        value: preTaxTotal,
+      });
+    }
+    if (deductionAmount > 0) {
+      links.push({
+        sourceId: "deduction-shield",
+        targetId: SANKEY_IDS.keep,
+        value: deductionAmount,
+      });
+    }
+
+    if (payrollTax > 0 && preTaxTotal > 0 && wageIncome > 0) {
+      const wagesAfterPretax = Math.max(0, wageIncome - preTaxTotal);
+      if (wagesAfterPretax > 0) {
+        const shieldFromPretax = preTaxTotal;
+        const wagesInPretax = Math.min(wageIncome, preTaxTotal);
+        const wagesInPretaxRatio = wagesInPretax / wageIncome;
+        const payrollFromPretax = Math.round(payrollTax * wagesInPretaxRatio);
+        
+        if (payrollFromPretax > 0) {
+          links.push({
+            sourceId: "deduction-shield",
+            targetId: SANKEY_IDS.taxesPayroll,
+            value: payrollFromPretax,
+          });
+        }
+      }
+    }
   }
 
   if (poolTotal > 0) {
@@ -557,10 +601,10 @@ function buildTaxKeepNodes(
       }
     }
 
-    if (payrollTax > 0) {
+    if (payrollTaxKeep > 0) {
       const wageRows = allIncome.filter(r => r.kind === "wages");
       if (wageRows.length > 0) {
-        for (const { key, value } of allocateProportional(wageRows, payrollTax)) {
+        for (const { key, value } of allocateProportional(wageRows, payrollTaxKeep)) {
           links.push({
             sourceId: key,
             targetId: SANKEY_IDS.taxesPayroll,
