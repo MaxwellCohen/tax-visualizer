@@ -39,13 +39,6 @@ export type {
 } from "~/lib/taxConfig.types";
 
 export {
-  runCalculationPipeline,
-  createInitialState,
-  computeTaxChartMetrics,
-  metricLinesToComputedRows,
-} from "~/lib/taxCalc.pipeline";
-export type { TaxSerializedPipelineRow } from "~/lib/taxCalc.pipeline";
-export {
   chartMetricNumeric,
   chartMetricSegments,
   deductionKindFromTaxResult,

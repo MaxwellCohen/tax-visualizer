@@ -13,12 +13,33 @@
  */
 import { computeTaxMetricLines } from "~/lib/config/chartMetricsRegistry";
 import { clampTaxFormData } from "~/lib/taxCalc.clamp";
-import { metricLinesToComputedRows } from "~/lib/taxCalc.pipeline";
 import { buildTaxResultDisplayBundle } from "~/lib/taxResult.display";
-import type { TaxFormData, TaxMetricLine, TaxResult } from "~/lib/taxForm.types";
+import type { TaxFormData, TaxMetricLine, TaxResult, TaxComputedRow, TaxComputedSegmentRow } from "~/lib/taxForm.types";
+import type { TaxSegment } from "~/lib/taxCalc.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
 import { getTaxYearConfig } from "~/lib/taxData";
 import { getTaxYearFromRows, rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
+
+function metricLinesToComputedRows(lines: readonly TaxMetricLine[]): (TaxComputedRow | TaxComputedSegmentRow)[] {
+  const rows: (TaxComputedRow | TaxComputedSegmentRow)[] = [];
+  for (const line of lines) {
+    if (line.valueKind === "segments") {
+      rows.push({
+        type: "computed-segments",
+        id: line.metricsKey,
+        segments: Array.isArray(line.value) ? (line.value as TaxSegment[]) : [],
+      });
+    } else if (line.valueKind === "number") {
+      const v = line.value;
+      rows.push({
+        type: "computed",
+        id: line.metricsKey,
+        value: typeof v === "number" && Number.isFinite(v) ? v : 0,
+      });
+    }
+  }
+  return rows;
+}
 
 
 export function calculateTaxes(raw: TaxFormData, config?: TaxYearConfig): TaxResult | null {
