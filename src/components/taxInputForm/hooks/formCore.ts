@@ -71,82 +71,89 @@ export function createTaxInputForm(props: TaxInputFormOuterProps) {
   const addSource = () => {
     const v = values();
     const idx = insertIndexForNewIncome(v.rows);
-    form.setFieldValue("rows", spliceRows(v.rows, idx, newIncomeRow({ kind: "ordinary" })));
+    const newRows = spliceRows(v.rows, idx, newIncomeRow({ kind: "ordinary" }));
+    form.setFieldValue("rows", newRows);
+    props.onChange({ ...v, rows: newRows });
   };
 
   const removeSourceAt = (rowIndex: number) => {
     const v = values();
     if (incomeRowIndices(v.rows).length <= 1) return;
-    form.setFieldValue("rows", removeRowAt(v.rows, rowIndex));
+    const newRows = removeRowAt(v.rows, rowIndex);
+    form.setFieldValue("rows", newRows);
+    props.onChange({ ...v, rows: newRows });
   };
 
   const addPretaxBenefit = () => {
     const v = values();
     const src = newPretaxBenefitSource({ kind: "preTax401kSpouse1" });
     const idx = insertIndexForNewPretax(v.rows);
-    form.setFieldValue("rows", spliceRows(v.rows, idx, newPretaxRow({ id: src.id, kind: src.kind, label: src.label, amount: src.amount })));
+    const newRows = spliceRows(v.rows, idx, newPretaxRow({ id: src.id, kind: src.kind, label: src.label, amount: src.amount }));
+    form.setFieldValue("rows", newRows);
+    props.onChange({ ...v, rows: newRows });
   };
 
   const removePretaxBenefitAt = (rowIndex: number) => {
     const v = values();
     if (pretaxRowIndices(v.rows).length <= 1) return;
-    form.setFieldValue("rows", removeRowAt(v.rows, rowIndex));
+    const newRows = removeRowAt(v.rows, rowIndex);
+    form.setFieldValue("rows", newRows);
+    props.onChange({ ...v, rows: newRows });
   };
 
   const addItemizedDeduction = () => {
     const v = values();
     const src = newItemizedDeductionSource();
     const idx = insertIndexForNewDeduction(v.rows);
-    form.setFieldValue(
-      "rows",
-      spliceRows(v.rows, idx, { type: "deduction", id: src.id, kind: src.kind, label: src.label, amount: src.amount }),
-    );
+    const newRows = spliceRows(v.rows, idx, { type: "deduction", id: src.id, kind: src.kind, label: src.label, amount: src.amount });
+    form.setFieldValue("rows", newRows);
+    props.onChange({ ...v, rows: newRows });
   };
 
   const removeItemizedDeductionAt = (rowIndex: number) => {
     const v = values();
     if (deductionRowIndices(v.rows).length <= 1) return;
-    form.setFieldValue("rows", removeRowAt(v.rows, rowIndex));
+    const newRows = removeRowAt(v.rows, rowIndex);
+    form.setFieldValue("rows", newRows);
+    props.onChange({ ...v, rows: newRows });
   };
 
   const addFederalTaxCredit = () => {
     const v = values();
     const src = newFederalTaxCreditSource();
     const idx = insertIndexForNewCredit(v.rows);
-    form.setFieldValue(
-      "rows",
-      spliceRows(v.rows, idx, { type: "credit", id: src.id, kind: src.kind, label: src.label, amount: src.amount }),
-    );
+    const newRows = spliceRows(v.rows, idx, { type: "credit", id: src.id, kind: src.kind, label: src.label, amount: src.amount });
+    form.setFieldValue("rows", newRows);
+    props.onChange({ ...v, rows: newRows });
   };
 
   const removeFederalTaxCreditAt = (rowIndex: number) => {
     const v = values();
     if (creditRowIndices(v.rows).length <= 1) return;
-    form.setFieldValue("rows", removeRowAt(v.rows, rowIndex));
+    const newRows = removeRowAt(v.rows, rowIndex);
+    form.setFieldValue("rows", newRows);
+    props.onChange({ ...v, rows: newRows });
   };
 
   const clearAllPretaxBenefits = () => {
     const v = values();
-    form.setFieldValue(
-      "rows",
-      v.rows.filter((r) => r.type !== "pretax"),
-    );
+    const newRows = v.rows.filter((r) => r.type !== "pretax");
+    form.setFieldValue("rows", newRows);
+    props.onChange({ ...v, rows: newRows });
   };
 
   const clearAllItemizedDeductions = () => {
     const v = values();
-    form.setFieldValue(
-      "rows",
-      v.rows.filter((r) => r.type !== "deduction"),
-    );
+    const newRows = v.rows.filter((r) => r.type !== "deduction");
+    form.setFieldValue("rows", newRows);
+    props.onChange({ ...v, rows: newRows });
   };
 
   const clearAllFederalTaxCredits = () => {
     const v = values();
-    form.setFieldValue(
-      "rows",
-      v.rows.filter((r) => r.type !== "credit"),
-    );
+    const newRows = v.rows.filter((r) => r.type !== "credit");
+    form.setFieldValue("rows", newRows);
+    props.onChange({ ...v, rows: newRows });
   };
 
   return {

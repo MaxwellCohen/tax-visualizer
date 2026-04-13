@@ -39,9 +39,11 @@ export function MekkoSvgBands(props: Props) {
               fill={
                 row.kind === "deduction"
                   ? "var(--mekko-deduction)"
-                  : row.kind === "ltcgBracket"
-                    ? "var(--mekko-ltcg)"
-                    : "var(--mekko-keep)"
+                  : row.kind === "pretax"
+                    ? "var(--mekko-pretax)"
+                    : row.kind === "ltcgBracket"
+                      ? "var(--mekko-ltcg)"
+                      : "var(--mekko-keep)"
               }
               stroke="var(--border-subtle)"
               stroke-width={0.5}

@@ -48,7 +48,7 @@ export type SankeyChartData = {
   links: SankeyChartLink[];
 };
 
-type MekkoRowKind = "deduction" | "ordinaryBracket" | "ltcgBracket";
+type MekkoRowKind = "deduction" | "pretax" | "ordinaryBracket" | "ltcgBracket";
 
 export type MekkoRow = {
   id: string;

@@ -29,6 +29,7 @@ export function SankeyNodeRects(props: Props) {
               width={Math.max(1, (node.x1 ?? 0) - (node.x0 ?? 0))}
               height={Math.max(1, y1 - y0)}
               fill={nodeFill(node)}
+              data-node={node.id}
               rx={3}
             />
             {lines.compact ? (

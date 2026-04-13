@@ -23,6 +23,10 @@ export function HomeContent() {
   const [taxInput, setTaxInput] = createSignal<TaxFormData>(starterScenario(defaultYear));
   const [baselineInput, setBaselineInput] = createSignal<TaxFormData | null>(null);
 
+  const handleSetTaxInput = (newValue: TaxFormData) => {
+    setTaxInput(newValue);
+  };
+
   const taxResult = createMemo(() => calculateTaxes(taxInput()));
   const baselineResult = createMemo(() => {
     const saved = baselineInput();
@@ -55,7 +59,7 @@ export function HomeContent() {
       <TaxInputForm
         value={taxInput()}
         availableYears={availableYears}
-        onChange={setTaxInput}
+        onChange={handleSetTaxInput}
       />
 
       <Show when={taxResult()} fallback={<TaxYearInvalid />}>

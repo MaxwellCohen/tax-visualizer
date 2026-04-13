@@ -3,13 +3,18 @@ import type { SankeyGraph } from "d3-sankey";
 import { sankeyLinkPath, type ChartLink, type ChartNode } from "~/components/taxSankey/chartTypes";
 import { linkStroke } from "~/components/taxSankey/sankeyColors";
 import { sankeyMoney } from "~/components/taxSankey/sankeyFormat";
-
+import { effect } from "solid-js/web";
 type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
 
+
 export function SankeyLinkPaths(props: Props) {
+
   return (
     <For each={props.graph.links}>
       {link => {
+        effect(() => {
+          console.log(`${(link.source as ChartNode)?.label} - ${(link.target as ChartNode)?.label}`);
+        });
         const targetNode = link.target as ChartNode;
         return (
           <path
@@ -18,6 +23,7 @@ export function SankeyLinkPaths(props: Props) {
             stroke={linkStroke(targetNode)}
             stroke-opacity="1"
             stroke-width={Math.max(1, link.width ?? 1)}
+            data-link={`${(link.source as ChartNode)?.label} - ${(link.target as ChartNode)?.label}`}
           >
             <title>{`${(link.source as ChartNode).label} → ${targetNode.label}: ${sankeyMoney.format(link.value ?? 0)}`}</title>
           </path>

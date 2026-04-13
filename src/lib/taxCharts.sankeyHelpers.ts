@@ -19,22 +19,17 @@ export function sortedIncomeRows(incomeRows: TaxFormIncomeRow[]) {
 
 /**
  * Split take-home across all pool slices by weight.
- * Payroll tax (FICA) is split only across **ordinary** bracket slices — same idea as long-term
- * gains not bearing payroll: capital-gain paths get federal preferential tax ribbons but no payroll
- * ribbons. `deduction-shield` is also excluded. When no ordinary bracket slice exists, payroll stays
- * unassigned here; callers add split `income-* → taxes-payroll` remainder links.
+ * Payroll tax (FICA) is handled separately via payroll-ordinary-strip node,
+ * so this function only splits take-home (not payroll).
  */
 export function splitTakeHomeAndPayrollByPool(
   slices: { sourceId: string; weight: number }[],
   takeHomePay: number,
-  payrollTax: number,
+  _payrollTax: number,
 ): Map<string, { keep: number; payroll: number }> {
   const out = new Map<string, { keep: number; payroll: number }>();
   const pool = slices.reduce((s, x) => s + x.weight, 0);
   if (pool <= 0 || slices.length === 0) return out;
-
-  const payrollSlices = slices.filter(x => x.sourceId.startsWith("ordinary-bracket-"));
-  const payrollPool = payrollSlices.reduce((s, x) => s + x.weight, 0);
 
   let accKeep = 0;
   slices.forEach((slice, i) => {
@@ -42,21 +37,6 @@ export function splitTakeHomeAndPayrollByPool(
     const keep = last ? Math.max(0, takeHomePay - accKeep) : Math.round((slice.weight / pool) * takeHomePay);
     accKeep += keep;
     out.set(slice.sourceId, { keep, payroll: 0 });
-  });
-
-  if (payrollTax <= 0 || payrollPool <= 0) {
-    return out;
-  }
-
-  let accPayroll = 0;
-  payrollSlices.forEach((slice, i) => {
-    const last = i === payrollSlices.length - 1;
-    const payroll = last
-      ? Math.max(0, payrollTax - accPayroll)
-      : Math.round((slice.weight / payrollPool) * payrollTax);
-    accPayroll += payroll;
-    const prev = out.get(slice.sourceId)!;
-    out.set(slice.sourceId, { keep: prev.keep, payroll });
   });
 
   return out;

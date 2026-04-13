@@ -37,10 +37,12 @@ export function buildMekkoRows(
     });
   }
 
-  for (const segment of getOrdinaryFederalSegments(result)) {
+  const ordinarySegments = getOrdinaryFederalSegments(result);
+  for (const segment of ordinarySegments) {
     if (segment.incomeAmount <= 0) continue;
     const nodeId = ordinaryBracketNodeId(segment);
-    const tax = federalByNodeResolved.get(nodeId)?.federalToTax ?? 0;
+    const afterCredits = federalByNodeResolved.get(nodeId);
+    const tax = afterCredits?.federalToTax ?? 0;
     rows.push({
       id: `ordinary-${ordinarySegmentKey(segment)}`,
       label: `Ord. ${Math.round(segment.marginalRate * 100)}%`,
@@ -52,10 +54,12 @@ export function buildMekkoRows(
     });
   }
 
-  for (const segment of getLongTermCapitalGainsSegments(result)) {
+  const ltcgSegments = getLongTermCapitalGainsSegments(result);
+  for (const segment of ltcgSegments) {
     if (segment.incomeAmount <= 0) continue;
     const nodeId = ltcgBracketNodeId(segment);
-    const tax = federalByNodeResolved.get(nodeId)?.federalToTax ?? 0;
+    const afterCredits = federalByNodeResolved.get(nodeId);
+    const tax = afterCredits?.federalToTax ?? 0;
     rows.push({
       id: `ltcg-${ltcgSegmentKey(segment)}`,
       label: formatLtcgBracketLabel(segment),
@@ -64,6 +68,30 @@ export function buildMekkoRows(
       keep: Math.max(0, segment.incomeAmount - tax),
       kind: "ltcgBracket",
       marginalRate: segment.marginalRate,
+    });
+  }
+
+  const preTaxTotal = chartMetricNumeric(result, "preTaxTotal");
+  if (preTaxTotal > 0) {
+    rows.push({
+      id: "pretax",
+      label: "Pre-Tax",
+      total: preTaxTotal,
+      keep: preTaxTotal,
+      tax: 0,
+      kind: "pretax",
+    });
+  }
+
+  const selfEmploymentTax = chartMetricNumeric(result, "selfEmploymentTax");
+  if (selfEmploymentTax > 0) {
+    rows.push({
+      id: "self-employment-tax",
+      label: "SE Tax",
+      total: selfEmploymentTax,
+      keep: 0,
+      tax: selfEmploymentTax,
+      kind: "deduction",
     });
   }
 

@@ -31,8 +31,8 @@ export function computeMekkoLayout(result: TaxResult, rows: MekkoRow[]): MekkoLa
   const totalIncome = chartMetricNumeric(result, "totalIncome");
   if (rows.length === 0) return undefined;
 
-  const stackTotal = rows.reduce((s, row) => s + row.total, 0);
-  const visualTotal = Math.max(totalIncome, stackTotal);
+  
+  const visualTotal = totalIncome;
   if (visualTotal <= 0) return undefined;
 
   const plotTop = PAD_T + SUMMARY_H + SUMMARY_GAP;

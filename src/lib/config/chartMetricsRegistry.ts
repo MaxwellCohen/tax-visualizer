@@ -55,17 +55,13 @@ import {
 import type { PretaxBenefitConfig } from "~/lib/config/taxItems";
 import type { ChartCategory } from "~/lib/config/taxItems";
 import type { SankeyNodeKind } from "~/lib/config/taxItems";
-import type { SankeyMetricAppendContext } from "~/lib/config/sankeyMetricAppendContext";
-import type { SankeyPhaseId } from "~/lib/config/sankeyPhaseId";
-export type { SankeyMetricAppendContext };
-import { appendLtcgBracketSankey, appendOrdinaryBracketSankey } from "~/lib/taxCharts.sankeyPhaseBrackets";
 
 /** Fold income sources into aggregation fields (`map` seeds zeros, `reduce` sums amounts). */
 function aggregateIncomeFieldsFromSources(
   sources: TaxCalculationInputs["incomeSources"],
 ): Record<string, number> {
   return sources.reduce(
-    (acc, src) => {
+    (acc: Record<string, number>, src) => {
       const cfg = INCOME_KIND_CONFIGS.find((c) => c.id === src.kind);
       if (cfg) acc[cfg.aggregationField] += src.amount;
       return acc;
@@ -75,7 +71,7 @@ function aggregateIncomeFieldsFromSources(
 }
 
 function incomeAggregationResultFromCi(
-  ci: TaxCalculationInputs,
+  filingStatus: TaxCalculationInputs["filingStatus"],
   aggregated: Record<string, number>,
 ): IncomeAggregationResult {
   const totalIncome = Object.values(aggregated).reduce((s, n) => s + n, 0);
@@ -116,14 +112,15 @@ function resolvePretaxBenefitConfigForKind(kind: string): PretaxBenefitConfig | 
 }
 
 function computePretaxBenefits(
-  inputs: TaxCalculationInputs,
+  filingStatus: TaxCalculationInputs["filingStatus"],
+  pretaxBenefitSources: TaxCalculationInputs["pretaxBenefitSources"],
   config: TaxYearConfig,
   income: IncomeAggregationResult,
 ): PretaxBenefitsResult {
-  const joint = inputs.filingStatus === "marriedJoint";
+  const joint = filingStatus === "marriedJoint";
   const limits = config.pretaxLimits;
 
-  const aggregated = inputs.pretaxBenefitSources.reduce(
+  const aggregated = pretaxBenefitSources.reduce(
     (acc, src) => {
       const cfg = resolvePretaxBenefitConfigForKind(src.kind);
       if (!cfg) return acc;
@@ -177,10 +174,15 @@ function computePretaxBenefits(
   };
 }
 
-function computeDeduction(inputs: TaxCalculationInputs, config: TaxYearConfig): DeductionCalculationResult {
-  const standardDeduction = config.standardDeduction[inputs.filingStatus];
+function computeDeduction(
+  filingStatus: TaxCalculationInputs["filingStatus"],
+  itemizedDeductions: TaxCalculationInputs["itemizedDeductions"],
+  useItemizedDeductions: TaxCalculationInputs["useItemizedDeductions"],
+  config: TaxYearConfig,
+): DeductionCalculationResult {
+  const standardDeduction = config.standardDeduction[filingStatus];
 
-  const itemizedAggregated = inputs.itemizedDeductions.reduce(
+  const itemizedAggregated = itemizedDeductions.reduce(
     (acc, ded) => {
       const cfg = DEDUCTION_KIND_CONFIGS.find((c) => c.id === ded.kind);
       if (cfg) acc[cfg.aggregationField] += ded.amount;
@@ -189,10 +191,10 @@ function computeDeduction(inputs: TaxCalculationInputs, config: TaxYearConfig): 
     Object.fromEntries(DEDUCTION_KIND_CONFIGS.map((c) => [c.aggregationField, 0])) as Record<string, number>,
   );
 
-  const itemizedDeductions = Object.values(itemizedAggregated).reduce((s, n) => s + n, 0);
+  const itemizedDeductionsTotal = Object.values(itemizedAggregated).reduce((s, n) => s + n, 0);
 
-  const useItemized = inputs.useItemizedDeductions && itemizedDeductions > standardDeduction;
-  const deductionAmount = useItemized ? itemizedDeductions : standardDeduction;
+  const useItemized = useItemizedDeductions && itemizedDeductionsTotal > standardDeduction;
+  const deductionAmount = useItemized ? itemizedDeductionsTotal : standardDeduction;
 
   return {
     id: "deduction-calculation",
@@ -205,22 +207,23 @@ function computeDeduction(inputs: TaxCalculationInputs, config: TaxYearConfig): 
 }
 
 function computeFederalOrdinary(
-  inputs: TaxCalculationInputs,
   config: TaxYearConfig,
+  filingStatus: TaxCalculationInputs["filingStatus"],
   income: IncomeAggregationResult,
   pretax: PretaxBenefitsResult,
   deduction: DeductionCalculationResult,
 ): FederalOrdinaryTaxResult {
   const wageIncome = income.wageIncome;
+  const selfEmploymentIncome = income.selfEmploymentIncome;
   const ordinaryIncome = income.ordinaryIncome;
   const shortTermCapGains = income.shortTermCapGains;
   const preTaxTotal = pretax.amount;
   const deductionAmount = deduction.amount;
 
-  const ordinaryAfterPretax = wageIncome + ordinaryIncome + shortTermCapGains - preTaxTotal;
+  const ordinaryAfterPretax = wageIncome + selfEmploymentIncome + ordinaryIncome + shortTermCapGains - preTaxTotal;
   const ordinaryTaxableIncome = Math.max(0, ordinaryAfterPretax - deductionAmount);
 
-  const brackets = config.federalBrackets[inputs.filingStatus];
+  const brackets = config.federalBrackets[filingStatus];
   const { tax: totalTax, segments } = calculateBracketTax(ordinaryTaxableIncome, brackets);
 
   const formattedSegments = segments.map((s) => ({
@@ -242,8 +245,8 @@ function computeFederalOrdinary(
 }
 
 function computeFederalLtcgInner(
-  inputs: TaxCalculationInputs,
   config: TaxYearConfig,
+  filingStatus: TaxCalculationInputs["filingStatus"],
   income: IncomeAggregationResult,
   deduction: DeductionCalculationResult,
   federalOrdinary: FederalOrdinaryTaxResult,
@@ -255,7 +258,7 @@ function computeFederalLtcgInner(
   const remainingDeduction = Math.max(0, deductionAmount - ordinaryTaxableIncome);
   const longTermTaxableIncome = Math.max(0, longTermCapGains - remainingDeduction);
 
-  const ltcgThresholds = config.longTermCapGains[inputs.filingStatus];
+  const ltcgThresholds = config.longTermCapGains[filingStatus];
   const { tax: totalTax, segments } = calculateLtcgTax(longTermTaxableIncome, ltcgThresholds, ordinaryTaxableIncome);
 
   return {
@@ -269,19 +272,20 @@ function computeFederalLtcgInner(
 }
 
 function computeNiit(
-  inputs: TaxCalculationInputs,
+  filingStatus: TaxCalculationInputs["filingStatus"],
   config: TaxYearConfig,
   income: IncomeAggregationResult,
   federalLtcg: FederalLtcgTaxResult,
 ): FederalNiitResult {
   const wageIncome = income.wageIncome;
+  const selfEmploymentIncome = income.selfEmploymentIncome;
   const ordinaryIncome = income.ordinaryIncome;
   const shortTermCapGains = income.shortTermCapGains;
   const longTermTaxableIncome = federalLtcg.longTermTaxableIncome;
 
-  const magi = wageIncome + ordinaryIncome + shortTermCapGains + income.longTermCapGains;
+  const magi = wageIncome + selfEmploymentIncome + ordinaryIncome + shortTermCapGains + income.longTermCapGains;
   const netInvestmentIncome = shortTermCapGains + longTermTaxableIncome;
-  const threshold = config.niit.magiThreshold[inputs.filingStatus];
+  const threshold = config.niit.magiThreshold[filingStatus];
 
   const magiOverThreshold = Math.max(0, magi - threshold);
   const niitAmount =
@@ -297,14 +301,14 @@ function computeNiit(
 }
 
 function computeTaxCreditsInner(
-  inputs: TaxCalculationInputs,
+  federalTaxCredits: TaxCalculationInputs["federalTaxCredits"],
   ordinaryTax: FederalOrdinaryTaxResult,
   ltcgTax: FederalLtcgTaxResult,
   niit: FederalNiitResult,
 ): TaxCreditsResult {
   const totalTaxLiability = ordinaryTax.amount + ltcgTax.amount + niit.amount;
 
-  const creditsAggregated = inputs.federalTaxCredits.reduce(
+  const creditsAggregated = federalTaxCredits.reduce(
     (acc, credit) => {
       const cfg = FEDERAL_CREDIT_CONFIGS.find((c) => c.id === credit.kind);
       if (cfg) acc[cfg.aggregationField] += credit.amount;
@@ -335,7 +339,7 @@ function computeTaxCreditsInner(
 }
 
 function computePayrollInner(
-  inputs: TaxCalculationInputs,
+  filingStatus: TaxCalculationInputs["filingStatus"],
   config: TaxYearConfig,
   income: IncomeAggregationResult,
   pretax: PretaxBenefitsResult,
@@ -347,7 +351,7 @@ function computePayrollInner(
   const wageBase = config.payroll.socialSecurityWageBase;
   const socialSecurityTax = Math.min(wagesForPayroll, wageBase) * config.payroll.socialSecurityRate;
   const medicareTaxBase = wagesForPayroll * config.payroll.medicareRate;
-  const additionalMedicareThreshold = config.payroll.additionalMedicareThreshold[inputs.filingStatus];
+  const additionalMedicareThreshold = config.payroll.additionalMedicareThreshold[filingStatus];
   const additionalMedicare =
     wagesForPayroll > additionalMedicareThreshold ? (wagesForPayroll - additionalMedicareThreshold) * config.payroll.additionalMedicareRate : 0;
   const medicareTax = medicareTaxBase + additionalMedicare;
@@ -364,10 +368,16 @@ function computePayrollInner(
   };
 }
 
-function computeSelfEmploymentInner(inputs: TaxCalculationInputs, config: TaxYearConfig): SelfEmploymentTaxResult {
+function computeSelfEmploymentInner(
+  incomeSources: TaxCalculationInputs["incomeSources"],
+  filingStatus: TaxCalculationInputs["filingStatus"],
+  config: TaxYearConfig,
+): SelfEmploymentTaxResult {
   const seConfig = SELF_EMPLOYMENT_CONFIGS[0];
 
-  const selfEmploymentIncome = inputs.incomeSources.filter((s) => s.kind === "selfEmployment").reduce((sum, s) => sum + s.amount, 0);
+  const selfEmploymentIncome = incomeSources
+    .filter((s) => s.kind === "selfEmployment")
+    .reduce((sum, s) => sum + s.amount, 0);
 
   const netEarnings = selfEmploymentIncome * seConfig.netEarningsRate;
 
@@ -376,7 +386,7 @@ function computeSelfEmploymentInner(inputs: TaxCalculationInputs, config: TaxYea
   const medicareRate = config.payroll.medicareRate * seConfig.ssMultiplier;
   const additionalMedicareRate = config.payroll.additionalMedicareRate * seConfig.ssMultiplier;
 
-  const additionalThreshold = config.payroll.additionalMedicareThreshold[inputs.filingStatus];
+  const additionalThreshold = config.payroll.additionalMedicareThreshold[filingStatus];
 
   const seSocialSecurityTax = Math.min(netEarnings, wageBase) * ssRate;
   const seMedicareTax = netEarnings * medicareRate;
@@ -392,7 +402,6 @@ function computeSelfEmploymentInner(inputs: TaxCalculationInputs, config: TaxYea
 }
 
 function computeTakeHomeInner(
-  inputs: TaxCalculationInputs,
   income: IncomeAggregationResult,
   pretax: PretaxBenefitsResult,
   ordinaryTax: FederalOrdinaryTaxResult,
@@ -433,7 +442,12 @@ export type ChartPipelineAccretion = Partial<TaxPipelineSnapshot>;
 
 export type ChartMetricComputeContext = {
   formRows: TaxFormRow[];
-  inputs: TaxCalculationInputs;
+  filingStatus: TaxCalculationInputs["filingStatus"];
+  incomeSources: TaxCalculationInputs["incomeSources"];
+  pretaxBenefitSources: TaxCalculationInputs["pretaxBenefitSources"];
+  itemizedDeductions: TaxCalculationInputs["itemizedDeductions"];
+  useItemizedDeductions: TaxCalculationInputs["useItemizedDeductions"];
+  federalTaxCredits: TaxCalculationInputs["federalTaxCredits"];
   config: TaxYearConfig;
   /** Filled incrementally as registry `compute` functions run (via `accrete*` helpers). */
   accreted: ChartPipelineAccretion;
@@ -441,8 +455,8 @@ export type ChartMetricComputeContext = {
 
 function accreteIncome(ctx: ChartMetricComputeContext): IncomeAggregationResult {
   if (!ctx.accreted.income) {
-    const aggregated = aggregateIncomeFieldsFromSources(ctx.inputs.incomeSources);
-    ctx.accreted.income = incomeAggregationResultFromCi(ctx.inputs, aggregated);
+    const aggregated = aggregateIncomeFieldsFromSources(ctx.incomeSources);
+    ctx.accreted.income = incomeAggregationResultFromCi(ctx.filingStatus, aggregated);
   }
   return ctx.accreted.income!;
 }
@@ -450,14 +464,19 @@ function accreteIncome(ctx: ChartMetricComputeContext): IncomeAggregationResult 
 function accretePretax(ctx: ChartMetricComputeContext): PretaxBenefitsResult {
   const income = accreteIncome(ctx);
   if (!ctx.accreted.pretax) {
-    ctx.accreted.pretax = computePretaxBenefits(ctx.inputs, ctx.config, income);
+    ctx.accreted.pretax = computePretaxBenefits(ctx.filingStatus, ctx.pretaxBenefitSources, ctx.config, income);
   }
   return ctx.accreted.pretax!;
 }
 
 function accreteDeduction(ctx: ChartMetricComputeContext): DeductionCalculationResult {
   if (!ctx.accreted.deduction) {
-    ctx.accreted.deduction = computeDeduction(ctx.inputs, ctx.config);
+    ctx.accreted.deduction = computeDeduction(
+      ctx.filingStatus,
+      ctx.itemizedDeductions,
+      ctx.useItemizedDeductions,
+      ctx.config,
+    );
   }
   return ctx.accreted.deduction!;
 }
@@ -465,8 +484,8 @@ function accreteDeduction(ctx: ChartMetricComputeContext): DeductionCalculationR
 function accreteFederalOrdinary(ctx: ChartMetricComputeContext): FederalOrdinaryTaxResult {
   if (!ctx.accreted.federalOrdinary) {
     ctx.accreted.federalOrdinary = computeFederalOrdinary(
-      ctx.inputs,
       ctx.config,
+      ctx.filingStatus,
       accreteIncome(ctx),
       accretePretax(ctx),
       accreteDeduction(ctx),
@@ -478,8 +497,8 @@ function accreteFederalOrdinary(ctx: ChartMetricComputeContext): FederalOrdinary
 function accreteFederalLtcg(ctx: ChartMetricComputeContext): FederalLtcgTaxResult {
   if (!ctx.accreted.federalLtcg) {
     ctx.accreted.federalLtcg = computeFederalLtcgInner(
-      ctx.inputs,
       ctx.config,
+      ctx.filingStatus,
       accreteIncome(ctx),
       accreteDeduction(ctx),
       accreteFederalOrdinary(ctx),
@@ -490,7 +509,7 @@ function accreteFederalLtcg(ctx: ChartMetricComputeContext): FederalLtcgTaxResul
 
 function accreteNiit(ctx: ChartMetricComputeContext): FederalNiitResult {
   if (!ctx.accreted.niit) {
-    ctx.accreted.niit = computeNiit(ctx.inputs, ctx.config, accreteIncome(ctx), accreteFederalLtcg(ctx));
+    ctx.accreted.niit = computeNiit(ctx.filingStatus, ctx.config, accreteIncome(ctx), accreteFederalLtcg(ctx));
   }
   return ctx.accreted.niit!;
 }
@@ -498,7 +517,7 @@ function accreteNiit(ctx: ChartMetricComputeContext): FederalNiitResult {
 function accreteTaxCredits(ctx: ChartMetricComputeContext): TaxCreditsResult {
   if (!ctx.accreted.taxCredits) {
     ctx.accreted.taxCredits = computeTaxCreditsInner(
-      ctx.inputs,
+      ctx.federalTaxCredits,
       accreteFederalOrdinary(ctx),
       accreteFederalLtcg(ctx),
       accreteNiit(ctx),
@@ -509,14 +528,18 @@ function accreteTaxCredits(ctx: ChartMetricComputeContext): TaxCreditsResult {
 
 function accretePayroll(ctx: ChartMetricComputeContext): PayrollTaxResult {
   if (!ctx.accreted.payroll) {
-    ctx.accreted.payroll = computePayrollInner(ctx.inputs, ctx.config, accreteIncome(ctx), accretePretax(ctx));
+    ctx.accreted.payroll = computePayrollInner(ctx.filingStatus, ctx.config, accreteIncome(ctx), accretePretax(ctx));
   }
   return ctx.accreted.payroll!;
 }
 
 function accreteSelfEmployment(ctx: ChartMetricComputeContext): SelfEmploymentTaxResult {
   if (!ctx.accreted.selfEmployment) {
-    ctx.accreted.selfEmployment = computeSelfEmploymentInner(ctx.inputs, ctx.config);
+    ctx.accreted.selfEmployment = computeSelfEmploymentInner(
+      ctx.incomeSources,
+      ctx.filingStatus,
+      ctx.config,
+    );
   }
   return ctx.accreted.selfEmployment!;
 }
@@ -524,7 +547,6 @@ function accreteSelfEmployment(ctx: ChartMetricComputeContext): SelfEmploymentTa
 function accreteTakeHome(ctx: ChartMetricComputeContext): TakeHomeResult {
   if (!ctx.accreted.takeHome) {
     ctx.accreted.takeHome = computeTakeHomeInner(
-      ctx.inputs,
       accreteIncome(ctx),
       accretePretax(ctx),
       accreteFederalOrdinary(ctx),
@@ -563,17 +585,10 @@ export type ChartMetricSankeyHint = {
    * income column (lower = higher on chart). Drives {@link INCOME_KIND_CHART_ORDER_BY_KIND}.
    */
   incomeKindVerticalOrder?: number;
-  /** Primary structural node for this metric’s Sankey `kind` (merge with {@link structuralNodes} when collecting). */
+  /** Primary structural node for this metric's Sankey `kind` (merge with {@link structuralNodes} when collecting). */
   structuralNode?: SankeyNodeLayoutEntry;
   /** Additional structural nodes when this metric owns more than one bar (e.g. ordinary taxable + payroll strip). */
   structuralNodes?: readonly SankeyNodeLayoutEntry[];
-  /** When set, {@link sankeyRegistryRunner.runSankeyRegistryAppendersForPhase} invokes `append` during this Sankey build phase. */
-  phase?: SankeyPhaseId;
-  /**
-   * Contributes Sankey nodes/links for this row. Many metrics have no `append` (e.g. gross income uses one node per
-   * form row, not one per metric); those phases stay in `taxCharts.sankeyPhase*` until migrated.
-   */
-  append?: (ctx: SankeyMetricAppendContext) => void;
 };
 
 export type ChartMetricMekkoHint = {
@@ -643,7 +658,12 @@ function buildChartMetricComputeContext(
 ): ChartMetricComputeContext {
   return {
     formRows,
-    inputs,
+    filingStatus: inputs.filingStatus,
+    incomeSources: inputs.incomeSources,
+    pretaxBenefitSources: inputs.pretaxBenefitSources,
+    itemizedDeductions: inputs.itemizedDeductions,
+    useItemizedDeductions: inputs.useItemizedDeductions,
+    federalTaxCredits: inputs.federalTaxCredits,
     config,
     accreted: {},
   };
@@ -861,11 +881,6 @@ export const CHART_REGISTRY: readonly ChartRegistryEntry[] = [
     },
     compute: (ctx) => accretePretax(ctx).wagesAfterPretax,
   },
-  // {
-  //   metricsKey: "deductionKind",
-  //   valueKind: "deductionKind",
-  //   compute: (ctx) => accreteDeduction(ctx).kind,
-  // },
   {
     metricsKey: "standardDeduction",
     valueKind: "number",
@@ -906,16 +921,6 @@ export const CHART_REGISTRY: readonly ChartRegistryEntry[] = [
       color: "#d97706",
     },
     compute: (ctx) => accreteDeduction(ctx).amount,
-  },
-  {
-    metricsKey: "deductionAllocatedToOrdinary",
-    valueKind: "number",
-    compute: () => 0,
-  },
-  {
-    metricsKey: "deductionAllocatedToLongTermGross",
-    valueKind: "number",
-    compute: () => 0,
   },
   {
     metricsKey: "ordinaryTaxableIncome",
@@ -961,9 +966,9 @@ export const CHART_REGISTRY: readonly ChartRegistryEntry[] = [
         linkStroke: "var(--sankey-link)",
       },
     },
-    summary: { summaryId: "long-term-taxable-income", label: "LTCG Taxable", category: "income", displayOrder: 15 },
+    summary: { summaryId: "long-term-taxable-income", label: "LTCG Taxable", category: "income", displayOrder: 10 },
     detailedDisplay: {
-      order: 115,
+      order: 110,
       type: "ltcg-taxable-income",
       category: "tax",
       label: "LTCG Taxable Income",
@@ -992,8 +997,6 @@ export const CHART_REGISTRY: readonly ChartRegistryEntry[] = [
     sankey: {
       sankeyNodeKind: "ordinaryBracket",
       chartCategory: "tax",
-      phase: "brackets",
-      append: appendOrdinaryBracketSankey,
       structuralNode: {
         kind: "ordinaryBracket",
         order: 9,
@@ -1011,8 +1014,6 @@ export const CHART_REGISTRY: readonly ChartRegistryEntry[] = [
     sankey: {
       sankeyNodeKind: "ltcgBracket",
       chartCategory: "tax",
-      phase: "brackets",
-      append: appendLtcgBracketSankey,
       structuralNode: {
         kind: "ltcgBracket",
         order: 8,

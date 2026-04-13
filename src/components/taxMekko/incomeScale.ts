@@ -22,7 +22,7 @@ export function niceStep(x: number, round: boolean): number {
 
 /** Y-axis domain and ticks derived together: step scales with income, tick count scales with plot height. */
 export function incomeYAxis(visualTotal: number, plotH: number): { yMax: number; yTicks: number[] } {
-  const dataMax = Math.max(visualTotal * 1.06, 1);
+  const dataMax = Math.max(visualTotal, 1);
   const targetIntervals = Math.max(3, Math.min(8, Math.round(plotH / 52)));
   let step = niceStep(dataMax / targetIntervals, true);
   let yMax = Math.max(step, Math.ceil(dataMax / step) * step);

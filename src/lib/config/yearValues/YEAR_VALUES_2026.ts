@@ -28,7 +28,7 @@ export const YEAR_VALUES_2026: YearValues = {
   ltcgThresholds: { single: { zeroRateMax: 49450, fifteenRateMax: 545500 }, marriedJoint: { zeroRateMax: 98900, fifteenRateMax: 613700 }, marriedSeparate: { zeroRateMax: 49450, fifteenRateMax: 306850 }, headOfHousehold: { zeroRateMax: 66200, fifteenRateMax: 579600 } },
   limits: { electiveDeferral401k: 24000, hsaSelfOnly: 4400, hsaFamily: 8750, traditionalIra: 7150 },
   caps: {
-    salt: { single: 10000, marriedJoint: 10000, marriedSeparate: 5000, headOfHousehold: 10000 },
+    salt: { single: 40400, marriedJoint: 40400, marriedSeparate: 20200, headOfHousehold: 40400 },
     credits: { childTaxCredit: 40000, creditForOtherDependents: 10000, childAndDependentCare: 8000, educationCredits: 10000, retirementSavingsContributions: 2000, foreignTaxCredit: 9000000000, residentialCleanEnergy: 110000, electricVehicleCredit: 45000, generalBusinessCredit: 1000000, otherFederalCredit: 2000000 },
   },
   defaults: {

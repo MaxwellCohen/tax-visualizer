@@ -92,11 +92,11 @@ html[data-theme="dark"] {
   --sankey-link-label: #c8c8c0;
   --sankey-label: #e8e6e3;
 
-  --mekko-keep: #6dae7c;
-  --mekko-pretax: #5a9ec4;
-  --mekko-deduction: #7eb88a;
-  --mekko-ltcg: #5eb3c8;
-  --mekko-tax: #e85d5a;
+  --mekko-keep: #5a9a6a;
+  --mekko-pretax: #3d7a9e;
+  --mekko-deduction: #6b9e7a;
+  --mekko-ltcg: #4a8a9e;
+  --mekko-tax: #b54542;
   --mekko-segment-label: rgba(255, 255, 255, 0.95);
 }
 
