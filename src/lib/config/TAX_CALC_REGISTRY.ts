@@ -437,6 +437,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
         fill: "var(--sankey-node-credits)",
         linkStroke: "var(--sankey-link-credits)",
       },
+      terminalId: "federal-credits",
     },
     compute: (ctx) => accreteTaxCredits(ctx).creditsApplied,
   },
@@ -452,6 +453,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
         fill: "var(--sankey-node-6)",
         linkStroke: "var(--sankey-link-tax)",
       },
+      terminalId: "taxes-federal",
     },
     summary: { summaryId: "federal-income-tax", label: "Federal Income Tax", category: "tax", displayOrder: 19 },
     detailedDisplay: {
@@ -479,6 +481,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
         fill: "var(--sankey-node-6)",
         linkStroke: "var(--sankey-link-tax)",
       },
+      terminalId: "taxes-payroll",
     },
     summary: { summaryId: "payroll-tax", label: "Payroll Taxes", category: "tax", displayOrder: 28 },
     detailedDisplay: {
@@ -498,6 +501,14 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
     sankey: {
       sankeyNodeKind: "taxesPayroll",
       chartCategory: "tax",
+      structuralNode: {
+        kind: "taxesPayroll",
+        order: 10,
+        column: 4,
+        fill: "var(--sankey-node-6)",
+        linkStroke: "var(--sankey-link-tax)",
+      },
+      terminalId: "taxes-payroll",
     },
     summary: {
       summaryId: "self-employment-tax",
@@ -546,6 +557,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
         fill: "var(--sankey-node-keep)",
         linkStroke: "var(--sankey-link-keep)",
       },
+      terminalId: "keep",
     },
     summary: {
       summaryId: "take-home-pay",

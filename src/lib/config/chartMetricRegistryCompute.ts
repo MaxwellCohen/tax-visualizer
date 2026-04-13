@@ -554,7 +554,7 @@ export type ChartMetricSankeyHint = {
   chartCategory?: ChartCategory;
   showWhen?: (ctx: ChartMetricComputeContext) => boolean;
   /**
-   * When this row’s `visualizationSourceId` is an {@link IncomeKind}, vertical position of that income on the Sankey
+   * When this row's `visualizationSourceId` is an {@link IncomeKind}, vertical position of that income on the Sankey
    * income column (lower = higher on chart). Drives {@link INCOME_KIND_CHART_ORDER_BY_KIND}.
    */
   incomeKindVerticalOrder?: number;
@@ -562,6 +562,8 @@ export type ChartMetricSankeyHint = {
   structuralNode?: SankeyNodeLayoutEntry;
   /** Additional structural nodes when this metric owns more than one bar (e.g. ordinary taxable + payroll strip). */
   structuralNodes?: readonly SankeyNodeLayoutEntry[];
+  /** Terminal node id (from SANKEY_IDS) for primary terminal entries. */
+  terminalId?: string;
 };
 
 export type ChartMetricMekkoHint = {
