@@ -1,6 +1,7 @@
 import type { Setter } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { calculateTaxes, rowsToTaxCalculationInputs } from "~/lib/taxCalc";
+import { calculateTaxes } from "~/lib/taxCalc";
+import { getTaxYearFromRows, rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
 import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
 import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import { getScenarioPresets } from "~/lib/taxScenario";
@@ -122,7 +123,11 @@ describe("createTaxHomeHandlers", () => {
     expect(setTaxInput).toHaveBeenCalled();
     const last = setTaxInput.mock.calls.at(-1)![0];
     expect(
-      aggregatePretaxFromSources(rowsToTaxCalculationInputs(last.rows).pretaxBenefitSources, false).preTax401kSpouse1,
+      aggregatePretaxFromSources(
+        rowsToTaxCalculationInputs(last.rows).pretaxBenefitSources,
+        false,
+        getTaxYearFromRows(last.rows),
+      ).preTax401kSpouse1,
     ).toBe(0);
   });
 });

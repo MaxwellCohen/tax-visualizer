@@ -91,7 +91,6 @@ function incomeAggregationResultFromCi(
     ordinaryIncome: aggregated.ordinaryIncome ?? 0,
     shortTermCapGains: aggregated.shortTermCapGains ?? 0,
     longTermCapGains: aggregated.longTermCapGains ?? 0,
-    sources: ci.incomeSources,
     totalIncome,
   };
 }
@@ -161,14 +160,7 @@ function computePretaxBenefits(
 
   const pick = (id: string) => perCfgEffects.find((r) => r.cfg.id === id);
   const k401 = pick("401k")?.effective ?? 0;
-  const k401s1 = pick("401k")?.effective1 ?? 0;
-  const k401s2 = pick("401k")?.effective2 ?? 0;
   const hsaT = pick("hsa")?.effective ?? 0;
-  const hsaS1 = pick("hsa")?.effective1 ?? 0;
-  const hsaS2 = pick("hsa")?.effective2 ?? 0;
-  const iraT = pick("traditionalIra")?.effective ?? 0;
-  const iraS1 = pick("traditionalIra")?.effective1 ?? 0;
-  const iraS2 = pick("traditionalIra")?.effective2 ?? 0;
   const otherT = pick("other")?.effective ?? 0;
 
   const wageIncome = income.wageIncome;
@@ -180,20 +172,10 @@ function computePretaxBenefits(
     amount: totalPretax,
     category: "pretax",
     "401k": k401,
-    "401kSpouse1": k401s1,
-    "401kSpouse2": k401s2,
     hsa: hsaT,
-    hsaSpouse1: hsaS1,
-    hsaSpouse2: hsaS2,
-    ira: iraT,
-    iraSpouse1: iraS1,
-    iraSpouse2: iraS2,
     other: otherT,
-    totalPretax,
     traditionalIra: totalIra,
     wagesAfterPretax,
-    effective401k: k401,
-    effectiveHsa: hsaT,
   };
 }
 
@@ -221,11 +203,6 @@ function computeDeduction(inputs: TaxCalculationInputs, config: TaxYearConfig): 
     category: "deduction",
     kind: useItemized ? "itemized" : "standard",
     standardDeduction,
-    itemizedDeductions,
-    salt: itemizedAggregated.salt ?? 0,
-    medicalDental: itemizedAggregated.medicalDental ?? 0,
-    mortgageInterest: itemizedAggregated.mortgageInterest ?? 0,
-    charitable: itemizedAggregated.charitable ?? 0,
   };
 }
 
@@ -246,7 +223,7 @@ function computeFederalOrdinary(
   const ordinaryTaxableIncome = Math.max(0, ordinaryAfterPretax - deductionAmount);
 
   const brackets = config.federalBrackets[inputs.filingStatus];
-  const { tax: totalTax, marginalRate, segments } = calculateBracketTax(ordinaryTaxableIncome, brackets);
+  const { tax: totalTax, segments } = calculateBracketTax(ordinaryTaxableIncome, brackets);
 
   const formattedSegments = segments.map((s) => ({
     rangeStart: s.rangeStart,
@@ -262,7 +239,6 @@ function computeFederalOrdinary(
     amount: totalTax,
     category: "tax",
     ordinaryTaxableIncome,
-    marginalRate,
     segments: formattedSegments,
   };
 }
@@ -290,7 +266,6 @@ function computeFederalLtcgInner(
     amount: totalTax,
     category: "tax",
     longTermTaxableIncome,
-    longTermCapGains,
     segments,
   };
 }
@@ -320,8 +295,6 @@ function computeNiit(
     amount: niitAmount,
     category: "tax",
     netInvestmentIncome,
-    magi,
-    magiOverThreshold,
   };
 }
 
@@ -390,8 +363,6 @@ function computePayrollInner(
     category: "tax",
     socialSecurityTax,
     medicareTax,
-    additionalMedicare,
-    wagesForPayroll,
   };
 }
 
@@ -419,11 +390,6 @@ function computeSelfEmploymentInner(inputs: TaxCalculationInputs, config: TaxYea
     label: "Self-Employment Tax",
     amount: selfEmploymentTax,
     category: "tax",
-    seSocialSecurityTax,
-    seMedicareTax,
-    additionalMedicareTax: additionalMedicare,
-    netEarnings,
-    selfEmploymentIncome,
   };
 }
 
@@ -461,14 +427,6 @@ function computeTakeHomeInner(
     category: "income",
     effectiveRate,
     marginalFederalRate,
-    totalIncome,
-    preTaxTotal,
-    federalTax,
-    payrollTax: payroll,
-    pretaxIra,
-    wagesAfterPretax,
-    selfEmploymentTax,
-    totalTax,
   };
 }
 
@@ -850,7 +808,8 @@ export const CHART_REGISTRY: readonly ChartRegistryEntry[] = [
       structuralNode: {
         kind: "pretaxContribution",
         order: 6,
-        column: 2,
+        /** Same semantic column as ordinary taxable / standard deduction (second strip from income), not bracket column. */
+        column: 1,
         fill: "var(--sankey-node-keep)",
         linkStroke: "var(--sankey-link)",
       },
@@ -863,7 +822,7 @@ export const CHART_REGISTRY: readonly ChartRegistryEntry[] = [
       tooltip: "Total pre-tax deductions",
       color: "#7e22ce",
     },
-    compute: (ctx) => accretePretax(ctx).totalPretax,
+    compute: (ctx) => accretePretax(ctx).amount,
   },
   {
     metricsKey: "traditionalIra",
@@ -881,7 +840,7 @@ export const CHART_REGISTRY: readonly ChartRegistryEntry[] = [
       structuralNode: {
         kind: "deductionBenefitSink",
         order: 11,
-        column: 2,
+        column: 1,
         fill: "var(--sankey-node-keep)",
         linkStroke: "var(--sankey-link-keep)",
         fillBenefitAccounting: "var(--sankey-node-deferred)",

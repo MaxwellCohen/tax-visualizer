@@ -1,7 +1,7 @@
 /**
  * Discriminated union of tax item calculator results (replaces untyped metadata bags).
  */
-import type { DeductionKind, IncomeSource, LtcgTaxSegment, TaxSegment } from "~/lib/taxCalc.types";
+import type { DeductionKind, LtcgTaxSegment, TaxSegment } from "~/lib/taxCalc.types";
 
 export type IncomeAggregationResult = {
   id: "income-aggregation";
@@ -13,31 +13,21 @@ export type IncomeAggregationResult = {
   ordinaryIncome: number;
   shortTermCapGains: number;
   longTermCapGains: number;
-  sources: IncomeSource[];
   totalIncome: number;
 };
 
-/** Effective pretax amounts after caps; keys mirror former metadata field names. */
+/** Effective pretax amounts after caps (401k/HSA/other excl. IRA; IRA separate). */
 export type PretaxBenefitsResult = {
   id: "pretax-benefits";
   label: string;
+  /** Payroll pre-tax total excluding traditional IRA (same meaning as chart `preTaxTotal`). */
   amount: number;
   category: "pretax";
   "401k": number;
-  "401kSpouse1": number;
-  "401kSpouse2": number;
   hsa: number;
-  hsaSpouse1: number;
-  hsaSpouse2: number;
-  ira: number;
-  iraSpouse1: number;
-  iraSpouse2: number;
   other: number;
-  totalPretax: number;
   traditionalIra: number;
   wagesAfterPretax: number;
-  effective401k: number;
-  effectiveHsa: number;
 };
 
 export type DeductionCalculationResult = {
@@ -47,11 +37,6 @@ export type DeductionCalculationResult = {
   category: "deduction";
   kind: DeductionKind;
   standardDeduction: number;
-  itemizedDeductions: number;
-  salt: number;
-  medicalDental: number;
-  mortgageInterest: number;
-  charitable: number;
 };
 
 export type FederalOrdinaryTaxResult = {
@@ -60,7 +45,6 @@ export type FederalOrdinaryTaxResult = {
   amount: number;
   category: "tax";
   ordinaryTaxableIncome: number;
-  marginalRate: number;
   segments: TaxSegment[];
 };
 
@@ -70,7 +54,6 @@ export type FederalLtcgTaxResult = {
   amount: number;
   category: "tax";
   longTermTaxableIncome: number;
-  longTermCapGains: number;
   segments: LtcgTaxSegment[];
 };
 
@@ -80,8 +63,6 @@ export type FederalNiitResult = {
   amount: number;
   category: "tax";
   netInvestmentIncome: number;
-  magi: number;
-  magiOverThreshold: number;
 };
 
 export type TaxCreditsResult = {
@@ -107,9 +88,8 @@ export type PayrollTaxResult = {
   amount: number;
   category: "tax";
   socialSecurityTax: number;
+  /** Includes base Medicare + additional Medicare when applicable. */
   medicareTax: number;
-  additionalMedicare: number;
-  wagesForPayroll: number;
 };
 
 export type TakeHomeResult = {
@@ -120,14 +100,6 @@ export type TakeHomeResult = {
   effectiveRate: number;
   /** Top ordinary federal bracket rate (for display). */
   marginalFederalRate: number;
-  totalIncome: number;
-  preTaxTotal: number;
-  federalTax: number;
-  payrollTax: number;
-  pretaxIra: number;
-  wagesAfterPretax: number;
-  selfEmploymentTax: number;
-  totalTax: number;
 };
 
 export type SelfEmploymentTaxResult = {
@@ -135,11 +107,6 @@ export type SelfEmploymentTaxResult = {
   label: string;
   amount: number;
   category: "tax";
-  seSocialSecurityTax: number;
-  seMedicareTax: number;
-  additionalMedicareTax: number;
-  netEarnings: number;
-  selfEmploymentIncome: number;
 };
 
 export type TaxItemResult =

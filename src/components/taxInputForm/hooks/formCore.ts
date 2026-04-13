@@ -1,4 +1,6 @@
 import { createForm } from "@tanstack/solid-form";
+import { createDeductionMemos } from "~/components/taxInputForm/hooks/deductionMemos";
+import { createLimitMemos } from "~/components/taxInputForm/hooks/limitMemos";
 import { newFederalTaxCreditSource, newItemizedDeductionSource, newPretaxBenefitSource } from "~/lib/taxCalc";
 import type { TaxFormData, TaxFormRow } from "~/lib/taxForm.types";
 import {
@@ -62,6 +64,9 @@ export function createTaxInputForm(props: TaxInputFormOuterProps) {
   }));
 
   const values = form.useStore((s) => s.values);
+
+  const limits = createLimitMemos(values);
+  const deduction = createDeductionMemos(values, limits.selectedTaxConfig);
 
   const addSource = () => {
     const v = values();
@@ -147,6 +152,8 @@ export function createTaxInputForm(props: TaxInputFormOuterProps) {
   return {
     form,
     values,
+    limits,
+    deduction,
     addSource,
     removeSourceAt,
     addPretaxBenefit,

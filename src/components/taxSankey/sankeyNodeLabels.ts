@@ -105,7 +105,7 @@ function createDeductionLabel(fmt: string, h: number): SankeyLabelLines {
 function createStandardDeductionLabel(node: ChartNode, fmt: string, h: number): SankeyLabelLines {
   const title = `${node.label} for this filing status is ${fmt}. The flow through this bar is your itemized amount (next step), so band width matches itemized dollars, not this benchmark.`;
   if (h < 30) return { compact: true, title, line1: `Std · ${fmt}` };
-  return { compact: false, title, line1: "Standard (benchmark)", line2: fmt };
+  return { compact: false, title, line1: "Standard Deduction", line2: fmt };
 }
 
 function createBracketLabel(node: ChartNode, money: typeof sankeyMoney, flow: number, h: number): SankeyLabelLines {

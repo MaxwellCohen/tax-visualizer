@@ -84,8 +84,35 @@ describe("sanitizeScenarioInput", () => {
     };
     const s = sanitizeScenarioInput(raw, years, fallback);
     expect(
-      aggregatePretaxFromSources(rowsToTaxCalculationInputs(s.rows).pretaxBenefitSources, false).preTax401kSpouse1,
+      aggregatePretaxFromSources(
+        rowsToTaxCalculationInputs(s.rows).pretaxBenefitSources,
+        false,
+        getTaxYearFromRows(s.rows),
+      ).preTax401kSpouse1,
     ).toBe(23_500);
+  });
+
+  it("combines multiple 401(k) lines before §402(g) cap (2026)", () => {
+    const raw = {
+      version: 5 as const,
+      rows: [
+        { type: "setting" as const, id: "taxYear" as const, value: 2026 },
+        { type: "setting" as const, id: "filingStatus" as const, value: "marriedJoint" as const },
+        { type: "income" as const, id: "a", kind: "wages" as const, label: "", amount: 100_000 },
+        { type: "pretax" as const, id: "p1", kind: "preTax401kSpouse1" as const, label: "", amount: 50 },
+        { type: "pretax" as const, id: "p2", kind: "preTax401kSpouse1" as const, label: "", amount: 24_000 },
+        { type: "setting" as const, id: "useItemizedDeductions" as const, value: false },
+        { type: "deduction" as const, id: "d1", kind: "otherItemized" as const, label: "", amount: 0 },
+        { type: "credit" as const, id: "c1", kind: "otherFederalCredit" as const, label: "", amount: 0 },
+      ],
+    };
+    const s = sanitizeScenarioInput(raw, [2024, 2025, 2026], 2026);
+    const p = aggregatePretaxFromSources(
+      rowsToTaxCalculationInputs(s.rows).pretaxBenefitSources,
+      false,
+      getTaxYearFromRows(s.rows),
+    );
+    expect(p.preTax401kSpouse1).toBe(24_000);
   });
 
   it("maps v5 pretax and itemized rows", () => {
@@ -104,7 +131,11 @@ describe("sanitizeScenarioInput", () => {
       ],
     };
     const s = sanitizeScenarioInput(raw, years, fallback);
-    const p = aggregatePretaxFromSources(rowsToTaxCalculationInputs(s.rows).pretaxBenefitSources, false);
+    const p = aggregatePretaxFromSources(
+      rowsToTaxCalculationInputs(s.rows).pretaxBenefitSources,
+      false,
+      getTaxYearFromRows(s.rows),
+    );
     expect(p.preTax401kSpouse1).toBe(5_000);
     expect(p.preTaxHsaSpouse1).toBe(1_000);
     expect(p.traditionalIraSpouse1).toBe(0);
@@ -145,7 +176,11 @@ describe("serialize / deserialize scenario", () => {
     const back = deserializeScenarioInput(json, years, fallback);
     expect(back).not.toBeNull();
     expect(
-      aggregatePretaxFromSources(rowsToTaxCalculationInputs(back!.rows).pretaxBenefitSources, false).preTax401kSpouse1,
+      aggregatePretaxFromSources(
+        rowsToTaxCalculationInputs(back!.rows).pretaxBenefitSources,
+        false,
+        getTaxYearFromRows(back!.rows),
+      ).preTax401kSpouse1,
     ).toBe(5_000);
     expect(sumLabeledAmountSources(rowsToTaxCalculationInputs(back!.rows).federalTaxCredits)).toBe(1_500);
   });

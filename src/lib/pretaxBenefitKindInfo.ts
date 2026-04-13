@@ -14,12 +14,22 @@ const PRETAX_MODELING_NOTES: Record<string, string> = {
   "traditionalIra": "Traditional IRA (deductible in this flow)",
 };
 
+/** Map row `kind` (e.g. `preTax401kSpouse1`) to `FORM_PRETAX_ITEMS[].id` for labels and limit copy. */
+export function pretaxKindToFormItemId(kind: string): string {
+  const k = kind.toLowerCase();
+  if (k.includes("401k") || k.includes("403b") || k.includes("457")) return "401k";
+  if (k.includes("hsa")) return "hsa";
+  if (k.includes("traditionalira")) return "traditionalIra";
+  return "other";
+}
+
 export function getPretaxBenefitKindDetail(
   kind: string,
   limits: PretaxBenefitLimits | null,
   joint: boolean,
 ): PretaxBenefitKindDetail {
-  const item = FORM_PRETAX_ITEMS.find((i) => i.id === kind) as FormInputItem | undefined;
+  const formItemId = pretaxKindToFormItemId(kind);
+  const item = FORM_PRETAX_ITEMS.find((i) => i.id === formItemId) as FormInputItem | undefined;
   if (!item) {
     return {
       description: "Unknown pretax benefit type",
@@ -30,10 +40,10 @@ export function getPretaxBenefitKindDetail(
   const fmt = (n: number) => money.format(n);
   const needYear = "Choose a tax year to show limits from this app's IRS figures.";
   
-  const modelingNote = PRETAX_MODELING_NOTES[kind] || "";
+  const modelingNote = PRETAX_MODELING_NOTES[formItemId] || "";
   let limitNote = modelingNote;
   
-  if (kind === "hsa" && limits) {
+  if (formItemId === "hsa" && limits) {
     limitNote = joint
       ? `Family HDHP combined payroll cap ${fmt(limits.hsaFamily)}; self-only up to ${fmt(limits.hsaSelfOnly)} per spouse.`
       : `Self-only HDHP cap ${fmt(limits.hsaSelfOnly)}. Family combined cap is ${fmt(limits.hsaFamily)} when filing jointly.`;

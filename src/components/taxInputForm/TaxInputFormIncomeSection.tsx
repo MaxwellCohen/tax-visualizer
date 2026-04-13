@@ -1,11 +1,11 @@
-import { createMemo, Index } from "solid-js";
+import { For, createMemo } from "solid-js";
 import type { Accessor } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { IncomeSourceTableRow } from "~/components/taxInputForm/IncomeSourceFields";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import type { TaxFormData, TaxFormIncomeRow } from "~/lib/taxForm.types";
-import { incomeRowIndices } from "~/lib/taxForm.rows";
+import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
 
 type Props = {
   form: TaxInputFormApi;
@@ -18,7 +18,7 @@ const addSourceBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 export function TaxInputFormIncomeSection(props: Props) {
-  const indices = createMemo(() => incomeRowIndices(props.values().rows));
+  const incomeRowIds = createMemo(() => rowIdsForTypedRows(props.values().rows, "income"));
 
   const incomeTotal = createMemo(() =>
     props
@@ -74,21 +74,20 @@ export function TaxInputFormIncomeSection(props: Props) {
             </tr>
           </thead>
           <tbody>
-            <Index each={indices()}>
-              {(_src, idx) => {
-                const rowIndex = () =>
-                  typeof idx === "function" ? (idx as () => number)() : (idx as number);
-                const absIndex = () => indices()[rowIndex()];
-                return (
-                  <IncomeSourceTableRow
-                    form={props.form}
-                    rowIndex={absIndex()}
-                    canRemove={indices().length > 1}
-                    onRemove={() => props.removeSourceAt(absIndex())}
-                  />
-                );
-              }}
-            </Index>
+            <For each={incomeRowIds()}>
+              {(rowId) => (
+                <IncomeSourceTableRow
+                  form={props.form}
+                  values={props.values}
+                  rowId={rowId}
+                  canRemove={incomeRowIds().length > 1}
+                  onRemove={() => {
+                    const i = indexOfTypedRowById(props.values().rows, "income", rowId);
+                    if (i >= 0) props.removeSourceAt(i);
+                  }}
+                />
+              )}
+            </For>
           </tbody>
         </table>
       </div>

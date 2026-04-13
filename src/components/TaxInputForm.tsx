@@ -4,9 +4,7 @@ import { TaxInputFormDeductionSection } from "~/components/taxInputForm/TaxInput
 import { TaxInputFormFilingSection } from "~/components/taxInputForm/TaxInputFormFilingSection";
 import { TaxInputFormIncomeSection } from "~/components/taxInputForm/TaxInputFormIncomeSection";
 import { TaxInputFormPreTaxSection } from "~/components/taxInputForm/TaxInputFormPreTaxSection";
-import { createDeductionMemos } from "~/components/taxInputForm/hooks/deductionMemos";
 import { createTaxInputForm, type TaxInputFormOuterProps } from "~/components/taxInputForm/hooks/formCore";
-import { createLimitMemos } from "~/components/taxInputForm/hooks/limitMemos";
 import { wireTaxYearLimitsEffect } from "~/components/taxInputForm/hooks/taxYearLimitsEffect";
 type TaxInputFormProps = TaxInputFormOuterProps & {
   availableYears: number[];
@@ -16,6 +14,8 @@ export default function TaxInputForm(props: TaxInputFormProps) {
   const {
     form,
     values,
+    limits,
+    deduction,
     addSource,
     removeSourceAt,
     addPretaxBenefit,
@@ -28,8 +28,6 @@ export default function TaxInputForm(props: TaxInputFormProps) {
     removeFederalTaxCreditAt,
     clearAllFederalTaxCredits,
   } = createTaxInputForm(props);
-  const limits = createLimitMemos(values);
-  const deduction = createDeductionMemos(values, limits.selectedTaxConfig);
 
   wireTaxYearLimitsEffect(form, values);
 

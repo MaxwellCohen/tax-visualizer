@@ -1,10 +1,8 @@
 import type {
   FederalTaxCreditKind,
   IncomeSource,
-  ItemizedDeductionKind,
   ItemizedDeductionSource,
   FederalTaxCreditSource,
-  PretaxBenefitKind,
   PretaxBenefitSource,
 } from "~/lib/taxCalc.types";
 import type { FilingStatus } from "~/lib/taxData.types";

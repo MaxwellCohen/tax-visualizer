@@ -20,7 +20,11 @@ describe("scenarioInit", () => {
     const input = baseInput({ pretaxRows: withPretaxTotals({ preTax401kSpouse1: 3_000 }) });
     const copy = cloneScenario(input, years, fallback);
     expect(
-      aggregatePretaxFromSources(rowsToTaxCalculationInputs(copy.rows).pretaxBenefitSources, false).preTax401kSpouse1,
+      aggregatePretaxFromSources(
+        rowsToTaxCalculationInputs(copy.rows).pretaxBenefitSources,
+        false,
+        getTaxYearFromRows(copy.rows),
+      ).preTax401kSpouse1,
     ).toBe(3_000);
     expect(serializeScenarioInput(copy)).toBe(serializeScenarioInput(input));
   });

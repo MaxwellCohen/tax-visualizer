@@ -1,14 +1,14 @@
-import { Index, Show, createMemo } from "solid-js";
+import { For, Show, createMemo } from "solid-js";
 import type { Accessor } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
-import type { TaxFormData } from "~/lib/taxForm.types";
+import type { TaxFormData, TaxFormCreditRow } from "~/lib/taxForm.types";
 import type { FederalTaxCreditCaps } from "~/lib/taxData.types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { FederalTaxCreditSourceRow } from "~/components/taxInputForm/FederalTaxCreditSourceFields";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { creditRowIndices } from "~/lib/taxForm.rows";
+import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
 
 const addLineBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
@@ -24,7 +24,10 @@ type Props = {
 
 export function TaxInputFormCreditsSection(props: Props) {
   const calc = createMemo(() => rowsToTaxCalculationInputs(props.values().rows));
-  const indices = createMemo(() => creditRowIndices(props.values().rows));
+  const creditRows = createMemo(() =>
+    props.values().rows.filter((r): r is TaxFormCreditRow => r.type === "credit"),
+  );
+  const creditRowIds = createMemo(() => rowIdsForTypedRows(props.values().rows, "credit"));
   const creditsTotal = () => sumLabeledAmountSources(calc().federalTaxCredits);
 
   return (
@@ -67,7 +70,7 @@ export function TaxInputFormCreditsSection(props: Props) {
                 class={`${taxInputFormTableThClass} whitespace-nowrap pr-3 text-right align-bottom`}
               >
                 <div class="flex justify-end gap-2">
-                  <Show when={indices().length > 0}>
+                  <Show when={creditRows().length > 0}>
                     <button
                       type="button"
                       class="shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--surface-alt) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--text-muted) transition-colors hover:border-(--warning-text) hover:text-(--warning-text)"
@@ -84,22 +87,21 @@ export function TaxInputFormCreditsSection(props: Props) {
             </tr>
           </thead>
           <tbody>
-            <Index each={indices()}>
-              {(_src, idx) => {
-                const rowIndex = () =>
-                  typeof idx === "function" ? (idx as () => number)() : (idx as number);
-                const absIndex = () => indices()[rowIndex()];
-                return (
-                  <FederalTaxCreditSourceRow
-                    form={props.form}
-                    rowIndex={absIndex()}
-                    canRemove={indices().length > 1}
-                    onRemove={() => props.removeFederalTaxCreditAt(absIndex())}
-                    federalTaxCreditCaps={props.federalTaxCreditCaps}
-                  />
-                );
-              }}
-            </Index>
+            <For each={creditRowIds()}>
+              {(rowId) => (
+                <FederalTaxCreditSourceRow
+                  form={props.form}
+                  values={props.values}
+                  rowId={rowId}
+                  canRemove={creditRowIds().length > 1}
+                  onRemove={() => {
+                    const i = indexOfTypedRowById(props.values().rows, "credit", rowId);
+                    if (i >= 0) props.removeFederalTaxCreditAt(i);
+                  }}
+                  federalTaxCreditCaps={props.federalTaxCreditCaps}
+                />
+              )}
+            </For>
           </tbody>
         </table>
       </div>
