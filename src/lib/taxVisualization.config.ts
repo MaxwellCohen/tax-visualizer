@@ -1,5 +1,5 @@
 import type { TaxResult } from "~/lib/taxForm.types";
-import { CHART_REGISTRY, chartMetricNumeric } from "~/lib/config/pipelineTaxResult.config";
+import { TAX_CALC_REGISTRY, chartMetricNumeric } from "~/lib/config/pipelineTaxResult.config";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -27,10 +27,10 @@ export type MetricConfig = {
   category: "income" | "pretax" | "deduction" | "tax" | "credits" | "takehome" | "rate";
 };
 
-/** Default Tax Summary rows: derived from {@link CHART_REGISTRY} `summary` hints (single ordering source). */
+/** Default Tax Summary rows: derived from {@link TAX_CALC_REGISTRY} `summary` hints (single ordering source). */
 function buildDefaultMetricsConfig(): MetricConfig[] {
   const configs: MetricConfig[] = [];
-  for (const e of CHART_REGISTRY) {
+  for (const e of TAX_CALC_REGISTRY) {
     if (!e.summary) continue;
     const s = e.summary;
     configs.push({

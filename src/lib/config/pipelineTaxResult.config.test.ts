@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CHART_REGISTRY, computeTaxMetricLines } from "~/lib/config/chartMetricsRegistry";
+import { TAX_CALC_REGISTRY } from "~/lib/config/TAX_CALC_REGISTRY";
+import { computeTaxMetricLines } from "~/lib/config/chartMetricsRegistry";
 import { PIPELINE_COMPUTED_ROW_ORDER, TAX_CHART_METRICS_KEYS } from "~/lib/config/pipelineTaxResult.config";
 import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
@@ -9,9 +10,9 @@ describe("pipelineTaxResult.config", () => {
   it("TAX_CHART_METRICS_KEYS matches the chart metrics registry (unique, full list)", () => {
     const keys = new Set<string>(TAX_CHART_METRICS_KEYS);
     expect(keys.size).toBe(TAX_CHART_METRICS_KEYS.length);
-    expect(TAX_CHART_METRICS_KEYS.length).toBe(CHART_REGISTRY.length);
+    expect(TAX_CHART_METRICS_KEYS.length).toBe(TAX_CALC_REGISTRY.length);
     for (let i = 0; i < TAX_CHART_METRICS_KEYS.length; i++) {
-      expect(TAX_CHART_METRICS_KEYS[i]).toBe(CHART_REGISTRY[i]!.metricsKey);
+      expect(TAX_CHART_METRICS_KEYS[i]).toBe(TAX_CALC_REGISTRY[i]!.metricsKey);
     }
   });
 

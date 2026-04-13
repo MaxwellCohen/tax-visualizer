@@ -6,7 +6,7 @@
  *
  * 1. Resolve tax rules only: {@link getTaxYearConfig} from the form’s tax year (no tax math).
  * 2. **Form data** + **{@link TaxYearConfig}** feed {@link computeTaxMetricLines}, which loops
- *    {@link CHART_REGISTRY} in order. Each `compute(ctx)` reads form rows, config, and
+ *    {@link TAX_CALC_REGISTRY} in order. Each `compute(ctx)` reads form rows, config, and
  *    {@link ChartMetricComputeContext.accreted} state filled by prior steps in the same pass.
  * 3. Row → {@link TaxCalculationInputs} via {@link rowsToTaxCalculationInputs} is normalization
  *    for the model, not a separate pipeline precompute (see `chartMetricsRegistry` module header).

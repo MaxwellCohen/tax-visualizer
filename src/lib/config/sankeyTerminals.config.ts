@@ -15,6 +15,3 @@ export const SANKEY_PRIMARY_TERMINALS: SankeyTerminalConfig[] = [
   { id: SANKEY_IDS.keep, label: "Take-home", kind: "keep" },
 ];
 
-function sankeyTerminalLabel(id: string): string {
-  return SANKEY_PRIMARY_TERMINALS.find(t => t.id === id)?.label ?? id;
-}

@@ -9,7 +9,7 @@ import {
   computeTaxChartMetricsFromRegistry,
 } from "~/lib/config/chartMetricsRegistry";
 
-/** Canonical chart-metric key order (matches {@link CHART_REGISTRY}). */
+/** Canonical chart-metric key order (matches {@link TAX_CALC_REGISTRY}). */
 export const PIPELINE_COMPUTED_ROW_ORDER = PIPELINE_COMPUTED_ROW_ORDER_FULL_FROM_REGISTRY;
 
 export const SEGMENT_METADATA_ROW_IDS = SEGMENT_METRIC_KEYS_FROM_REGISTRY;
@@ -19,7 +19,7 @@ export const TAX_CHART_METRICS_KEYS = TAX_CHART_METRICS_KEYS_FROM_REGISTRY;
 
 export { chartMetricNumeric };
 
-export { CHART_REGISTRY } from "~/lib/config/chartMetricsRegistry";
+export { TAX_CALC_REGISTRY } from "~/lib/config/TAX_CALC_REGISTRY";
 export type { ChartRegistryEntry, ChartMetricRegistryEntry, ChartMetricComputeContext } from "~/lib/config/chartMetricsRegistry";
 
 /** Folded metrics from form rows + state (prefer {@link TaxResult.metricLines} in app code). */
