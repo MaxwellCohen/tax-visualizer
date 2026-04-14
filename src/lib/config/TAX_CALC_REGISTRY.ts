@@ -50,7 +50,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
     metricsKey: "wageIncome",
     valueKind: "number",
     visualizationSourceId: "wages",
-    sankey: { incomeKindVerticalOrder: 3 },
+    sankey: { incomeKindVerticalOrder: 4 },
     summary: incomeSummary("wages", 1),
     detailedDisplay: { order: 100, type: "wages", category: "income" },
     compute: (ctx) => accreteIncome(ctx).wageIncome,
@@ -68,7 +68,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
     metricsKey: "ordinaryGrossIncome",
     valueKind: "number",
     visualizationSourceId: "ordinary",
-    sankey: { incomeKindVerticalOrder: 4 },
+    sankey: { incomeKindVerticalOrder: 3 },
     summary: incomeSummary("ordinary", 3),
     detailedDisplay: { order: 102, type: "ordinary", category: "income" },
     compute: (ctx) => {
@@ -110,7 +110,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
     sankey: {
       structuralNode: {
         kind: "deferredSink",
-        order: 16,
+        order: 3,
         /** Past pretax bars + shield so d3-sankey layers stay strictly income → pretax → shield → deferred (not same layer as {@link preTaxTotal} pretaxContribution). */
         column: 4,
         fill: "var(--sankey-node-deferred)",
@@ -144,7 +144,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
     sankey: {
       structuralNode: {
         kind: "pretaxContribution",
-        order: 6,
+        order: 0,
         /** Same semantic column as ordinary taxable / standard deduction (second strip from income), not bracket column. */
         column: 1,
         fill: "var(--sankey-node-keep)",
@@ -248,14 +248,14 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
       structuralNodes: [
         {
           kind: "ordinaryTaxableIncome",
-          order: 3,
+          order: 1,
           column: 1,
           fill: "var(--sankey-node-3)",
           linkStroke: "var(--sankey-link)",
         },
         {
           kind: "payrollOrdinaryStrip",
-          order: 8,
+          order: 1,
           column: 3,
           fill: "var(--sankey-node-deferred)",
           linkStroke: "var(--sankey-link-deferred)",
@@ -278,7 +278,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
     sankey: {
       structuralNode: {
         kind: "longTermTaxableIncome",
-        order: 2,
+        order: 10,
         column: 1,
         fill: "var(--sankey-node-ltcg)",
         linkStroke: "var(--sankey-link)",
@@ -299,7 +299,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
     sankey: {
       structuralNode: {
         kind: "deductionShield",
-        order: 10,
+        order: 0,
         /** One step right of pretax middle bars so shield is not the same layer as {@link preTaxTotal} pretaxContribution. */
         column: 3,
         fill: "var(--sankey-node-5)",
@@ -317,7 +317,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
       chartCategory: "tax",
       structuralNode: {
         kind: "ordinaryBracket",
-        order: 11,
+        order: 1,
         column: 3,
         fill: "var(--sankey-node-4)",
         linkStroke: "var(--sankey-link)",
@@ -334,7 +334,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
       chartCategory: "tax",
       structuralNode: {
         kind: "ltcgBracket",
-        order: 8,
+        order: 2,
         column: 3,
         fill: "var(--sankey-node-ltcg)",
         linkStroke: "var(--sankey-link)",
@@ -432,7 +432,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
       chartCategory: "tax",
       structuralNode: {
         kind: "federalCredits",
-        order: 14,
+        order: 4,
         column: 4,
         fill: "var(--sankey-node-credits)",
         linkStroke: "var(--sankey-link-credits)",
@@ -448,7 +448,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
     sankey: {
       structuralNode: {
         kind: "taxesFederal",
-        order: 13,
+        order: 2,
         column: 4,
         fill: "var(--sankey-node-6)",
         linkStroke: "var(--sankey-link-tax)",
@@ -476,7 +476,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
       chartCategory: "tax",
       structuralNode: {
         kind: "taxesPayroll",
-        order: 10,
+        order: 0,
         column: 4,
         fill: "var(--sankey-node-6)",
         linkStroke: "var(--sankey-link-tax)",
@@ -503,7 +503,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
       chartCategory: "tax",
       structuralNode: {
         kind: "taxesPayroll",
-        order: 10,
+        order: 0,
         column: 4,
         fill: "var(--sankey-node-6)",
         linkStroke: "var(--sankey-link-tax)",
@@ -552,7 +552,7 @@ export const TAX_CALC_REGISTRY: readonly ChartRegistryEntry[] = [
       chartCategory: "keep",
       structuralNode: {
         kind: "keep",
-        order: 15,
+        order: 1,
         column: 4,
         fill: "var(--sankey-node-keep)",
         linkStroke: "var(--sankey-link-keep)",
