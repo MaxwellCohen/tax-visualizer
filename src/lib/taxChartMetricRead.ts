@@ -62,9 +62,108 @@ export function chartMetricSegments(result: TaxResult, key: string): TaxSegment[
 }
 
 export function getOrdinaryFederalSegments(result: TaxResult): TaxSegment[] {
-  return chartMetricSegments(result, "ordinaryFederalSegments");
+  const brackets = getOrdinaryBracketItems(result);
+  return brackets.map(b => ({
+    marginalRate: b.marginalRate,
+    rangeStart: 0,
+    rangeEnd: null,
+    incomeAmount: b.income,
+    taxAmount: b.tax,
+  }));
 }
 
 export function getLongTermCapitalGainsSegments(result: TaxResult): TaxSegment[] {
-  return chartMetricSegments(result, "longTermCapitalGainsSegments");
+  const brackets = getLtcgBracketItems(result);
+  return brackets.map(b => ({
+    marginalRate: b.marginalRate,
+    rangeStart: 0,
+    rangeEnd: null,
+    incomeAmount: b.income,
+    taxAmount: b.tax,
+  }));
+}
+
+export type BracketItem = {
+  id: string;
+  income: number;
+  tax: number;
+  keep: number;
+  marginalRate: number;
+};
+
+function findBracketItem(result: TaxResult, prefix: string, index: number, suffix: string): { value: number } | undefined {
+  const key = `${prefix}-${index}${suffix}`;
+  if (result.metricLines?.length) {
+    const line = result.metricLines.find((l) => l.metricsKey === key);
+    if (line && line.valueKind === "number") {
+      const v = line.value;
+      return { value: typeof v === "number" && Number.isFinite(v) ? v : 0 };
+    }
+  }
+  for (const row of result.rows) {
+    if (isComputedRow(row) && row.id === key) {
+      return { value: typeof row.value === "number" && Number.isFinite(row.value) ? row.value : 0 };
+    }
+  }
+  return undefined;
+}
+
+function extractBracketRate(id: string): number {
+  const match = id.match(/(\d+)%/);
+  if (match) {
+    return parseInt(match[1], 10) / 100;
+  }
+  return 0;
+}
+
+export function getOrdinaryBracketItems(result: TaxResult): BracketItem[] {
+  const items: BracketItem[] = [];
+  let index = 0;
+  while (true) {
+    const incomeLine = findBracketItem(result, "bracket", index, "-income");
+    const taxLine = findBracketItem(result, "bracket", index, "-tax");
+    const keepLine = findBracketItem(result, "bracket", index, "-keep");
+    if (!incomeLine) break;
+    const income = incomeLine.value;
+    const tax = taxLine?.value ?? 0;
+    const rate = income > 0 && tax > 0 ? tax / income : 0;
+    const keep = keepLine?.value ?? Math.max(0, income - tax);
+    if (income > 0 || tax > 0 || keep > 0) {
+      items.push({
+        id: `bracket-${index}`,
+        income,
+        tax,
+        keep,
+        marginalRate: rate,
+      });
+    }
+    index++;
+  }
+  return items;
+}
+
+export function getLtcgBracketItems(result: TaxResult): BracketItem[] {
+  const items: BracketItem[] = [];
+  let index = 0;
+  while (true) {
+    const incomeLine = findBracketItem(result, "ltcg-bracket", index, "-income");
+    const taxLine = findBracketItem(result, "ltcg-bracket", index, "-tax");
+    const keepLine = findBracketItem(result, "ltcg-bracket", index, "-keep");
+    if (!incomeLine) break;
+    const income = incomeLine.value;
+    const tax = taxLine?.value ?? 0;
+    const rate = income > 0 && tax > 0 ? tax / income : 0;
+    const keep = keepLine?.value ?? Math.max(0, income - tax);
+    if (income > 0 || tax > 0 || keep > 0) {
+      items.push({
+        id: `ltcg-bracket-${index}`,
+        income,
+        tax,
+        keep,
+        marginalRate: rate,
+      });
+    }
+    index++;
+  }
+  return items;
 }

@@ -2,72 +2,58 @@ import type { TaxResult } from "~/lib/taxForm.types";
 import {
   chartMetricNumeric,
   deductionKindFromTaxResult,
-  getLongTermCapitalGainsSegments,
-  getOrdinaryFederalSegments,
+  getLtcgBracketItems,
+  getOrdinaryBracketItems,
 } from "~/lib/taxChartMetricRead";
-import {
-  allocateFederalCreditsTopMarginalSlices,
-  type FederalSliceAfterCredits,
-} from "~/lib/taxCharts.visualizationBundle";
-import { formatLtcgBracketLabel } from "~/lib/taxCharts.sankeyFormat";
-import {
-  ltcgBracketNodeId,
-  ltcgSegmentKey,
-  ordinaryBracketNodeId,
-  ordinarySegmentKey,
-} from "~/lib/taxCharts.sankeySegmentKeys";
 import type { MekkoRow } from "~/lib/taxCharts.types";
 
-export function buildMekkoRows(
-  result: TaxResult,
-  federalByNode?: Map<string, FederalSliceAfterCredits>,
-): MekkoRow[] {
+export function buildMekkoRows(result: TaxResult): MekkoRow[] {
   const rows: MekkoRow[] = [];
-  const federalByNodeResolved = federalByNode ?? allocateFederalCreditsTopMarginalSlices(result);
 
+  const totalIncome = chartMetricNumeric(result, "totalIncome");
+  const selfEmploymentTax = chartMetricNumeric(result, "selfEmploymentTax");
   const deductionAmount = chartMetricNumeric(result, "deductionAmount");
+  const deductionKeep = Math.max(0, deductionAmount - selfEmploymentTax);
+  const deductionTax = selfEmploymentTax > 0 ? selfEmploymentTax : 0;
+  
   if (deductionAmount > 0) {
     rows.push({
       id: "deduction",
-      label: deductionKindFromTaxResult(result) === "itemized" ? "Itemized" : "Std Ded",
+      label: deductionKindFromTaxResult(result) === "itemized" ? "Itemized" : "Standard Deduction",
       total: deductionAmount,
-      keep: deductionAmount,
-      tax: 0,
+      keep: deductionKeep,
+      tax: deductionTax,
       kind: "deduction",
     });
   }
 
-  const ordinarySegments = getOrdinaryFederalSegments(result);
-  for (const segment of ordinarySegments) {
-    if (segment.incomeAmount <= 0) continue;
-    const nodeId = ordinaryBracketNodeId(segment);
-    const afterCredits = federalByNodeResolved.get(nodeId);
-    const tax = afterCredits?.federalToTax ?? 0;
+  const ordinaryBrackets = getOrdinaryBracketItems(result);
+  for (const bracket of ordinaryBrackets) {
+    if (bracket.income <= 0) continue;
+    const rateLabel = `${Math.round(bracket.marginalRate * 100)}%`;
     rows.push({
-      id: `ordinary-${ordinarySegmentKey(segment)}`,
-      label: `Ord. ${Math.round(segment.marginalRate * 100)}%`,
-      total: segment.incomeAmount,
-      tax,
-      keep: Math.max(0, segment.incomeAmount - tax),
+      id: bracket.id,
+      label: `Ord. ${rateLabel}%`,
+      total: bracket.income,
+      tax: bracket.tax,
+      keep: bracket.keep,
       kind: "ordinaryBracket",
-      marginalRate: segment.marginalRate,
+      marginalRate: bracket.marginalRate,
     });
   }
 
-  const ltcgSegments = getLongTermCapitalGainsSegments(result);
-  for (const segment of ltcgSegments) {
-    if (segment.incomeAmount <= 0) continue;
-    const nodeId = ltcgBracketNodeId(segment);
-    const afterCredits = federalByNodeResolved.get(nodeId);
-    const tax = afterCredits?.federalToTax ?? 0;
+  const ltcgBrackets = getLtcgBracketItems(result);
+  for (const bracket of ltcgBrackets) {
+    if (bracket.income <= 0) continue;
+    const rateLabel = bracket.marginalRate === 0 ? "0%" : `${Math.round(bracket.marginalRate * 100)}%`;
     rows.push({
-      id: `ltcg-${ltcgSegmentKey(segment)}`,
-      label: formatLtcgBracketLabel(segment),
-      total: segment.incomeAmount,
-      tax,
-      keep: Math.max(0, segment.incomeAmount - tax),
+      id: bracket.id,
+      label: `LTCG ${rateLabel}%`,
+      total: bracket.income,
+      tax: bracket.tax,
+      keep: bracket.keep,
       kind: "ltcgBracket",
-      marginalRate: segment.marginalRate,
+      marginalRate: bracket.marginalRate,
     });
   }
 
@@ -75,23 +61,11 @@ export function buildMekkoRows(
   if (preTaxTotal > 0) {
     rows.push({
       id: "pretax",
-      label: "Pre-Tax",
+      label: "Pre-Tax contributions",
       total: preTaxTotal,
       keep: preTaxTotal,
       tax: 0,
       kind: "pretax",
-    });
-  }
-
-  const selfEmploymentTax = chartMetricNumeric(result, "selfEmploymentTax");
-  if (selfEmploymentTax > 0) {
-    rows.push({
-      id: "self-employment-tax",
-      label: "SE Tax",
-      total: selfEmploymentTax,
-      keep: 0,
-      tax: selfEmploymentTax,
-      kind: "deduction",
     });
   }
 

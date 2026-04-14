@@ -34,7 +34,7 @@ export type SankeyNode = {
     stroke: string;
 };
 
-export type SankeyCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary";
+export type SankeyCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary" | "takehome" | "rate";
 
 export type TaxTreatment = "ordinary" | "selfEmployment" | "shortTermCapGains" | "longTermCapGains";
 
@@ -186,6 +186,7 @@ function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingSt
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
                 link: [
                     { source: "input-wages", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
+                    { source: "input-wages", target: "pretaxIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
                 ],
             },
         },
@@ -197,6 +198,7 @@ function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingSt
             taxTreatment: "selfEmployment",
             inputRowSettings: { displayOrder: 2, inputType: "currency" },
             sankeySettings: {
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
                 link: [
                     { source: "input-selfEmployment", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
                 ],
@@ -210,6 +212,7 @@ function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingSt
             taxTreatment: "shortTermCapGains",
             inputRowSettings: { displayOrder: 3, inputType: "currency" },
             sankeySettings: {
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
                 link: [
                     { source: "input-shortTermCapGains", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
                 ],
@@ -222,9 +225,10 @@ function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingSt
             description: "Capital gains held longer than one year",
             taxTreatment: "longTermCapGains",
             inputRowSettings: { displayOrder: 4, inputType: "currency" },
-            sankeySettings: {
+sankeySettings: {
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
                 link: [
-                    { source: "input-longTermCapGains", target: "longTermCapGains", fill: "var(--sankey-link-ltcg)", stroke: "var(--sankey-link-ltcg)" },
+                    { source: "traditionalIra", target: "pretaxIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
                 ],
             },
         },
@@ -236,6 +240,7 @@ function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingSt
             taxTreatment: "ordinary",
             inputRowSettings: { displayOrder: 5, inputType: "currency" },
             sankeySettings: {
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
                 link: [
                     { source: "input-ordinary", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
                 ],
@@ -267,6 +272,7 @@ function makePretaxInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStat
                 getSpouseLabels: () => ({ single: "401(k) deferrals", joint: "401(k) deferrals — Spouse 1", spouse1: "401(k) — Spouse 1", spouse2: "401(k) — Spouse 2" }),
             },
             sankeySettings: {
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
                 link: [
                     { source: "input-401k", target: "pretaxIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
                 ],
@@ -298,6 +304,7 @@ function makePretaxInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStat
                 getSpouseLabels: () => ({ single: "HSA (payroll)", joint: "HSA (payroll) — Spouse 1", spouse1: "HSA — Spouse 1", spouse2: "HSA — Spouse 2" }),
             },
             sankeySettings: {
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
                 link: [
                     { source: "hsa", target: "pretaxIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
                 ],
@@ -320,6 +327,7 @@ function makePretaxInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStat
                 },
             },
             sankeySettings: {
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
                 link: [
                     { source: "otherPretax", target: "pretaxIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
                 ],
@@ -588,6 +596,13 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
                     ordinaryIncome(inputs)
                 );
             },
+            summary: {
+                summaryId: "total-income",
+                label: "Gross Income",
+                category: "income",
+                displayOrder: 1,
+                format: "currency",
+            },
         },
         {
             id: "wages",
@@ -595,7 +610,6 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
                 link: [
-                    { source: "wages", target: "shieldedIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
                     { source: "wages", target: "wagesAfterPretax", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
                 ],
             },
@@ -624,6 +638,7 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             label: "Pretax Deductions",
             shortLabel: "Pretax Deductions",
             sankeySettings: {
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
                 link: [
                     { source: "pretaxIncome", target: "shieldedIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
                 ],
@@ -632,11 +647,19 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
                 const pretax = _401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs);
                 return pretax;
             },
+            summary: {
+                summaryId: "pretax-deductions",
+                label: "Pre-tax Deductions",
+                category: "pretax",
+                displayOrder: 2,
+                format: "currency",
+            },
         },
         {
             id: "selfEmployment",
             label: "Self-Employment Income",
             sankeySettings: {
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
                 link: [
                     { source: "selfEmployment", target: "ordinaryTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
                 ],
@@ -647,6 +670,7 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             id: "ordinaryIncome",
             label: "Other Ordinary Income",
             sankeySettings: {
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
                 link: [
                     { source: "ordinaryIncome", target: "ordinaryTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
                 ],
@@ -657,6 +681,7 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             id: "shortTermCapGains",
             label: "Short-Term Capital Gains",
             sankeySettings: {
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
                 link: [
                     { source: "shortTermCapGains", target: "ordinaryTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
                 ],
@@ -707,6 +732,7 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             label: "HSA",
             shortLabel: "HSA",
             sankeySettings: {
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
                 link: [
                     { source: "preTaxHsa", target: "pretaxIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
                 ],
@@ -718,6 +744,7 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             label: "Other Pre-tax",
             shortLabel: "Other Pre-tax",
             sankeySettings: {
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
                 link: [
                     { source: "preTaxOther", target: "pretaxIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
                 ],
@@ -729,6 +756,7 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             label: "Traditional IRA",
             shortLabel: "Traditional IRA",
             sankeySettings: {
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
                 link: [
                     { source: "traditionalIra", target: "pretaxIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
                 ],
@@ -770,6 +798,7 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             label: "Deduction Used",
             shortLabel: "Deduction Used",
             sankeySettings: {
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
                 link: [
                     { source: "deductionAmount", target: "shieldedIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
                 ],
@@ -803,6 +832,8 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
                 node: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)" },
                 link: [
                     { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
+                    { source: "ordinaryTaxableIncome", target: "taxableIncomeAfterDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
+                    { source: "ordinaryTaxableIncome", target: "payrollTax", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)" },
                 ],
             },
             calculate: (inputs) => {
@@ -823,9 +854,6 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             id: "taxableIncome",
             label: "Total Taxable Income",
             shortLabel: "Taxable Income",
-            // sankeySettings: {
-            //     node: { fill: "var(--sankey-node-5)", stroke: "var(--sankey-link)" },
-            // },
             calculate: (inputs) => {
                 const afterPretax = wageIncome(inputs) + selfEmploymentIncome(inputs) + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs));
                 const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
@@ -835,11 +863,21 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
                 const ltcgTaxable = longTermCapGains(inputs);
                 return ordinaryTaxable + ltcgTaxable;
             },
+            summary: {
+                summaryId: "taxable-income",
+                label: "Taxable Income",
+                category: "deduction",
+                displayOrder: 3,
+                format: "currency",
+            },
         },
         {
             id: "federalOrdinaryIncomeTax",
             label: "Federal Ordinary Tax",
             shortLabel: "Federal Ord. Tax",
+            sankeySettings: {
+                node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)" },
+            },
             calculate: (inputs) => {
                 const afterPretax = wageIncome(inputs) + selfEmploymentIncome(inputs) + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs));
                 const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
@@ -854,6 +892,9 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             id: "federalLongTermCapGainsTax",
             label: "Federal LTCG Tax",
             shortLabel: "Federal LTCG Tax",
+            sankeySettings: {
+                node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link-ltcg)" },
+            },
             calculate: (inputs) => {
                 const ltcg = longTermCapGains(inputs);
                 return calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, 0);
@@ -863,6 +904,9 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             id: "federalNetInvestmentIncomeTax",
             label: "Net Investment Income Tax",
             shortLabel: "NIIT",
+            sankeySettings: {
+                node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)" },
+            },
             calculate: (inputs) => {
                 const investmentIncome = ordinaryIncome(inputs) + shortTermCapGains(inputs) + longTermCapGains(inputs);
                 const modifiedAGI = wageIncome(inputs) + selfEmploymentIncome(inputs) + investmentIncome;
@@ -905,6 +949,9 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             id: "socialSecurityTax",
             label: "Social Security Tax",
             shortLabel: "SS Tax",
+            sankeySettings: {
+                node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)" },
+            },
             calculate: (inputs) => {
                 const wages = wageIncome(inputs);
                 const ssTaxable = Math.min(wages, taxData.payroll.socialSecurityWageBase);
@@ -915,6 +962,9 @@ function makeIncomeCalculationsConfig(taxData: TaxYearConfig, filingStatus: Fili
             id: "medicareTax",
             label: "Medicare Tax",
             shortLabel: "Medicare Tax",
+            sankeySettings: {
+                node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)" },
+            },
             calculate: (inputs) => {
                 const wages = wageIncome(inputs);
                 return wages * taxData.payroll.medicareRate;
@@ -1032,6 +1082,7 @@ function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: FilingStatus)
             label: `LTCG Bracket ${i + 1} Income (${cfg.label})`,
             shortLabel: `LTCG ${cfg.label} Income`,
             sankeySettings: {
+                node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link-ltcg)" },
                 link: [
                     { source: "longTermTaxableIncome", target: `${bracketId}-income`, fill: "var(--sankey-link-ltcg)", stroke: "var(--sankey-link-ltcg)" },
                 ],
@@ -1165,7 +1216,7 @@ function makeFinalTaxDestination(taxData: TaxYearConfig, filingStatus: FilingSta
             label: "Federal Tax Credits",
             shortLabel: "Credits",
             sankeySettings: {
-                // node: { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)" },
+                node: { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)" },
                 link: [
                     { source: "federalTaxCredits", target: "federalIncomeTax", fill: "var(--sankey-link-credits)", stroke: "var(--sankey-link-credits)" },
                 ],
@@ -1181,10 +1232,18 @@ function makeFinalTaxDestination(taxData: TaxYearConfig, filingStatus: FilingSta
             sankeySettings: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)" },
                 link: [
-                    // { source: "federalIncomeTax", target: "takeHomePay", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)" },
+                    { source: "federalIncomeTax", target: "takeHomePay", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)" },
                 ],
             },
             calculate: calculateFederalIncomeTaxAfterCredits,
+            summary: {
+                summaryId: "federal-income-tax",
+                label: "Federal Income Tax",
+                category: "tax",
+                displayOrder: 4,
+                format: "currency",
+                highlight: true,
+            },
         },
         {
             id: "payrollTax",
@@ -1197,6 +1256,13 @@ function makeFinalTaxDestination(taxData: TaxYearConfig, filingStatus: FilingSta
                 ],
             },
             calculate: calculatePayrollTax,
+            summary: {
+                summaryId: "payroll-tax",
+                label: "Payroll Tax",
+                category: "tax",
+                displayOrder: 5,
+                format: "currency",
+            },
         },
         {
             id: "selfEmploymentTax",
@@ -1242,6 +1308,14 @@ function makeFinalTaxDestination(taxData: TaxYearConfig, filingStatus: FilingSta
                 const selfEmpTax = calculateSelfEmploymentTax(inputs);
                 return totalIncome - pretax - deduction - federalTax - payrollTax - selfEmpTax;
             },
+            summary: {
+                summaryId: "take-home-pay",
+                label: "Take-Home Pay",
+                category: "takehome",
+                displayOrder: 6,
+                format: "currency",
+                highlight: true,
+            },
         },
         {
             id: "effectiveTaxRate",
@@ -1257,6 +1331,13 @@ function makeFinalTaxDestination(taxData: TaxYearConfig, filingStatus: FilingSta
                 if (totalIncome <= 0) return 0;
                 const federalTax = calculateFederalIncomeTaxAfterCredits(inputs);
                 return federalTax / totalIncome;
+            },
+            summary: {
+                summaryId: "effective-tax-rate",
+                label: "Effective Tax Rate",
+                category: "rate",
+                displayOrder: 7,
+                format: "percent",
             },
         },
         {
@@ -1276,6 +1357,13 @@ function makeFinalTaxDestination(taxData: TaxYearConfig, filingStatus: FilingSta
                 const brackets = getOrdinaryBrackets(taxData, filingStatus);
                 const result = calculateOrdinaryTaxTotal(taxableIncome, brackets);
                 return result.marginalRate;
+            },
+            summary: {
+                summaryId: "marginal-tax-rate",
+                label: "Marginal Tax Rate",
+                category: "rate",
+                displayOrder: 8,
+                format: "percent",
             },
         },
     ];

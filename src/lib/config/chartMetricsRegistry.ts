@@ -23,7 +23,7 @@ import { getConfigItems, type configItem, SANKEY_IDS } from "./page/Page.config"
 
 export type ChartMetricValueKind = "number";
 
-export type ChartMetricSummaryCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary";
+export type ChartMetricSummaryCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary" | "takehome" | "rate";
 
 export type ChartMetricSummaryHint = {
   summaryId: string;
