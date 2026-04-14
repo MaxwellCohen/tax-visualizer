@@ -16,9 +16,24 @@ import { clampTaxFormData } from "~/lib/taxCalc.clamp";
 import { buildTaxResultDisplayBundle } from "~/lib/taxResult.display";
 import type { TaxFormData, TaxMetricLine, TaxResult, TaxComputedRow, TaxComputedSegmentRow } from "~/lib/taxForm.types";
 import type { TaxSegment } from "~/lib/taxCalc.types";
-import type { TaxYearConfig } from "~/lib/taxData.types";
+import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import { getTaxYearConfig } from "~/lib/taxData";
 import { getTaxYearFromRows, rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
+import { getConfigItems, type configItem } from "~/lib/config/page/Page.config";
+
+export type CalculatedConfigItem = configItem & { computedValue: number };
+
+export function calculateAllConfigValues(
+  formData: TaxFormData,
+  taxData: TaxYearConfig,
+  filingStatus: FilingStatus
+): CalculatedConfigItem[] {
+  const items = getConfigItems(taxData, filingStatus);
+  return items.map(item => ({
+    ...item,
+    computedValue: item.calculate?.(formData.rows, taxData, filingStatus) ?? 0,
+  }));
+}
 
 function metricLinesToComputedRows(lines: readonly TaxMetricLine[]): (TaxComputedRow | TaxComputedSegmentRow)[] {
   const rows: (TaxComputedRow | TaxComputedSegmentRow)[] = [];

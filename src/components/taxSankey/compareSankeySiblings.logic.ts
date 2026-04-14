@@ -1,8 +1,8 @@
 import type { ChartNode } from "~/components/taxSankey/chartTypes";
 import { SANKEY_SIBLING_RANK } from "~/components/taxSankey/sankeySiblingRank.constants";
-import { INCOME_KIND_CHART_ORDER_BY_KIND } from "~/lib/config/chartMetricsRegistry";
 
-/** Lower = higher on chart. 401(k) middle + deferred sinks last (bottom) among payroll pre-tax ribbons. */
+const INCOME_KIND_ORDER_MAP: Record<string, number> = {};
+
 const PRETAX_MIDDLE_VERTICAL_RANK: Record<string, number> = {
   "pretax-hsa": 0,
   "pretax-other": 1,
@@ -36,7 +36,7 @@ function compareIncomeSourceSiblings(a: ChartNode, b: ChartNode): number | null 
   const ka = a.incomeKind;
   const kb = b.incomeKind;
   if (ka && kb) {
-    const kindDiff = INCOME_KIND_CHART_ORDER_BY_KIND[ka] - INCOME_KIND_CHART_ORDER_BY_KIND[kb];
+    const kindDiff = (INCOME_KIND_ORDER_MAP[ka] ?? 99) - (INCOME_KIND_ORDER_MAP[kb] ?? 99);
     if (kindDiff !== 0) return kindDiff;
   }
   return a.label.localeCompare(b.label);

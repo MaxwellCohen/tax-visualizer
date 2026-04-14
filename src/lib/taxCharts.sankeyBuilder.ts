@@ -1,11 +1,8 @@
 import type { TaxResult } from "~/lib/taxForm.types";
 import type { SankeyChartData, SankeyChartNode, SankeyChartLink } from "~/lib/taxCharts.types";
 import type { IncomeKind, TaxSegment } from "~/lib/taxCalc.types";
-import {
-  SANKEY_NODE_STYLE_BY_KIND,
-} from "~/lib/config/chartMetricsRegistry";
-import { SANKEY_IDS } from "~/lib/config/TAX_CALC_REGISTRY";
-import { chartMetricNumeric, chartMetricSegments, getOrdinaryFederalSegments, getLongTermCapitalGainsSegments } from "~/lib/taxChartMetricRead";
+import { SANKEY_IDS } from "~/lib/config/page/Page.config";
+import { getOrdinaryFederalSegments, getLongTermCapitalGainsSegments } from "~/lib/taxChartMetricRead";
 import { incomeRowsFromTaxResult } from "~/lib/taxForm.rows";
 import { incomeSourceDisplayLabel } from "~/lib/taxCalc";
 import { ordinaryBracketNodeId, ltcgBracketNodeId, ordinarySegmentKey, ltcgSegmentKey } from "~/lib/taxCharts.sankeySegmentKeys";

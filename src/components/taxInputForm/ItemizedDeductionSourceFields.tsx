@@ -14,8 +14,8 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { getItemizedDeductionKindDetail } from "~/lib/itemizedDeductionKindInfo";
-import type { ItemizedDeductionCaps } from "~/lib/taxData.types";
+import { getInputItems, findItemById } from "~/lib/config";
+import type { TaxYearConfig } from "~/lib/taxData.types";
 
 type Props = {
   form: TaxInputFormApi;
@@ -23,7 +23,7 @@ type Props = {
   rowId: string;
   canRemove: boolean;
   onRemove: () => void;
-  itemizedCaps: Accessor<ItemizedDeductionCaps | null>;
+  taxData: Accessor<TaxYearConfig | null>;
 };
 
 const deductionDetailRowTdClass =
@@ -42,13 +42,19 @@ export function ItemizedDeductionSourceRow(props: Props) {
     getFilingStatusFromRows(s.values.rows),
   );
 
-  const detail = createMemo(() =>
-    getItemizedDeductionKindDetail(
-      (kind() ?? "otherItemized") as ItemizedDeductionKind,
-      props.itemizedCaps(),
-      filingStatus(),
-    ),
-  );
+  const detail = createMemo(() => {
+    const td = props.taxData();
+    const fs = filingStatus();
+    if (!td) {
+      return { description: "Loading...", modelingNote: "Loading..." };
+    }
+    const items = getInputItems(td, fs);
+    const item = findItemById(items, (kind() ?? "") as string);
+    return {
+      description: item?.description ?? "Unknown deduction type",
+      modelingNote: item?.kindDetail?.modelingNote ?? "",
+    };
+  });
 
   const rowIndex = createMemo(() => indexOfTypedRowById(props.values().rows, "deduction", props.rowId));
   const fieldPrefix = createMemo(() => {

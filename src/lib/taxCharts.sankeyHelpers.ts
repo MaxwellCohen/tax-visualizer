@@ -1,6 +1,5 @@
 import { incomeSourceDisplayLabel } from "~/lib/taxCalc";
 import type { TaxFormIncomeRow } from "~/lib/taxForm.types";
-import { INCOME_KIND_CHART_ORDER_BY_KIND } from "~/lib/config/chartMetricsRegistry";
 import type { SankeyChartNode } from "~/lib/taxCharts.types";
 
 export function addNode(nodeMap: Map<string, SankeyChartNode>, node: SankeyChartNode): void {
@@ -9,9 +8,11 @@ export function addNode(nodeMap: Map<string, SankeyChartNode>, node: SankeyChart
   }
 }
 
+const INCOME_KIND_ORDER_MAP: Record<string, number> = {};
+
 export function sortedIncomeRows(incomeRows: TaxFormIncomeRow[]) {
   return [...incomeRows].sort((a, b) => {
-    const kindDiff = INCOME_KIND_CHART_ORDER_BY_KIND[a.kind] - INCOME_KIND_CHART_ORDER_BY_KIND[b.kind];
+    const kindDiff = (INCOME_KIND_ORDER_MAP[a.kind] ?? 99) - (INCOME_KIND_ORDER_MAP[b.kind] ?? 99);
     if (kindDiff !== 0) return kindDiff;
     return incomeSourceDisplayLabel(a).localeCompare(incomeSourceDisplayLabel(b));
   });

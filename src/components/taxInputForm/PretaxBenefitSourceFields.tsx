@@ -13,8 +13,8 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { getPretaxBenefitKindDetail } from "~/lib/pretaxBenefitKindInfo";
-import type { PretaxBenefitLimits } from "~/lib/taxData.types";
+import { getInputItems, findItemById } from "~/lib/config";
+import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 
 type Props = {
   form: TaxInputFormApi;
@@ -23,7 +23,8 @@ type Props = {
   canRemove: boolean;
   onRemove: () => void;
   isMarriedJoint: () => boolean;
-  pretaxLimits: Accessor<PretaxBenefitLimits | null>;
+  taxData: Accessor<TaxYearConfig | null>;
+  filingStatus: Accessor<FilingStatus>;
 };
 
 const pretaxDetailRowTdClass =
@@ -38,13 +39,20 @@ export function PretaxBenefitSourceRow(props: Props) {
     return r?.type === "pretax" ? r.kind : undefined;
   });
 
-  const detail = createMemo(() =>
-    getPretaxBenefitKindDetail(
-      (kind() ?? "preTax401kSpouse1") as PretaxBenefitKind,
-      props.pretaxLimits(),
-      props.isMarriedJoint(),
-    ),
-  );
+  const detail = createMemo(() => {
+    const td = props.taxData();
+    const fs = props.filingStatus();
+    if (!td) {
+      return { description: "Loading...", limitNote: "Loading..." };
+    }
+    const formItemId = (kind() ?? "").toLowerCase().replace(/spouse\d+/, "").replace("pretax", "");
+    const items = getInputItems(td, fs);
+    const item = findItemById(items, formItemId) ?? findItemById(items, "otherPretax");
+    return {
+      description: item?.description ?? "Unknown pretax benefit type",
+      limitNote: item?.kindDetail?.limitNote ?? "",
+    };
+  });
 
   const rowIndex = createMemo(() => indexOfTypedRowById(props.values().rows, "pretax", props.rowId));
   const fieldPrefix = createMemo(() => {

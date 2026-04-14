@@ -1,48 +1,31 @@
 import type { IncomeKind } from "~/lib/taxCalc.types";
-import { INCOME_KIND_SANKEY_ORDER } from "~/lib/config/chartMetricsRegistry";
+import { getTaxYearConfig, type FilingStatus } from "~/lib/taxData";
+import { incomeKindConfigs, type TaxTreatment } from "~/lib/config";
 
 export type IncomeKindConfig = {
   kind: IncomeKind;
   label: string;
   chartOrder: number;
   defaultDisplayLabel: string;
-  taxTreatment: "ordinary" | "selfEmployment" | "shortTermCapGains" | "longTermCapGains";
+  taxTreatment: TaxTreatment;
 };
 
-export const INCOME_KINDS_CONFIG: IncomeKindConfig[] = INCOME_KIND_SANKEY_ORDER.map((k) => {
-  const configs: Record<IncomeKind, Omit<IncomeKindConfig, "kind" | "chartOrder">> = {
-    longTermCapGains: {
-      label: "Long-term capital gains",
-      defaultDisplayLabel: "Long-term capital gains",
-      taxTreatment: "longTermCapGains",
-    },
-    shortTermCapGains: {
-      label: "Short-term capital gains",
-      defaultDisplayLabel: "Short-term capital gains",
-      taxTreatment: "shortTermCapGains",
-    },
-    wages: {
-      label: "W-2 wages",
-      defaultDisplayLabel: "W-2 wages",
-      taxTreatment: "ordinary",
-    },
-    ordinary: {
-      label: "Other ordinary income",
-      defaultDisplayLabel: "Other income",
-      taxTreatment: "ordinary",
-    },
-    selfEmployment: {
-      label: "1099 self-employment",
-      defaultDisplayLabel: "1099 self-employment income",
-      taxTreatment: "selfEmployment",
-    },
-  };
-  return {
-    kind: k.kind as IncomeKind,
-    chartOrder: k.order,
-    ...configs[k.kind as IncomeKind],
-  };
-});
+export function getIncomeKindConfigs(taxData: ReturnType<typeof getTaxYearConfig>, filingStatus: FilingStatus): IncomeKindConfig[] {
+  if (!taxData) return [];
+  const configs = incomeKindConfigs(taxData, filingStatus);
+  return configs.map((item, idx) => ({
+    kind: item.id.replace("input-", "") as IncomeKind,
+    label: item.label,
+    chartOrder: idx,
+    defaultDisplayLabel: item.label,
+    taxTreatment: item.taxTreatment,
+  }));
+}
+
+export const INCOME_KINDS_CONFIG: IncomeKindConfig[] = (() => {
+  const taxData = getTaxYearConfig(2024);
+  return getIncomeKindConfigs(taxData, "single");
+})();
 
 const INCOME_KINDS_MAP: Record<IncomeKind, IncomeKindConfig> = Object.fromEntries(
   INCOME_KINDS_CONFIG.map((c) => [c.kind, c])

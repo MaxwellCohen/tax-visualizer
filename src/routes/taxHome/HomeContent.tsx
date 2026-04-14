@@ -8,9 +8,9 @@ import TaxModelGuide from "~/components/TaxModelGuide";
 import TaxNarrative from "~/components/TaxNarrative";
 import TaxSankey from "~/components/TaxSankey";
 import TaxSummary from "~/components/TaxSummary";
-import { calculateTaxes, type TaxFormData } from "~/lib/taxCalc";
-import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
-import { getAvailableTaxYears, isPlanningTaxYear } from "~/lib/taxData";
+import { calculateTaxes, calculateAllConfigValues, type CalculatedConfigItem, type TaxFormData } from "~/lib/taxCalc";
+import { getTaxYearFromRows, getFilingStatusFromRows } from "~/lib/taxCalc.inputs";
+import { getAvailableTaxYears, getTaxYearConfig, isPlanningTaxYear } from "~/lib/taxData";
 import { getScenarioPresets } from "~/lib/taxScenario";
 import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { wireTaxHomePersistence } from "~/routes/taxHome/taxHomePersistence";
@@ -27,12 +27,32 @@ export function HomeContent() {
     setTaxInput(newValue);
   };
 
-  const taxResult = createMemo(() => calculateTaxes(taxInput()));
+  const taxResult = createMemo(() => {
+    const result = calculateTaxes(taxInput());
+    if (result) {
+      console.log("calculateTaxes result:", result);
+    }
+    return result;
+  });
+  
+  console.log("HomeContent - taxInput:", taxInput());
+  console.log("HomeContent - taxYear:", getTaxYearFromRows(taxInput().rows));
+  console.log("HomeContent - taxConfig:", getTaxYearConfig(getTaxYearFromRows(taxInput().rows)));
   const baselineResult = createMemo(() => {
     const saved = baselineInput();
     return saved ? calculateTaxes(saved) : null;
   });
   const isPlanningYear = createMemo(() => isPlanningTaxYear(getTaxYearFromRows(taxInput().rows)));
+
+  const calculatedConfig = createMemo((): CalculatedConfigItem[] | null => {
+    const input = taxInput();
+    const rows = input.rows;
+    const taxYear = getTaxYearFromRows(rows);
+    const taxData = getTaxYearConfig(taxYear);
+    if (!taxData) return null;
+    const filingStatus = getFilingStatusFromRows(rows);
+    return calculateAllConfigValues(input, taxData, filingStatus);
+  });
 
   wireTaxHomePersistence({
     taxInput,
@@ -65,8 +85,8 @@ export function HomeContent() {
       <Show when={taxResult()} fallback={<TaxYearInvalid />}>
         {(result) => (
           <>
-            <TaxSankey result={result()} />
-            <TaxMekko result={result()} />
+            <TaxSankey result={result()} calculatedConfig={calculatedConfig()} />
+            <TaxMekko result={result()} calculatedConfig={calculatedConfig()} />
             <TaxSummary
               result={result()}
               baselineResult={baselineResult()}

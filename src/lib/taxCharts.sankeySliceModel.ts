@@ -1,4 +1,4 @@
-import { SANKEY_IDS } from "~/lib/config/TAX_CALC_REGISTRY";
+import { SANKEY_IDS } from "~/lib/config/page/Page.config";
 import type { SankeyChartLink } from "~/lib/taxCharts.types";
 
 /** One ribbon from an intermediate node to a terminal (sink) node. */

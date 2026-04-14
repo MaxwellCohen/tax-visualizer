@@ -11,6 +11,8 @@ type Props = {
 };
 
 export function MekkoChartSvg(props: Props) {
+
+  console.log("MekkoChartSvg", props);
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}

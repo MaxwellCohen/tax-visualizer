@@ -4,11 +4,15 @@ import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
 import { LABEL_RIGHT_RESERVE, SANKEY_WIDTH } from "~/components/taxSankey/layout";
 import { nodeFill } from "~/components/taxSankey/sankeyColors";
 import { sankeyLabelLines } from "~/components/taxSankey/sankeyNodeLabels";
+import { effect } from "solid-js/web";
 
 type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
 
 export function SankeyNodeRects(props: Props) {
   const width = SANKEY_WIDTH;
+  effect(() => {
+    console.log("node", props.graph.nodes);
+    });
   return (
     <For each={props.graph.nodes}>
       {node => {
@@ -20,6 +24,7 @@ export function SankeyNodeRects(props: Props) {
         const midY = (y0 + y1) / 2;
         const anchor = labelInside ? "end" : "start";
         const lines = sankeyLabelLines(node);
+
 
         return (
           <g>

@@ -8,7 +8,7 @@ import {
   taxInputFormTableThClass,
 } from "~/components/taxInputForm/shared";
 import type { TaxFormData, TaxFormPretaxRow } from "~/lib/taxForm.types";
-import type { PretaxBenefitLimits } from "~/lib/taxData.types";
+import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
 
@@ -20,7 +20,8 @@ type Props = {
   addPretaxBenefit: () => void;
   removePretaxBenefitAt: (rowIndex: number) => void;
   clearAll: () => void;
-  pretaxLimits: Accessor<PretaxBenefitLimits | null>;
+  taxData: Accessor<TaxYearConfig | null>;
+  filingStatus: Accessor<FilingStatus>;
 };
 
 const addBenefitBtnClass =
@@ -112,7 +113,8 @@ export function TaxInputFormPreTaxSection(props: Props) {
                     if (i >= 0) props.removePretaxBenefitAt(i);
                   }}
                   isMarriedJoint={() => props.isMarriedJoint()}
-                  pretaxLimits={props.pretaxLimits}
+                  taxData={props.taxData}
+                  filingStatus={props.filingStatus}
                 />
               )}
             </For>

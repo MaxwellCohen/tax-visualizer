@@ -8,13 +8,12 @@ type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
 
 
 export function SankeyLinkPaths(props: Props) {
-
+  effect(() => {
+    console.log("links", props.graph.links);
+  });
   return (
     <For each={props.graph.links}>
       {link => {
-        effect(() => {
-          console.log(`${(link.source as ChartNode)?.label} - ${(link.target as ChartNode)?.label}`);
-        });
         const targetNode = link.target as ChartNode;
         return (
           <path

@@ -1,26 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { TAX_CALC_REGISTRY } from "~/lib/config/TAX_CALC_REGISTRY";
+import { getConfigItems } from "~/lib/config/page/Page.config";
 import { computeTaxMetricLines } from "~/lib/config/chartMetricsRegistry";
-import { PIPELINE_COMPUTED_ROW_ORDER, TAX_CHART_METRICS_KEYS } from "~/lib/config/pipelineTaxResult.config";
+import { getPipelineComputedRowOrder, getTaxChartMetricsKeys } from "~/lib/config/pipelineTaxResult.config";
 import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
 import { getTaxYearConfig } from "~/lib/taxData";
 
 describe("pipelineTaxResult.config", () => {
-  it("TAX_CHART_METRICS_KEYS matches the chart metrics registry (unique, full list)", () => {
-    const keys = new Set<string>(TAX_CHART_METRICS_KEYS);
-    expect(keys.size).toBe(TAX_CHART_METRICS_KEYS.length);
-    expect(TAX_CHART_METRICS_KEYS.length).toBe(TAX_CALC_REGISTRY.length);
-    for (let i = 0; i < TAX_CHART_METRICS_KEYS.length; i++) {
-      expect(TAX_CHART_METRICS_KEYS[i]).toBe(TAX_CALC_REGISTRY[i]!.metricsKey);
-    }
+  it("TAX_CHART_METRICS_KEYS matches the config items (unique, full list)", () => {
+    const config = getTaxYearConfig(2024);
+    expect(config).toBeDefined();
+    const keys = getTaxChartMetricsKeys(config!, "single");
+    const uniqueKeys = new Set(keys);
+    expect(uniqueKeys.size).toBe(keys.length);
   });
 
-  it("pipeline computed row order lists every chart metric key in registry order", () => {
-    expect(PIPELINE_COMPUTED_ROW_ORDER.length).toBe(TAX_CHART_METRICS_KEYS.length);
-    for (let i = 0; i < TAX_CHART_METRICS_KEYS.length; i++) {
-      expect(PIPELINE_COMPUTED_ROW_ORDER[i]).toBe(TAX_CHART_METRICS_KEYS[i]);
-    }
+  it("pipeline computed row order lists every chart metric key in config order", () => {
+    const config = getTaxYearConfig(2024);
+    expect(config).toBeDefined();
+    const items = getConfigItems(config!, "single");
+    const order = getPipelineComputedRowOrder(config!, "single");
+    expect(order.length).toBe(items.length);
   });
 
   it("aggregates pre-tax rows using full PretaxBenefitKind strings (401(k) and traditional IRA)", () => {

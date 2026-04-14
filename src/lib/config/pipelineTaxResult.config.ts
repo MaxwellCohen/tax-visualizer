@@ -2,31 +2,29 @@ import type { TaxFormRow, TaxMetricComputedValue } from "~/lib/taxForm.types";
 import type { TaxCalculationState } from "~/lib/taxConfig.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
 import { chartMetricNumeric } from "~/lib/taxChartMetricRead";
-import {
-  PIPELINE_COMPUTED_ROW_ORDER_FULL_FROM_REGISTRY,
-  SEGMENT_METRIC_KEYS_FROM_REGISTRY,
-  TAX_CHART_METRICS_KEYS_FROM_REGISTRY,
-  computeTaxChartMetricsFromRegistry,
-} from "~/lib/config/chartMetricsRegistry";
+import { getConfigItems } from"./page/Page.config";
 
-/** Canonical chart-metric key order (matches {@link TAX_CALC_REGISTRY}). */
-export const PIPELINE_COMPUTED_ROW_ORDER = PIPELINE_COMPUTED_ROW_ORDER_FULL_FROM_REGISTRY;
+/** Canonical chart-metric key order - now derived from getConfigItems */
+export function getPipelineComputedRowOrder(taxData: TaxYearConfig, filingStatus: string): string[] {
+  const items = getConfigItems(taxData, filingStatus as any);
+  return items.map((i: any) => i.id);
+}
 
-export const SEGMENT_METADATA_ROW_IDS = SEGMENT_METRIC_KEYS_FROM_REGISTRY;
+export const SEGMENT_METADATA_ROW_IDS = new Set<string>();
 
 /** All registry metric keys for resolve / exhaustiveness checks. */
-export const TAX_CHART_METRICS_KEYS = TAX_CHART_METRICS_KEYS_FROM_REGISTRY;
+export function getTaxChartMetricsKeys(taxData: TaxYearConfig, filingStatus: string): string[] {
+  return getPipelineComputedRowOrder(taxData, filingStatus);
+}
 
 export { chartMetricNumeric };
 
-export { TAX_CALC_REGISTRY } from "~/lib/config/TAX_CALC_REGISTRY";
-export type { ChartRegistryEntry, ChartMetricRegistryEntry, ChartMetricComputeContext } from "~/lib/config/chartMetricsRegistry";
-
-/** Folded metrics from form rows + state (prefer {@link TaxResult.metricLines} in app code). */
+/** Folded metrics from form rows + state (prefer TaxResult.metricLines in app code). */
 export function computeTaxChartMetrics(
   inputs: TaxFormRow[],
   state: TaxCalculationState,
   config: TaxYearConfig,
 ): Partial<Record<string, TaxMetricComputedValue>> {
-  return computeTaxChartMetricsFromRegistry(inputs, state, config);
+  const { computeTaxChartMetricsFromConfig } = require("./chartMetricsRegistry");
+  return computeTaxChartMetricsFromConfig(inputs, state, config);
 }

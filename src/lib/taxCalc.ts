@@ -1,4 +1,5 @@
-export { calculateTaxes } from "~/lib/taxCalc.calculateTaxes";
+export { calculateTaxes, calculateAllConfigValues } from "~/lib/taxCalc.calculateTaxes";
+export type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 export { incomeSourceDisplayLabel, newIncomeSource } from "~/lib/taxCalc.labeledAmountSource";
 export { pretaxScalarsToMinimalSources, emptyAggregatedPretax, newPretaxBenefitSource } from "~/lib/taxCalc.pretaxBenefitSource";
 export { newItemizedDeductionSource } from "~/lib/taxCalc.itemizedDeductionSource";
@@ -53,8 +54,8 @@ export {
 export { buildDisplayItems } from "~/lib/taxDisplayItems";
 export type { ChartMetricSummaryHint, ChartMetricSummaryCategory } from "~/lib/config/chartMetricsRegistry";
 
-export { PRETAX_BENEFIT_CONFIGS, INCOME_KIND_CONFIGS, DEDUCTION_KIND_CONFIGS, FEDERAL_CREDIT_CONFIGS, SELF_EMPLOYMENT_CONFIGS, calculateBracketTax, calculateLtcgTax } from "~/lib/config/taxItems";
-export type { DisplayItem, DisplayCategory, DisplayItemFormat, DisplayItemConfig, PretaxBenefitConfig, IncomeKindConfig, DeductionKindConfig, FederalCreditConfig, SelfEmploymentConfig, TaxItemCalc } from "~/lib/config/taxItems";
+export { PRETAX_BENEFIT_CONFIGS,  DEDUCTION_KIND_CONFIGS, FEDERAL_CREDIT_CONFIGS, SELF_EMPLOYMENT_CONFIGS, calculateBracketTax, calculateLtcgTax } from "~/lib/config";
+export type { PretaxBenefitConfig, IncomeKindConfig, DeductionKindConfig, FederalCreditConfig, SelfEmploymentConfig } from "~/lib/config";
 
 export { PRETAX_BENEFIT_KIND_VALUES } from "~/lib/taxCalc.pretaxBenefitSource";
 export { ITEMIZED_DEDUCTION_KIND_VALUES } from "~/lib/taxCalc.itemizedDeductionSource";

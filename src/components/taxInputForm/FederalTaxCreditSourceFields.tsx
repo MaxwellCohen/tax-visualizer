@@ -13,8 +13,8 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { getFederalTaxCreditKindDetail } from "~/lib/federalTaxCreditKindInfo";
-import type { FederalTaxCreditCaps } from "~/lib/taxData.types";
+import { getInputItems, findItemById } from "~/lib/config";
+import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 
 type Props = {
   form: TaxInputFormApi;
@@ -22,7 +22,8 @@ type Props = {
   rowId: string;
   canRemove: boolean;
   onRemove: () => void;
-  federalTaxCreditCaps: Accessor<FederalTaxCreditCaps | null>;
+  taxData: Accessor<TaxYearConfig | null>;
+  filingStatus: Accessor<FilingStatus>;
 };
 
 const creditDetailRowTdClass =
@@ -37,12 +38,19 @@ export function FederalTaxCreditSourceRow(props: Props) {
     return r?.type === "credit" ? r.kind : undefined;
   });
 
-  const detail = createMemo(() =>
-    getFederalTaxCreditKindDetail(
-      (kind() ?? "otherFederalCredit") as FederalTaxCreditKind,
-      props.federalTaxCreditCaps(),
-    ),
-  );
+  const detail = createMemo(() => {
+    const td = props.taxData();
+    const fs = props.filingStatus();
+    if (!td) {
+      return { description: "Loading...", modelingNote: "Loading..." };
+    }
+    const items = getInputItems(td, fs);
+    const item = findItemById(items, (kind() ?? "") as string);
+    return {
+      description: item?.description ?? "Unknown credit type",
+      modelingNote: item?.kindDetail?.modelingNote ?? "",
+    };
+  });
 
   const rowIndex = createMemo(() => indexOfTypedRowById(props.values().rows, "credit", props.rowId));
   const fieldPrefix = createMemo(() => {

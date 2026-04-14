@@ -1,12 +1,13 @@
 import { Show, createMemo } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
-import type { TaxResult } from "~/lib/taxForm.types";
+import type { TaxResult, CalculatedConfigItem } from "~/lib/taxCalc";
 import { buildMekkoRows } from "~/lib/taxCharts";
 import { MekkoChartSvg } from "~/components/taxMekko/MekkoChartSvg";
 import { computeMekkoLayout } from "~/components/taxMekko/mekkoLayout";
 
 type TaxMekkoProps = {
   result: TaxResult;
+  calculatedConfig: CalculatedConfigItem[] | null;
 };
 
 export default function TaxMekko(props: TaxMekkoProps) {

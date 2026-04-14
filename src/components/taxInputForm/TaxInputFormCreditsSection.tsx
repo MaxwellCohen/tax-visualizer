@@ -3,7 +3,7 @@ import type { Accessor } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
 import type { TaxFormData, TaxFormCreditRow } from "~/lib/taxForm.types";
-import type { FederalTaxCreditCaps } from "~/lib/taxData.types";
+import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { FederalTaxCreditSourceRow } from "~/components/taxInputForm/FederalTaxCreditSourceFields";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
@@ -19,7 +19,8 @@ type Props = {
   addFederalTaxCredit: () => void;
   removeFederalTaxCreditAt: (rowIndex: number) => void;
   clearAll: () => void;
-  federalTaxCreditCaps: Accessor<FederalTaxCreditCaps | null>;
+  taxData: Accessor<TaxYearConfig | null>;
+  filingStatus: Accessor<FilingStatus>;
 };
 
 export function TaxInputFormCreditsSection(props: Props) {
@@ -98,7 +99,8 @@ export function TaxInputFormCreditsSection(props: Props) {
                     const i = indexOfTypedRowById(props.values().rows, "credit", rowId);
                     if (i >= 0) props.removeFederalTaxCreditAt(i);
                   }}
-                  federalTaxCreditCaps={props.federalTaxCreditCaps}
+                  taxData={props.taxData}
+                  filingStatus={props.filingStatus}
                 />
               )}
             </For>

@@ -37,12 +37,14 @@ describe("HomeTaxResults", () => {
       const taxResult = createMemo(() => calculateTaxes(taxInput()));
       const baselineResult = createMemo(() => null);
       const isPlanningYear = createMemo(() => false);
+      const calculatedConfig = createMemo(() => null);
 
       return (
         <HomeTaxResults
           taxResult={taxResult}
           baselineResult={baselineResult}
           isPlanningYear={isPlanningYear}
+          calculatedConfig={calculatedConfig}
         />
       );
     });

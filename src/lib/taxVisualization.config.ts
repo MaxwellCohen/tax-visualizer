@@ -1,5 +1,7 @@
 import type { TaxResult } from "~/lib/taxForm.types";
-import { TAX_CALC_REGISTRY, chartMetricNumeric } from "~/lib/config/pipelineTaxResult.config";
+import { getConfigItems } from "~/lib/config/page/Page.config";
+import { chartMetricNumeric } from "~/lib/taxChartMetricRead";
+import { getTaxYearConfig } from "~/lib/taxData";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -27,19 +29,25 @@ export type MetricConfig = {
   category: "income" | "pretax" | "deduction" | "tax" | "credits" | "takehome" | "rate";
 };
 
-/** Default Tax Summary rows: derived from {@link TAX_CALC_REGISTRY} `summary` hints (single ordering source). */
+/** Default Tax Summary rows: derived from configItem `summary` hints (single ordering source). */
 function buildDefaultMetricsConfig(): MetricConfig[] {
   const configs: MetricConfig[] = [];
-  for (const e of TAX_CALC_REGISTRY) {
-    if (!e.summary) continue;
-    const s = e.summary;
+  const taxData = getTaxYearConfig(2024);
+  if (!taxData) return configs;
+  const items = getConfigItems(taxData, "single");
+  for (const item of items) {
+    if (!item.summary) continue;
+    const s = item.summary;
     configs.push({
       id: s.summaryId,
       label: s.label,
-      getValue: (result) => chartMetricNumeric(result, e.metricsKey),
+      getValue: (result: TaxResult) => {
+        const line = result.metricLines?.find((l: any) => l.metricsKey === item.id);
+        return typeof line?.value === "number" ? line.value : undefined;
+      },
       format: s.format ?? "currency",
       displayOrder: s.displayOrder,
-      category: s.category,
+      category: s.category as any,
       highlight: s.highlight,
       hideWhenZero: s.hideWhenZero,
     });

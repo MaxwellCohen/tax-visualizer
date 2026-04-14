@@ -4,9 +4,9 @@ import { HomeHeader } from "~/routes/taxHome/HomeHeader";
 import { HomeTaxResults } from "~/routes/taxHome/HomeTaxResults";
 import ScenarioTools from "~/components/ScenarioTools";
 import TaxInputForm from "~/components/TaxInputForm";
-import { calculateTaxes, type TaxFormData } from "~/lib/taxCalc";
-import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
-import { getAvailableTaxYears, isPlanningTaxYear } from "~/lib/taxData";
+import { calculateTaxes, calculateAllConfigValues, type CalculatedConfigItem, type TaxFormData } from "~/lib/taxCalc";
+import { getTaxYearFromRows, getFilingStatusFromRows } from "~/lib/taxCalc.inputs";
+import { getAvailableTaxYears, isPlanningTaxYear, getTaxYearConfig } from "~/lib/taxData";
 import { getScenarioPresets } from "~/lib/taxScenario";
 import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { wireTaxHomePersistence } from "~/routes/taxHome/taxHomePersistence";
@@ -26,6 +26,16 @@ export default function HomeContent() {
   });
   const isPlanningYear = createMemo(() => isPlanningTaxYear(getTaxYearFromRows(taxInput().rows)));
 
+  const calculatedConfig = createMemo((): CalculatedConfigItem[] | null => {
+    const input = taxInput();
+    const rows = input.rows;
+    const taxYear = getTaxYearFromRows(rows);
+    const taxData = getTaxYearConfig(taxYear);
+    if (!taxData) return null;
+    const filingStatus = getFilingStatusFromRows(rows);
+    return calculateAllConfigValues(input, taxData, filingStatus);
+  });
+
   wireTaxHomePersistence({
     taxInput,
     setTaxInput,
@@ -34,6 +44,7 @@ export default function HomeContent() {
   effect(() => {
     console.log("taxInput", taxInput());
     console.log("taxResult", taxResult());
+    console.log("calculatedConfig", calculatedConfig());
   });
 
   return (
@@ -61,6 +72,7 @@ export default function HomeContent() {
         taxResult={taxResult}
         baselineResult={baselineResult}
         isPlanningYear={isPlanningYear}
+        calculatedConfig={calculatedConfig}
       />
     </main>
   );

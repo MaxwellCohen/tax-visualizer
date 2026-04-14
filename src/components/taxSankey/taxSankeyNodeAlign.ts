@@ -7,9 +7,10 @@ import {
 
 function semanticColumnToLayer(semantic: number, n: number): number {
   if (n <= 1) return 0;
-  const maxLayer = n - 1;
-  const t = SANKEY_VISUAL_SEMANTIC_MAX > 0 ? semantic / SANKEY_VISUAL_SEMANTIC_MAX : 0;
-  return Math.max(0, Math.min(maxLayer, Math.round(t * maxLayer)));
+  if (semantic === 0) return 0;
+  if (semantic === SANKEY_VISUAL_SEMANTIC_MAX) return n - 1;
+  const t = semantic / SANKEY_VISUAL_SEMANTIC_MAX;
+  return Math.max(0, Math.min(n - 1, Math.round(t * (n - 1))));
 }
 
 /**

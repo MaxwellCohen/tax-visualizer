@@ -6,6 +6,7 @@ import { TaxInputFormIncomeSection } from "~/components/taxInputForm/TaxInputFor
 import { TaxInputFormPreTaxSection } from "~/components/taxInputForm/TaxInputFormPreTaxSection";
 import { createTaxInputForm, type TaxInputFormOuterProps } from "~/components/taxInputForm/hooks/formCore";
 import { wireTaxYearLimitsEffect } from "~/components/taxInputForm/hooks/taxYearLimitsEffect";
+
 type TaxInputFormProps = TaxInputFormOuterProps & {
   availableYears: number[];
 };
@@ -31,6 +32,15 @@ export default function TaxInputForm(props: TaxInputFormProps) {
 
   wireTaxYearLimitsEffect(form, values);
 
+  const taxData = () => limits.selectedTaxConfig();
+  const filingStatus = () => {
+    const inputs = limits.selectedTaxConfig();
+    if (!inputs) return "single";
+    const v = values();
+    const calcInputs = v.rows.find(r => r.type === "setting" && r.id === "filingStatus");
+    return calcInputs?.value ?? "single";
+  };
+
   return (
     <form
       class="rounded-xl p-5 background-surface border-border shadow-shadow"
@@ -51,7 +61,8 @@ export default function TaxInputForm(props: TaxInputFormProps) {
           addPretaxBenefit={addPretaxBenefit}
           removePretaxBenefitAt={removePretaxBenefitAt}
           clearAll={clearAllPretaxBenefits}
-          pretaxLimits={limits.pretaxLimits}
+          taxData={taxData}
+          filingStatus={filingStatus}
         />
         <TaxInputFormDeductionSection
           form={form}
@@ -61,7 +72,7 @@ export default function TaxInputForm(props: TaxInputFormProps) {
           addItemizedDeduction={addItemizedDeduction}
           removeItemizedDeductionAt={removeItemizedDeductionAt}
           clearAll={clearAllItemizedDeductions}
-          itemizedCaps={limits.itemizedCaps}
+          taxData={taxData}
         />
         <TaxInputFormCreditsSection
           form={form}
@@ -69,7 +80,8 @@ export default function TaxInputForm(props: TaxInputFormProps) {
           addFederalTaxCredit={addFederalTaxCredit}
           removeFederalTaxCreditAt={removeFederalTaxCreditAt}
           clearAll={clearAllFederalTaxCredits}
-          federalTaxCreditCaps={limits.federalTaxCreditCaps}
+          taxData={taxData}
+          filingStatus={filingStatus}
         />
       </CollapsibleBlock>
     </form>

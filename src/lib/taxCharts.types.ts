@@ -19,6 +19,8 @@ type SankeyNodeKind =
   | "federalCredits"
   | "keep";
 
+export type { SankeyNodeKind };
+
 /** How to present the terminal after `deduction-shield` for the deduction slice only (pretax still uses deferred sinks). */
 export type DeductionBenefitSinkRole = "takeHome" | "accounting";
 
