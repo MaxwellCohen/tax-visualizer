@@ -679,3 +679,15 @@ export function makeTaxCalcRegistry(taxYearConfig: TaxYearConfig): ChartRegistry
   void taxYearConfig;
   return [...TAX_CALC_REGISTRY];
 }
+
+export const SANKEY_IDS = {
+  ordinaryTaxableIncome: "ordinary-taxable-income",
+  payrollOrdinaryStrip: "payroll-ordinary-strip",
+  longTermTaxableIncome: "long-term-taxable-income",
+  ltcgDeductionShield: "ltcg-deduction-shield",
+  taxesFederal: "taxes-federal",
+  taxesPayroll: "taxes-payroll",
+  federalCredits: "federal-credits",
+  keep: "keep",
+  deductionBenefitSink: "deduction-benefit-sink",
+} as const;

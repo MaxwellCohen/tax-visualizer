@@ -4,27 +4,27 @@ import type { IncomeKind, TaxSegment } from "~/lib/taxCalc.types";
 import {
   SANKEY_NODE_STYLE_BY_KIND,
 } from "~/lib/config/chartMetricsRegistry";
+import { SANKEY_IDS } from "~/lib/config/TAX_CALC_REGISTRY";
 import { chartMetricNumeric, chartMetricSegments, getOrdinaryFederalSegments, getLongTermCapitalGainsSegments } from "~/lib/taxChartMetricRead";
 import { incomeRowsFromTaxResult } from "~/lib/taxForm.rows";
 import { incomeSourceDisplayLabel } from "~/lib/taxCalc";
-import { SANKEY_IDS } from "~/lib/taxCharts.sankey.constants";
 import { ordinaryBracketNodeId, ltcgBracketNodeId, ordinarySegmentKey, ltcgSegmentKey } from "~/lib/taxCharts.sankeySegmentKeys";
 import { formatLtcgBracketLabel, formatOrdinaryBracketLabel } from "~/lib/taxCharts.sankeyFormat";
 import { netInvestmentIncomeTaxPerSegment } from "~/lib/taxCharts.sankeyNiit";
 import { allocateFederalCreditsTopMarginalSlices, takeHomeAttributableToBracketFlows } from "~/lib/taxCharts.visualizationBundle";
 import { splitTakeHomeAndPayrollByPool } from "~/lib/taxCharts.sankeyHelpers";
 
-function getMetricValue(result: TaxResult, key: string): number | TaxSegment[] | undefined {
-  const line = result.metricLines?.find(l => l.metricsKey === key);
-  if (!line) return undefined;
-  if (line.valueKind === "number") return typeof line.value === "number" ? line.value : undefined;
-  if (line.valueKind === "segments") return Array.isArray(line.value) ? line.value : undefined;
-  return undefined;
+function getRegistryNumber(result: TaxResult, metricsKey: string, defaultVal = 0): number {
+  const line = result.metricLines?.find(l => l.metricsKey === metricsKey);
+  if (!line) return defaultVal;
+  const v = line.value;
+  return typeof v === "number" && Number.isFinite(v) ? v : defaultVal;
 }
 
-function getMetricNumber(result: TaxResult, key: string, defaultVal = 0): number {
-  const v = getMetricValue(result, key);
-  return typeof v === "number" && Number.isFinite(v) ? v : defaultVal;
+function getRegistrySegments(result: TaxResult, metricsKey: string): TaxSegment[] | undefined {
+  const line = result.metricLines?.find(l => l.metricsKey === metricsKey);
+  if (!line) return undefined;
+  return Array.isArray(line.value) ? line.value : undefined;
 }
 
 function addNode(nodeMap: Map<string, SankeyChartNode>, node: SankeyChartNode): void {
@@ -91,8 +91,8 @@ function buildDeductionNodes(
   links: SankeyChartLink[],
   incomeIdMap: Map<string, string>,
 ): void {
-  const deductionAmount = getMetricNumber(result, "deductionAmount");
-  const preTaxTotal = getMetricNumber(result, "preTaxTotal");
+  const deductionAmount = getRegistryNumber(result, "deductionAmount");
+  const preTaxTotal = getRegistryNumber(result, "preTaxTotal");
   
   if (deductionAmount <= 0 && preTaxTotal <= 0) return;
 
@@ -165,11 +165,11 @@ function buildTaxableNodes(
   links: SankeyChartLink[],
   incomeIdMap: Map<string, string>,
 ): TaxableNodeInfo {
-  const ordinaryTaxable = getMetricNumber(result, "ordinaryTaxableIncome");
-  const ltcgTaxable = getMetricNumber(result, "longTermTaxableIncome");
-  const ltcgGross = getMetricNumber(result, "longTermCapitalGainsGrossIncome");
+  const ordinaryTaxable = getRegistryNumber(result, "ordinaryTaxableIncome");
+  const ltcgTaxable = getRegistryNumber(result, "longTermTaxableIncome");
+  const ltcgGross = getRegistryNumber(result, "longTermCapitalGainsGrossIncome");
   const shieldAmount = Math.max(0, ltcgGross - ltcgTaxable);
-  const payrollTax = getMetricNumber(result, "payrollTax");
+  const payrollTax = getRegistryNumber(result, "payrollTax");
 
   const info: TaxableNodeInfo = {
     ordinaryId: "",
@@ -310,9 +310,9 @@ function buildBracketNodes(
   const ordinarySegments = getOrdinaryFederalSegments(result);
   const ltcgSegments = getLongTermCapitalGainsSegments(result);
 
-  const ordinaryTaxable = getMetricNumber(result, "ordinaryTaxableIncome");
-  const payrollTax = getMetricNumber(result, "payrollTax");
-  const selfEmploymentTax = getMetricNumber(result, "selfEmploymentTax");
+  const ordinaryTaxable = getRegistryNumber(result, "ordinaryTaxableIncome");
+  const payrollTax = getRegistryNumber(result, "payrollTax");
+  const selfEmploymentTax = getRegistryNumber(result, "selfEmploymentTax");
   const totalPayroll = payrollTax + selfEmploymentTax;
 
   let segments = ordinarySegments;
@@ -488,11 +488,11 @@ function buildTaxKeepNodes(
   takeHomePoolSlices: { sourceId: string; weight: number }[],
   niitBySegment: { ordinary: Map<string, number>; ltcg: Map<string, number> },
 ): void {
-  const federalTax = getMetricNumber(result, "federalIncomeTax");
-  const payrollTaxKeep = getMetricNumber(result, "payrollTax");
-  const selfEmploymentTax = getMetricNumber(result, "selfEmploymentTax");
-  const takeHome = getMetricNumber(result, "takeHomePay");
-  const creditsApplied = getMetricNumber(result, "federalTaxCreditsApplied");
+  const federalTax = getRegistryNumber(result, "federalIncomeTax");
+  const payrollTaxKeep = getRegistryNumber(result, "payrollTax");
+  const selfEmploymentTax = getRegistryNumber(result, "selfEmploymentTax");
+  const takeHome = getRegistryNumber(result, "takeHomePay");
+  const creditsApplied = getRegistryNumber(result, "federalTaxCreditsApplied");
 
   addNode(nodeMap, {
     id: SANKEY_IDS.taxesFederal,
@@ -545,10 +545,10 @@ function buildTaxKeepNodes(
 
   const shieldNode = nodeMap.get("deduction-shield");
   const shieldAmount = shieldNode?.amount ?? 0;
-  const preTaxTotal = getMetricNumber(result, "preTaxTotal");
-  const deductionAmount = getMetricNumber(result, "deductionAmount");
-  const payrollTax = getMetricNumber(result, "payrollTax");
-  const wageIncome = getMetricNumber(result, "wageIncome");
+  const preTaxTotal = getRegistryNumber(result, "preTaxTotal");
+  const deductionAmount = getRegistryNumber(result, "deductionAmount");
+  const payrollTax = getRegistryNumber(result, "payrollTax");
+  const wageIncome = getRegistryNumber(result, "wageIncome");
   
   if (shieldAmount > 0 && takeHome > 0) {
     if (preTaxTotal > 0) {
