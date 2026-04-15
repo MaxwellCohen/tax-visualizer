@@ -14,7 +14,7 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { getInputItems, findItemById } from "~/lib/config";
+import { getInputItems, findConfigItemForDeductionKind } from "~/lib/config";
 import type { TaxYearConfig } from "~/lib/taxData.types";
 
 type Props = {
@@ -49,7 +49,7 @@ export function ItemizedDeductionSourceRow(props: Props) {
       return { description: "Loading...", modelingNote: "Loading..." };
     }
     const items = getInputItems(td, fs);
-    const item = findItemById(items, (kind() ?? "") as string);
+    const item = findConfigItemForDeductionKind(items, (kind() ?? "") as string);
     return {
       description: item?.description ?? "Unknown deduction type",
       modelingNote: item?.kindDetail?.modelingNote ?? "",

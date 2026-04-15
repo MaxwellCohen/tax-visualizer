@@ -10,9 +10,6 @@ type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
 
 export function SankeyNodeRects(props: Props) {
   const width = SANKEY_WIDTH;
-  effect(() => {
-    console.log("node", props.graph.nodes);
-    });
   return (
     <For each={props.graph.nodes}>
       {node => {
@@ -62,7 +59,7 @@ export function SankeyNodeRects(props: Props) {
               >
                 <title>{lines.title}</title>
                 <tspan x={labelX} dy="-0.55em">
-                  {lines.line1}
+                  {node.id}
                 </tspan>
                 {lines.line2 != null ? (
                   <tspan

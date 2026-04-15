@@ -41,7 +41,6 @@ export type {
 
 export {
   chartMetricNumeric,
-  chartMetricSegments,
   deductionKindFromTaxResult,
   getLongTermCapitalGainsSegments,
   getOrdinaryFederalSegments,
@@ -54,7 +53,6 @@ export {
 export { buildDisplayItems } from "~/lib/taxDisplayItems";
 export type { ChartMetricSummaryHint, ChartMetricSummaryCategory } from "~/lib/config/chartMetricsRegistry";
 
-export { PRETAX_BENEFIT_CONFIGS,  DEDUCTION_KIND_CONFIGS, FEDERAL_CREDIT_CONFIGS, SELF_EMPLOYMENT_CONFIGS, calculateBracketTax, calculateLtcgTax } from "~/lib/config";
 export type { PretaxBenefitConfig, IncomeKindConfig, DeductionKindConfig, FederalCreditConfig, SelfEmploymentConfig } from "~/lib/config";
 
 export { PRETAX_BENEFIT_KIND_VALUES } from "~/lib/taxCalc.pretaxBenefitSource";

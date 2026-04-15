@@ -166,6 +166,7 @@ function getCategoryColor(category: DisplayItemConfig["category"]): string {
 /** Detailed breakdown rows from configItem detailedDisplay metadata. */
 export function getDisplayItemsConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): DisplayItemConfig[] {
   const registry = getCachedRegistry(taxData, filingStatus);
+  // @ts-expect-error - detailedDisplay category is ChartMetricSummaryCategory
   return registry.filter((e) => e.detailedDisplay != null)
     .map((e) => {
       const d = e.detailedDisplay!;
@@ -178,6 +179,7 @@ export function getDisplayItemsConfig(taxData: TaxYearConfig, filingStatus: Fili
         format,
         order: d.order,
         metricsKey: e.metricsKey,
+        //@ts-expect-error - detailedDisplay category is ChartMetricSummaryCategory
         color: d.color ?? getCategoryColor(d.category),
         tooltip: d.tooltip,
         highlight: d.highlight ?? e.summary?.highlight,

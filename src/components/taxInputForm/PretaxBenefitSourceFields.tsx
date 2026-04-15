@@ -13,7 +13,7 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { getInputItems, findItemById } from "~/lib/config";
+import { getInputItems, findItemById, pretaxFormKindToConfigItemId } from "~/lib/config";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 
 type Props = {
@@ -45,9 +45,9 @@ export function PretaxBenefitSourceRow(props: Props) {
     if (!td) {
       return { description: "Loading...", limitNote: "Loading..." };
     }
-    const formItemId = (kind() ?? "").toLowerCase().replace(/spouse\d+/, "").replace("pretax", "");
+    const configId = pretaxFormKindToConfigItemId(kind() ?? "");
     const items = getInputItems(td, fs);
-    const item = findItemById(items, formItemId) ?? findItemById(items, "otherPretax");
+    const item = findItemById(items, configId) ?? findItemById(items, "otherPretax");
     return {
       description: item?.description ?? "Unknown pretax benefit type",
       limitNote: item?.kindDetail?.limitNote ?? "",

@@ -13,14 +13,15 @@ export function buildMekkoRows(result: TaxResult): MekkoRow[] {
   const totalIncome = chartMetricNumeric(result, "totalIncome");
   const selfEmploymentTax = chartMetricNumeric(result, "selfEmploymentTax");
   const deductionAmount = chartMetricNumeric(result, "deductionAmount");
-  const deductionKeep = Math.max(0, deductionAmount - selfEmploymentTax);
+  const effectiveDeduction = Math.min(deductionAmount, totalIncome);
+  const deductionKeep = Math.max(0, effectiveDeduction - selfEmploymentTax);
   const deductionTax = selfEmploymentTax > 0 ? selfEmploymentTax : 0;
-  
-  if (deductionAmount > 0) {
+
+  if (effectiveDeduction > 0) {
     rows.push({
       id: "deduction",
       label: deductionKindFromTaxResult(result) === "itemized" ? "Itemized" : "Standard Deduction",
-      total: deductionAmount,
+      total: effectiveDeduction,
       keep: deductionKeep,
       tax: deductionTax,
       kind: "deduction",

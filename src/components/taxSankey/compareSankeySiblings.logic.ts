@@ -1,7 +1,6 @@
 import type { ChartNode } from "~/components/taxSankey/chartTypes";
 import { SANKEY_SIBLING_RANK } from "~/components/taxSankey/sankeySiblingRank.constants";
-
-const INCOME_KIND_ORDER_MAP: Record<string, number> = {};
+import { SANKEY_INCOME_KIND_ORDER_BY_KIND } from "~/lib/taxData.incomeKinds.config";
 
 const PRETAX_MIDDLE_VERTICAL_RANK: Record<string, number> = {
   "pretax-hsa": 0,
@@ -36,7 +35,7 @@ function compareIncomeSourceSiblings(a: ChartNode, b: ChartNode): number | null 
   const ka = a.incomeKind;
   const kb = b.incomeKind;
   if (ka && kb) {
-    const kindDiff = (INCOME_KIND_ORDER_MAP[ka] ?? 99) - (INCOME_KIND_ORDER_MAP[kb] ?? 99);
+    const kindDiff = (SANKEY_INCOME_KIND_ORDER_BY_KIND[ka] ?? 99) - (SANKEY_INCOME_KIND_ORDER_BY_KIND[kb] ?? 99);
     if (kindDiff !== 0) return kindDiff;
   }
   return a.label.localeCompare(b.label);
