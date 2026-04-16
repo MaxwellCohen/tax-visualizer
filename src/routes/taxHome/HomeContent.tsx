@@ -85,7 +85,7 @@ export function HomeContent() {
       <Show when={taxResult()} fallback={<TaxYearInvalid />}>
         {(result) => (
           <>
-            <TaxSankey result={result()} calculatedConfig={calculatedConfig()} />
+            <TaxSankey calculatedConfig={calculatedConfig()} />
             <TaxMekko result={result()} calculatedConfig={calculatedConfig()} />
             <TaxSummary
               result={result()}

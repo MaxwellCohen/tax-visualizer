@@ -8,77 +8,72 @@ import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
 import { compareSankeyLinks } from "~/components/taxSankey/compareSankeyLinks";
 import { compareSankeySiblings } from "~/components/taxSankey/compareSankeySiblings.logic";
 import { SANKEY_HEIGHT, SANKEY_WIDTH } from "~/components/taxSankey/layout";
-import {
-  SankeyLink,
-} from "~/lib/config/page/Page.config";
+import { SankeyLink } from "~/lib/config/page/Page.config";
 import type { TaxResult, CalculatedConfigItem } from "~/lib/taxCalc";
 
 type TaxSankeyProps = {
-  result: TaxResult;
   calculatedConfig: CalculatedConfigItem[] | null;
 };
 
-export default function TaxSankey(props: TaxSankeyProps) {
-  const sankeyData = createMemo(() => {
-    const cc = props.calculatedConfig;
-   
-    if (!cc?.length) {
-      return undefined;
-    }
-    const clonedLinks = cc
-      .filter(
-        (item) =>
-          item.computedValue > 0 && "link" in (item?.sankeySettings || {}),
-      )
-      .flatMap((item) => {
-        return (
-          (item.sankeySettings as { link?: SankeyLink[] })?.link?.map(
-            (link) => ({
-              ...link,
-              source: link.source,
-              target: link.target,
-              value: item.computedValue,
-              fill: link.fill,
-              stroke: link.stroke,
-            }),
-          ) || []
-        );
-      });
-
-    const nodeIdSet = new Set<string>();
-    clonedLinks.forEach((link) => {
-      nodeIdSet.add(link.source);
-      nodeIdSet.add(link.target);
+function makeSankeyData(cc: CalculatedConfigItem[] | null) {
+  if (!cc?.length) {
+    return undefined;
+  }
+  const clonedLinks = cc
+    .filter(
+      (item) =>
+        item.computedValue > 0 && "link" in (item?.sankeySettings || {}),
+    )
+    .flatMap((item) => {
+      return (
+        (item.sankeySettings as { link?: SankeyLink[] })?.link?.map((link) => ({
+          ...link,
+          source: link.source,
+          target: link.target,
+          value: item.computedValue,
+          fill: link.fill,
+          stroke: link.stroke,
+        })) || []
+      );
     });
-   
-    const clonedNodes = cc
-      .filter((item) => nodeIdSet.has(item.id))
-      .map((item) => ({
-        id: item.id,
-        label: item.label,
-        ...(item.sankeySettings as { node?: any })?.node,
-      }));
 
-    const sankeyGenerator = sankey<ChartNode, ChartLink>()
-      .nodeId((node: ChartNode) => node.id)
-      .nodeWidth(18)
-      .nodePadding(14)
-      .nodeAlign(taxSankeyNodeAlign)
-      .nodeSort(compareSankeySiblings)
-      .linkSort(compareSankeyLinks)
-      .iterations(32)
-      .extent([
-        [8, 8],
-        [SANKEY_WIDTH - 8, SANKEY_HEIGHT - 8],
-      ]);
-
-    const graph = sankeyGenerator({
-      nodes: clonedNodes,
-      links: clonedLinks,
-    } as SankeyGraph<ChartNode, ChartLink>);
-
-    return { graph };
+  const nodeIdSet = new Set<string>();
+  clonedLinks.forEach((link) => {
+    nodeIdSet.add(link.source);
+    nodeIdSet.add(link.target);
   });
+
+  const clonedNodes = cc
+    .filter((item) => nodeIdSet.has(item.id))
+    .map((item) => ({
+      id: item.id,
+      label: item.label,
+      ...(item.sankeySettings as { node?: any })?.node,
+    }));
+
+  const sankeyGenerator = sankey<ChartNode, ChartLink>()
+    .nodeId((node: ChartNode) => node.id)
+    .nodeWidth(18)
+    .nodePadding(14)
+    .nodeAlign(taxSankeyNodeAlign)
+    .nodeSort(compareSankeySiblings)
+    .linkSort(compareSankeyLinks)
+    .iterations(32)
+    .extent([
+      [8, 8],
+      [SANKEY_WIDTH - 8, SANKEY_HEIGHT - 8],
+    ]);
+
+  const graph = sankeyGenerator({
+    nodes: clonedNodes,
+    links: clonedLinks,
+  } as SankeyGraph<ChartNode, ChartLink>);
+
+  return { graph };
+}
+
+export default function TaxSankey(props: TaxSankeyProps) {
+  const sankeyData = createMemo(() => makeSankeyData(props.calculatedConfig));
 
   return (
     <section
