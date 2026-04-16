@@ -39,6 +39,7 @@ html[data-theme="light"] {
   --sankey-link-keep: rgba(22, 163, 74, 0.45);
   --sankey-link-deferred: rgba(14, 116, 144, 0.45);
   --sankey-link-label: #3f3f38;
+  --sankey-link-ltcg: rgba(3, 105, 161, 0.45);
   --sankey-label: #1a1a19;
 
   --mekko-keep: #5a9a6a;

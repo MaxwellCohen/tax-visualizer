@@ -273,6 +273,19 @@ function buildTaxableNodes(
         amount: ltcgTaxable,
       });
 
+      nodeMap.set(SANKEY_IDS.ltcgIncome, {
+        id: SANKEY_IDS.ltcgIncome,
+        label: "LTCG Income",
+        kind: "ltcgIncome",
+        amount: ltcgTaxable,
+      });
+
+      links.push({
+        sourceId: ltcgId,
+        targetId: SANKEY_IDS.ltcgIncome,
+        value: ltcgTaxable,
+      });
+
       const ltcgRows = incomeRowsFromTaxResult(result)
         .filter(r => r.amount > 0 && r.kind === "longTermCapGains")
         .map(r => ({ id: r.id, weight: r.amount }));
@@ -405,10 +418,12 @@ function buildBracketNodes(
       marginalRate: segment.marginalRate,
       rangeStart: segment.rangeStart,
       rangeEnd: segment.rangeEnd,
+      fill: "var(--sankey-node-ltcg)",
+      stroke: "var(--sankey-link-ltcg)",
     });
 
     links.push({
-      sourceId: SANKEY_IDS.longTermTaxableIncome,
+      sourceId: SANKEY_IDS.ltcgIncome,
       targetId: nodeId,
       value: segment.incomeAmount,
     });

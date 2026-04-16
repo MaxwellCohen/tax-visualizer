@@ -53,7 +53,8 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
                 const ordinaryTaxable = Math.max(0, afterPretax - deduction);
                 const brackets = getOrdinaryBrackets(taxData, filingStatus);
                 const ordinaryTax = calculateOrdinaryTaxTotal(ordinaryTaxable, brackets).tax;
-                const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, 0);
+                const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinaryTaxable);
+                console.log("ltcgTax", ltcgTax);
                 return ordinaryTax + ltcgTax;
             },
         },
@@ -62,9 +63,9 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
             label: "Federal Tax Credits",
             shortLabel: "Credits",
             sankeySettings: {
-                node: { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)" },
+                node: { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)", row: 3, col: 2 },
                 link: [
-                    { source: "federalTaxCredits", target: "federalIncomeTax", fill: "var(--sankey-link-credits)", stroke: "var(--sankey-link-credits)" },
+                    { source: "federalTaxCredits", target: "federalIncomeTax", fill: "var(--sankey-link-credits)", stroke: "var(--sankey-link-credits)", row: 3, col: 2 },
                 ],
             },
             calculate: (inputs) => {
@@ -72,34 +73,13 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
             },
         },
         {
-            id: "payrollTax",
-            label: "Payroll Taxes",
-            shortLabel: "Payroll Taxes",
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)" },
-                link: [
-                    { source: "ordinaryTaxableIncome", target: "payrollTax", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)" },
-                    { source: "payrollTax", target: "federalPayrollTaxes", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)" },
-                    // { source: "payrollTax", target: "payrollTaxes", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)" },       
-                ],
-            },
-            calculate: calculatePayrollTax,
-            summary: {
-                summaryId: "payroll-tax",
-                label: "Payroll Tax",
-                category: "tax",
-                displayOrder: 5,
-                format: "currency",
-            },
-        },
-        {
             id: "selfEmploymentTax",
             label: "Self-Employment Tax",
             shortLabel: "Self-Employment Tax",
             sankeySettings: {
-                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)" },
+                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
                 link: [
-                    { source: "selfEmploymentTax", target: "takeHomePay", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)" },
+                    { source: "selfEmploymentTax", target: "takeHomePay", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
                 ],
             },
             calculate: calculateSelfEmploymentTax,

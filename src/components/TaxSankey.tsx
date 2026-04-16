@@ -6,7 +6,7 @@ import { SankeyChartSvg } from "~/components/taxSankey/SankeyChartSvg";
 import { taxSankeyNodeAlign } from "~/components/taxSankey/taxSankeyNodeAlign";
 import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
 import { compareSankeyLinks } from "~/components/taxSankey/compareSankeyLinks";
-import { compareSankeySiblings } from "~/components/taxSankey/compareSankeySiblings";
+import { compareSankeySiblings } from "~/components/taxSankey/compareSankeySiblings.logic";
 import { SANKEY_HEIGHT, SANKEY_WIDTH } from "~/components/taxSankey/layout";
 import {
   SankeyLink,
@@ -34,6 +34,7 @@ export default function TaxSankey(props: TaxSankeyProps) {
         return (
           (item.sankeySettings as { link?: SankeyLink[] })?.link?.map(
             (link) => ({
+              ...link,
               source: link.source,
               target: link.target,
               value: item.computedValue,
@@ -49,7 +50,7 @@ export default function TaxSankey(props: TaxSankeyProps) {
       nodeIdSet.add(link.source);
       nodeIdSet.add(link.target);
     });
-
+   
     const clonedNodes = cc
       .filter((item) => nodeIdSet.has(item.id))
       .map((item) => ({

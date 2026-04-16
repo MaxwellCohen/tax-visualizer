@@ -12,8 +12,8 @@ describe("compareSankeyLinks", () => {
       label: "22%",
     } as ChartNode;
 
-    const fromCredits: ChartLink = { source: credits, target: keep, value: 100 };
-    const fromBracket: ChartLink = { source: bracket, target: keep, value: 5000 };
+    const fromCredits: ChartLink = { source: credits, target: keep, value: 100, row: 0, col: 0 };
+    const fromBracket: ChartLink = { source: bracket, target: keep, value: 5000, row: 1, col: 0 };
 
     expect(compareSankeyLinks(fromCredits, fromBracket)).toBeLessThan(0);
     expect(compareSankeyLinks(fromBracket, fromCredits)).toBeGreaterThan(0);

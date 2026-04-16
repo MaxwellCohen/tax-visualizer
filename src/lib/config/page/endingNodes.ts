@@ -31,11 +31,19 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
 
     return [
         {
+            id: "federalPayrollTaxes",
+            label: "Federal Payroll Taxes",
+            shortLabel: "Federal Payroll Tax",
+            sankeySettings: {
+                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 2, col: 4 },
+            },
+        },
+        {
             id: "takeHomePay",
             label: "Take-Home Pay",
             shortLabel: "Take-Home Pay",
             sankeySettings: {
-                node: { fill: "var(--sankey-node-keep)", stroke: "var(--sankey-link-keep)" },
+                node: { fill: "var(--sankey-node-keep)", stroke: "var(--sankey-link-keep)", row: 3, col: 4 },
             },
             calculate: (inputs) => {
                 const wages = wageIncome(inputs);
@@ -55,7 +63,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 const brackets = getOrdinaryBrackets(taxData, filingStatus);
                 const ordinaryTaxable = Math.max(0, wages + seIncome + ordinary + stcg - pretax - deduction);
                 const ordinaryTax = calculateOrdinaryTaxTotal(ordinaryTaxable, brackets).tax;
-                const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, 0);
+                const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinaryTaxable);
                 const credits = childTaxCredit(inputs) + educationCredits(inputs) + retirementSavingsContributions(inputs) + otherCredit(inputs);
                 const federalTax = Math.max(0, ordinaryTax + ltcgTax - credits);
                 const payrollTax = calculatePayrollTax(inputs);
@@ -76,7 +84,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             label: "Federal Income Tax",
             shortLabel: "Federal Income Tax",
             sankeySettings: {
-                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)" },
+                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 4, col: 4 },
             },
             calculate: calculateFederalIncomeTaxAfterCredits,
             summary: {
@@ -88,14 +96,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 highlight: true,
             },
         },
-        {
-            id: "federalPayrollTaxes",
-            label: "Federal Payroll Taxes",
-            shortLabel: "Federal Payroll Tax",
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)" },
-            },
-        },
+
         {
             id: "effectiveTaxRate",
             label: "Effective Tax Rate",

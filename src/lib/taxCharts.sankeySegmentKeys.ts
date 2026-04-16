@@ -15,5 +15,5 @@ export function ordinaryBracketNodeId(seg: Pick<TaxSegment, "id" | "rangeStart">
 }
 
 export function ltcgBracketNodeId(seg: Pick<TaxSegment, "id" | "rangeStart">): string {
-  return `ltcg-bracket-${ltcgSegmentKey(seg)}`;
+  return `ltcg-bracket-${ltcgSegmentKey(seg)}-income`;
 }

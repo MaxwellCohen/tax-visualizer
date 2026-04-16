@@ -12,10 +12,10 @@ export function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             taxTreatment: "ordinary",
             inputRowSettings: { displayOrder: 1, inputType: "currency" },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 1, col: 1 },
                 link: [
-                    { source: "input-wages", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
-                    { source: "input-wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
+                    { source: "input-wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 0, col: 1 },
+                    { source: "input-wages", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 1 },
                 ],
             },
         },
@@ -27,9 +27,9 @@ export function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             taxTreatment: "selfEmployment",
             inputRowSettings: { displayOrder: 2, inputType: "currency" },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
-                    { source: "input-selfEmployment", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
+                    { source: "input-selfEmployment", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" , row: 2, col : 1 },
                 ],
             },
         },
@@ -41,23 +41,9 @@ export function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             taxTreatment: "shortTermCapGains",
             inputRowSettings: { displayOrder: 3, inputType: "currency" },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 3, col: 1 },
                 link: [
-                    { source: "input-shortTermCapGains", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
-                ],
-            },
-        },
-        {
-            id: "input-longTermCapGains",
-            label: "Long-Term Capital Gains",
-            shortLabel: "LTCG",
-            description: "Capital gains held longer than one year",
-            taxTreatment: "longTermCapGains",
-            inputRowSettings: { displayOrder: 4, inputType: "currency" },
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link-ltcg)" },
-                link: [
-                    { source: "input-longTermCapGains", target: "longTermCapGains", fill: "var(--sankey-link-ltcg)", stroke: "var(--sankey-link-ltcg)" },
+                    { source: "input-shortTermCapGains", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 3, col: 1 },
                 ],
             },
         },
@@ -69,9 +55,23 @@ export function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             taxTreatment: "ordinary",
             inputRowSettings: { displayOrder: 5, inputType: "currency" },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 4, col: 1 },
                 link: [
-                    { source: "input-ordinary", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
+                    { source: "input-ordinary", target: "wages", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 4, col: 1 },
+                ],
+            },
+        },
+        {
+            id: "input-longTermCapGains",
+            label: "Long-Term Capital Gains",
+            shortLabel: "LTCG",
+            description: "Capital gains held longer than one year",
+            taxTreatment: "longTermCapGains",
+            inputRowSettings: { displayOrder: 4, inputType: "currency" },
+            sankeySettings: {
+                node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: 5, col: 1 },
+                link: [
+                    { source: "input-longTermCapGains", target: "longTermCapGains", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 4, col: 1 },
                 ],
             },
         },

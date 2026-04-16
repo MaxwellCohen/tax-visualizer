@@ -11,6 +11,7 @@ type SankeyNodeKind =
   | "ordinaryTaxableIncome"
   | "payrollOrdinaryStrip"
   | "longTermTaxableIncome"
+  | "ltcgIncome"
   | "ltcgDeductionShield"
   | "ordinaryBracket"
   | "ltcgBracket"
@@ -37,6 +38,8 @@ export type SankeyChartNode = {
   marginalRate?: number;
   rangeStart?: number;
   rangeEnd?: number | null;
+  fill?: string;
+  stroke?: string;
 };
 
 export type SankeyChartLink = {

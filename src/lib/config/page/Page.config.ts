@@ -1,9 +1,9 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import { makeCreditInputsConfig } from "./creditInputs";
-import { makeDeductionInputsConfig } from "./deductionInputs";
+import { makeDeductionInputsConfig, makePayrollFromWagesInputConfig, makePayrollTaxInputConfig } from "./deductionInputs";
 import { makeEndingNodesConfig } from "./endingNodes";
 import { makeIncomeInputsConfig } from "./incomeInputs";
-import { makeIncomeNodesConfig } from "./incomeNodes";
+import { makeDeductionAmountNodesConfig, makeIncomeNodesConfig, makePretaxIncomeNodesConfig, makePretaxDeductionsNodesConfig, make0taxIncomeNodesConfig } from "./incomeNodes";
 import { makePretaxInputsConfig } from "./pretaxInputs";
 import { getBracketItems, getLtcgBracketItems } from "./taxBracketNodes";
 import { makeTaxNodesConfig } from "./taxNodes";
@@ -26,11 +26,17 @@ export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatu
         ...makeIncomeInputsConfig(taxData, filingStatus),
         ...makePretaxInputsConfig(taxData, filingStatus),
         ...makeDeductionInputsConfig(taxData, filingStatus),
+        ...makePretaxDeductionsNodesConfig(taxData, filingStatus),
         ...makeCreditInputsConfig(taxData, filingStatus),
         ...makeIncomeNodesConfig(taxData, filingStatus),
+        ...makeDeductionAmountNodesConfig(taxData, filingStatus),
+        ...makePayrollFromWagesInputConfig(taxData, filingStatus),
+        ...make0taxIncomeNodesConfig(taxData, filingStatus),
+        ...makePayrollTaxInputConfig(taxData, filingStatus),
+        ...makePretaxIncomeNodesConfig(taxData, filingStatus),
+        ...makeTaxNodesConfig(taxData, filingStatus),
         ...getBracketItems(taxData, filingStatus),
         ...getLtcgBracketItems(taxData, filingStatus),
-        ...makeTaxNodesConfig(taxData, filingStatus),
         ...makeEndingNodesConfig(taxData, filingStatus),
     ];
 }
@@ -94,6 +100,7 @@ export const SANKEY_IDS = {
     ordinaryTaxableIncome: "ordinary-taxable-income",
     payrollOrdinaryStrip: "payroll-ordinary-strip",
     longTermTaxableIncome: "long-term-taxable-income",
+    ltcgIncome: "ltcg-income",
     ltcgDeductionShield: "ltcg-deduction-shield",
     taxesFederal: "taxes-federal",
     taxesPayroll: "taxes-payroll",

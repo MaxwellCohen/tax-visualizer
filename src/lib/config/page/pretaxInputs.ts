@@ -1,6 +1,7 @@
 /** Pre-tax inputs: 401(k), HSA, traditional IRA, other payroll pre-tax. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
+import { _401k } from "./pageConfig.finalTaxContext";
 
 export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
@@ -24,10 +25,11 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 },
                 getSpouseLabels: () => ({ single: "401(k) deferrals", joint: "401(k) deferrals — Spouse 1", spouse1: "401(k) — Spouse 1", spouse2: "401(k) — Spouse 2" }),
             },
+            calculate: _401k, 
             sankeySettings: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
                 link: [
-                    { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
+                    { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],
             },
         },
@@ -57,9 +59,9 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 getSpouseLabels: () => ({ single: "HSA (payroll)", joint: "HSA (payroll) — Spouse 1", spouse1: "HSA — Spouse 1", spouse2: "HSA — Spouse 2" }),
             },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 2, col: 3 },
                 link: [
-                    { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
+                    { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],
             },
         },
@@ -80,9 +82,9 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 },
             },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 2 },
                 link: [
-                    { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
+                    { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],
             },
         },
@@ -108,9 +110,9 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 getSpouseLabels: () => ({ single: "Traditional IRA (deductible)", joint: "Traditional IRA — Spouse 1", spouse1: "Traditional IRA — Spouse 1", spouse2: "Traditional IRA — Spouse 2" }),
             },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)" },
+                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 4, col: 2 },
                 link: [
-                    { source: "input-traditionalIra", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)" },
+                    { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],
             },
         },

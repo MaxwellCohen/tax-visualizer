@@ -8,35 +8,37 @@ import {
     getStandardDeduction,
 } from "./pageConfig.helpers";
 
+export const wageIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "wages");
+export const selfEmploymentIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "selfEmployment");
+export const ordinaryIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "ordinary");
+export const shortTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "shortTermCapGains");
+export const longTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "longTermCapGains");
+export const _401k = (inputs: TaxFormRow[]) => findInputById(inputs, "401k");
+export const _hsa = (inputs: TaxFormRow[]) => findInputById(inputs, "hsa");
+export const otherPretax = (inputs: TaxFormRow[]) => findInputById(inputs, "otherPretax");
+export const traditionalIra = (inputs: TaxFormRow[]) => findInputById(inputs, "traditionalIra");
+export const salt = (inputs: TaxFormRow[]) => findInputById(inputs, "salt");
+export const medicalDental = (inputs: TaxFormRow[]) => findInputById(inputs, "medicalDental");
+export const mortgageInterest = (inputs: TaxFormRow[]) => findInputById(inputs, "mortgageInterest");
+export const charitable = (inputs: TaxFormRow[]) => findInputById(inputs, "charitable");
+export const childTaxCredit = (inputs: TaxFormRow[]) => findInputById(inputs, "childTaxCredit");
+export const educationCredits = (inputs: TaxFormRow[]) => findInputById(inputs, "educationCredits");
+export const retirementSavingsContributions = (inputs: TaxFormRow[]) => findInputById(inputs, "retirementSavingsContributions");
+export const otherCredit = (inputs: TaxFormRow[]) => findInputById(inputs, "otherFederalCredit");
+export const calculatePayrollTax = (inputs: TaxFormRow[], taxData: TaxYearConfig): number => {
+    const wages = wageIncome(inputs);
+    const ssTaxable = Math.min(wages, taxData.payroll.socialSecurityWageBase);
+    const ssTax = ssTaxable * taxData.payroll.socialSecurityRate;
+    const medicareTax = wages * taxData.payroll.medicareRate;
+    return ssTax + medicareTax;
+};
+
+
 export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: FilingStatus) {
-    const wageIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "wages");
-    const selfEmploymentIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "selfEmployment");
-    const ordinaryIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "ordinary");
-    const shortTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "shortTermCapGains");
-    const longTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "longTermCapGains");
-
-    const _401k = (inputs: TaxFormRow[]) => findInputById(inputs, "401k");
-    const _hsa = (inputs: TaxFormRow[]) => findInputById(inputs, "hsa");
-    const otherPretax = (inputs: TaxFormRow[]) => findInputById(inputs, "otherPretax");
-    const traditionalIra = (inputs: TaxFormRow[]) => findInputById(inputs, "traditionalIra");
-
-    const salt = (inputs: TaxFormRow[]) => findInputById(inputs, "salt");
-    const medicalDental = (inputs: TaxFormRow[]) => findInputById(inputs, "medicalDental");
-    const mortgageInterest = (inputs: TaxFormRow[]) => findInputById(inputs, "mortgageInterest");
-    const charitable = (inputs: TaxFormRow[]) => findInputById(inputs, "charitable");
-
-    const childTaxCredit = (inputs: TaxFormRow[]) => findInputById(inputs, "childTaxCredit");
-    const educationCredits = (inputs: TaxFormRow[]) => findInputById(inputs, "educationCredits");
-    const retirementSavingsContributions = (inputs: TaxFormRow[]) => findInputById(inputs, "retirementSavingsContributions");
-    const otherCredit = (inputs: TaxFormRow[]) => findInputById(inputs, "otherFederalCredit");
-
-    const calculatePayrollTax = (inputs: TaxFormRow[]): number => {
-        const wages = wageIncome(inputs);
-        const ssTaxable = Math.min(wages, taxData.payroll.socialSecurityWageBase);
-        const ssTax = ssTaxable * taxData.payroll.socialSecurityRate;
-        const medicareTax = wages * taxData.payroll.medicareRate;
-        return ssTax + medicareTax;
-    };
+    
+   const calculatePayrollTaxFn = (inputs: TaxFormRow[]): number => {
+    return calculatePayrollTax(inputs, taxData);
+   };
 
     const calculateSelfEmploymentTax = (inputs: TaxFormRow[]): number => {
         const seIncome = selfEmploymentIncome(inputs);
@@ -61,7 +63,7 @@ export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: Filin
         const ordinaryTaxable = Math.max(0, afterPretax - deduction);
         const brackets = getOrdinaryBrackets(taxData, filingStatus);
         const ordinaryTax = calculateOrdinaryTaxTotal(ordinaryTaxable, brackets).tax;
-        const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, 0);
+        const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinaryTaxable);
         const totalTax = ordinaryTax + ltcgTax;
         const credits = childTaxCredit(inputs) + educationCredits(inputs) + retirementSavingsContributions(inputs) + otherCredit(inputs);
         return Math.max(0, totalTax - credits);
@@ -85,7 +87,7 @@ export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: Filin
         educationCredits,
         retirementSavingsContributions,
         otherCredit,
-        calculatePayrollTax,
+        calculatePayrollTax: calculatePayrollTaxFn,
         calculateSelfEmploymentTax,
         calculateFederalIncomeTaxAfterCredits,
     };

@@ -22,9 +22,8 @@ export function SankeyNodeRects(props: Props) {
         const anchor = labelInside ? "end" : "start";
         const lines = sankeyLabelLines(node);
 
-
         return (
-          <g>
+          <g data-node={node.id} data-row={node.row} data-col={node.col}>
             <rect
               x={node.x0}
               y={node.y0}
@@ -32,7 +31,7 @@ export function SankeyNodeRects(props: Props) {
               height={Math.max(1, y1 - y0)}
               fill={nodeFill(node)}
               data-node={node.id}
-              rx={3}
+              rx={3} 
             />
             {lines.compact ? (
               <text
@@ -59,7 +58,7 @@ export function SankeyNodeRects(props: Props) {
               >
                 <title>{lines.title}</title>
                 <tspan x={labelX} dy="-0.55em">
-                  {node.id}
+                  {node.label}
                 </tspan>
                 {lines.line2 != null ? (
                   <tspan

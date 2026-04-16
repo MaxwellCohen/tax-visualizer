@@ -3,9 +3,60 @@ import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import { TaxFormRow } from "~/lib/taxForm.types";
 import { findInputById } from "./pageConfig.helpers";
+import {calculatePayrollTax} from "~/lib/config/page/pageConfig.finalTaxContext"
+
+
+export function makePayrollFromWagesInputConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+    return [
+        {
+            id: "payrollTaxWages",
+            label: "Payroll Taxes",
+            shortLabel: "Payroll Taxes",
+            sankeySettings: {
+                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
+                link: [
+                    { source: "ordinaryTaxableIncome", target: "payrollTax", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: 0, col: 2 },
+                ],
+            },
+            calculate: calculatePayrollTax,
+            summary: {
+                summaryId: "payroll-tax",
+                label: "Payroll Tax",
+                category: "tax",
+                displayOrder: 5,
+                format: "currency",
+            },
+        },
+    ];
+}
+
+export function makePayrollTaxInputConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+    return [
+        {
+            id: "payrollTax",
+            label: "Payroll Taxes",
+            shortLabel: "Payroll Taxes",
+            sankeySettings: {
+                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 2, col: 3 },
+                link: [
+                    { source: "payrollTax", target: "federalPayrollTaxes", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: 2, col: 3 },
+                ],
+            },
+            calculate: calculatePayrollTax,
+            summary: {
+                summaryId: "payroll-tax",
+                label: "Payroll Tax",
+                category: "tax",
+                displayOrder: 5,
+                format: "currency",
+            },
+        },
+    ]
+}
 
 export function makeDeductionInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
     return [
+       
         {
             id: "standard",
             label: "Standard Deduction",
@@ -16,18 +67,18 @@ export function makeDeductionInputsConfig(taxData: TaxYearConfig, filingStatus: 
             },
             inputRowSettings: { displayOrder: 1, inputType: "currency" },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
-                    { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
+                    { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
                 ],
             },
             calculate: (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => {
                 const income = inputs.reduce((acc, row) => row.type === "income" ? acc + row.amount : acc, 0);
                 const useItemized = findInputById(inputs, "useItemizedDeductions");
                 const standard = Math.min(income, taxData.standardDeduction[filingStatus]);
-                return !useItemized ? standard : 0;
+                const payrollTax = calculatePayrollTax(inputs, taxData);
+                return !useItemized ? Math.max(0, standard - payrollTax): 0;
             }
-            
         },
         {
             id: "salt",
@@ -49,9 +100,9 @@ export function makeDeductionInputsConfig(taxData: TaxYearConfig, filingStatus: 
                 },
             },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
-                    { source: "salt", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
+                    { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
                 ],
             },
         },
@@ -72,9 +123,9 @@ export function makeDeductionInputsConfig(taxData: TaxYearConfig, filingStatus: 
                 },
             },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
-                    { source: "medicalDental", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
+                    { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
                 ],
             },
         },
@@ -95,9 +146,9 @@ export function makeDeductionInputsConfig(taxData: TaxYearConfig, filingStatus: 
                 },
             },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
-                    { source: "mortgageInterest", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
+                    { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
                 ],
             },
         },
@@ -118,9 +169,9 @@ export function makeDeductionInputsConfig(taxData: TaxYearConfig, filingStatus: 
                 },
             },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
-                    { source: "charitable", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)" },
+                    { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 3, col: 2 },
                 ],
             },
         },

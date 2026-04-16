@@ -25,9 +25,13 @@ export type SankeyLink = {
     target: string;
     fill: string;
     stroke: string;
+    row: number;
+    col: number;
 };
 
 export type SankeyNode = {
+    row: number;
+    col: number;
     fill: string;
     stroke: string;
 };
