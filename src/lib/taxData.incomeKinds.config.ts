@@ -37,13 +37,6 @@ const INCOME_KINDS_MAP: Record<IncomeKind, IncomeKindConfig> = Object.fromEntrie
  * Sankey income-column vertical order (lower = higher on chart).
  * Differs from form order: long-term gains stack above wage ordinary flow.
  */
-export const SANKEY_INCOME_KIND_ORDER_BY_KIND: Record<string, number> = {
-  longTermCapGains: 0,
-  shortTermCapGains: 1,
-  wages: 2,
-  selfEmployment: 3,
-  ordinary: 4,
-};
 
 
 export function incomeKindLabel(kind: IncomeKind): string {
