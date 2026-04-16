@@ -6,12 +6,17 @@ import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormType
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import type { TaxFormData, TaxFormIncomeRow } from "~/lib/taxForm.types";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
+import type { configItem } from "~/lib/config/page/pageConfig.types";
+import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
+import { getInputItems } from "~/lib/config";
 
 type Props = {
   form: TaxInputFormApi;
   values: Accessor<TaxFormData>;
   addSource: () => void;
   removeSourceAt: (i: number) => void;
+  taxData: Accessor<TaxYearConfig | null>;
+  filingStatus: Accessor<FilingStatus>;
 };
 
 const addSourceBtnClass =
@@ -29,6 +34,15 @@ export function TaxInputFormIncomeSection(props: Props) {
         return sum + (Number.isFinite(n) ? n : 0);
       }, 0),
   );
+
+  const configItems = createMemo(() => {
+    const td = props.taxData();
+    const fs = props.filingStatus();
+    if (!td) return [];
+    return getInputItems(td, fs);
+  });
+
+  const isMarriedJoint = createMemo(() => props.filingStatus() === "marriedJoint");
 
   return (
     <Accordion
@@ -85,6 +99,8 @@ export function TaxInputFormIncomeSection(props: Props) {
                     const i = indexOfTypedRowById(props.values().rows, "income", rowId);
                     if (i >= 0) props.removeSourceAt(i);
                   }}
+                  configItems={configItems()}
+                  isMarriedJoint={isMarriedJoint()}
                 />
               )}
             </For>

@@ -8,15 +8,15 @@ import {
     getStandardDeduction,
 } from "./pageConfig.helpers";
 
-export const wageIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "wages");
-export const selfEmploymentIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "selfEmployment");
-export const ordinaryIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "ordinary");
-export const shortTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "shortTermCapGains");
-export const longTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "longTermCapGains");
-export const _401k = (inputs: TaxFormRow[]) => findInputById(inputs, "401k");
+export const wageIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "input-wages");
+export const selfEmploymentIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "input-selfEmployment");
+export const ordinaryIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "input-ordinary");
+export const shortTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "input-shortTermCapGains");
+export const longTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "input-longTermCapGains");
+export const _401k = (inputs: TaxFormRow[]) => findInputById(inputs, "input-401k");
 export const _hsa = (inputs: TaxFormRow[]) => findInputById(inputs, "hsa");
 export const otherPretax = (inputs: TaxFormRow[]) => findInputById(inputs, "otherPretax");
-export const traditionalIra = (inputs: TaxFormRow[]) => findInputById(inputs, "traditionalIra");
+export const traditionalIra = (inputs: TaxFormRow[]) => findInputById(inputs, "input-traditionalIra");
 export const salt = (inputs: TaxFormRow[]) => findInputById(inputs, "salt");
 export const medicalDental = (inputs: TaxFormRow[]) => findInputById(inputs, "medicalDental");
 export const mortgageInterest = (inputs: TaxFormRow[]) => findInputById(inputs, "mortgageInterest");

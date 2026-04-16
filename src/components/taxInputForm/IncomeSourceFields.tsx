@@ -1,7 +1,7 @@
 import { Show, createMemo, type Accessor } from "solid-js";
-import type { IncomeKind } from "~/lib/taxCalc";
+import type { configItem } from "~/lib/config/page/pageConfig.types";
 import {
-  incomeKindOptions,
+  incomeKindSelectOptions,
   inputClass,
   taxInputFormTableTdActions,
   taxInputFormTableTdLabeled,
@@ -19,6 +19,8 @@ type IncomeSourceFieldsProps = {
   rowId: string;
   canRemove: boolean;
   onRemove: () => void;
+  configItems: configItem[];
+  isMarriedJoint: boolean;
 };
 
 export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
@@ -27,6 +29,7 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
     const i = rowIndex();
     return i >= 0 ? `rows[${i}]` : "";
   });
+  const kindOptions = createMemo(() => incomeKindSelectOptions(props.configItems, props.isMarriedJoint));
   return (
     <Show when={fieldPrefix()} keyed>
       <tr class={taxInputFormTableTrClass}>
@@ -37,13 +40,10 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
                 label="Income type"
                 hideLabel
                 value={field().state.value}
-                onChange={e => field().handleChange(e.currentTarget.value as IncomeKind)}
+                onChange={e => field().handleChange(e.currentTarget.value)}
                 onBlur={field().handleBlur}
-              >
-                {incomeKindOptions.map(opt => (
-                  <option value={opt.value}>{opt.label}</option>
-                ))}
-              </FormStyledSelect>
+                options={kindOptions()}
+              />
             )}
           </props.form.Field>
         </td>

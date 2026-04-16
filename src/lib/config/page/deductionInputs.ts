@@ -12,6 +12,7 @@ export function makePayrollFromWagesInputConfig(_taxData: TaxYearConfig, _filing
             id: "payrollTaxWages",
             label: "Payroll Taxes",
             shortLabel: "Payroll Taxes",
+            inputRowSettings: { category: "deduction", displayOrder: 0, inputType: "currency" },
             sankeySettings: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
                 link: [
@@ -36,6 +37,7 @@ export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus
             id: "payrollTax",
             label: "Payroll Taxes",
             shortLabel: "Payroll Taxes",
+            inputRowSettings: { category: "deduction", displayOrder: 0, inputType: "currency" },
             sankeySettings: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 2, col: 3 },
                 link: [
@@ -65,7 +67,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             kindDetail: {
                 modelingNote: "Applied automatically if greater than itemized deductions",
             },
-            inputRowSettings: { displayOrder: 1, inputType: "currency" },
+            inputRowSettings: { category: "deduction", displayOrder: 1, inputType: "currency" },
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
@@ -89,8 +91,10 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 limitNote: "$10,000 cap (single) / $10,000 (married)",
             },
             inputRowSettings: {
+                category: "deduction",
                 displayOrder: 2,
                 inputType: "currency",
+                subcategories: [{ key: "salt-salt", labelSingle: "State & local taxes (SALT)", labelJoint: "State & local taxes (SALT)" }],
                 getFilingStatusLimit: (yearValues, filingStatus) => yearValues.caps.salt[filingStatus] ?? 10000,
                 validate: (value, ctx) => {
                     const limit = ctx.yearValues.caps.salt[ctx.filingStatus] ?? 10000;
@@ -115,8 +119,10 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 modelingNote: "Subject to 7.5% of AGI threshold",
             },
             inputRowSettings: {
+                category: "deduction",
                 displayOrder: 3,
                 inputType: "currency",
+                subcategories: [{ key: "medicalDental-medicalDental", labelSingle: "Medical & dental", labelJoint: "Medical & dental" }],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };
@@ -138,8 +144,10 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 modelingNote: "Limited to first $750k of acquisition debt (pre-2018: $1M)",
             },
             inputRowSettings: {
+                category: "deduction",
                 displayOrder: 4,
                 inputType: "currency",
+                subcategories: [{ key: "mortgageInterest-mortgageInterest", labelSingle: "Home mortgage interest", labelJoint: "Home mortgage interest" }],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };
@@ -161,8 +169,10 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 limitNote: "60% of AGI limit for cash contributions",
             },
             inputRowSettings: {
+                category: "deduction",
                 displayOrder: 5,
                 inputType: "currency",
+                subcategories: [{ key: "charitable-charitable", labelSingle: "Charitable contributions", labelJoint: "Charitable contributions" }],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };

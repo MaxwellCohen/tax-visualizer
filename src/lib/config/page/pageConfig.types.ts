@@ -8,16 +8,25 @@ type ValidationResult = {
     clampedValue?: number;
 };
 
+export type InputCategory = "income" | "pretax" | "deduction" | "credit";
+
+export type SubcategoryConfig = {
+    key: string;
+    labelSingle: string;
+    labelJoint: string;
+};
+
 export type InputRowSettings = {
+    category?: InputCategory;
     displayOrder: number;
     inputType: "currency" | "text";
+    subcategories?: SubcategoryConfig[];
     defaultAmount?: number;
     defaultLabel?: string;
     getLimit?: (yearValues: YearValues) => number;
     getFilingStatusLimit?: (yearValues: YearValues, filingStatus: FilingStatus) => number;
     validate?: (value: number, ctx: ValidationContext) => ValidationResult;
     showWhen?: (ctx: { filingStatus: FilingStatus; taxYear: number; isJoint?: boolean }) => boolean;
-    getSpouseLabels?: (isJoint: boolean) => { single: string; joint: string; spouse1?: string; spouse2?: string };
 };
 
 export type SankeyLink = {

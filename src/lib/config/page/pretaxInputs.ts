@@ -14,8 +14,17 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 limitNote: "elective deferral per employee (catch-up not modeled)",
             },
             inputRowSettings: {
+                category: "pretax",
                 displayOrder: 1,
                 inputType: "currency",
+                subcategories: [
+                    { key: "input-401k-preTax401kSpouse1", labelSingle: "401(k) deferrals", labelJoint: "401(k) deferrals" },
+                    { key: "input-401k-preTax403bSpouse1", labelSingle: "403(b) deferrals", labelJoint: "403(b) deferrals" },
+                    { key: "input-401k-preTax457bSpouse1", labelSingle: "457(b) deferrals", labelJoint: "457(b) deferrals" },
+                    { key: "input-401k-preTax401kSpouse2", labelSingle: "401(k) deferrals (2)", labelJoint: "401(k) deferrals (2)" },
+                    { key: "input-401k-preTax403bSpouse2", labelSingle: "403(b) deferrals (2)", labelJoint: "403(b) deferrals (2)" },
+                    { key: "input-401k-preTax457bSpouse2", labelSingle: "457(b) deferrals (2)", labelJoint: "457(b) deferrals (2)" },
+                ],
                 getLimit: (yearValues) => yearValues.limits["401k"] ?? 23000,
                 validate: (value, ctx) => {
                     const limit = ctx.yearValues.limits["401k"] ?? 23000;
@@ -23,7 +32,6 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                     if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
                     return { valid: true };
                 },
-                getSpouseLabels: () => ({ single: "401(k) deferrals", joint: "401(k) deferrals — Spouse 1", spouse1: "401(k) — Spouse 1", spouse2: "401(k) — Spouse 2" }),
             },
             calculate: _401k, 
             sankeySettings: {
@@ -42,8 +50,13 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 limitNote: "payroll HSA contributions toward HDHP limits",
             },
             inputRowSettings: {
+                category: "pretax",
                 displayOrder: 2,
                 inputType: "currency",
+                subcategories: [
+                    { key: "hsa-preTaxHsaSpouse1", labelSingle: "HSA (payroll)", labelJoint: "HSA (payroll)" },
+                    { key: "hsa-preTaxHsaSpouse2", labelSingle: "HSA (payroll) (2)", labelJoint: "HSA (payroll) (2)" },
+                ],
                 getFilingStatusLimit: (yearValues, filingStatus) => {
                     const isJoint = filingStatus === "marriedJoint";
                     return isJoint ? (yearValues.limits["hsaFamily"] ?? 8300) : (yearValues.limits["hsaSelfOnly"] ?? 4150);
@@ -56,7 +69,6 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                     return { valid: true };
                 },
                 showWhen: (ctx) => ctx.isJoint !== undefined,
-                getSpouseLabels: () => ({ single: "HSA (payroll)", joint: "HSA (payroll) — Spouse 1", spouse1: "HSA — Spouse 1", spouse2: "HSA — Spouse 2" }),
             },
             sankeySettings: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 2, col: 3 },
@@ -74,8 +86,18 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 limitNote: "miscellaneous payroll amounts taken pre-tax",
             },
             inputRowSettings: {
+                category: "pretax",
                 displayOrder: 3,
                 inputType: "currency",
+                subcategories: [
+                    { key: "otherPretax-preTaxOther", labelSingle: "Other payroll pre-tax", labelJoint: "Other payroll pre-tax" },
+                    { key: "otherPretax-preTaxHealthFsaSpouse1", labelSingle: "Health FSA (payroll)", labelJoint: "Health FSA (payroll)" },
+                    { key: "otherPretax-preTaxHealthFsaSpouse2", labelSingle: "Health FSA (payroll) (2)", labelJoint: "Health FSA (payroll) (2)" },
+                    { key: "otherPretax-preTaxDependentCareFsaSpouse1", labelSingle: "Dependent care FSA (payroll)", labelJoint: "Dependent care FSA (payroll)" },
+                    { key: "otherPretax-preTaxDependentCareFsaSpouse2", labelSingle: "Dependent care FSA (payroll) (2)", labelJoint: "Dependent care FSA (payroll) (2)" },
+                    { key: "otherPretax-preTaxCommuterSpouse1", labelSingle: "Commuter / parking (payroll)", labelJoint: "Commuter / parking (payroll)" },
+                    { key: "otherPretax-preTaxCommuterSpouse2", labelSingle: "Commuter / parking (payroll) (2)", labelJoint: "Commuter / parking (payroll) (2)" },
+                ],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };
@@ -97,8 +119,13 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 limitNote: "Traditional IRA (deductible in this flow)",
             },
             inputRowSettings: {
+                category: "pretax",
                 displayOrder: 4,
                 inputType: "currency",
+                subcategories: [
+                    { key: "input-traditionalIra-traditionalIraSpouse1", labelSingle: "Traditional IRA (deductible)", labelJoint: "Traditional IRA (deductible)" },
+                    { key: "input-traditionalIra-traditionalIraSpouse2", labelSingle: "Traditional IRA (deductible) (2)", labelJoint: "Traditional IRA (deductible) (2)" },
+                ],
                 getLimit: (yearValues) => yearValues.limits["traditionalIra"] ?? 7000,
                 validate: (value, ctx) => {
                     const limit = ctx.yearValues.limits["traditionalIra"] ?? 7000;
@@ -107,7 +134,6 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                     return { valid: true };
                 },
                 showWhen: (ctx) => ctx.isJoint !== undefined,
-                getSpouseLabels: () => ({ single: "Traditional IRA (deductible)", joint: "Traditional IRA — Spouse 1", spouse1: "Traditional IRA — Spouse 1", spouse2: "Traditional IRA — Spouse 2" }),
             },
             sankeySettings: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 4, col: 2 },

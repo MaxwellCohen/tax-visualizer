@@ -16,11 +16,11 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
 
         const priorBound = (i > 0) ? (brackets[i - 1].upTo ?? Number.POSITIVE_INFINITY) : 0;
         const incomeCalculate = (inputs: TaxFormRow[], _td?: TaxYearConfig, _fs?: FilingStatus) => {
-            const wages = findInputById(inputs, "wages");
-            const seIncome = findInputById(inputs, "selfEmployment");
-            const ordinary = findInputById(inputs, "ordinary");
-            const stcg = findInputById(inputs, "shortTermCapGains");
-            const pretax = findInputById(inputs, "401k") + findInputById(inputs, "hsa") + findInputById(inputs, "otherPretax") + findInputById(inputs, "traditionalIra");
+            const wages = findInputById(inputs, "input-wages");
+            const seIncome = findInputById(inputs, "input-selfEmployment");
+            const ordinary = findInputById(inputs, "input-ordinary");
+            const stcg = findInputById(inputs, "input-shortTermCapGains");
+            const pretax = findInputById(inputs, "input-401k") + findInputById(inputs, "hsa") + findInputById(inputs, "otherPretax") + findInputById(inputs, "input-traditionalIra");
             const afterPretax = wages + seIncome + ordinary + stcg - pretax;
             const itemized = findInputById(inputs, "salt") + findInputById(inputs, "medicalDental") + findInputById(inputs, "mortgageInterest") + findInputById(inputs, "charitable");
             const standard = getStandardDeduction(taxData, filingStatus);
@@ -98,7 +98,7 @@ export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: Filing
             ],
         },
         calculate: (inputs: TaxFormRow[]) => {
-            const ltcgAmount = findInputById(inputs, "longTermCapGains");
+            const ltcgAmount = findInputById(inputs, "input-longTermCapGains");
             return ltcgAmount;
         },
     });
@@ -115,8 +115,7 @@ export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: Filing
             ],
         },
         calculate: (inputs, taxData, filingStatus) => {
-            console.log("-----", inputs);
-            const ltcgAmount = findInputById(inputs, "longTermCapGains");
+            const ltcgAmount = findInputById(inputs, "input-longTermCapGains");
             const wages = wageIncome(inputs);
             const seIncome = selfEmploymentIncome(inputs);
             const ordinary = ordinaryIncome(inputs);
@@ -128,10 +127,7 @@ export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: Filing
             const deduction = Math.max(itemized, standard);
             const ordinaryTaxable = Math.max(0, afterPretax - deduction);
             
-            console.log("-----", ordinaryTaxable);
-            console.log("-----", ltcgAmount);
             const ltcgTax = calculateLtcgTaxTotal(ltcgAmount, taxData.longTermCapGains, filingStatus, Number(ordinaryTaxable));
-            console.log("-----", ltcgTax);
             return ltcgTax;
         }
     });

@@ -1,3 +1,4 @@
+import { onMount } from "solid-js";
 import type { Accessor } from "solid-js";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import type { ScenarioPreset } from "~/lib/taxScenario.types";
@@ -10,8 +11,27 @@ type Props = {
 };
 
 export function ScenarioToolsPresets(props: Props) {
+  const ref = (el: HTMLDivElement) => {
+    console.log("ScenarioToolsPresets mounted with", props.presets.length, "presets");
+    const buttons = el?.querySelectorAll("button");
+    console.log("Found", buttons?.length, "preset buttons");
+    buttons?.forEach((btn, i) => {
+      console.log(`Button ${i}:`, btn.textContent?.slice(0, 20));
+    });
+  };
+
+  const handleClick = (presetId: string) => {
+    console.log("DIRECT CLICK - presetId:", presetId);
+    props.onApplyPreset(presetId);
+  };
   return (
-    <div class="grid gap-3 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div 
+      ref={ref}
+      class="grid gap-3 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      onClick={(e) => {
+        console.log("DIV CLICK - target:", e.target?.tagName, "currentTarget:", e.currentTarget?.tagName);
+      }}
+    >
       {props.presets.map(preset => {
         const selected = () => taxInputMatchesPreset(props.taxInput(), preset);
         return (
@@ -25,7 +45,10 @@ export function ScenarioToolsPresets(props: Props) {
             background: "var(--surface-alt)",
             border: "1px solid var(--border-subtle)",
           }}
-          onClick={() => props.onApplyPreset(preset.id)}
+          onClick={(e) => {
+            console.log("BUTTON CLICK - preset:", preset.id);
+            handleClick(preset.id);
+          }}
         >
           <div
             class="text-[0.65rem] font-semibold uppercase tracking-[0.15em]"

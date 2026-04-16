@@ -1,7 +1,5 @@
 import type { FilingStatus } from "~/lib/taxData";
-import type { FederalTaxCreditKind, IncomeKind, ItemizedDeductionKind, PretaxBenefitKind } from "~/lib/taxCalc";
-import { INCOME_KINDS_CONFIG, incomeKindLabel } from "~/lib/taxData.incomeKinds.config";
-import { isPretaxSpouse2Kind } from "~/lib/taxCalc.pretaxBenefitSource";
+import type { configItem } from "~/lib/config/page/pageConfig.types";
 
 export const filingStatusOptions: Array<{ value: FilingStatus; label: string }> = [
   { value: "single", label: "Single" },
@@ -10,9 +8,17 @@ export const filingStatusOptions: Array<{ value: FilingStatus; label: string }> 
   { value: "headOfHousehold", label: "Head of household" },
 ];
 
-export const incomeKindOptions: Array<{ value: IncomeKind; label: string }> = INCOME_KINDS_CONFIG.map(
-  (c) => ({ value: c.kind, label: c.label })
-);
+export function incomeKindSelectOptions(items: configItem[], isMarriedJoint: boolean): Array<{ value: string; label: string }> {
+  return items
+    .filter(item => item.inputRowSettings?.category === "income")
+    .flatMap(item => {
+      const subs = item.inputRowSettings?.subcategories ?? [];
+      return subs.map(sub => ({
+        value: sub.key,
+        label: isMarriedJoint ? sub.labelJoint : sub.labelSingle,
+      }));
+    });
+}
 
 export function parseCurrencyInput(rawValue: string): number {
   const parsed = Number(rawValue);
@@ -50,138 +56,35 @@ export const pretaxFieldCaptionClass =
 
 export { money } from "~/lib/moneyFormat";
 
-export function labelForIncomeKind(kind: IncomeKind): string {
-  return incomeKindLabel(kind);
-}
-
-const pretaxBenefitLabels: Record<
-  PretaxBenefitKind,
-  { single: string; joint: string }
-> = {
-  preTax401kSpouse1: {
-    single: "401(k) deferrals",
-    joint: "401(k) deferrals — Spouse 1",
-  },
-  preTax403bSpouse1: {
-    single: "403(b) deferrals",
-    joint: "403(b) deferrals — Spouse 1",
-  },
-  preTax457bSpouse1: {
-    single: "457(b) deferrals (limits differ for some plans)",
-    joint: "457(b) deferrals — Spouse 1 (limits differ for some plans)",
-  },
-  preTax401kSpouse2: {
-    single: "",
-    joint: "401(k) deferrals — Spouse 2",
-  },
-  preTax403bSpouse2: {
-    single: "",
-    joint: "403(b) deferrals — Spouse 2",
-  },
-  preTax457bSpouse2: {
-    single: "",
-    joint: "457(b) deferrals — Spouse 2 (limits differ for some plans)",
-  },
-  preTaxHsaSpouse1: {
-    single: "HSA (payroll)",
-    joint: "HSA (payroll) — Spouse 1",
-  },
-  preTaxHsaSpouse2: {
-    single: "",
-    joint: "HSA (payroll) — Spouse 2",
-  },
-  preTaxOther: {
-    single: "Other payroll pre-tax (catch-all)",
-    joint: "Other payroll pre-tax (catch-all)",
-  },
-  preTaxHealthFsaSpouse1: {
-    single: "Health FSA (payroll)",
-    joint: "Health FSA — Spouse 1",
-  },
-  preTaxHealthFsaSpouse2: {
-    single: "",
-    joint: "Health FSA — Spouse 2",
-  },
-  preTaxDependentCareFsaSpouse1: {
-    single: "Dependent care FSA (payroll)",
-    joint: "Dependent care FSA — Spouse 1",
-  },
-  preTaxDependentCareFsaSpouse2: {
-    single: "",
-    joint: "Dependent care FSA — Spouse 2",
-  },
-  preTaxCommuterSpouse1: {
-    single: "Commuter / parking (payroll)",
-    joint: "Commuter / parking — Spouse 1",
-  },
-  preTaxCommuterSpouse2: {
-    single: "",
-    joint: "Commuter / parking — Spouse 2",
-  },
-  traditionalIraSpouse1: {
-    single: "Traditional IRA (deductible)",
-    joint: "Traditional IRA — Spouse 1",
-  },
-  traditionalIraSpouse2: {
-    single: "",
-    joint: "Traditional IRA — Spouse 2",
-  },
-};
-
-/** Dropdown options for pre-tax rows; spouse-2 kinds omitted unless filing jointly. */
-export function pretaxBenefitKindSelectOptions(isMarriedJoint: boolean): Array<{
-  value: PretaxBenefitKind;
-  label: string;
-}> {
-  return (Object.keys(pretaxBenefitLabels) as PretaxBenefitKind[])
-    .filter(k => isMarriedJoint || !isPretaxSpouse2Kind(k))
-    .map(value => {
-      const L = pretaxBenefitLabels[value];
-      const label = isMarriedJoint ? L.joint || L.single : L.single || L.joint;
-      return { value, label };
+/** Dropdown options for pretax rows; filters out empty labels based on filing status. */
+export function pretaxBenefitKindSelectOptions(
+  items: configItem[],
+  isMarriedJoint: boolean
+): Array<{ value: string; label: string }> {
+  return items
+    .filter(item => item.inputRowSettings?.category === "pretax")
+    .flatMap(item => {
+      const subs = item.inputRowSettings?.subcategories ?? [];
+      return subs.map(sub => ({
+        value: sub.key,
+        label: isMarriedJoint ? sub.labelJoint : sub.labelSingle,
+      }));
     })
-    .filter(o => o.label.length > 0);
+    .filter(opt => opt.label.length > 0);
 }
 
-const itemizedDeductionKindLabels: Record<ItemizedDeductionKind, string> = {
-  medicalDental: "Medical & dental",
-  salt: "State & local taxes (SALT)",
-  mortgageInterest: "Home mortgage interest",
-  investmentInterest: "Investment interest",
-  charitable: "Charitable contributions",
-  casualtyTheft: "Casualty & theft losses",
-  otherItemized: "Other itemized",
-};
-
-export function itemizedDeductionKindSelectOptions(): Array<{
-  value: ItemizedDeductionKind;
-  label: string;
-}> {
-  return (Object.keys(itemizedDeductionKindLabels) as ItemizedDeductionKind[]).map(value => ({
-    value,
-    label: itemizedDeductionKindLabels[value],
-  }));
+export function itemizedDeductionSelectOptions(
+  category: string,
+  items: configItem[]
+): Array<{ value: string; label: string }> {
+  return items
+    .filter(item => item.inputRowSettings?.category === category && item.inputRowSettings?.subcategories)
+    .flatMap(item => {
+      const subs = item.inputRowSettings?.subcategories ?? [];
+      return subs.map(sub => ({
+        value: sub.key,
+        label: sub.labelSingle,
+      }));
+    });
 }
-
-const federalTaxCreditKindLabels: Record<FederalTaxCreditKind, string> = {
-  childTaxCredit: "Child tax credit",
-  creditForOtherDependents: "Credit for other dependents",
-  childAndDependentCare: "Child and dependent care credit",
-  educationCredits: "Education credits (AOTC / LLC)",
-  retirementSavingsContributions: "Retirement savings contributions (saver's) credit",
-  foreignTaxCredit: "Foreign tax credit",
-  residentialCleanEnergy: "Residential clean energy credit",
-  electricVehicleCredit: "Clean vehicle / EV credit",
-  generalBusinessCredit: "General business credit",
-  otherFederalCredit: "Other federal credit",
-};
-
-export function federalTaxCreditKindSelectOptions(): Array<{
-  value: FederalTaxCreditKind;
-  label: string;
-}> {
-  return (Object.keys(federalTaxCreditKindLabels) as FederalTaxCreditKind[]).map(value => ({
-    value,
-    label: federalTaxCreditKindLabels[value],
-  }));
-}
+//"credit"

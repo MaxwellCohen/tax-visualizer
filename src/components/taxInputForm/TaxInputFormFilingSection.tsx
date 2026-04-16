@@ -36,11 +36,8 @@ export function TaxInputFormFilingSection(props: Props) {
               value={field().state.value as number}
               onChange={e => field().handleChange(Number(e.currentTarget.value))}
               onBlur={field().handleBlur}
-            >
-              {props.availableYears.map(year => (
-                <option value={year}>{year}</option>
-              ))}
-            </FormStyledSelect>
+              options={props.availableYears.map(year => ({ value: year, label: String(year) }))}
+            />
           )}
         </props.form.Field>
 
@@ -51,11 +48,8 @@ export function TaxInputFormFilingSection(props: Props) {
               value={field().state.value as FilingStatus}
               onChange={e => field().handleChange(e.currentTarget.value as FilingStatus)}
               onBlur={field().handleBlur}
-            >
-              {filingStatusOptions.map(option => (
-                <option value={option.value}>{option.label}</option>
-              ))}
-            </FormStyledSelect>
+              options={filingStatusOptions}
+            />
           )}
         </props.form.Field>
       </div>

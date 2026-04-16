@@ -21,7 +21,7 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         taxYear,
         filingStatus: "single",
         incomeRows: incomeSourcesToRows([
-          newIncomeSource({ kind: "wages", amount: 90_000, label: "Salary" }),
+          newIncomeSource({ kind: "input-wages-wages", amount: 90_000, label: "Salary" }),
         ]),
         pretaxRows: pretaxSourcesToRows(
           pretaxScalarsToMinimalSources({
@@ -49,8 +49,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         taxYear,
         filingStatus: "single",
         incomeRows: incomeSourcesToRows([
-          newIncomeSource({ kind: "wages", amount: 120_000, label: "Salary" }),
-          newIncomeSource({ kind: "longTermCapGains", amount: 25_000, label: "Brokerage sale" }),
+          newIncomeSource({ kind: "input-wages-wages", amount: 120_000, label: "Salary" }),
+          newIncomeSource({ kind: "input-longTermCapGains-longTermCapGains", amount: 25_000, label: "Brokerage sale" }),
         ]),
         pretaxRows: pretaxSourcesToRows(
           pretaxScalarsToMinimalSources({
@@ -78,7 +78,7 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         taxYear,
         filingStatus: "marriedJoint",
         incomeRows: incomeSourcesToRows([
-          newIncomeSource({ kind: "wages", amount: 180_000, label: "Household wages" }),
+          newIncomeSource({ kind: "input-wages-wages", amount: 180_000, label: "Household wages" }),
         ]),
         pretaxRows: pretaxSourcesToRows(
           pretaxScalarsToMinimalSources({
@@ -106,8 +106,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         taxYear,
         filingStatus: "single",
         incomeRows: incomeSourcesToRows([
-          newIncomeSource({ kind: "wages", amount: 260_000, label: "Compensation" }),
-          newIncomeSource({ kind: "shortTermCapGains", amount: 15_000, label: "Short-term gains" }),
+          newIncomeSource({ kind: "input-wages-wages", amount: 260_000, label: "Compensation" }),
+          newIncomeSource({ kind: "input-shortTermCapGains-shortTermCapGains", amount: 15_000, label: "Short-term gains" }),
         ]),
         pretaxRows: pretaxSourcesToRows(
           pretaxScalarsToMinimalSources({

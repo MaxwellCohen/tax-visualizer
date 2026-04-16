@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal, Show } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { ScenarioToolsActions } from "~/components/scenarioTools/ScenarioToolsActions";
 import { ScenarioToolsPresets } from "~/components/scenarioTools/ScenarioToolsPresets";
@@ -11,13 +11,20 @@ export type ScenarioToolsProps = Omit<TaxHomeHandlersCtx, "showStatus">;
 
 export default function ScenarioTools(props: ScenarioToolsProps) {
   const [statusMessage, setStatusMessage] = createSignal<string | null>(null);
+  const [debugApplyCount, setDebugApplyCount] = createSignal(0);
 
   let statusTimer: number | undefined;
   const showStatus = (message: string) => {
+    console.log("showStatus called:", message);
     setStatusMessage(message);
     if (typeof window === "undefined") return;
     if (statusTimer !== undefined) window.clearTimeout(statusTimer);
     statusTimer = window.setTimeout(() => setStatusMessage(null), 2500);
+  };
+
+  const wrappedSetTaxInput: typeof props.setTaxInput = (...args: Parameters<typeof props.setTaxInput>) => {
+    console.log("ScenarioTools setTaxInput called, args:", args);
+    props.setTaxInput(...args);
   };
 
   const handlers = createTaxHomeHandlers({
@@ -25,7 +32,7 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
     availableYears: props.availableYears,
     defaultYear: props.defaultYear,
     taxInput: props.taxInput,
-    setTaxInput: props.setTaxInput,
+    setTaxInput: wrappedSetTaxInput,
     baselineInput: props.baselineInput,
     setBaselineInput: props.setBaselineInput,
     taxResult: props.taxResult,
@@ -44,18 +51,20 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
         title="Scenario tools"
         bodyClass="mt-4 space-y-5"
         headerAside={
-          statusMessage() ? (
-            <p
-              class="rounded-lg px-3 py-2 text-xs"
-              style={{
-                background: "var(--accent-muted)",
-                color: "var(--accent)",
-                border: "1px solid var(--border)",
-              }}
-            >
-              {statusMessage()}
-            </p>
-          ) : undefined
+          <>
+            {statusMessage() ? (
+              <p
+                class="rounded-lg px-3 py-2 text-xs"
+                style={{
+                  background: "var(--accent-muted)",
+                  color: "var(--accent)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                {statusMessage()}
+              </p>
+            ) : undefined}
+          </>
         }
       >
         <p class="max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -66,7 +75,11 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
         <ScenarioToolsPresets
           presets={props.presets}
           taxInput={props.taxInput}
-          onApplyPreset={handlers.applyPreset}
+          onApplyPreset={(id) => {
+            console.log("WRAPPER - onApplyPreset called with:", id);
+            handlers.applyPreset(id);
+            console.log("WRAPPER - handlers.applyPreset returned");
+          }}
         />
         <ScenarioToolsActions
           hasBaseline={props.baselineInput() != null}

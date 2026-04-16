@@ -371,7 +371,7 @@ export function makeDeductionAmountNodesConfig(taxData: TaxYearConfig, filingSta
             sankeySettings: {
                 node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 3, col: 1 },
             },
-            calculate: (inputs) => {
+            calculate: (inputs, _taxData, filingStatus) => {
                 const investmentIncome = ordinaryIncome(inputs) + shortTermCapGains(inputs) + longTermCapGains(inputs);
                 const modifiedAGI = wageIncome(inputs) + selfEmploymentIncome(inputs) + investmentIncome;
                 const threshold = filingStatus === "marriedJoint" ? 250000 : 200000;

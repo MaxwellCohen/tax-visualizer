@@ -32,5 +32,6 @@ export function deserializeScenarioInput(
 }
 
 export function getScenarioPresets(): ScenarioPreset[] {
-  return SCENARIO_PRESETS;
+  console.log("getScenarioPresets returning:", SCENARIO_PRESETS.length, "presets");
+  return [...SCENARIO_PRESETS];
 }

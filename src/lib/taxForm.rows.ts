@@ -28,10 +28,10 @@ export function creditRowIndices(rows: TaxFormRow[]): number[] {
 /** Resolve the current array index for a line-item row so form fields can bind by stable `id` instead of a stale numeric index after splices. */
 export function indexOfTypedRowById(
   rows: TaxFormRow[],
-  rowType: "income" | "pretax" | "deduction" | "credit",
+  rowType: "income" | "pretax" | "deduction" | "credit" | string,
   id: string,
 ): number {
-  return rows.findIndex((r) => r.type === rowType && r.id === id);
+  return rows.findIndex((r) => r.type.includes(rowType) && r.id === id);
 }
 
 /**
@@ -40,9 +40,9 @@ export function indexOfTypedRowById(
  */
 export function rowIdsForTypedRows(
   rows: TaxFormRow[],
-  rowType: "income" | "pretax" | "deduction" | "credit",
+  rowType: "income" | "pretax" | "deduction" | "credit" | string,
 ): string[] {
-  return rows.filter((r) => r.type === rowType).map((r) => r.id);
+  return rows.filter((r) => r.type.includes(rowType) ).map((r) => r.id);
 }
 
 /**

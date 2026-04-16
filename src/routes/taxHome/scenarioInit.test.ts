@@ -17,7 +17,7 @@ describe("scenarioInit", () => {
   });
 
   it("cloneScenario roundtrips through serialize", () => {
-    const input = baseInput({ pretaxRows: withPretaxTotals({ preTax401kSpouse1: 3_000 }) });
+    const input = baseInput({ pretaxRows: withPretaxTotals({ "input-401k-preTax401kSpouse1": 3_000 }) });
     const copy = cloneScenario(input, years, fallback);
     expect(
       aggregatePretaxFromSources(

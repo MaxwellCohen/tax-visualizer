@@ -26,8 +26,8 @@ describe("pipelineTaxResult.config", () => {
   it("aggregates pre-tax rows using full PretaxBenefitKind strings (401(k) and traditional IRA)", () => {
     const data = baseInput({
       pretaxRows: [
-        ...withPretaxTotals({ preTax401kSpouse1: 10_000 }),
-        ...withPretaxTotals({ traditionalIraSpouse1: 3_000 }),
+        ...withPretaxTotals({ "input-401k-preTax401kSpouse1": 10_000 }),
+        ...withPretaxTotals({ "input-traditionalIra-traditionalIraSpouse1": 3_000 }),
       ],
     });
     const inputs = rowsToTaxCalculationInputs(data.rows);

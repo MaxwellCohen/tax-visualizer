@@ -1,13 +1,15 @@
 import type { JSX } from "solid-js";
 import { inputClass, labelClass } from "~/components/taxInputForm/shared";
 
+type Option = { value: string | number; label: string };
+
 type Props = {
   label: string;
   value: string | number;
   onChange: (e: Event & { currentTarget: HTMLSelectElement }) => void;
   onBlur: () => void;
-  children: JSX.Element;
-  /** When true, only the control is rendered (for table rows); use with a column header. */
+  options?: Option[];
+  children?: JSX.Element;
   hideLabel?: boolean;
 };
 
@@ -21,7 +23,9 @@ export function FormStyledSelect(props: Props) {
       onChange={props.onChange}
       onBlur={props.onBlur}
     >
-      {props.children}
+      {props.options
+        ? props.options.map(opt => <option value={opt.value}>{opt.label}</option>)
+        : props.children}
     </select>
   );
   if (props.hideLabel) {

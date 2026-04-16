@@ -1,5 +1,4 @@
 import { Show, createMemo, type Accessor } from "solid-js";
-import type { ItemizedDeductionKind } from "~/lib/taxCalc";
 import { getFilingStatusFromRows } from "~/lib/taxCalc.inputs";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import { indexOfTypedRowById } from "~/lib/taxForm.rows";
@@ -7,15 +6,15 @@ import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
 import {
   inputClass,
-  itemizedDeductionKindSelectOptions,
+  itemizedDeductionSelectOptions,
   pretaxFieldCaptionClass,
   taxInputFormTableTdActions,
   taxInputFormTableTdLabeled,
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { getInputItems, findConfigItemForDeductionKind } from "~/lib/config";
-import type { TaxYearConfig } from "~/lib/taxData.types";
+import { getInputItems } from "~/lib/config";
+import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 
 type Props = {
   form: TaxInputFormApi;
@@ -30,29 +29,40 @@ const deductionDetailRowTdClass =
   "border-t border-(--border-subtle) px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
 
 export function ItemizedDeductionSourceRow(props: Props) {
-  const kindOptions = createMemo(() => itemizedDeductionKindSelectOptions());
+  const filingStatus = props.form.useStore((s: { values: TaxFormData }): FilingStatus =>
+    getFilingStatusFromRows(s.values.rows) ?? "single",
+  );
 
-  const kind = props.form.useStore((s: { values: TaxFormData }): ItemizedDeductionKind | undefined => {
+  const configItems = createMemo(() => {
+    const td = props.taxData();
+    const fs = filingStatus();
+    if (!td) return [];
+    return getInputItems(td, fs);
+  });
+
+  const kindOptions = createMemo(() => 
+    itemizedDeductionSelectOptions('deduction', configItems())
+  );
+
+  const kind = props.form.useStore((s: { values: TaxFormData }): string | undefined => {
     const i = indexOfTypedRowById(s.values.rows, "deduction", props.rowId);
     const r = i >= 0 ? s.values.rows[i] : undefined;
     return r?.type === "deduction" ? r.kind : undefined;
   });
 
-  const filingStatus = props.form.useStore((s: { values: TaxFormData }) =>
-    getFilingStatusFromRows(s.values.rows),
-  );
-
   const detail = createMemo(() => {
-    const td = props.taxData();
-    const fs = filingStatus();
-    if (!td) {
+    const currentKind = kind();
+    const items = configItems();
+    const item = items.find(item => 
+      item.inputRowSettings?.subcategories?.some(sub => sub.key === currentKind)
+    );
+    
+    if (!item) {
       return { description: "Loading...", modelingNote: "Loading..." };
     }
-    const items = getInputItems(td, fs);
-    const item = findConfigItemForDeductionKind(items, (kind() ?? "") as string);
     return {
-      description: item?.description ?? "Unknown deduction type",
-      modelingNote: item?.kindDetail?.modelingNote ?? "",
+      description: item.description ?? "Unknown deduction type",
+      modelingNote: item.kindDetail?.modelingNote ?? "",
     };
   });
 
@@ -73,13 +83,10 @@ export function ItemizedDeductionSourceRow(props: Props) {
                   label="Deduction category"
                   hideLabel
                   value={field().state.value}
-                  onChange={e => field().handleChange(e.currentTarget.value as ItemizedDeductionKind)}
+                  onChange={e => field().handleChange(e.currentTarget.value)}
                   onBlur={field().handleBlur}
-                >
-                  {kindOptions().map(opt => (
-                    <option value={opt.value}>{opt.label}</option>
-                  ))}
-                </FormStyledSelect>
+                  options={kindOptions()}
+                />
               )}
             </props.form.Field>
           </td>

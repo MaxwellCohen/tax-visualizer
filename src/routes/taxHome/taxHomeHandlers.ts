@@ -34,9 +34,22 @@ export function createTaxHomeHandlers(ctx: TaxHomeHandlersCtx) {
   return {
     applyPreset: (presetId: string) => {
       const preset = ctx.presets.find(entry => entry.id === presetId);
-      if (!preset) return;
-      ctx.setTaxInput(preset.buildInput(getTaxYearFromRows(ctx.taxInput().rows)));
-      ctx.showStatus(`Loaded preset: ${preset.label}.`);
+      if (!preset) {
+        console.error("Preset not found:", presetId, "available:", ctx.presets.map(p => p.id).join(", "));
+        ctx.showStatus(`Preset not found: ${presetId}`);
+        return;
+      }
+      try {
+        const year = getTaxYearFromRows(ctx.taxInput().rows);
+        const newInput = preset.buildInput(year);
+        console.log("APPLY PRESET - about to call setTaxInput", { presetId, year, newInputRows: newInput.rows.length });
+        ctx.setTaxInput(newInput);
+        ctx.showStatus(`Loaded preset: ${preset.label}.`);
+        console.log("APPLY PRESET - called setTaxInput, status shown");
+      } catch (e) {
+        console.error("Error building preset input:", e);
+        ctx.showStatus("Error loading preset.");
+      }
     },
     copyShareLink: async () => {
       if (typeof window === "undefined") return;

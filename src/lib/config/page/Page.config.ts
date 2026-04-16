@@ -11,6 +11,8 @@ import type { configItem } from "./pageConfig.types";
 import type { TaxTreatment } from "./pageConfig.types";
 
 export type {
+    InputCategory,
+    SubcategoryConfig,
     InputRowSettings,
     SankeyLink,
     SankeyNode,

@@ -37,23 +37,23 @@ function applyElectiveDeferral402gLimit(raw401: number, raw403: number, limit: n
 }
 
 export const PRETAX_BENEFIT_KIND_VALUES: PretaxBenefitKind[] = [
-  "preTax401kSpouse1",
-  "preTax403bSpouse1",
-  "preTax457bSpouse1",
-  "preTax401kSpouse2",
-  "preTax403bSpouse2",
-  "preTax457bSpouse2",
-  "preTaxHsaSpouse1",
-  "preTaxHsaSpouse2",
-  "preTaxOther",
-  "preTaxHealthFsaSpouse1",
-  "preTaxHealthFsaSpouse2",
-  "preTaxDependentCareFsaSpouse1",
-  "preTaxDependentCareFsaSpouse2",
-  "preTaxCommuterSpouse1",
-  "preTaxCommuterSpouse2",
-  "traditionalIraSpouse1",
-  "traditionalIraSpouse2",
+  "input-401k-preTax401kSpouse1",
+  "input-401k-preTax403bSpouse1",
+  "input-401k-preTax457bSpouse1",
+  "input-401k-preTax401kSpouse2",
+  "input-401k-preTax403bSpouse2",
+  "input-401k-preTax457bSpouse2",
+  "hsa-preTaxHsaSpouse1",
+  "hsa-preTaxHsaSpouse2",
+  "otherPretax-preTaxOther",
+  "otherPretax-preTaxHealthFsaSpouse1",
+  "otherPretax-preTaxHealthFsaSpouse2",
+  "otherPretax-preTaxDependentCareFsaSpouse1",
+  "otherPretax-preTaxDependentCareFsaSpouse2",
+  "otherPretax-preTaxCommuterSpouse1",
+  "otherPretax-preTaxCommuterSpouse2",
+  "input-traditionalIra-traditionalIraSpouse1",
+  "input-traditionalIra-traditionalIraSpouse2",
 ];
 
 export function isPretaxSpouse2Kind(kind: string): boolean {
@@ -147,25 +147,25 @@ export function pretaxScalarsToMinimalSources(agg: AggregatedPretax): PretaxBene
   const sources: PretaxBenefitSource[] = [];
   
   if (agg.preTax401kSpouse1 > 0) {
-    sources.push({ id: "1", kind: "preTax401kSpouse1", label: "401(k)", amount: agg.preTax401kSpouse1 });
+    sources.push({ id: "1", kind: "input-401k-preTax401kSpouse1", label: "401(k)", amount: agg.preTax401kSpouse1 });
   }
   if (agg.preTax401kSpouse2 > 0) {
-    sources.push({ id: "1b", kind: "preTax401kSpouse2", label: "401(k) Spouse2", amount: agg.preTax401kSpouse2 });
+    sources.push({ id: "1b", kind: "input-401k-preTax401kSpouse2", label: "401(k) (2)", amount: agg.preTax401kSpouse2 });
   }
   if (agg.preTaxHsaSpouse1 > 0) {
-    sources.push({ id: "2", kind: "preTaxHsaSpouse1", label: "HSA", amount: agg.preTaxHsaSpouse1 });
+    sources.push({ id: "2", kind: "hsa-preTaxHsaSpouse1", label: "HSA", amount: agg.preTaxHsaSpouse1 });
   }
   if (agg.preTaxHsaSpouse2 > 0) {
-    sources.push({ id: "2b", kind: "preTaxHsaSpouse2", label: "HSA Spouse2", amount: agg.preTaxHsaSpouse2 });
+    sources.push({ id: "2b", kind: "hsa-preTaxHsaSpouse2", label: "HSA (2)", amount: agg.preTaxHsaSpouse2 });
   }
   if (agg.traditionalIraSpouse1 > 0) {
-    sources.push({ id: "3", kind: "traditionalIraSpouse1", label: "Traditional IRA", amount: agg.traditionalIraSpouse1 });
+    sources.push({ id: "3", kind: "input-traditionalIra-traditionalIraSpouse1", label: "Traditional IRA", amount: agg.traditionalIraSpouse1 });
   }
   if (agg.traditionalIraSpouse2 > 0) {
-    sources.push({ id: "3b", kind: "traditionalIraSpouse2", label: "Traditional IRA Spouse2", amount: agg.traditionalIraSpouse2 });
+    sources.push({ id: "3b", kind: "input-traditionalIra-traditionalIraSpouse2", label: "Traditional IRA (2)", amount: agg.traditionalIraSpouse2 });
   }
   if (agg.preTaxOther > 0) {
-    sources.push({ id: "4", kind: "preTaxOther", label: "Other", amount: agg.preTaxOther });
+    sources.push({ id: "4", kind: "otherPretax-preTaxOther", label: "Other", amount: agg.preTaxOther });
   }
   
   return sources;

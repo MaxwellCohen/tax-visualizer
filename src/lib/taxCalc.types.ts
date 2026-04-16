@@ -1,4 +1,4 @@
-export type IncomeKind = "wages" | "ordinary" | "shortTermCapGains" | "longTermCapGains" | "selfEmployment";
+export type IncomeKind = "input-wages-wages" | "input-selfEmployment-selfEmployment" | "input-shortTermCapGains-shortTermCapGains" | "input-longTermCapGains-longTermCapGains" | "input-ordinary-ordinary";
 
 export type TaxSegment = {
   id?: string;
@@ -27,23 +27,23 @@ export type IncomeSource = {
 };
 
 export type PretaxBenefitKind = 
-  | "preTax401kSpouse1"
-  | "preTax403bSpouse1"
-  | "preTax457bSpouse1"
-  | "preTax401kSpouse2"
-  | "preTax403bSpouse2"
-  | "preTax457bSpouse2"
-  | "preTaxHsaSpouse1"
-  | "preTaxHsaSpouse2"
-  | "preTaxOther"
-  | "preTaxHealthFsaSpouse1"
-  | "preTaxHealthFsaSpouse2"
-  | "preTaxDependentCareFsaSpouse1"
-  | "preTaxDependentCareFsaSpouse2"
-  | "preTaxCommuterSpouse1"
-  | "preTaxCommuterSpouse2"
-  | "traditionalIraSpouse1"
-  | "traditionalIraSpouse2";
+  | "input-401k-preTax401kSpouse1"
+  | "input-401k-preTax403bSpouse1"
+  | "input-401k-preTax457bSpouse1"
+  | "input-401k-preTax401kSpouse2"
+  | "input-401k-preTax403bSpouse2"
+  | "input-401k-preTax457bSpouse2"
+  | "hsa-preTaxHsaSpouse1"
+  | "hsa-preTaxHsaSpouse2"
+  | "otherPretax-preTaxOther"
+  | "otherPretax-preTaxHealthFsaSpouse1"
+  | "otherPretax-preTaxHealthFsaSpouse2"
+  | "otherPretax-preTaxDependentCareFsaSpouse1"
+  | "otherPretax-preTaxDependentCareFsaSpouse2"
+  | "otherPretax-preTaxCommuterSpouse1"
+  | "otherPretax-preTaxCommuterSpouse2"
+  | "input-traditionalIra-traditionalIraSpouse1"
+  | "input-traditionalIra-traditionalIraSpouse2";
 
 export type PretaxBenefitSource = {
   id: string;
@@ -53,11 +53,11 @@ export type PretaxBenefitSource = {
 };
 
 export type ItemizedDeductionKind = 
-  | "medicalDental"
-  | "salt"
-  | "mortgageInterest"
+  | "salt-salt"
+  | "medicalDental-medicalDental"
+  | "mortgageInterest-mortgageInterest"
+  | "charitable-charitable"
   | "investmentInterest"
-  | "charitable"
   | "casualtyTheft"
   | "otherItemized";
 
@@ -69,16 +69,16 @@ export type ItemizedDeductionSource = {
 };
 
 export type FederalTaxCreditKind = 
-  | "childTaxCredit"
-  | "creditForOtherDependents"
-  | "childAndDependentCare"
-  | "educationCredits"
-  | "retirementSavingsContributions"
-  | "foreignTaxCredit"
-  | "residentialCleanEnergy"
-  | "electricVehicleCredit"
-  | "generalBusinessCredit"
-  | "otherFederalCredit";
+  | "childTaxCredit-childTaxCredit"
+  | "childTaxCredit-creditForOtherDependents"
+  | "educationCredits-educationCredits"
+  | "retirementSavingsContributions-retirementSavingsContributions"
+  | "otherFederalCredit-otherFederalCredit"
+  | "otherFederalCredit-childAndDependentCare"
+  | "otherFederalCredit-foreignTaxCredit"
+  | "otherFederalCredit-residentialCleanEnergy"
+  | "otherFederalCredit-electricVehicleCredit"
+  | "otherFederalCredit-generalBusinessCredit";
 
 export type FederalTaxCreditSource = {
   id: string;

@@ -24,7 +24,7 @@ export function baseInput(overrides?: BaseInputOverrides): TaxFormData {
     filingStatus: overrides?.filingStatus ?? "single",
     incomeRows:
       overrides?.incomeRows ??
-      incomeSourcesToRows([{ id: "1", kind: "wages", label: "Wages", amount: 100_000 }]),
+      incomeSourcesToRows([{ id: "1", kind: "input-wages-wages", label: "Wages", amount: 100_000 }]),
     pretaxRows: overrides?.pretaxRows ?? [],
     useItemizedDeductions: overrides?.useItemizedDeductions ?? false,
     deductionRows: overrides?.deductionRows ?? [],
@@ -44,7 +44,7 @@ export function withPretaxTotals(partial: Partial<Record<string, number>>): TaxF
 
 export function withFederalCreditsTotal(amount: number): TaxFormCreditRow[] {
   const sources: FederalTaxCreditSource[] = [
-    { id: "1", kind: "childTaxCredit", label: "Child Tax Credit", amount },
+    { id: "1", kind: "childTaxCredit-childTaxCredit", label: "Child Tax Credit", amount },
   ];
   return federalCreditsToRows(sources);
 }

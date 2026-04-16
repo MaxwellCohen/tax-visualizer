@@ -1,11 +1,11 @@
 import type { ItemizedDeductionSource, ItemizedDeductionKind } from "~/lib/taxCalc.types";
 
 export const ITEMIZED_DEDUCTION_KIND_VALUES: ItemizedDeductionKind[] = [
-  "medicalDental",
-  "salt",
-  "mortgageInterest",
+  "medicalDental-medicalDental",
+  "salt-salt",
+  "mortgageInterest-mortgageInterest",
+  "charitable-charitable",
   "investmentInterest",
-  "charitable",
   "casualtyTheft",
   "otherItemized",
 ];

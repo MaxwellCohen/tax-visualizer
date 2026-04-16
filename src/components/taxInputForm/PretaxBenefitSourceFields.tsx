@@ -1,5 +1,4 @@
 import { Show, createMemo, type Accessor } from "solid-js";
-import type { PretaxBenefitKind } from "~/lib/taxCalc";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import { indexOfTypedRowById } from "~/lib/taxForm.rows";
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
@@ -13,7 +12,8 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { getInputItems, findItemById, pretaxFormKindToConfigItemId } from "~/lib/config";
+import { getInputItems } from "~/lib/config";
+import type { configItem } from "~/lib/config/page/pageConfig.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 
 type Props = {
@@ -31,26 +31,36 @@ const pretaxDetailRowTdClass =
   "border-t border-(--border-subtle) px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
 
 export function PretaxBenefitSourceRow(props: Props) {
-  const kindOptions = createMemo(() => pretaxBenefitKindSelectOptions(props.isMarriedJoint()));
+  const configItems = createMemo(() => {
+    const td = props.taxData();
+    const fs = props.filingStatus();
+    if (!td) return [];
+    return getInputItems(td, fs);
+  });
 
-  const kind = props.form.useStore((s: { values: TaxFormData }): PretaxBenefitKind | undefined => {
+  const kindOptions = createMemo(() => 
+    pretaxBenefitKindSelectOptions(configItems(), props.isMarriedJoint())
+  );
+
+  const kind = props.form.useStore((s: { values: TaxFormData }): string | undefined => {
     const i = indexOfTypedRowById(s.values.rows, "pretax", props.rowId);
     const r = i >= 0 ? s.values.rows[i] : undefined;
     return r?.type === "pretax" ? r.kind : undefined;
   });
 
   const detail = createMemo(() => {
-    const td = props.taxData();
-    const fs = props.filingStatus();
-    if (!td) {
+    const currentKind = kind();
+    const items = configItems();
+    const item = items.find(item => 
+      item.inputRowSettings?.subcategories?.some(sub => sub.key === currentKind)
+    ) ?? items.find(i => i.id === "otherPretax");
+    
+    if (!item) {
       return { description: "Loading...", limitNote: "Loading..." };
     }
-    const configId = pretaxFormKindToConfigItemId(kind() ?? "");
-    const items = getInputItems(td, fs);
-    const item = findItemById(items, configId) ?? findItemById(items, "otherPretax");
     return {
-      description: item?.description ?? "Unknown pretax benefit type",
-      limitNote: item?.kindDetail?.limitNote ?? "",
+      description: item.description ?? "Unknown pretax benefit type",
+      limitNote: item.kindDetail?.limitNote ?? "",
     };
   });
 
@@ -71,13 +81,10 @@ export function PretaxBenefitSourceRow(props: Props) {
                   label="Benefit type"
                   hideLabel
                   value={field().state.value}
-                  onChange={e => field().handleChange(e.currentTarget.value as PretaxBenefitKind)}
+                  onChange={e => field().handleChange(e.currentTarget.value)}
                   onBlur={field().handleBlur}
-                >
-                  {kindOptions().map(opt => (
-                    <option value={opt.value}>{opt.label}</option>
-                  ))}
-                </FormStyledSelect>
+                  options={kindOptions()}
+                />
               )}
             </props.form.Field>
           </td>

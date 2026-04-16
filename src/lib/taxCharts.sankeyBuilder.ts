@@ -125,7 +125,7 @@ function buildDeductionNodes(
 
   if (deductionAmount > 0) {
     const ordinaryIncomeRows = incomeRowsFromTaxResult(result)
-      .filter(r => r.amount > 0 && (r.kind === "wages" || r.kind === "ordinary" || r.kind === "shortTermCapGains" || r.kind === "selfEmployment"))
+      .filter(r => r.amount > 0 && (r.kind === "input-wages-wages" || r.kind === "input-ordinary-ordinary" || r.kind === "input-shortTermCapGains-shortTermCapGains" || r.kind === "input-selfEmployment-selfEmployment"))
       .map(r => ({ id: r.id, weight: r.amount }));
 
     if (ordinaryIncomeRows.length > 0) {
@@ -445,7 +445,7 @@ function buildTaxKeepNodes(
     }
 
     if (payrollTaxKeep > 0) {
-      const wageRows = allIncome.filter(r => r.kind === "wages");
+      const wageRows = allIncome.filter(r => r.kind === "input-wages-wages");
       if (wageRows.length > 0) {
         for (const { key, value } of allocateProportional(wageRows, payrollTaxKeep)) {
           links.push({
@@ -458,7 +458,7 @@ function buildTaxKeepNodes(
     }
 
     if (selfEmploymentTax > 0) {
-      const seRows = allIncome.filter(r => r.kind === "selfEmployment");
+      const seRows = allIncome.filter(r => r.kind === "input-selfEmployment-selfEmployment");
       if (seRows.length > 0) {
         for (const { key, value } of allocateProportional(seRows, selfEmploymentTax)) {
           links.push({

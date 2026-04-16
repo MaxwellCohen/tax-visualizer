@@ -24,17 +24,21 @@ export function wireTaxHomePersistence(args: PersistenceArgs): void {
   onMount(() => {
     const url = new URL(window.location.href);
     const sharedScenario = url.searchParams.get(SCENARIO_QUERY_PARAM);
+    
+    // Always prefer URL param if present - this enables sharing via URL
     const urlInput = sharedScenario
       ? deserializeScenarioInput(sharedScenario, availableYears, defaultYear)
       : null;
+    
     let savedInput: ReturnType<typeof deserializeScenarioInput> = null;
     let savedBaseline: ReturnType<typeof deserializeScenarioInput> = null;
 
     try {
       const storedScenario = window.localStorage.getItem(SAVED_SCENARIO_STORAGE_KEY);
-      savedInput = storedScenario
-        ? deserializeScenarioInput(storedScenario, availableYears, defaultYear)
-        : null;
+      // Only use localStorage if no URL param
+      if (!urlInput && storedScenario) {
+        savedInput = deserializeScenarioInput(storedScenario, availableYears, defaultYear);
+      }
       const storedBaseline = window.localStorage.getItem(BASELINE_SCENARIO_STORAGE_KEY);
       savedBaseline = storedBaseline
         ? deserializeScenarioInput(storedBaseline, availableYears, defaultYear)
@@ -58,18 +62,24 @@ export function wireTaxHomePersistence(args: PersistenceArgs): void {
 
   createEffect(() => {
     if (!storageReady() || typeof window === "undefined") return;
-    const encoded = serializeScenarioInput(args.taxInput());
-    const url = new URL(window.location.href);
-    url.searchParams.set(SCENARIO_QUERY_PARAM, encoded);
-    if (url.toString().length > 2000) {
-      console.warn("URL exceeds 2000 characters, truncating scenario data");
-      return;
-    }
-    window.history.replaceState({}, "", url);
+    const input = args.taxInput();
+    const encoded = serializeScenarioInput(input);
+    
+    // Always save to localStorage (primary persistence)
     try {
       window.localStorage.setItem(SAVED_SCENARIO_STORAGE_KEY, encoded);
     } catch (e) {
       console.warn("Failed to save scenario to localStorage:", e);
     }
+    
+    // Update URL only if it fits within reasonable length
+    // localStorage is the source of truth, URL is optional for sharing
+    const url = new URL(window.location.href);
+    url.searchParams.set(SCENARIO_QUERY_PARAM, encoded);
+    if (url.toString().length > 10000) {
+      // For very long URLs, use localStorage only for persistence
+      url.searchParams.delete(SCENARIO_QUERY_PARAM);
+    }
+    window.history.replaceState({}, "", url);
   });
 }

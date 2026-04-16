@@ -1,3 +1,4 @@
+import { effect } from "solid-js/web";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { TaxInputFormCreditsSection } from "~/components/taxInputForm/TaxInputFormCreditsSection";
 import { TaxInputFormDeductionSection } from "~/components/taxInputForm/TaxInputFormDeductionSection";
@@ -6,6 +7,7 @@ import { TaxInputFormIncomeSection } from "~/components/taxInputForm/TaxInputFor
 import { TaxInputFormPreTaxSection } from "~/components/taxInputForm/TaxInputFormPreTaxSection";
 import { createTaxInputForm, type TaxInputFormOuterProps } from "~/components/taxInputForm/hooks/formCore";
 import { wireTaxYearLimitsEffect } from "~/components/taxInputForm/hooks/taxYearLimitsEffect";
+import { getInputItems } from "~/lib/config";
 
 type TaxInputFormProps = TaxInputFormOuterProps & {
   availableYears: number[];
@@ -41,6 +43,9 @@ export default function TaxInputForm(props: TaxInputFormProps) {
     return calcInputs?.value ?? "single";
   };
 
+  effect(() => {
+    console.log('values',values())
+  })
   return (
     <form
       class="rounded-xl p-5 background-surface border-border shadow-shadow"
@@ -52,6 +57,8 @@ export default function TaxInputForm(props: TaxInputFormProps) {
           values={values}
           addSource={addSource}
           removeSourceAt={removeSourceAt}
+          taxData={taxData}
+          filingStatus={filingStatus}
         />
         <TaxInputFormPreTaxSection
           form={form}

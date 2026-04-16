@@ -31,11 +31,11 @@ const filingStatuses = new Set<FilingStatus>([
 ]);
 
 const incomeKinds = new Set<IncomeKind>([
-  "wages",
-  "ordinary",
-  "shortTermCapGains",
-  "longTermCapGains",
-  "selfEmployment",
+  "input-wages-wages",
+  "input-ordinary-ordinary",
+  "input-shortTermCapGains-shortTermCapGains",
+  "input-longTermCapGains-longTermCapGains",
+  "input-selfEmployment-selfEmployment",
 ]);
 
 const pretaxBenefitKinds = new Set<PretaxBenefitKind>(PRETAX_BENEFIT_KIND_VALUES);
@@ -51,13 +51,13 @@ export function sanitizeMoney(value: unknown): number {
 }
 
 export function sanitizeIncomeKind(value: unknown): IncomeKind {
-  return incomeKinds.has(value as IncomeKind) ? (value as IncomeKind) : "ordinary";
+  return incomeKinds.has(value as IncomeKind) ? (value as IncomeKind) : "input-ordinary-ordinary";
 }
 
 export function sanitizePretaxBenefitKind(value: unknown): PretaxBenefitKind {
   return pretaxBenefitKinds.has(value as PretaxBenefitKind)
     ? (value as PretaxBenefitKind)
-    : "preTax401kSpouse1";
+    : "input-401k-preTax401kSpouse1";
 }
 
 export function sanitizeItemizedDeductionKind(value: unknown): ItemizedDeductionKind {
@@ -69,7 +69,7 @@ export function sanitizeItemizedDeductionKind(value: unknown): ItemizedDeduction
 export function sanitizeFederalTaxCreditKind(value: unknown): FederalTaxCreditKind {
   return federalTaxCreditKinds.has(value as FederalTaxCreditKind)
     ? (value as FederalTaxCreditKind)
-    : "otherFederalCredit";
+    : "otherFederalCredit-otherFederalCredit";
 }
 
 export function sanitizeFilingStatus(value: unknown): FilingStatus {
@@ -82,7 +82,7 @@ export function fallbackScenario(fallbackYear: number): TaxFormData {
   return taxFormDataFromParts({
     taxYear: fallbackYear,
     filingStatus: DEFAULT_FILING_STATUS,
-    incomeRows: [newIncomeRow({ kind: "wages", amount: 90_000 })],
+    incomeRows: [newIncomeRow({ kind: "input-wages-wages", amount: 90_000 })],
     pretaxRows: pretaxSourcesToRows(pretaxScalarsToMinimalSources(emptyAggregatedPretax())),
     useItemizedDeductions: false,
     deductionRows: [newDeductionRow({ kind: "otherItemized" })],

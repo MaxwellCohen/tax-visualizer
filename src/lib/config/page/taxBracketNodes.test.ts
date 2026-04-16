@@ -15,8 +15,8 @@ function makeInputs(
 ): TaxFormRow[] {
     return [
         { type: "setting", id: "filingStatus", value: filingStatus },
-        { type: "income", id: "wages-1", kind: "wages", label: "Salary", amount: wages },
-        { type: "income", id: "ltcg-1", kind: "longTermCapGains", label: "Brokerage sale", amount: ltcg },
+        { type: "income", id: "wages-1", kind: "input-wages-wages", label: "Salary", amount: wages },
+        { type: "income", id: "ltcg-1", kind: "input-longTermCapGains-longTermCapGains", label: "Brokerage sale", amount: ltcg },
     ];
 }
 
@@ -60,20 +60,20 @@ describe("getLtcgBracketItems", () => {
         const ltcgTax = items.find(i => i.id === "ltcg-tax");
         
         // With $120k wages - standard deduction $32200 = $87800 taxable ordinary
-        // Zero rate threshold is $98900, so all LTCG is in 15% bracket
-        // $25,000 * 15% = $3,750
-        expect(ltcgTax?.calculate?.(inputs, taxData2026, "marriedJoint")).toBe(3750);
+        // Zero rate threshold is $98900
+        // $11,100 in 0% bracket, $13,900 in 15% bracket = $2,085
+        expect(ltcgTax?.calculate?.(inputs, taxData2026, "marriedJoint")).toBe(2085);
     });
 
     it("exactly matches the URL scenario", () => {
         const inputs: TaxFormRow[] = [
             { type: "setting", id: "taxYear", value: 2026 },
             { type: "setting", id: "filingStatus", value: "single" },
-            { type: "income", id: "d7961f70-0cab-44c7-bc2a-8ecb247f7f5b", kind: "wages", label: "Salary", amount: 120000 },
-            { type: "income", id: "ab23fb03-ae31-4748-a5ca-40a8d18ee78b", kind: "longTermCapGains", label: "Brokerage sale", amount: 25000 },
+            { type: "income", id: "d7961f70-0cab-44c7-bc2a-8ecb247f7f5b", kind: "input-wages-wages", label: "Salary", amount: 120000 },
+            { type: "income", id: "ab23fb03-ae31-4748-a5ca-40a8d18ee78b", kind: "input-longTermCapGains-longTermCapGains", label: "Brokerage sale", amount: 25000 },
             { type: "setting", id: "useItemizedDeductions", value: false },
             { type: "deduction", id: "cc8ec310-93ed-4ac4-ae29-972793043382", kind: "otherItemized", label: "", amount: 0 },
-            { type: "credit", id: "44b8dfb2-810e-411d-a08f-8232fad0c477", kind: "childTaxCredit", label: "", amount: 0 },
+            { type: "credit", id: "44b8dfb2-810e-411d-a08f-8232fad0c477", kind: "childTaxCredit-childTaxCredit", label: "", amount: 0 },
         ];
         
         const items = getLtcgBracketItems(taxData2026, "single");
@@ -90,8 +90,8 @@ describe("getLtcgBracketItems", () => {
             rows: [
                 { type: "setting", id: "taxYear", value: 2026 },
                 { type: "setting", id: "filingStatus", value: "single" },
-                { type: "income", id: "wages-1", kind: "wages", label: "Salary", amount: 120000 },
-                { type: "income", id: "ltcg-1", kind: "longTermCapGains", label: "Brokerage sale", amount: 25000 },
+                { type: "income", id: "wages-1", kind: "input-wages-wages", label: "Salary", amount: 120000 },
+                { type: "income", id: "ltcg-1", kind: "input-longTermCapGains-longTermCapGains", label: "Brokerage sale", amount: 25000 },
                 { type: "setting", id: "useItemizedDeductions", value: false },
             ],
         };

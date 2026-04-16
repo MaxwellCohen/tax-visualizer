@@ -18,8 +18,13 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 modelingNote: "$2000 per child, $500 refundable if greater than tax liability",
             },
             inputRowSettings: {
+                category: "credit",
                 displayOrder: 1,
                 inputType: "currency",
+                subcategories: [
+                    { key: "childTaxCredit-childTaxCredit", labelSingle: "Child tax credit", labelJoint: "Child tax credit" },
+                    { key: "childTaxCredit-creditForOtherDependents", labelSingle: "Credit for other dependents", labelJoint: "Credit for other dependents" },
+                ],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };
@@ -40,8 +45,10 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 modelingNote: "AOC (up to $2500 per student) or LLC (up to $2000 per return)",
             },
             inputRowSettings: {
+                category: "credit",
                 displayOrder: 2,
                 inputType: "currency",
+                subcategories: [{ key: "educationCredits-educationCredits", labelSingle: "Education credits (AOTC / LLC)", labelJoint: "Education credits (AOTC / LLC)" }],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };
@@ -62,8 +69,10 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 limitNote: "Up to $2000 credit (based on income)",
             },
             inputRowSettings: {
+                category: "credit",
                 displayOrder: 3,
                 inputType: "currency",
+                subcategories: [{ key: "retirementSavingsContributions-retirementSavingsContributions", labelSingle: "Retirement savings contributions (saver's) credit", labelJoint: "Retirement savings contributions (saver's) credit" }],
                 getLimit: (yearValues) => yearValues.caps.credits["retirementSavingsContributions"] ?? 2000,
                 validate: (value, ctx) => {
                     const limit = ctx.yearValues.caps.credits["retirementSavingsContributions"] ?? 2000;
@@ -87,8 +96,17 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 modelingNote: "Miscellaneous federal credits",
             },
             inputRowSettings: {
+                category: "credit",
                 displayOrder: 4,
                 inputType: "currency",
+                subcategories: [
+                    { key: "otherFederalCredit-otherFederalCredit", labelSingle: "Other federal credit", labelJoint: "Other federal credit" },
+                    { key: "otherFederalCredit-childAndDependentCare", labelSingle: "Child and dependent care credit", labelJoint: "Child and dependent care credit" },
+                    { key: "otherFederalCredit-foreignTaxCredit", labelSingle: "Foreign tax credit", labelJoint: "Foreign tax credit" },
+                    { key: "otherFederalCredit-residentialCleanEnergy", labelSingle: "Residential clean energy credit", labelJoint: "Residential clean energy credit" },
+                    { key: "otherFederalCredit-electricVehicleCredit", labelSingle: "Clean vehicle / EV credit", labelJoint: "Clean vehicle / EV credit" },
+                    { key: "otherFederalCredit-generalBusinessCredit", labelSingle: "General business credit", labelJoint: "General business credit" },
+                ],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };

@@ -1,11 +1,10 @@
 import { Show, createMemo, type Accessor } from "solid-js";
-import type { FederalTaxCreditKind } from "~/lib/taxCalc";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import { indexOfTypedRowById } from "~/lib/taxForm.rows";
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
 import {
-  federalTaxCreditKindSelectOptions,
+  itemizedDeductionSelectOptions,
   inputClass,
   pretaxFieldCaptionClass,
   taxInputFormTableTdActions,
@@ -13,7 +12,7 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { getInputItems, findConfigItemForFederalCreditKind } from "~/lib/config";
+import { getInputItems } from "~/lib/config";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 
 type Props = {
@@ -30,25 +29,36 @@ const creditDetailRowTdClass =
   "border-t border-(--border-subtle) px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
 
 export function FederalTaxCreditSourceRow(props: Props) {
-  const kindOptions = createMemo(() => federalTaxCreditKindSelectOptions());
+  const configItems = createMemo(() => {
+    const td = props.taxData();
+    const fs = props.filingStatus();
+    if (!td) return [];
+    return getInputItems(td, fs);
+  });
 
-  const kind = props.form.useStore((s: { values: TaxFormData }): FederalTaxCreditKind | undefined => {
+  const kindOptions = createMemo(() => 
+    itemizedDeductionSelectOptions('credit', configItems())
+  );
+
+  const kind = props.form.useStore((s: { values: TaxFormData }): string | undefined => {
     const i = indexOfTypedRowById(s.values.rows, "credit", props.rowId);
     const r = i >= 0 ? s.values.rows[i] : undefined;
     return r?.type === "credit" ? r.kind : undefined;
   });
 
   const detail = createMemo(() => {
-    const td = props.taxData();
-    const fs = props.filingStatus();
-    if (!td) {
+    const currentKind = kind();
+    const items = configItems();
+    const item = items.find(item => 
+      item.inputRowSettings?.subcategories?.some(sub => sub.key === currentKind)
+    ) ?? items.find(i => i.inputRowSettings?.category === "credit");
+    
+    if (!item) {
       return { description: "Loading...", modelingNote: "Loading..." };
     }
-    const items = getInputItems(td, fs);
-    const item = findConfigItemForFederalCreditKind(items, (kind() ?? "") as string);
     return {
-      description: item?.description ?? "Unknown credit type",
-      modelingNote: item?.kindDetail?.modelingNote ?? "",
+      description: item.description ?? "Unknown credit type",
+      modelingNote: item.kindDetail?.modelingNote ?? "",
     };
   });
 
@@ -69,13 +79,10 @@ export function FederalTaxCreditSourceRow(props: Props) {
                   label="Credit type"
                   hideLabel
                   value={field().state.value}
-                  onChange={e => field().handleChange(e.currentTarget.value as FederalTaxCreditKind)}
+                  onChange={e => field().handleChange(e.currentTarget.value)}
                   onBlur={field().handleBlur}
-                >
-                  {kindOptions().map(opt => (
-                    <option value={opt.value}>{opt.label}</option>
-                  ))}
-                </FormStyledSelect>
+                  options={kindOptions()}
+                />
               )}
             </props.form.Field>
           </td>

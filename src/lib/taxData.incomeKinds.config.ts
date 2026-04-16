@@ -1,6 +1,6 @@
 import type { IncomeKind } from "~/lib/taxCalc.types";
 import { getTaxYearConfig, type FilingStatus } from "~/lib/taxData";
-import { incomeKindConfigs, type TaxTreatment } from "~/lib/config";
+import { getInputItems, type TaxTreatment } from "~/lib/config";
 
 export type IncomeKindConfig = {
   kind: IncomeKind;
@@ -12,14 +12,18 @@ export type IncomeKindConfig = {
 
 function getIncomeKindConfigs(taxData: ReturnType<typeof getTaxYearConfig>, filingStatus: FilingStatus): IncomeKindConfig[] {
   if (!taxData) return [];
-  const configs = incomeKindConfigs(taxData, filingStatus);
-  return configs.map((item, idx) => ({
-    kind: item.id.replace("input-", "") as IncomeKind,
-    label: item.label,
-    chartOrder: idx,
-    defaultDisplayLabel: item.label,
-    taxTreatment: item.taxTreatment,
-  }));
+  const items = getInputItems(taxData, filingStatus);
+  const incomeItems = items.filter(item => item.inputRowSettings?.category === "income");
+  return incomeItems.map((item, idx) => {
+    const subcategory = item.inputRowSettings?.subcategories?.[0];
+    return {
+      kind: (subcategory?.key ?? item.id) as IncomeKind,
+      label: item.label,
+      chartOrder: idx,
+      defaultDisplayLabel: item.label,
+      taxTreatment: item.taxTreatment ?? "ordinary",
+    };
+  });
 }
 
 export const INCOME_KINDS_CONFIG: IncomeKindConfig[] = (() => {

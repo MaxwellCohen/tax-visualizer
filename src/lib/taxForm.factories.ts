@@ -25,7 +25,7 @@ export function newIncomeRow(overrides?: Partial<Omit<TaxFormIncomeRow, "type">>
   return {
     type: "income",
     id: newId("inc"),
-    kind: "wages",
+    kind: "input-wages-wages",
     label: "",
     amount: 0,
     ...overrides,
@@ -36,7 +36,7 @@ export function newPretaxRow(overrides?: Partial<Omit<TaxFormPretaxRow, "type">>
   return {
     type: "pretax",
     id: newId("ptx"),
-    kind: "preTax401kSpouse1",
+    kind: "input-401k-preTax401kSpouse1",
     label: "",
     amount: 0,
     ...overrides,

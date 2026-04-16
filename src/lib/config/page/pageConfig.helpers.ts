@@ -3,15 +3,23 @@ import type { TaxFormRow } from "~/lib/taxForm.types";
 
 export function findInputById(inputs: TaxFormRow[], id: string): number {
     const kindToIdMap: Record<string, string> = {
-        "wages": "wages",
-        "ordinary": "ordinary",
-        "shortTermCapGains": "shortTermCapGains",
-        "longTermCapGains": "longTermCapGains",
-        "selfEmployment": "selfEmployment",
-        "401k": "preTax401kSpouse1",
-        "hsa": "preTaxHsaSpouse1",
-        "otherPretax": "preTaxOther",
-        "traditionalIra": "traditionalIraSpouse1",
+        "input-wages": "input-wages-wages",
+        "input-selfEmployment": "input-selfEmployment-selfEmployment",
+        "input-shortTermCapGains": "input-shortTermCapGains-shortTermCapGains",
+        "input-longTermCapGains": "input-longTermCapGains-longTermCapGains",
+        "input-ordinary": "input-ordinary-ordinary",
+        "input-401k": "input-401k-preTax401kSpouse1",
+        "hsa": "hsa-preTaxHsaSpouse1",
+        "otherPretax": "otherPretax-preTaxOther",
+        "input-traditionalIra": "input-traditionalIra-traditionalIraSpouse1",
+        "childTaxCredit": "childTaxCredit-childTaxCredit",
+        "educationCredits": "educationCredits-educationCredits",
+        "retirementSavingsContributions": "retirementSavingsContributions-retirementSavingsContributions",
+        "otherFederalCredit": "otherFederalCredit-otherFederalCredit",
+        "salt": "salt-salt",
+        "medicalDental": "medicalDental-medicalDental",
+        "mortgageInterest": "mortgageInterest-mortgageInterest",
+        "charitable": "charitable-charitable",
     };
 
     const lookupId = kindToIdMap[id] ?? id;
