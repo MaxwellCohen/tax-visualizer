@@ -6,7 +6,6 @@ export {
   ordinaryBracketNodeId,
   ltcgBracketNodeId,
 } from "~/lib/taxCharts.sankeySegmentKeys";
-export { type SankeyNodeLayoutEntry } from "~/lib/config/chartMetricsRegistry";
 export type {
   DeductionBenefitSinkRole,
   MekkoRow,

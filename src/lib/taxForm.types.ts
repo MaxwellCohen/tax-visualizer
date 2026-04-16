@@ -7,7 +7,7 @@ import type {
   PretaxBenefitKind,
   TaxSegment,
 } from "~/lib/taxCalc.types";
-import type { MekkoRow, SankeyChartData } from "~/lib/taxCharts.types";
+import type { MekkoRow } from "~/lib/taxCharts.types";
 
 /** Single setting key in the form row list */
 export type TaxFormSettingId = "taxYear" | "filingStatus" | "useItemizedDeductions";
@@ -85,9 +85,8 @@ export type TaxResultMekkoDisplay = {
   rows: MekkoRow[];
 };
 
-/** Pre-built Sankey graph + Mekko rows; produced with {@link TaxResult.metricLines} in the pipeline. */
+/** Pre-built Mekko rows; produced with {@link TaxResult.metricLines} in the pipeline. */
 export type TaxResultDisplay = {
-  sankey: SankeyChartData;
   mekko: TaxResultMekkoDisplay;
 };
 
@@ -123,7 +122,7 @@ export type DisplayItem = {
 };
 
 /** How a single registry metric stores its computed value on a line. */
-export type TaxMetricValueKind = "number" | "segments" | "deductionKind";
+export type TaxMetricValueKind = "number" | "deductionKind";
 
 export type TaxMetricComputedValue = number | TaxSegment[] | DeductionKind;
 
@@ -153,9 +152,6 @@ export function isComputedRow(row: TaxResultRow): row is TaxComputedRow {
   return row.type === "computed";
 }
 
-export function isComputedSegmentRow(row: TaxResultRow): row is TaxComputedSegmentRow {
-  return row.type === "computed-segments";
-}
 
 export function isFormRow(row: TaxResultRow): row is TaxFormRow {
   return row.type !== "computed" && row.type !== "computed-segments";

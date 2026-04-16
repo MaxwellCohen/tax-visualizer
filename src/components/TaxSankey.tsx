@@ -3,7 +3,6 @@ import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { sankey } from "d3-sankey";
 import type { SankeyGraph } from "d3-sankey";
 import { SankeyChartSvg } from "~/components/taxSankey/SankeyChartSvg";
-import { taxSankeyNodeAlign } from "~/components/taxSankey/taxSankeyNodeAlign";
 import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
 import { compareSankeyLinks } from "~/components/taxSankey/compareSankeyLinks";
 import { compareSankeySiblings } from "~/components/taxSankey/compareSankeySiblings.logic";
@@ -37,6 +36,10 @@ function makeSankeyData(cc: CalculatedConfigItem[] | null) {
       );
     });
 
+  if (!clonedLinks.length) {
+    return undefined;
+  }
+
   const nodeIdSet = new Set<string>();
   clonedLinks.forEach((link) => {
     nodeIdSet.add(link.source);
@@ -51,11 +54,14 @@ function makeSankeyData(cc: CalculatedConfigItem[] | null) {
       ...(item.sankeySettings as { node?: any })?.node,
     }));
 
+  if (!clonedNodes.length) {
+    return undefined;
+  }
+
   const sankeyGenerator = sankey<ChartNode, ChartLink>()
     .nodeId((node: ChartNode) => node.id)
     .nodeWidth(18)
     .nodePadding(14)
-    .nodeAlign(taxSankeyNodeAlign)
     .nodeSort(compareSankeySiblings)
     .linkSort(compareSankeyLinks)
     .iterations(32)

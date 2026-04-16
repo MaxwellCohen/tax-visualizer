@@ -10,12 +10,11 @@
  * **Sankey:** Config items with `sankeySettings` provide node/link metadata. Filter to positive values for display.
  */
 import type {
-  DisplayItemConfig,
   TaxFormRow,
   TaxMetricComputedValue,
   TaxMetricLine,
 } from "~/lib/taxForm.types";
-import type { TaxCalculationInputs, TaxCalculationState } from "~/lib/taxConfig.types";
+import type { TaxCalculationInputs } from "~/lib/taxConfig.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import { getConfigItems, type configItem } from "./page/Page.config";
 
@@ -87,16 +86,6 @@ function getCachedRegistry(taxData: TaxYearConfig, filingStatus: FilingStatus): 
   return registry;
 }
 
-/** Internal fold for legacy callers; UI should read TaxResult.metricLines / rows instead. */
-function taxMetricsRecordFromLines(
-  lines: readonly TaxMetricLine[],
-): Partial<Record<string, TaxMetricComputedValue>> {
-  const m: Partial<Record<string, TaxMetricComputedValue>> = {};
-  for (const line of lines) {
-    m[line.metricsKey] = line.value;
-  }
-  return m;
-}
 
 /**
  * Single driver: builds TaxMetricLine[] by iterating config items in order. Each `calculate`
@@ -116,64 +105,9 @@ export function computeTaxMetricLines(
   }));
 }
 
-export function computeTaxChartMetricsFromConfig(
-  formRows: TaxFormRow[],
-  state: TaxCalculationState,
-  config: TaxYearConfig,
-): Partial<Record<string, TaxMetricComputedValue>> {
-  const lines = computeTaxMetricLines(formRows, state.inputs, config);
-  return taxMetricsRecordFromLines(lines);
-}
-
-
-
-
-
 
 /** @deprecated - segments no longer used */
 export const SEGMENT_METRIC_KEYS_FROM_REGISTRY = new Set<string>();
-
-
-
-
-/** @deprecated Use getDisplayItemsConfig */
-export const DISPLAY_ITEMS_CONFIG: DisplayItemConfig[] = [];
-
-
-
-
-
-
-/** Maps each node kind to a semantic column (0-3 for 4-column layout) */
-export const SANKEY_VISUAL_COLUMN_BY_KIND: Record<string, number> = {
-  incomeSource: 0,
-  pretaxContribution: 0,
-  deferredSink: 0,
-  standardDeduction: 1,
-  deduction: 1,
-  deductionShield: 1,
-  deductionBenefitSink: 1,
-  ordinaryTaxableIncome: 1,
-  payrollOrdinaryStrip: 1,
-  longTermTaxableIncome: 1,
-  ltcgDeductionShield: 1,
-  ordinaryBracket: 2,
-  ltcgBracket: 2,
-  taxesFederal: 3,
-  taxesPayroll: 3,
-  federalCredits: 3,
-  keep: 3,
-};
-
-/** Maximum semantic column value (3 = column index for 4 columns) */
-export const SANKEY_VISUAL_SEMANTIC_MAX = 3;
-
-
-/** @deprecated - not used */
-export type SankeyNodeLayoutEntry = { kind: string; order?: number };
-
-
-
 
 
 
