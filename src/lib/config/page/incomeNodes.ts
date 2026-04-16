@@ -11,7 +11,7 @@ import {
 import { calculatePayrollTax } from "~/lib/config/page/pageConfig.finalTaxContext";
 import { wageIncome, selfEmploymentIncome, shortTermCapGains, longTermCapGains, ordinaryIncome, _401k, _hsa, otherPretax, traditionalIra, salt, medicalDental, mortgageInterest, charitable, childTaxCredit, educationCredits, retirementSavingsContributions, otherCredit } from "~/lib/config/page/pageConfig.finalTaxContext";
 
-export function makeIncomeNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
         {
             id: "totalIncome",
@@ -146,7 +146,7 @@ export function makeIncomeNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
     ]
 }
 
-export function makePretaxIncomeNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function makePretaxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
         {
             id: "pretaxIncome",
@@ -244,7 +244,7 @@ export function makePretaxDeductionsNodesConfig(taxData: TaxYearConfig, filingSt
         }];
 }
 
-export function make0taxIncomeNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
     return [
         {
             id: "deductionAmount",

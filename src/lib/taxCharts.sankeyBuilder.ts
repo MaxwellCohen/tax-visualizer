@@ -1,6 +1,6 @@
 import type { TaxResult } from "~/lib/taxForm.types";
 import type { SankeyChartData, SankeyChartNode, SankeyChartLink } from "~/lib/taxCharts.types";
-import type { IncomeKind, TaxSegment } from "~/lib/taxCalc.types";
+import type { IncomeKind } from "~/lib/taxCalc.types";
 import { SANKEY_IDS } from "~/lib/config/page/Page.config";
 import { getOrdinaryFederalSegments, getLongTermCapitalGainsSegments } from "~/lib/taxChartMetricRead";
 import { incomeRowsFromTaxResult } from "~/lib/taxForm.rows";
@@ -18,11 +18,6 @@ function getRegistryNumber(result: TaxResult, metricsKey: string, defaultVal = 0
   return typeof v === "number" && Number.isFinite(v) ? v : defaultVal;
 }
 
-function getRegistrySegments(result: TaxResult, metricsKey: string): TaxSegment[] | undefined {
-  const line = result.metricLines?.find(l => l.metricsKey === metricsKey);
-  if (!line) return undefined;
-  return Array.isArray(line.value) ? line.value : undefined;
-}
 
 function addNode(nodeMap: Map<string, SankeyChartNode>, node: SankeyChartNode): void {
   if (!nodeMap.has(node.id)) {
@@ -38,9 +33,8 @@ export function buildSankeyChartData(result: TaxResult, debug = false): SankeyCh
 
   const incomeIdMap = buildIncomeNodes(result, nodeMap);
   buildDeductionNodes(result, nodeMap, links, incomeIdMap);
-  const taxableInfo = buildTaxableNodes(result, nodeMap, links, incomeIdMap);
-  buildBracketNodes(result, nodeMap, links, takeHomePoolSlices, niitBySegment, taxableInfo);
-  buildTaxKeepNodes(result, nodeMap, links, takeHomePoolSlices, niitBySegment);
+  buildBracketNodes(result, nodeMap, links, takeHomePoolSlices, niitBySegment);
+  buildTaxKeepNodes(result, nodeMap, links, takeHomePoolSlices);
 
   const data: SankeyChartData = {
     nodes: [...nodeMap.values()],
@@ -149,165 +143,7 @@ function buildDeductionNodes(
   }
 }
 
-interface TaxableNodeInfo {
-  ordinaryId: string;
-  ltcgId: string;
-  shieldId: string;
-  payrollStripId?: string;
-}
 
-function buildTaxableNodes(
-  result: TaxResult,
-  nodeMap: Map<string, SankeyChartNode>,
-  links: SankeyChartLink[],
-  incomeIdMap: Map<string, string>,
-): TaxableNodeInfo {
-  const ordinaryTaxable = getRegistryNumber(result, "ordinaryTaxableIncome");
-  const ltcgTaxable = getRegistryNumber(result, "longTermTaxableIncome");
-  const ltcgGross = getRegistryNumber(result, "longTermCapitalGainsGrossIncome");
-  const shieldAmount = Math.max(0, ltcgGross - ltcgTaxable);
-  const payrollTax = getRegistryNumber(result, "payrollTax");
-
-  const info: TaxableNodeInfo = {
-    ordinaryId: "",
-    ltcgId: "",
-    shieldId: "",
-  };
-
-  if (ordinaryTaxable > 0) {
-    const ordinaryId = SANKEY_IDS.ordinaryTaxableIncome;
-    info.ordinaryId = ordinaryId;
-    
-    nodeMap.set(ordinaryId, {
-      id: ordinaryId,
-      label: "Ordinary taxable",
-      kind: "ordinaryTaxableIncome",
-      amount: ordinaryTaxable,
-    });
-
-    const incomeRows = incomeRowsFromTaxResult(result)
-      .filter(r => r.amount > 0 && (r.kind === "wages" || r.kind === "ordinary" || r.kind === "shortTermCapGains" || r.kind === "selfEmployment"))
-      .map(r => ({ id: r.id, weight: r.amount }))
-      .filter(r => r.weight > 0);
-
-    if (incomeRows.length > 0) {
-      const total = incomeRows.reduce((s, r) => s + r.weight, 0);
-      for (const row of incomeRows) {
-        const sourceId = incomeIdMap.get(row.id);
-        if (sourceId) {
-          links.push({
-            sourceId,
-            targetId: ordinaryId,
-            value: Math.round((row.weight / total) * ordinaryTaxable),
-          });
-        }
-      }
-    }
-
-    const hasRealSegments = getOrdinaryFederalSegments(result).length > 0;
-    if (payrollTax > 0 && ordinaryTaxable > 0 && hasRealSegments) {
-      const stripVal = Math.min(payrollTax, ordinaryTaxable);
-      if (stripVal > 0) {
-        const stripId = SANKEY_IDS.payrollOrdinaryStrip;
-        info.payrollStripId = stripId;
-        
-        nodeMap.set(stripId, {
-          id: stripId,
-          label: "Payroll taxes",
-          kind: "payrollOrdinaryStrip",
-          amount: stripVal,
-        });
-        links.push({
-          sourceId: ordinaryId,
-          targetId: stripId,
-          value: stripVal,
-        });
-        links.push({
-          sourceId: stripId,
-          targetId: SANKEY_IDS.taxesPayroll,
-          value: stripVal,
-        });
-      }
-    }
-  }
-
-  if (ltcgTaxable > 0 || shieldAmount > 0) {
-    if (shieldAmount > 0) {
-      const shieldId = SANKEY_IDS.ltcgDeductionShield;
-      info.shieldId = shieldId;
-      
-      nodeMap.set(shieldId, {
-        id: shieldId,
-        label: "LTCG offset by deduction",
-        kind: "ltcgDeductionShield",
-        amount: shieldAmount,
-      });
-
-      const ltcgRows = incomeRowsFromTaxResult(result)
-        .filter(r => r.amount > 0 && r.kind === "longTermCapGains")
-        .map(r => ({ id: r.id, weight: r.amount }));
-
-      if (ltcgRows.length > 0) {
-        const total = ltcgRows.reduce((s, r) => s + r.weight, 0);
-        for (const row of ltcgRows) {
-          const sourceId = incomeIdMap.get(row.id);
-          if (sourceId) {
-            links.push({
-              sourceId,
-              targetId: shieldId,
-              value: Math.round((row.weight / total) * shieldAmount),
-            });
-          }
-        }
-      }
-    }
-
-    if (ltcgTaxable > 0) {
-      const ltcgId = SANKEY_IDS.longTermTaxableIncome;
-      info.ltcgId = ltcgId;
-      
-      nodeMap.set(ltcgId, {
-        id: ltcgId,
-        label: "Long-term taxable",
-        kind: "longTermTaxableIncome",
-        amount: ltcgTaxable,
-      });
-
-      nodeMap.set(SANKEY_IDS.ltcgIncome, {
-        id: SANKEY_IDS.ltcgIncome,
-        label: "LTCG Income",
-        kind: "ltcgIncome",
-        amount: ltcgTaxable,
-      });
-
-      links.push({
-        sourceId: ltcgId,
-        targetId: SANKEY_IDS.ltcgIncome,
-        value: ltcgTaxable,
-      });
-
-      const ltcgRows = incomeRowsFromTaxResult(result)
-        .filter(r => r.amount > 0 && r.kind === "longTermCapGains")
-        .map(r => ({ id: r.id, weight: r.amount }));
-
-      if (ltcgRows.length > 0) {
-        const total = ltcgRows.reduce((s, r) => s + r.weight, 0);
-        for (const row of ltcgRows) {
-          const sourceId = incomeIdMap.get(row.id);
-          if (sourceId) {
-            links.push({
-              sourceId,
-              targetId: ltcgId,
-              value: Math.round((row.weight / total) * ltcgTaxable),
-            });
-          }
-        }
-      }
-    }
-  }
-
-  return info;
-}
 
 function buildBracketNodes(
   result: TaxResult,
@@ -315,7 +151,6 @@ function buildBracketNodes(
   links: SankeyChartLink[],
   takeHomePoolSlices: { sourceId: string; weight: number }[],
   niitBySegment: { ordinary: Map<string, number>; ltcg: Map<string, number> },
-  taxableInfo: TaxableNodeInfo,
 ): void {
   const ordinarySegments = getOrdinaryFederalSegments(result);
   const ltcgSegments = getLongTermCapitalGainsSegments(result);
@@ -368,7 +203,6 @@ function buildBracketNodes(
       value: linkFlow,
     });
 
-    const splitFed = federalByNode.get(nodeId) ?? { federalToTax: 0, creditPortion: 0 };
 
     takeHomePoolSlices.push({ sourceId: nodeId, weight: segment.incomeAmount - taxWithNiit });
   }
@@ -378,7 +212,6 @@ function buildBracketNodes(
   for (let i = 0; i < segments.length; i++) {
     const segment = segments[i];
     const nodeId = ordinaryBracketNodeId(segment);
-    const niitPart = niitBySegment.ordinary.get(ordinarySegmentKey(segment)) ?? 0;
     
     const splitFed = federalByNode.get(nodeId) ?? { federalToTax: 0, creditPortion: 0 };
     const federalToTax = splitFed.federalToTax * oScale;
@@ -498,7 +331,6 @@ function buildTaxKeepNodes(
   nodeMap: Map<string, SankeyChartNode>,
   links: SankeyChartLink[],
   takeHomePoolSlices: { sourceId: string; weight: number }[],
-  niitBySegment: { ordinary: Map<string, number>; ltcg: Map<string, number> },
 ): void {
   const federalTax = getRegistryNumber(result, "federalIncomeTax");
   const payrollTaxKeep = getRegistryNumber(result, "payrollTax");
@@ -581,7 +413,6 @@ function buildTaxKeepNodes(
     if (payrollTax > 0 && preTaxTotal > 0 && wageIncome > 0) {
       const wagesAfterPretax = Math.max(0, wageIncome - preTaxTotal);
       if (wagesAfterPretax > 0) {
-        const shieldFromPretax = preTaxTotal;
         const wagesInPretax = Math.min(wageIncome, preTaxTotal);
         const wagesInPretaxRatio = wagesInPretax / wageIncome;
         const payrollFromPretax = Math.round(payrollTax * wagesInPretaxRatio);

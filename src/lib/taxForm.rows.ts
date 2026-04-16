@@ -1,8 +1,5 @@
 import type {
-  TaxFormCreditRow,
-  TaxFormDeductionRow,
   TaxFormIncomeRow,
-  TaxFormPretaxRow,
   TaxFormRow,
   TaxFormSettingId,
   TaxResult,
@@ -61,15 +58,6 @@ export function incomeRowsFromTaxResult(result: TaxResult): TaxFormIncomeRow[] {
   return result.rows.filter((r): r is TaxFormIncomeRow => r.type === "income");
 }
 
-function pretaxRowsFromTaxResult(result: TaxResult): TaxFormPretaxRow[] {
-  return result.rows.filter((r): r is TaxFormPretaxRow => r.type === "pretax");
-}
 
-function deductionRowsFromTaxResult(result: TaxResult): TaxFormDeductionRow[] {
-  return result.rows.filter((r): r is TaxFormDeductionRow => r.type === "deduction");
-}
 
-function creditRowsFromTaxResult(result: TaxResult): TaxFormCreditRow[] {
-  return result.rows.filter((r): r is TaxFormCreditRow => r.type === "credit");
-}
 

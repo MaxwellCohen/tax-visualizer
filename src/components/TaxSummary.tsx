@@ -4,12 +4,6 @@ import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { computeMetrics, computeFootnotes, getBaselineComparison, type MetricDisplay, type FootnoteDisplay } from "~/lib/taxVisualization.config";
 import { TaxSummaryMetric } from "~/components/taxSummary/TaxSummaryMetric";
 
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
-
 type TaxSummaryProps = {
   result: TaxResult;
   baselineResult?: TaxResult | null;

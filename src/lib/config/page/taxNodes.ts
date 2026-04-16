@@ -29,9 +29,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
         educationCredits,
         retirementSavingsContributions,
         otherCredit,
-        calculatePayrollTax,
         calculateSelfEmploymentTax,
-        calculateFederalIncomeTaxAfterCredits,
     } = ctx;
 
     return [

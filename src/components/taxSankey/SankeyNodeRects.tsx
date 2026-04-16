@@ -4,7 +4,6 @@ import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
 import { LABEL_RIGHT_RESERVE, SANKEY_WIDTH } from "~/components/taxSankey/layout";
 import { nodeFill } from "~/components/taxSankey/sankeyColors";
 import { sankeyLabelLines } from "~/components/taxSankey/sankeyNodeLabels";
-import { effect } from "solid-js/web";
 
 type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
 

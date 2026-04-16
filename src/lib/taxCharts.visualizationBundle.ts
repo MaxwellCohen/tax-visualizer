@@ -85,62 +85,7 @@ export function takeHomeAttributableToBracketFlows(result: TaxResult): number {
   );
 }
 
-/** Retained slice weight for splitting take-home / payroll across bracket nodes (income minus federal + NIIT on that slice). */
-export function bracketSliceRetainedWeight(incomeAmount: number, taxWithNiit: number): number {
-  return Math.max(0, incomeAmount - taxWithNiit);
-}
 
-/**
- * Total deduction dollars the Sankey routes through the shield when the tax pipeline has not yet
- * populated allocation fields (they may be 0 while `deductionAmount` is still correct).
- */
-export function effectiveDeductionShelteredTotal(result: TaxResult): number {
-  const allocated =
-    chartMetricNumeric(result, "deductionAllocatedToOrdinary") +
-    chartMetricNumeric(result, "deductionAllocatedToLongTermGross");
-  if (allocated > 0) return allocated;
-  const deductionAmount = chartMetricNumeric(result, "deductionAmount");
-  return deductionAmount > 0 ? deductionAmount : 0;
-}
 
-/** Portion of the deduction attributed to ordinary income rows (vs LTCG gross shield). */
-export function effectiveDeductionToOrdinary(result: TaxResult): number {
-  const toOrd = chartMetricNumeric(result, "deductionAllocatedToOrdinary");
-  const toLtcgGross = chartMetricNumeric(result, "deductionAllocatedToLongTermGross");
-  if (toOrd > 0) return toOrd;
-  if (toOrd + toLtcgGross > 0) {
-    return toOrd;
-  }
-  const total = effectiveDeductionShelteredTotal(result);
-  if (total <= 0) return 0;
-  const ltcgShelteredByDeduction = Math.max(
-    0,
-    chartMetricNumeric(result, "longTermCapitalGainsGrossIncome") -
-      chartMetricNumeric(result, "longTermTaxableIncome"),
-  );
-  const toLtcg = Math.min(ltcgShelteredByDeduction, total);
-  return Math.max(0, total - toLtcg);
-}
 
-/** Portion flowing from `ltcgDeductionShield` into the deduction bar (when applicable). */
-export function effectiveDeductionToLtcgGrossShield(result: TaxResult): number {
-  const toOrd = chartMetricNumeric(result, "deductionAllocatedToOrdinary");
-  const toLtcgGross = chartMetricNumeric(result, "deductionAllocatedToLongTermGross");
-  if (toLtcgGross > 0) return toLtcgGross;
-  if (toOrd + toLtcgGross > 0) {
-    return toLtcgGross;
-  }
-  const total = effectiveDeductionShelteredTotal(result);
-  if (total <= 0) return 0;
-  const ltcgShelteredByDeduction = Math.max(
-    0,
-    chartMetricNumeric(result, "longTermCapitalGainsGrossIncome") -
-      chartMetricNumeric(result, "longTermTaxableIncome"),
-  );
-  return Math.min(ltcgShelteredByDeduction, total);
-}
 
-/** Dollars flowing out of `deduction-shield` for the deduction slice (matches routed inflows; may be below `deductionAmount` when the deduction exceeds gross income). */
-export function deductionShieldAccountingOutflow(result: TaxResult): number {
-  return effectiveDeductionShelteredTotal(result);
-}

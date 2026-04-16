@@ -45,12 +45,8 @@ export {
   getLongTermCapitalGainsSegments,
   getOrdinaryFederalSegments,
 } from "~/lib/taxChartMetricRead";
-export {
-  computeTaxMetricLines,
-  DISPLAY_ITEMS_CONFIG,
-  taxMetricsRecordFromLines,
-} from "~/lib/config/chartMetricsRegistry";
-export { buildDisplayItems } from "~/lib/taxDisplayItems";
+export { computeTaxMetricLines } from "~/lib/config/chartMetricsRegistry";
+
 export type { ChartMetricSummaryHint, ChartMetricSummaryCategory } from "~/lib/config/chartMetricsRegistry";
 
 export type { PretaxBenefitConfig, IncomeKindConfig, DeductionKindConfig, FederalCreditConfig, SelfEmploymentConfig } from "~/lib/config";

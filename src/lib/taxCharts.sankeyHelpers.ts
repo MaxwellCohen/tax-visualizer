@@ -1,21 +1,5 @@
-import { incomeSourceDisplayLabel } from "~/lib/taxCalc";
-import type { TaxFormIncomeRow } from "~/lib/taxForm.types";
-import type { SankeyChartNode } from "~/lib/taxCharts.types";
-import { SANKEY_INCOME_KIND_ORDER_BY_KIND } from "~/lib/taxData.incomeKinds.config";
 
-export function addNode(nodeMap: Map<string, SankeyChartNode>, node: SankeyChartNode): void {
-  if (!nodeMap.has(node.id)) {
-    nodeMap.set(node.id, node);
-  }
-}
 
-export function sortedIncomeRows(incomeRows: TaxFormIncomeRow[]) {
-  return [...incomeRows].sort((a, b) => {
-    const kindDiff = (SANKEY_INCOME_KIND_ORDER_BY_KIND[a.kind] ?? 99) - (SANKEY_INCOME_KIND_ORDER_BY_KIND[b.kind] ?? 99);
-    if (kindDiff !== 0) return kindDiff;
-    return incomeSourceDisplayLabel(a).localeCompare(incomeSourceDisplayLabel(b));
-  });
-}
 
 /**
  * Split take-home and payroll tax across all pool slices by weight.

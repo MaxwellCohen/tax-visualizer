@@ -10,7 +10,7 @@ export type IncomeKindConfig = {
   taxTreatment: TaxTreatment;
 };
 
-export function getIncomeKindConfigs(taxData: ReturnType<typeof getTaxYearConfig>, filingStatus: FilingStatus): IncomeKindConfig[] {
+function getIncomeKindConfigs(taxData: ReturnType<typeof getTaxYearConfig>, filingStatus: FilingStatus): IncomeKindConfig[] {
   if (!taxData) return [];
   const configs = incomeKindConfigs(taxData, filingStatus);
   return configs.map((item, idx) => ({
@@ -31,12 +31,7 @@ const INCOME_KINDS_MAP: Record<IncomeKind, IncomeKindConfig> = Object.fromEntrie
   INCOME_KINDS_CONFIG.map((c) => [c.kind, c])
 ) as Record<IncomeKind, IncomeKindConfig>;
 
-const INCOME_KIND_CHART_ORDER: IncomeKind[] = INCOME_KINDS_CONFIG.map(c => c.kind);
 
-/** Form / metrics table order (matches {@link incomeKindConfigs} display order). */
-export const INCOME_KIND_CHART_ORDER_BY_KIND: Record<string, number> = Object.fromEntries(
-  INCOME_KIND_CHART_ORDER.map((k, index) => [k, index]),
-);
 
 /**
  * Sankey income-column vertical order (lower = higher on chart).
@@ -50,15 +45,8 @@ export const SANKEY_INCOME_KIND_ORDER_BY_KIND: Record<string, number> = {
   ordinary: 4,
 };
 
-function incomeKindChartOrder(kind: IncomeKind): number {
-  const idx = INCOME_KIND_CHART_ORDER.indexOf(kind);
-  return idx >= 0 ? idx : 99;
-}
 
 export function incomeKindLabel(kind: IncomeKind): string {
   return INCOME_KINDS_MAP[kind]?.label ?? kind;
 }
 
-function incomeKindDefaultLabel(kind: IncomeKind): string {
-  return INCOME_KINDS_MAP[kind]?.defaultDisplayLabel ?? kind;
-}

@@ -85,7 +85,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
 export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
     const items: configItem[] = [];
     
-    const { wageIncome, selfEmploymentIncome, ordinaryIncome, shortTermCapGains, longTermCapGains, _401k, _hsa, otherPretax, traditionalIra, salt, medicalDental, mortgageInterest, charitable } = buildFinalTaxContext(taxData, filingStatus);
+    const { wageIncome, selfEmploymentIncome, ordinaryIncome, shortTermCapGains, _401k, _hsa, otherPretax, traditionalIra, salt, medicalDental, mortgageInterest, charitable } = buildFinalTaxContext(taxData, filingStatus);
     const ltcgIncomeRow = 50;
     items.push({
         id: "ltcg-income",
@@ -97,7 +97,7 @@ export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: Filing
                 { source: "longTermTaxableIncome", target: "ltcg-income", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: ltcgIncomeRow, col: 2 },
             ],
         },
-        calculate: (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => {
+        calculate: (inputs: TaxFormRow[]) => {
             const ltcgAmount = findInputById(inputs, "longTermCapGains");
             return ltcgAmount;
         },
@@ -121,7 +121,6 @@ export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: Filing
             const seIncome = selfEmploymentIncome(inputs);
             const ordinary = ordinaryIncome(inputs);
             const stcg = shortTermCapGains(inputs);
-            const ltcg = longTermCapGains(inputs);
             const pretax = _401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs);
             const afterPretax = wages + seIncome + ordinary + stcg - pretax;
             const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);

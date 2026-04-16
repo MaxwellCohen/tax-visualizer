@@ -1,5 +1,5 @@
-import type { FederalTaxCreditSource, IncomeSource, ItemizedDeductionSource } from "~/lib/taxCalc.types";
-import { newCreditRow, newDeductionRow, newIncomeRow } from "~/lib/taxForm.factories";
+import type { IncomeSource } from "~/lib/taxCalc.types";
+import { newIncomeRow } from "~/lib/taxForm.factories";
 
 export function sumLabeledAmountSources<T extends { amount: number }>(sources: T[]): number {
   return sources.reduce((sum, s) => sum + s.amount, 0);

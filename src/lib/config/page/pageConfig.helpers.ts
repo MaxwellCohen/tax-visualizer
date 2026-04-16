@@ -40,10 +40,6 @@ export function getOrdinaryBrackets(taxData: TaxYearConfig, filingStatus: Filing
     return taxData.federalBrackets[filingStatus];
 }
 
-/** LTCG 0% / 15% band tops for the filing status (from year config; same source as `YearValues.ltcgThresholds`). */
-export function getLtcgThresholds(taxData: TaxYearConfig, filingStatus: FilingStatus) {
-    return taxData.longTermCapGains[filingStatus];
-}
 
 export function calculateOrdinaryTaxTotal(taxableIncome: number, brackets: FederalTaxBracket[]): { tax: number; marginalRate: number } {
     let remaining = taxableIncome;
@@ -72,7 +68,6 @@ export function calculateLtcgTaxTotal(
     filingStatus: FilingStatus,
     baseIncome: number
 ): number {
-    taxableLtcg
 console.log("taxableLtcg", taxableLtcg);
 console.log("thresholds", thresholds);
 console.log("filingStatus", filingStatus);

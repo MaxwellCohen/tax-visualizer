@@ -117,16 +117,3 @@ export type TaxConfig = {
   visualization: VisualizationConfig;
 };
 
-function taxItemResultById<const T extends TaxItemResult["id"]>(
-  results: TaxItemResult[],
-  id: T,
-): Extract<TaxItemResult, { id: T }> | undefined {
-  return results.find((r) => r.id === id) as Extract<TaxItemResult, { id: T }> | undefined;
-}
-
-export function createInitialState(inputs: TaxCalculationInputs): TaxCalculationState {
-  return {
-    inputs,
-    errors: [],
-  };
-}

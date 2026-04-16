@@ -1,4 +1,4 @@
-import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
+import type { ChartLink } from "~/components/taxSankey/chartTypes";
 
 export function compareSankeyLinks(a: ChartLink, b: ChartLink): number {
   if (!a || !b) {

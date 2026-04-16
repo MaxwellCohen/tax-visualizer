@@ -1,7 +1,7 @@
 import type { DeductionKind, TaxSegment } from "~/lib/taxCalc.types";
 import { SEGMENT_METRIC_KEYS_FROM_REGISTRY } from "~/lib/config/chartMetricsRegistry";
 import type {TaxResult, TaxResultRow } from "~/lib/taxForm.types";
-import { isComputedRow, isComputedSegmentRow } from "~/lib/taxForm.types";
+import { isComputedRow } from "~/lib/taxForm.types";
 
 function deductionKindFromRows(rows: TaxResultRow[]): DeductionKind {
   for (const r of rows) {
@@ -41,25 +41,7 @@ export function chartMetricNumeric(result: TaxResult, key: string): number {
   return 0;
 }
 
-/** Bracket segment arrays from metric lines or computed-segment rows. */
-export function chartMetricSegments(result: TaxResult, key: string): TaxSegment[] {
-  if (!SEGMENT_METRIC_KEYS_FROM_REGISTRY.has(key)) {
-    return [];
-  }
-  if (result.metricLines?.length) {
-    const line = result.metricLines.find((l) => l.metricsKey === key);
-    if (line?.valueKind === "segments" && Array.isArray(line.value)) {
-      return line.value as TaxSegment[];
-    }
-    return [];
-  }
-  for (const row of result.rows) {
-    if (isComputedSegmentRow(row) && row.id === key) {
-      return row.segments ?? [];
-    }
-  }
-  return [];
-}
+
 
 export function getOrdinaryFederalSegments(result: TaxResult): TaxSegment[] {
   const brackets = getOrdinaryBracketItems(result);
@@ -109,13 +91,6 @@ function findBracketItem(result: TaxResult, prefix: string, index: number, suffi
   return undefined;
 }
 
-function extractBracketRate(id: string): number {
-  const match = id.match(/(\d+)%/);
-  if (match) {
-    return parseInt(match[1], 10) / 100;
-  }
-  return 0;
-}
 
 export function getOrdinaryBracketItems(result: TaxResult): BracketItem[] {
   const items: BracketItem[] = [];

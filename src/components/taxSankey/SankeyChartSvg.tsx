@@ -3,7 +3,6 @@ import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
 import { SANKEY_HEIGHT, SANKEY_WIDTH } from "~/components/taxSankey/layout";
 import { SankeyLinkPaths } from "~/components/taxSankey/SankeyLinkPaths";
 import { SankeyNodeRects } from "~/components/taxSankey/SankeyNodeRects";
-import { effect } from "solid-js/web";
 
 type Props = {
   graph: SankeyGraph<ChartNode, ChartLink>;

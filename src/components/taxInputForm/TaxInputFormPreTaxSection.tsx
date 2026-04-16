@@ -4,7 +4,6 @@ import Accordion from "~/components/Accordion";
 import { PretaxBenefitSourceRow } from "~/components/taxInputForm/PretaxBenefitSourceFields";
 import {
   money,
-  pretaxFieldCaptionClass,
   taxInputFormTableThClass,
 } from "~/components/taxInputForm/shared";
 import type { TaxFormData, TaxFormPretaxRow } from "~/lib/taxForm.types";

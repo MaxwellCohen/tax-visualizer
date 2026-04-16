@@ -6,7 +6,7 @@ import { findInputById } from "./pageConfig.helpers";
 import {calculatePayrollTax} from "~/lib/config/page/pageConfig.finalTaxContext"
 
 
-export function makePayrollFromWagesInputConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function makePayrollFromWagesInputConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
         {
             id: "payrollTaxWages",
@@ -30,7 +30,7 @@ export function makePayrollFromWagesInputConfig(taxData: TaxYearConfig, filingSt
     ];
 }
 
-export function makePayrollTaxInputConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
         {
             id: "payrollTax",
@@ -54,7 +54,7 @@ export function makePayrollTaxInputConfig(taxData: TaxYearConfig, filingStatus: 
     ]
 }
 
-export function makeDeductionInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
        
         {
