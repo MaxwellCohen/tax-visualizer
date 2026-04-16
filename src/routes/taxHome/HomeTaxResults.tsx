@@ -21,7 +21,7 @@ export function HomeTaxResults(props: HomeTaxResultsProps) {
     <Show when={props.taxResult()} fallback={<TaxYearInvalid />}>
       {(result) => (
         <>
-          <TaxSankey result={result()} calculatedConfig={props.calculatedConfig()} />
+          <TaxSankey calculatedConfig={props.calculatedConfig()} />
           <TaxMekko result={result()} calculatedConfig={props.calculatedConfig()} />
           <TaxSummary
             result={result()}

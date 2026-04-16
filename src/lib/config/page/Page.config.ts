@@ -42,12 +42,7 @@ export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatu
 }
 
 export function getInputItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
-    return [
-        ...makeIncomeInputsConfig(taxData, filingStatus),
-        ...makePretaxInputsConfig(taxData, filingStatus),
-        ...makeDeductionInputsConfig(taxData, filingStatus),
-        ...makeCreditInputsConfig(taxData, filingStatus),
-    ];
+    return getInputItems(taxData, filingStatus).filter((item) => 'inputRowSettings' in item)
 }
 
 export type IncomeKindConfig = {
