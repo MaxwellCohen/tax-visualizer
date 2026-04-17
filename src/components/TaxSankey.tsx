@@ -8,7 +8,7 @@ import { compareSankeyLinks } from "~/components/taxSankey/compareSankeyLinks";
 import { compareSankeySiblings } from "~/components/taxSankey/compareSankeySiblings.logic";
 import { SANKEY_HEIGHT, SANKEY_WIDTH } from "~/components/taxSankey/layout";
 import { SankeyLink } from "~/lib/config/page/Page.config";
-import type { CalculatedConfigItem } from "~/lib/taxCalc";
+import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 
 type TaxSankeyProps = {
   calculatedConfig: CalculatedConfigItem[] | null;

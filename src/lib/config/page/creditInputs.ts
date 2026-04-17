@@ -1,6 +1,5 @@
 /** Federal credit inputs: CTC, education, saver's credit, other. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
-import type { TaxFormRow } from "~/lib/taxForm.types";
 import type { configItem } from "./pageConfig.types";
 import {
     childTaxCredit,

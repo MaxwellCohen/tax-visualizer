@@ -1,6 +1,7 @@
 import { Show, createMemo } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
-import type { TaxResult, CalculatedConfigItem } from "~/lib/taxCalc";
+import type { TaxResult } from "~/lib/taxForm.types";
+import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 import { buildMekkoRows } from "~/lib/taxCharts";
 import { MekkoChartSvg } from "~/components/taxMekko/MekkoChartSvg";
 import { computeMekkoLayout } from "~/components/taxMekko/mekkoLayout";

@@ -53,15 +53,6 @@ export type IncomeKindConfig = {
     taxTreatment: TaxTreatment;
 };
 
-export function incomeKindConfigs(taxData: TaxYearConfig, filingStatus: FilingStatus): IncomeKindConfig[] {
-    const items = makeIncomeInputsConfig(taxData, filingStatus);
-    return items.map(item => ({
-        id: item.id,
-        label: item.label,
-        taxTreatment: item.taxTreatment ?? "ordinary",
-    }));
-}
-
 export type DeductionKindConfig = {
     id: string;
     label: string;

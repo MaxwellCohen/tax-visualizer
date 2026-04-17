@@ -1,7 +1,9 @@
 import { createMemo, createSignal, Show, type Setter } from "solid-js";
 import { render, screen, waitFor } from "@solidjs/testing-library";
 import { describe, expect, it } from "vitest";
-import { calculateTaxes, getOrdinaryFederalSegments, type TaxFormData } from "~/lib/taxCalc";
+import { calculateTaxes } from "~/lib/taxCalc.calculateTaxes";
+import { getOrdinaryFederalSegments } from "~/lib/taxChartMetricRead";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import { getAvailableTaxYears } from "~/lib/taxData";
 import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { HomeTaxResults } from "./HomeTaxResults";

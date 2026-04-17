@@ -1,4 +1,4 @@
-import { createSignal, Show } from "solid-js";
+import { createSignal } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { ScenarioToolsActions } from "~/components/scenarioTools/ScenarioToolsActions";
 import { ScenarioToolsPresets } from "~/components/scenarioTools/ScenarioToolsPresets";

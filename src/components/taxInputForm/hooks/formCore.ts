@@ -1,7 +1,9 @@
 import { createForm } from "@tanstack/solid-form";
 import { createDeductionMemos } from "~/components/taxInputForm/hooks/deductionMemos";
 import { createLimitMemos } from "~/components/taxInputForm/hooks/limitMemos";
-import { newFederalTaxCreditSource, newItemizedDeductionSource, newPretaxBenefitSource } from "~/lib/taxCalc";
+import { newFederalTaxCreditSource } from "~/lib/taxCalc.federalTaxCreditSource";
+import { newItemizedDeductionSource } from "~/lib/taxCalc.itemizedDeductionSource";
+import { newPretaxBenefitSource } from "~/lib/taxCalc.pretaxBenefitSource";
 import type { TaxFormData, TaxFormRow } from "~/lib/taxForm.types";
 import {
   creditRowIndices,

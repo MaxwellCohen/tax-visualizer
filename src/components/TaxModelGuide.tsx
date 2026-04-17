@@ -1,6 +1,6 @@
 import type { JSX } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
-import type { TaxResult } from "~/lib/taxCalc";
+import type { TaxResult } from "~/lib/taxForm.types";
 
 type TaxModelGuideProps = {
   result: TaxResult;

@@ -1,4 +1,4 @@
-import type { TaxSegment } from "~/lib/taxCalc";
+import type { TaxSegment } from "~/lib/taxCalc.types";
 
 const money = new Intl.NumberFormat("en-US", {
   style: "currency",

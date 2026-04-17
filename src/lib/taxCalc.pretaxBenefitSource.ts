@@ -1,4 +1,4 @@
-import type { PretaxBenefitSource, PretaxBenefitKind } from "~/lib/taxCalc.types";
+import type { PretaxBenefitSource } from "~/lib/taxCalc.types";
 import { newPretaxRow } from "~/lib/taxForm.factories";
 import { getTaxYearConfig } from "~/lib/taxData";
 
@@ -34,30 +34,6 @@ function applyElectiveDeferral402gLimit(raw401: number, raw403: number, limit: n
     return [a, b + drift];
   }
   return [a, b];
-}
-
-export const PRETAX_BENEFIT_KIND_VALUES: PretaxBenefitKind[] = [
-  "input-pretax-401K-preTax401kSpouse1",
-  "input-pretax-401K-preTax403bSpouse1",
-  "input-pretax-401K-preTax457bSpouse1",
-  "input-pretax-401K-preTax401kSpouse2",
-  "input-pretax-401K-preTax403bSpouse2",
-  "input-pretax-401K-preTax457bSpouse2",
-  "input-pretax-hsa-preTaxHsaSpouse1",
-  "input-pretax-hsa-preTaxHsaSpouse2",
-  "input-pretax-otherPretax-preTaxOther",
-  "input-pretax-otherPretax-preTaxHealthFsaSpouse1",
-  "input-pretax-otherPretax-preTaxHealthFsaSpouse2",
-  "input-pretax-otherPretax-preTaxDependentCareFsaSpouse1",
-  "input-pretax-otherPretax-preTaxDependentCareFsaSpouse2",
-  "input-pretax-otherPretax-preTaxCommuterSpouse1",
-  "input-pretax-otherPretax-preTaxCommuterSpouse2",
-  "input-pretax-traditionalIra-traditionalIraSpouse1",
-  "input-pretax-traditionalIra-traditionalIraSpouse2",
-];
-
-export function isPretaxSpouse2Kind(kind: string): boolean {
-  return kind.includes("spouse2");
 }
 
 export function aggregatePretaxFromSources(sources: PretaxBenefitSource[], joint: boolean, taxYear: number) {

@@ -75,7 +75,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
     return items;
 }
 
-export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function getLtcgBracketItems(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     const items: configItem[] = [];
     
     const ltcgIncomeRow = 50;

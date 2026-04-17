@@ -5,7 +5,7 @@ import TaxModelGuide from "~/components/TaxModelGuide";
 import TaxNarrative from "~/components/TaxNarrative";
 import TaxSankey from "~/components/TaxSankey";
 import TaxSummary from "~/components/TaxSummary";
-import type { TaxResult } from "~/lib/taxCalc";
+import type { TaxResult } from "~/lib/taxForm.types";
 import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 import { TaxYearInvalid } from "./TaxYearInvalid";
 

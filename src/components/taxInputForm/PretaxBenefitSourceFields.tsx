@@ -13,7 +13,6 @@ import {
 } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 import { getInputItems } from "~/lib/config";
-import type { configItem } from "~/lib/config/page/pageConfig.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 
 type Props = {

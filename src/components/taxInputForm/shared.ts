@@ -28,11 +28,6 @@ export function parseCurrencyInput(rawValue: string): number {
   return parsed;
 }
 
-export function clampToMax(value: number, max: number): number {
-  if (!Number.isFinite(max) || max < 0) return Math.max(0, value);
-  return Math.min(Math.max(0, value), max);
-}
-
 export const inputClass =
   "w-full rounded-md border-0 px-3 py-2.5 text-sm outline-none transition-shadow duration-150 focus:ring-2 focus:ring-[var(--accent)]";
 export const labelClass = "flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide";

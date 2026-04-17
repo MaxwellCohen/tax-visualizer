@@ -3,7 +3,7 @@ import type { SankeyChartData, SankeyChartNode, SankeyChartLink } from "~/lib/ta
 import { SANKEY_IDS } from "~/lib/config/page/Page.config";
 import { getOrdinaryFederalSegments, getLongTermCapitalGainsSegments } from "~/lib/taxChartMetricRead";
 import { incomeRowsFromTaxResult } from "~/lib/taxForm.rows";
-import { incomeSourceDisplayLabel } from "~/lib/taxCalc";
+import { incomeSourceDisplayLabel } from "~/lib/taxCalc.labeledAmountSource";
 import { ordinaryBracketNodeId, ltcgBracketNodeId, ordinarySegmentKey, ltcgSegmentKey } from "~/lib/taxCharts.sankeySegmentKeys";
 import { formatLtcgBracketLabel, formatOrdinaryBracketLabel } from "~/lib/taxCharts.sankeyFormat";
 import { netInvestmentIncomeTaxPerSegment } from "~/lib/taxCharts.sankeyNiit";

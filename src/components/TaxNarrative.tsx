@@ -1,5 +1,5 @@
 import { Show, createMemo } from "solid-js";
-import type { TaxResult } from "~/lib/taxCalc";
+import type { TaxResult } from "~/lib/taxForm.types";
 import { chartMetricNumeric, deductionKindFromTaxResult } from "~/lib/taxChartMetricRead";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 

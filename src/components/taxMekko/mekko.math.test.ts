@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateTaxes } from "~/lib/taxCalc";
+import { calculateTaxes } from "~/lib/taxCalc.calculateTaxes";
 import { baseInput } from "~/lib/taxCalc.test.helpers";
 import { buildMekkoRows } from "~/lib/taxCharts";
 import { computeMekkoLayout } from "~/components/taxMekko/mekkoLayout";

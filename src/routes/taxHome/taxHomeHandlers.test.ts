@@ -1,6 +1,6 @@
 import type { Setter } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { calculateTaxes } from "~/lib/taxCalc";
+import { calculateTaxes } from "~/lib/taxCalc.calculateTaxes";
 import { getTaxYearFromRows, rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
 import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
 import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";

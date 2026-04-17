@@ -24,7 +24,7 @@ export const useItemizedDeductions = (inputs: TaxFormRow[]) => findInputById(inp
 export const totalCredits = (inputs: TaxFormRow[]) =>
     childTaxCredit(inputs) + educationCredits(inputs) + retirementSavingsContributions(inputs) + otherCredit(inputs);
 
-export const totalPretax = (inputs: TaxFormRow[]) =>
+const _totalPretax = (inputs: TaxFormRow[]) =>
     _401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs);
 
 export const totalItemized = (inputs: TaxFormRow[]) =>
@@ -32,5 +32,5 @@ export const totalItemized = (inputs: TaxFormRow[]) =>
 
 export const totalIncome = (inputs: TaxFormRow[]) => longTermCapGains(inputs) + ordinaryIncome(inputs);
 
-export const afterPretaxIncome = (inputs: TaxFormRow[], seDeduction: number) =>
+const _afterPretaxIncome = (inputs: TaxFormRow[], seDeduction: number) =>
     totalIncome(inputs) - allPretax(inputs) - seDeduction;

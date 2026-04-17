@@ -27,22 +27,6 @@ export function sanitizeMoney(value: unknown): number {
   return numeric;
 }
 
-export function sanitizeIncomeKind(value: unknown): string {
- return `${value}`
-}
-
-export function sanitizePretaxBenefitKind(value: unknown): string {
-  return value as string
-}
-
-export function sanitizeItemizedDeductionKind(value: unknown): string {
-  return value as string
-}
-
-export function sanitizeFederalTaxCreditKind(value: unknown): string {
-  return value as string
-}
-
 export function sanitizeFilingStatus(value: unknown): FilingStatus {
   return filingStatuses.has(value as FilingStatus)
     ? (value as FilingStatus)

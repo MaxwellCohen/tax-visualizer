@@ -8,9 +8,6 @@ import {
     getStandardDeduction,
 } from "./pageConfig.helpers";
 import { 
-    calculatePayrollTax, 
-    calculateSelfEmploymentTaxFromIncome,
-    calculateSelfEmploymentDeduction,
     calculateTaxableIncome,
 } from "./taxCalculations";
 import {
@@ -23,14 +20,6 @@ import {
     _hsa,
     otherPretax,
     traditionalIra,
-    salt,
-    medicalDental,
-    mortgageInterest,
-    charitable,
-    childTaxCredit,
-    educationCredits,
-    retirementSavingsContributions,
-    otherCredit,
     useItemizedDeductions,
     totalItemized,
     totalCredits,
@@ -159,7 +148,7 @@ export function makePretaxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStat
 
         }]
 }
-export function makePretaxDeductionsNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
         {
             id: "ordinaryGrossIncome",
@@ -221,7 +210,7 @@ export function makePretaxDeductionsNodesConfig(taxData: TaxYearConfig, filingSt
     ];
 }
 
-export function make0taxIncomeNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
         {
             id: "standardDeduction",
@@ -256,7 +245,7 @@ export function make0taxIncomeNodesConfig(taxData: TaxYearConfig, filingStatus: 
     ];
 }
 
-export function makeDeductionAmountNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
 
         {
@@ -378,10 +367,10 @@ export function makeDeductionAmountNodesConfig(taxData: TaxYearConfig, filingSta
             sankeySettings: {
                 node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
             },
-            calculate: (inputs) => {
+            calculate: (inputs, td) => {
                 const wages = wageIncome(inputs);
-                const ssTaxable = Math.min(wages, taxData.payroll.socialSecurityWageBase);
-                return ssTaxable * taxData.payroll.socialSecurityRate;
+                const ssTaxable = Math.min(wages, td.payroll.socialSecurityWageBase);
+                return ssTaxable * td.payroll.socialSecurityRate;
             },
         },
         {
@@ -391,9 +380,9 @@ export function makeDeductionAmountNodesConfig(taxData: TaxYearConfig, filingSta
             sankeySettings: {
                 node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
             },
-            calculate: (inputs) => {
+            calculate: (inputs, td) => {
                 const wages = wageIncome(inputs);
-                return wages * taxData.payroll.medicareRate;
+                return wages * td.payroll.medicareRate;
             },
         },
     ];

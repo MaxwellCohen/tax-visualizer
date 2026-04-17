@@ -6,7 +6,6 @@ import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormType
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import type { TaxFormData, TaxFormIncomeRow } from "~/lib/taxForm.types";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
-import type { configItem } from "~/lib/config/page/pageConfig.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import { getInputItems } from "~/lib/config";
 

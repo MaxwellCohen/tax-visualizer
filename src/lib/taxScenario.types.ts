@@ -1,4 +1,3 @@
-import type { FilingStatus } from "~/lib/taxData";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import type { TaxFormData } from "~/lib/taxForm.types";
 

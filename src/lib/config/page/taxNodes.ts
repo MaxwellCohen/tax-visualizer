@@ -8,10 +8,6 @@ import {
 } from "./pageConfig.helpers";
 import { calculateTaxableIncome, calculateSelfEmploymentTax } from "./taxCalculations";
 import {
-    childTaxCredit,
-    educationCredits,
-    retirementSavingsContributions,
-    otherCredit,
     totalCredits,
 } from "./pageConfig.inputs";
 

@@ -17,7 +17,7 @@ export type TaxHomeHandlersCtx = {
   setTaxInput: Setter<TaxFormData>;
   baselineInput: Accessor<TaxFormData | null>;
   setBaselineInput: Setter<TaxFormData | null>;
-  taxResult: Accessor<ReturnType<typeof import("~/lib/taxCalc").calculateTaxes>>;
+  taxResult: Accessor<ReturnType<typeof import("~/lib/taxCalc.calculateTaxes").calculateTaxes>>;
   showStatus: (message: string) => void;
 };
 

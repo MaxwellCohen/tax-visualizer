@@ -6,7 +6,6 @@ import { TaxInputFormIncomeSection } from "~/components/taxInputForm/TaxInputFor
 import { TaxInputFormPreTaxSection } from "~/components/taxInputForm/TaxInputFormPreTaxSection";
 import { createTaxInputForm, type TaxInputFormOuterProps } from "~/components/taxInputForm/hooks/formCore";
 import { wireTaxYearLimitsEffect } from "~/components/taxInputForm/hooks/taxYearLimitsEffect";
-import { getInputItems } from "~/lib/config";
 
 type TaxInputFormProps = TaxInputFormOuterProps & {
   availableYears: number[];
