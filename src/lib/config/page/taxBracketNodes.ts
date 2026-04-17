@@ -121,8 +121,6 @@ export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: Filing
         calculate: (inputs, td, fs) => {
             const incomes = incomeItem.calculate?.(inputs, td, fs) ?? 0;
             const tax = items.find(i => i.id === "ltcg-tax")?.calculate?.(inputs, td, fs) ?? 0;
-            console.log("incomes", incomes);
-            console.log("tax", tax);
             return incomes - tax;
         },
     });

@@ -72,7 +72,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "ordinaryTaxableIncome", target: "standardDeduction", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
                 ],
             },
-            calculate: getStandardDeduction
+            // calculate: getStandardDeduction
         },
         {
             id: "deduction-salt",
@@ -101,7 +101,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
                 ],
             },
-            calculate: salt
+            // calculate: salt
         },
         {
             id: "deduction-medicalDental",

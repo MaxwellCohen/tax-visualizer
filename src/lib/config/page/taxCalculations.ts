@@ -3,6 +3,7 @@ import type { TaxFormRow } from "~/lib/taxForm.types";
 import {
     calculateLtcgTaxTotal,
     calculateOrdinaryTaxTotal,
+    findInputById,
     getOrdinaryBrackets,
     getStandardDeduction,
 } from "./pageConfig.helpers";
@@ -77,8 +78,8 @@ export function calculateTaxableIncome(
     const seDeduction = seTax / 2;
     const pretax = allPretax(inputs);
     const afterPretax = totalIncome(inputs) - pretax - seDeduction;
-    const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
-    const standard = getStandardDeduction(inputs, taxData, filingStatus);
+    const itemized =  findInputById( inputs, 'deduction-');
+    const standard = Math.min(afterPretax, taxData.standardDeduction[filingStatus]);
     const deduction = Math.max(itemized, standard);
     const ordinary = Math.max(0, afterPretax - deduction);
     const ltcg = longTermCapGains(inputs);

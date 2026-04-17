@@ -28,10 +28,9 @@ export const totalPretax = (inputs: TaxFormRow[]) =>
     _401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs);
 
 export const totalItemized = (inputs: TaxFormRow[]) =>
-    salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
+    findInputById(inputs, 'deduction-');
 
-export const totalIncome = (inputs: TaxFormRow[]) =>
-    wageIncome(inputs) + selfEmploymentIncome(inputs) + shortTermCapGains(inputs) + longTermCapGains(inputs) + ordinaryIncome(inputs);
+export const totalIncome = (inputs: TaxFormRow[]) => longTermCapGains(inputs) + ordinaryIncome(inputs);
 
 export const afterPretaxIncome = (inputs: TaxFormRow[], seDeduction: number) =>
     totalIncome(inputs) - allPretax(inputs) - seDeduction;

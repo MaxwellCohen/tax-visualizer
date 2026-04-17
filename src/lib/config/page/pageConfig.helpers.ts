@@ -4,8 +4,7 @@ import { allPretax, useItemizedDeductions, wageIncome } from "./pageConfig.input
 import { calculatePayrollTax } from "./taxCalculations";
 
 export function findInputById(inputs: TaxFormRow[], id: string): number {
-
-    
+    let sum = 0;
     for (const row of (inputs || [])) {
         if (row.type === "setting") {
             if (row.id.includes(id)) {
@@ -14,12 +13,12 @@ export function findInputById(inputs: TaxFormRow[], id: string): number {
         } else if ("kind" in row) {
             if (row.kind.includes(id)) {
                 if ("amount" in row && typeof row.amount === "number") {
-                    return row.amount;
+                    sum += row.amount;
                 }
             }
         }
     }
-    return 0;
+    return sum;
 }
 
 export function getStandardDeduction(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
@@ -27,7 +26,6 @@ export function getStandardDeduction(inputs: TaxFormRow[], taxData: TaxYearConfi
     if(useItemized) return 0;
     const income = wageIncome(inputs) - allPretax(inputs)
     const standard = Math.min(income, taxData.standardDeduction[filingStatus]);
-
     const payrollTax = calculatePayrollTax(inputs, taxData);
     return Math.max(0, standard - payrollTax);
 }
@@ -64,10 +62,6 @@ export function calculateLtcgTaxTotal(
     filingStatus: FilingStatus,
     baseIncome: number
 ): number {
-console.log("taxableLtcg", taxableLtcg);
-console.log("thresholds", thresholds);
-console.log("filingStatus", filingStatus);
-console.log("baseIncome", baseIncome);
     let totalTax = 0;
     let remaining = taxableLtcg;
     let lowerBound = baseIncome;

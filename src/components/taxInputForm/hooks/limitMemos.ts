@@ -6,12 +6,10 @@ import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
 import { getFederalTaxCreditCaps, getItemizedDeductionCaps, getPretaxLimits, getTaxYearConfig } from "~/lib/taxData";
 
 export function createLimitMemos(values: Accessor<TaxFormData>) {
-  console.log("createLimitMemos called");
   const taxYear = createMemo(() => getTaxYearFromRows(values().rows));
   const calcInputs = createMemo(() => rowsToTaxCalculationInputs(values().rows));
   const selectedTaxConfig = createMemo(() => {
     const config = getTaxYearConfig(taxYear());
-    console.log("getTaxYearConfig result:", config);
     return config;
   });
   const pretaxLimits = createMemo(() => getPretaxLimits(taxYear()));

@@ -11,9 +11,6 @@ export type ScenarioPreset = {
   buildInput: (taxYear: number) => TaxFormData;
 };
 
-export type SerializedScenarioV5 = {
-  version: 5;
-  rows: TaxFormRow[];
-};
+export type SerializedScenarioV5 =TaxFormRow[];
 
 export type SerializedScenario = SerializedScenarioV5;

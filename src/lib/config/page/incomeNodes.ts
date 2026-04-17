@@ -89,7 +89,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
                 ],
             },
             calculate: (inputs) => {
-                const pretax = _401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs);
+                const pretax = allPretax(inputs);
                 return pretax;
             },
             summary: {
@@ -243,14 +243,14 @@ export function make0taxIncomeNodesConfig(taxData: TaxYearConfig, filingStatus: 
             shortLabel: "Itemized Ded.",
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 3, col: 3 },
-                link: [
-                    { source: "itemizedDeductions", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
-                ],
+                // link: [
+                //     { source: "itemizedDeductions", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
+                // ],
             },
             calculate: (inputs, _taxData, _filingStatus) => {
                 const useItemized = useItemizedDeductions(inputs);
-                const itemized = totalItemized(inputs);
-                return useItemized ? itemized : 0;
+                if (!useItemized) return 0;
+                return totalItemized(inputs);
             },
         },
     ];

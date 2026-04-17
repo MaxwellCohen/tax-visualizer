@@ -1,7 +1,7 @@
 /** Pre-tax inputs: 401(k), HSA, traditional IRA, other payroll pre-tax. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
-import { _401k } from "./pageConfig.inputs";
+import { _401k, _hsa, otherPretax, traditionalIra } from "./pageConfig.inputs";
 
 export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
@@ -70,6 +70,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 },
                 showWhen: (ctx) => ctx.isJoint !== undefined,
             },
+            calculate: _hsa,
             sankeySettings: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 2, col: 3 },
                 link: [
@@ -103,6 +104,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                     return { valid: true };
                 },
             },
+            calculate: otherPretax,
             sankeySettings: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 2 },
                 link: [
@@ -135,6 +137,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 },
                 showWhen: (ctx) => ctx.isJoint !== undefined,
             },
+            calculate: traditionalIra,
             sankeySettings: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 4, col: 2 },
                 link: [
