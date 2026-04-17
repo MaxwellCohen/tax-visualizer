@@ -2,8 +2,9 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import { TaxFormRow } from "~/lib/taxForm.types";
-import { findInputById } from "./pageConfig.helpers";
-import {calculatePayrollTax} from "~/lib/config/page/pageConfig.finalTaxContext"
+import { calculatePayrollTax } from "~/lib/config/page/pageConfig.finalTaxContext";
+import { charitable, medicalDental, mortgageInterest, salt, useItemizedDeductions } from "./pageConfig.inputs";
+import { getStandardDeduction } from "./pageConfig.helpers";
 
 
 export function makePayrollFromWagesInputConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
@@ -12,7 +13,6 @@ export function makePayrollFromWagesInputConfig(_taxData: TaxYearConfig, _filing
             id: "payrollTaxWages",
             label: "Payroll Taxes",
             shortLabel: "Payroll Taxes",
-            inputRowSettings: { category: "deduction", displayOrder: 0, inputType: "currency" },
             sankeySettings: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
                 link: [
@@ -37,7 +37,6 @@ export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus
             id: "payrollTax",
             label: "Payroll Taxes",
             shortLabel: "Payroll Taxes",
-            inputRowSettings: { category: "deduction", displayOrder: 0, inputType: "currency" },
             sankeySettings: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 2, col: 3 },
                 link: [
@@ -58,34 +57,27 @@ export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus
 
 export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
-       
+
         {
             id: "standard",
-            label: "Standard Deduction",
+            label: "0% tax (standard deduction)",
             shortLabel: "Standard",
             description: "Standard deduction based on filing status",
             kindDetail: {
                 modelingNote: "Applied automatically if greater than itemized deductions",
             },
-            inputRowSettings: { category: "deduction", displayOrder: 1, inputType: "currency" },
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
-                    { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
+                    { source: "ordinaryTaxableIncome", target: "standardDeduction", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
                 ],
             },
-            calculate: (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => {
-                const income = inputs.reduce((acc, row) => row.type === "income" ? acc + row.amount : acc, 0);
-                const useItemized = findInputById(inputs, "useItemizedDeductions");
-                const standard = Math.min(income, taxData.standardDeduction[filingStatus]);
-                const payrollTax = calculatePayrollTax(inputs, taxData);
-                return !useItemized ? Math.max(0, standard - payrollTax): 0;
-            }
+            calculate: getStandardDeduction
         },
         {
-            id: "salt",
+            id: "deduction-salt",
             label: "State & Local Taxes (SALT)",
-            shortLabel: "SALT",
+            shortLabel: "deduction-salt",
             description: "State and local taxes you elect to deduct",
             kindDetail: {
                 limitNote: "$10,000 cap (single) / $10,000 (married)",
@@ -94,7 +86,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 category: "deduction",
                 displayOrder: 2,
                 inputType: "currency",
-                subcategories: [{ key: "salt-salt", labelSingle: "State & local taxes (SALT)", labelJoint: "State & local taxes (SALT)" }],
+                subcategories: [{ key: "deduction-salt-salt", labelSingle: "State & local taxes (SALT)", labelJoint: "State & local taxes (SALT)" }],
                 getFilingStatusLimit: (yearValues, filingStatus) => yearValues.caps.salt[filingStatus] ?? 10000,
                 validate: (value, ctx) => {
                     const limit = ctx.yearValues.caps.salt[ctx.filingStatus] ?? 10000;
@@ -106,12 +98,13 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
-                    { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
+                    { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
                 ],
             },
+            calculate: salt
         },
         {
-            id: "medicalDental",
+            id: "deduction-medicalDental",
             label: "Medical & Dental",
             shortLabel: "Medical",
             description: "Medical and dental expenses (7.5% of AGI threshold applied at calculation)",
@@ -122,7 +115,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 category: "deduction",
                 displayOrder: 3,
                 inputType: "currency",
-                subcategories: [{ key: "medicalDental-medicalDental", labelSingle: "Medical & dental", labelJoint: "Medical & dental" }],
+                subcategories: [{ key: "deduction-medicalDental-medicalDental", labelSingle: "Medical & dental", labelJoint: "Medical & dental" }],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };
@@ -131,12 +124,13 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
-                    { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
+                    { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
                 ],
             },
+            calculate: medicalDental
         },
         {
-            id: "mortgageInterest",
+            id: "deduction-mortgageInterest",
             label: "Home Mortgage Interest",
             shortLabel: "Mortgage",
             description: "Home mortgage interest",
@@ -147,7 +141,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 category: "deduction",
                 displayOrder: 4,
                 inputType: "currency",
-                subcategories: [{ key: "mortgageInterest-mortgageInterest", labelSingle: "Home mortgage interest", labelJoint: "Home mortgage interest" }],
+                subcategories: [{ key: "deduction-mortgageInterest-mortgageInterest", labelSingle: "Home mortgage interest", labelJoint: "Home mortgage interest" }],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };
@@ -156,12 +150,13 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
-                    { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
+                    { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
                 ],
             },
+            calculate: mortgageInterest
         },
         {
-            id: "charitable",
+            id: "deduction-charitable",
             label: "Charitable Contributions",
             shortLabel: "Charity",
             description: "Cash and non-cash contributions to qualified charities",
@@ -172,7 +167,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 category: "deduction",
                 displayOrder: 5,
                 inputType: "currency",
-                subcategories: [{ key: "charitable-charitable", labelSingle: "Charitable contributions", labelJoint: "Charitable contributions" }],
+                subcategories: [{ key: "deduction-charitable-charitable", labelSingle: "Charitable contributions", labelJoint: "Charitable contributions" }],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };
@@ -181,9 +176,10 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
-                    { source: "ordinaryTaxableIncome", target: "deductionAmount", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 3, col: 2 },
+                    { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 3, col: 2 },
                 ],
             },
+            calculate: charitable
         },
     ];
 }

@@ -1,4 +1,3 @@
-export type IncomeKind = "input-wages-wages" | "input-selfEmployment-selfEmployment" | "input-shortTermCapGains-shortTermCapGains" | "input-longTermCapGains-longTermCapGains" | "input-ordinary-ordinary";
 
 export type TaxSegment = {
   id?: string;
@@ -21,68 +20,48 @@ export type LtcgTaxSegment = {
 
 export type IncomeSource = {
   id: string;
-  kind: IncomeKind;
+  kind: string;
   label: string;
   amount: number;
 };
 
 export type PretaxBenefitKind = 
-  | "input-401k-preTax401kSpouse1"
-  | "input-401k-preTax403bSpouse1"
-  | "input-401k-preTax457bSpouse1"
-  | "input-401k-preTax401kSpouse2"
-  | "input-401k-preTax403bSpouse2"
-  | "input-401k-preTax457bSpouse2"
-  | "hsa-preTaxHsaSpouse1"
-  | "hsa-preTaxHsaSpouse2"
-  | "otherPretax-preTaxOther"
-  | "otherPretax-preTaxHealthFsaSpouse1"
-  | "otherPretax-preTaxHealthFsaSpouse2"
-  | "otherPretax-preTaxDependentCareFsaSpouse1"
-  | "otherPretax-preTaxDependentCareFsaSpouse2"
-  | "otherPretax-preTaxCommuterSpouse1"
-  | "otherPretax-preTaxCommuterSpouse2"
-  | "input-traditionalIra-traditionalIraSpouse1"
-  | "input-traditionalIra-traditionalIraSpouse2";
+  | "input-pretax-401K-preTax401kSpouse1"
+  | "input-pretax-401K-preTax403bSpouse1"
+  | "input-pretax-401K-preTax457bSpouse1"
+  | "input-pretax-401K-preTax401kSpouse2"
+  | "input-pretax-401K-preTax403bSpouse2"
+  | "input-pretax-401K-preTax457bSpouse2"
+  | "input-pretax-hsa-preTaxHsaSpouse1"
+  | "input-pretax-hsa-preTaxHsaSpouse2"
+  | "input-pretax-otherPretax-preTaxOther"
+  | "input-pretax-otherPretax-preTaxHealthFsaSpouse1"
+  | "input-pretax-otherPretax-preTaxHealthFsaSpouse2"
+  | "input-pretax-otherPretax-preTaxDependentCareFsaSpouse1"
+  | "input-pretax-otherPretax-preTaxDependentCareFsaSpouse2"
+  | "input-pretax-otherPretax-preTaxCommuterSpouse1"
+  | "input-pretax-otherPretax-preTaxCommuterSpouse2"
+  | "input-pretax-traditionalIra-traditionalIraSpouse1"
+  | "input-pretax-traditionalIra-traditionalIraSpouse2";
 
 export type PretaxBenefitSource = {
   id: string;
-  kind: PretaxBenefitKind;
+  kind: string;
   label: string;
   amount: number;
 };
 
-export type ItemizedDeductionKind = 
-  | "salt-salt"
-  | "medicalDental-medicalDental"
-  | "mortgageInterest-mortgageInterest"
-  | "charitable-charitable"
-  | "investmentInterest"
-  | "casualtyTheft"
-  | "otherItemized";
 
 export type ItemizedDeductionSource = {
   id: string;
-  kind: ItemizedDeductionKind;
+  kind: string;
   label: string;
   amount: number;
 };
 
-export type FederalTaxCreditKind = 
-  | "childTaxCredit-childTaxCredit"
-  | "childTaxCredit-creditForOtherDependents"
-  | "educationCredits-educationCredits"
-  | "retirementSavingsContributions-retirementSavingsContributions"
-  | "otherFederalCredit-otherFederalCredit"
-  | "otherFederalCredit-childAndDependentCare"
-  | "otherFederalCredit-foreignTaxCredit"
-  | "otherFederalCredit-residentialCleanEnergy"
-  | "otherFederalCredit-electricVehicleCredit"
-  | "otherFederalCredit-generalBusinessCredit";
-
 export type FederalTaxCreditSource = {
   id: string;
-  kind: FederalTaxCreditKind;
+  kind: string;
   label: string;
   amount: number;
 };

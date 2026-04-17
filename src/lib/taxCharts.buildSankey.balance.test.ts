@@ -34,7 +34,7 @@ describe("buildSankeyChartData flow conservation", () => {
   it("balances each intermediate node (wages + payroll strip case)", () => {
     const result = calculateTaxes(
       baseInput({
-        incomeRows: incomeSourcesToRows([{ id: "1", kind: "input-wages-wages", label: "Wages", amount: 120_000 }]),
+        incomeRows: incomeSourcesToRows([{ id: "1", kind: "income-ordinary-wages", label: "Wages", amount: 120_000 }]),
       }),
     );
     expect(result).not.toBeNull();
@@ -52,8 +52,8 @@ describe("buildSankeyChartData flow conservation", () => {
     const result = calculateTaxes(
       baseInput({
         incomeRows: incomeSourcesToRows([
-          { id: "1", kind: "input-wages-wages", label: "Wages", amount: 80_000 },
-          { id: "2", kind: "input-longTermCapGains-longTermCapGains", label: "LTCG", amount: 20_000 },
+          { id: "1", kind: "income-ordinary-wages", label: "Wages", amount: 80_000 },
+          { id: "2", kind: "income-longTermCapGains-longTermCapGains", label: "LTCG", amount: 20_000 },
         ]),
       }),
     );
@@ -65,7 +65,7 @@ describe("buildSankeyChartData flow conservation", () => {
   it("balances with federal credits on input (pipeline may clamp to allowed)", () => {
     const result = calculateTaxes(
       baseInput({
-        incomeRows: incomeSourcesToRows([{ id: "1", kind: "input-wages-wages", label: "Wages", amount: 90_000 }]),
+        incomeRows: incomeSourcesToRows([{ id: "1", kind: "income-ordinary-wages", label: "Wages", amount: 90_000 }]),
         creditRows: withFederalCreditsTotal(4_000),
       }),
     );
@@ -78,8 +78,8 @@ describe("buildSankeyChartData flow conservation", () => {
       baseInput({
         taxYear: 2026,
         incomeRows: incomeSourcesToRows([
-          { id: "1", kind: "input-wages-wages", label: "Wages", amount: 350_000 },
-          { id: "2", kind: "input-longTermCapGains-longTermCapGains", label: "LTCG", amount: 300_000 },
+          { id: "1", kind: "income-ordinary-wages", label: "Wages", amount: 350_000 },
+          { id: "2", kind: "income-longTermCapGains-longTermCapGains", label: "LTCG", amount: 300_000 },
         ]),
       }),
     );

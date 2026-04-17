@@ -39,6 +39,14 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             },
         },
         {
+            id: "federalSelfEmploymentTaxes",
+            label: "Federal Self-Employment Taxes",
+            shortLabel: "Federal SE Tax",
+            sankeySettings: {
+                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 2, col: 4 },
+            },
+        },
+        {
             id: "takeHomePay",
             label: "Take-Home Pay",
             shortLabel: "Take-Home Pay",
@@ -48,6 +56,8 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             calculate: (inputs) => {
                 const wages = wageIncome(inputs);
                 const seIncome = selfEmploymentIncome(inputs);
+                const seTax = calculateSelfEmploymentTax(inputs);
+                const seDeduction = seTax / 2;
                 const ordinary = ordinaryIncome(inputs);
                 const stcg = shortTermCapGains(inputs);
                 const ltcg = longTermCapGains(inputs);
@@ -58,17 +68,16 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 const mortgage = mortgageInterest(inputs);
                 const charity = charitable(inputs);
                 const itemized = saltAmt + medical + mortgage + charity;
-                const standard = getStandardDeduction(taxData, filingStatus);
+                const standard = getStandardDeduction(inputs, taxData, filingStatus);
                 const deduction = Math.max(itemized, standard);
                 const brackets = getOrdinaryBrackets(taxData, filingStatus);
-                const ordinaryTaxable = Math.max(0, wages + seIncome + ordinary + stcg - pretax - deduction);
+                const ordinaryTaxable = Math.max(0, wages + seIncome + ordinary + stcg - pretax - deduction - seDeduction);
                 const ordinaryTax = calculateOrdinaryTaxTotal(ordinaryTaxable, brackets).tax;
                 const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinaryTaxable);
                 const credits = childTaxCredit(inputs) + educationCredits(inputs) + retirementSavingsContributions(inputs) + otherCredit(inputs);
                 const federalTax = Math.max(0, ordinaryTax + ltcgTax - credits);
-                const payrollTax = calculatePayrollTax(inputs);
-                const selfEmpTax = calculateSelfEmploymentTax(inputs);
-                return Math.max(0, totalIncome - pretax - deduction - federalTax - payrollTax - selfEmpTax);
+                const payrollTax = calculatePayrollTax(inputs, taxData);
+                return Math.max(0, totalIncome - pretax - deduction - federalTax - payrollTax - seTax);
             },
             summary: {
                 summaryId: "take-home-pay",
@@ -127,13 +136,15 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             calculate: (inputs) => {
                 const wages = wageIncome(inputs);
                 const seIncome = selfEmploymentIncome(inputs);
+                const seTax = calculateSelfEmploymentTax(inputs);
+                const seDeduction = seTax / 2;
                 const ordinary = ordinaryIncome(inputs);
                 const stcg = shortTermCapGains(inputs);
                 const pretax = _401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs);
                 const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
-                const standard = getStandardDeduction(taxData, filingStatus);
+                const standard = getStandardDeduction(inputs, taxData, filingStatus);
                 const deduction = Math.max(itemized, standard);
-                const taxableIncome = Math.max(0, wages + seIncome + ordinary + stcg - pretax - deduction);
+                const taxableIncome = Math.max(0, wages + seIncome + ordinary + stcg - pretax - deduction - seDeduction);
                 const brackets = getOrdinaryBrackets(taxData, filingStatus);
                 const result = calculateOrdinaryTaxTotal(taxableIncome, brackets);
                 return result.marginalRate;

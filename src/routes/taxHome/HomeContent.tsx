@@ -28,16 +28,9 @@ export function HomeContent() {
   };
 
   const taxResult = createMemo(() => {
-    const result = calculateTaxes(taxInput());
-    if (result) {
-      console.log("calculateTaxes result:", result);
-    }
-    return result;
+    return calculateTaxes(taxInput());
   });
   
-  console.log("HomeContent - taxInput:", taxInput());
-  console.log("HomeContent - taxYear:", getTaxYearFromRows(taxInput().rows));
-  console.log("HomeContent - taxConfig:", getTaxYearConfig(getTaxYearFromRows(taxInput().rows)));
   const baselineResult = createMemo(() => {
     const saved = baselineInput();
     return saved ? calculateTaxes(saved) : null;

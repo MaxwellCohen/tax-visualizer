@@ -1,10 +1,6 @@
 import type { FilingStatus } from "~/lib/taxData.types";
 import type {
   DeductionKind,
-  FederalTaxCreditKind,
-  IncomeKind,
-  ItemizedDeductionKind,
-  PretaxBenefitKind,
   TaxSegment,
 } from "~/lib/taxCalc.types";
 import type { MekkoRow } from "~/lib/taxCharts.types";
@@ -20,7 +16,7 @@ export type TaxFormSettingRow =
 export type TaxFormIncomeRow = {
   type: "income";
   id: string;
-  kind: IncomeKind;
+  kind: string;
   label: string;
   amount: number;
 };
@@ -28,7 +24,7 @@ export type TaxFormIncomeRow = {
 export type TaxFormPretaxRow = {
   type: "pretax";
   id: string;
-  kind: PretaxBenefitKind;
+  kind: string;
   label: string;
   amount: number;
 };
@@ -36,7 +32,7 @@ export type TaxFormPretaxRow = {
 export type TaxFormDeductionRow = {
   type: "deduction";
   id: string;
-  kind: ItemizedDeductionKind;
+  kind: string;
   label: string;
   amount: number;
 };
@@ -44,7 +40,7 @@ export type TaxFormDeductionRow = {
 export type TaxFormCreditRow = {
   type: "credit";
   id: string;
-  kind: FederalTaxCreditKind;
+  kind: string;
   label: string;
   amount: number;
 };

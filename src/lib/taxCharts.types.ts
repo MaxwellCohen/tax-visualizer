@@ -1,4 +1,3 @@
-import type { IncomeKind } from "~/lib/taxCalc.types";
 
 type SankeyNodeKind =
   | "incomeSource"
@@ -32,7 +31,7 @@ export type SankeyChartNode = {
   /** Set on `deductionBenefitSink`: standard deduction is framed as take-home; itemized as non-cash accounting. */
   deductionBenefitSinkRole?: DeductionBenefitSinkRole;
   amount?: number;
-  incomeKind?: IncomeKind;
+  incomeKind?: string;
   incomeAmount?: number;
   taxAmount?: number;
   marginalRate?: number;

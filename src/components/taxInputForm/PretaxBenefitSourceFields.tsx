@@ -53,7 +53,7 @@ export function PretaxBenefitSourceRow(props: Props) {
     const items = configItems();
     const item = items.find(item => 
       item.inputRowSettings?.subcategories?.some(sub => sub.key === currentKind)
-    ) ?? items.find(i => i.id === "otherPretax");
+    ) ?? items.find(i => i.id === "input-pretax-otherPretax");
     
     if (!item) {
       return { description: "Loading...", limitNote: "Loading..." };

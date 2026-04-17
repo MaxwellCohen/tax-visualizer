@@ -51,6 +51,7 @@ export type TaxTreatment = "ordinary" | "selfEmployment" | "shortTermCapGains" |
 
 export type configItem = {
     id: string;
+    category?: InputCategory;
     label: string;
     shortLabel?: string;
     description?: string;

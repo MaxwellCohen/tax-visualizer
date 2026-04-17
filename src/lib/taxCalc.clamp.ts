@@ -43,7 +43,7 @@ export function clampTaxFormData(data: TaxFormData): TaxFormData {
       return row;
     }
     const kind = (row.kind as string).toLowerCase();
-    if (kind.includes("hsa")) {
+    if (kind.includes("input-pretax-hsa")) {
       const limit = joint ? config.pretaxLimits.hsaFamily : config.pretaxLimits.hsaSelfOnly;
       return { ...row, amount: Math.min(row.amount, limit) };
     }
@@ -54,7 +54,7 @@ export function clampTaxFormData(data: TaxFormData): TaxFormData {
     if (row.type !== "deduction") {
       return row;
     }
-    if (row.kind === "salt") {
+    if (row.kind === "deduction-salt") {
       const saltMax = config.itemizedCaps.saltMax[filingStatus];
       return { ...row, amount: Math.min(row.amount, saltMax) };
     }

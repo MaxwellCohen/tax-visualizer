@@ -24,7 +24,7 @@ export function baseInput(overrides?: BaseInputOverrides): TaxFormData {
     filingStatus: overrides?.filingStatus ?? "single",
     incomeRows:
       overrides?.incomeRows ??
-      incomeSourcesToRows([{ id: "1", kind: "input-wages-wages", label: "Wages", amount: 100_000 }]),
+      incomeSourcesToRows([{ id: "1", kind: "income-ordinary-wages", label: "Wages", amount: 100_000 }]),
     pretaxRows: overrides?.pretaxRows ?? [],
     useItemizedDeductions: overrides?.useItemizedDeductions ?? false,
     deductionRows: overrides?.deductionRows ?? [],

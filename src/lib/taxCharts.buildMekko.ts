@@ -12,7 +12,9 @@ export function buildMekkoRows(result: TaxResult): MekkoRow[] {
 
   const totalIncome = chartMetricNumeric(result, "totalIncome");
   const selfEmploymentTax = chartMetricNumeric(result, "selfEmploymentTax");
-  const deductionAmount = chartMetricNumeric(result, "deductionAmount");
+  const standardDeduction = chartMetricNumeric(result, "standardDeduction");
+  const itemizedDeductions = chartMetricNumeric(result, "itemizedDeductions");
+  const deductionAmount = standardDeduction + itemizedDeductions;
   const effectiveDeduction = Math.min(deductionAmount, totalIncome);
   const deductionKeep = Math.max(0, effectiveDeduction - selfEmploymentTax);
   const deductionTax = selfEmploymentTax > 0 ? selfEmploymentTax : 0;

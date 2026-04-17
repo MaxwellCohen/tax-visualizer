@@ -1,6 +1,5 @@
 import type { TaxResult } from "~/lib/taxForm.types";
 import type { SankeyChartData, SankeyChartNode, SankeyChartLink } from "~/lib/taxCharts.types";
-import type { IncomeKind } from "~/lib/taxCalc.types";
 import { SANKEY_IDS } from "~/lib/config/page/Page.config";
 import { getOrdinaryFederalSegments, getLongTermCapitalGainsSegments } from "~/lib/taxChartMetricRead";
 import { incomeRowsFromTaxResult } from "~/lib/taxForm.rows";
@@ -68,7 +67,7 @@ function buildIncomeNodes(result: TaxResult, nodeMap: Map<string, SankeyChartNod
       label: incomeSourceDisplayLabel(row),
       kind: "incomeSource",
       amount: row.amount,
-      incomeKind: row.kind as IncomeKind,
+      incomeKind: row.kind,
     });
     idMap.set(row.id, nodeId);
   }
@@ -82,7 +81,9 @@ function buildDeductionNodes(
   links: SankeyChartLink[],
   incomeIdMap: Map<string, string>,
 ): void {
-  const deductionAmount = getRegistryNumber(result, "deductionAmount");
+  const standardDeduction = getRegistryNumber(result, "standardDeduction");
+  const itemizedDeductions = getRegistryNumber(result, "itemizedDeductions");
+  const deductionAmount = standardDeduction + itemizedDeductions;
   const preTaxTotal = getRegistryNumber(result, "preTaxTotal");
   
   if (deductionAmount <= 0 && preTaxTotal <= 0) return;
@@ -125,7 +126,7 @@ function buildDeductionNodes(
 
   if (deductionAmount > 0) {
     const ordinaryIncomeRows = incomeRowsFromTaxResult(result)
-      .filter(r => r.amount > 0 && (r.kind === "input-wages-wages" || r.kind === "input-ordinary-ordinary" || r.kind === "input-shortTermCapGains-shortTermCapGains" || r.kind === "input-selfEmployment-selfEmployment"))
+      .filter(r => r.amount > 0 && (r.kind.includes("input-income")))
       .map(r => ({ id: r.id, weight: r.amount }));
 
     if (ordinaryIncomeRows.length > 0) {
@@ -390,7 +391,9 @@ function buildTaxKeepNodes(
   const shieldNode = nodeMap.get("deduction-shield");
   const shieldAmount = shieldNode?.amount ?? 0;
   const preTaxTotal = getRegistryNumber(result, "preTaxTotal");
-  const deductionAmount = getRegistryNumber(result, "deductionAmount");
+  const standardDeduction = getRegistryNumber(result, "standardDeduction");
+  const itemizedDeductions = getRegistryNumber(result, "itemizedDeductions");
+  const deductionAmount = standardDeduction + itemizedDeductions;
   const payrollTax = getRegistryNumber(result, "payrollTax");
   const wageIncome = getRegistryNumber(result, "wageIncome");
   
@@ -445,7 +448,7 @@ function buildTaxKeepNodes(
     }
 
     if (payrollTaxKeep > 0) {
-      const wageRows = allIncome.filter(r => r.kind === "input-wages-wages");
+      const wageRows = allIncome.filter(r => r.kind === "income-ordinary-wages");
       if (wageRows.length > 0) {
         for (const { key, value } of allocateProportional(wageRows, payrollTaxKeep)) {
           links.push({
@@ -458,7 +461,7 @@ function buildTaxKeepNodes(
     }
 
     if (selfEmploymentTax > 0) {
-      const seRows = allIncome.filter(r => r.kind === "input-selfEmployment-selfEmployment");
+      const seRows = allIncome.filter(r => r.kind === "income-ordinary-selfEmployment-selfEmployment");
       if (seRows.length > 0) {
         for (const { key, value } of allocateProportional(seRows, selfEmploymentTax)) {
           links.push({

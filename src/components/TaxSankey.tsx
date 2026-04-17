@@ -36,6 +36,18 @@ function makeSankeyData(cc: CalculatedConfigItem[] | null) {
       );
     });
 
+    const acc =  clonedLinks.reduce((acc, v) => {
+      
+      const [to, from] = acc[v.source] || [0, 0];
+      
+      acc[v.source] = [to, from + v.value];
+      const [to2, from2] = acc[v.target] || [0, 0];
+      acc[v.target] = [to2 + v.value, from2];
+      return acc;
+    }, {} as Record<string, [number, number]>)
+
+  console.log("to", acc);
+
   if (!clonedLinks.length) {
     return undefined;
   }

@@ -40,13 +40,15 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
             calculate: (inputs) => {
                 const wages = wageIncome(inputs);
                 const seIncome = selfEmploymentIncome(inputs);
+                const seTax = calculateSelfEmploymentTax(inputs);
+                const seDeduction = seTax / 2;
                 const ordinary = ordinaryIncome(inputs);
                 const stcg = shortTermCapGains(inputs);
                 const ltcg = longTermCapGains(inputs);
                 const pretax = _401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs);
-                const afterPretax = wages + seIncome + ordinary + stcg - pretax;
+                const afterPretax = wages + seIncome + ordinary + stcg - pretax - seDeduction;
                 const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
-                const standard = getStandardDeduction(taxData, filingStatus);
+                const standard = getStandardDeduction(inputs, taxData, filingStatus);
                 const deduction = Math.max(itemized, standard);
                 const ordinaryTaxable = Math.max(0, afterPretax - deduction);
                 const brackets = getOrdinaryBrackets(taxData, filingStatus);
@@ -77,10 +79,18 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
             sankeySettings: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
                 link: [
-                    { source: "selfEmploymentTax", target: "takeHomePay", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
+                    { source: "ordinaryTaxableIncome", target: "selfEmploymentTax", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: 0, col: 2 },
+                    { source: "selfEmploymentTax", target: "federalSelfEmploymentTaxes", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
                 ],
             },
             calculate: calculateSelfEmploymentTax,
+            summary: {
+                summaryId: "self-employment-tax",
+                label: "Self-Employment Tax",
+                category: "tax",
+                displayOrder: 6,
+                format: "currency",
+            },
         },
     ];
 }

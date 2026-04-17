@@ -19,15 +19,12 @@ export type {
   TaxMetricComputedValue,
 } from "~/lib/taxForm.types";
 export type {
-  IncomeKind,
   TaxSegment,
   IncomeSource,
   PretaxBenefitSource,
   ItemizedDeductionSource,
   FederalTaxCreditSource,
   DeductionKind,
-  FederalTaxCreditKind,
-  ItemizedDeductionKind,
   PretaxBenefitKind,
 } from "~/lib/taxCalc.types";
 export type {

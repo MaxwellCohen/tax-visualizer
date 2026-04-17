@@ -4,12 +4,33 @@ import type { configItem } from "./pageConfig.types";
 import {
     calculateLtcgTaxTotal,
     calculateOrdinaryTaxTotal,
-    findInputById,
     getOrdinaryBrackets,
     getStandardDeduction,
 } from "./pageConfig.helpers";
-import { calculatePayrollTax } from "~/lib/config/page/pageConfig.finalTaxContext";
-import { wageIncome, selfEmploymentIncome, shortTermCapGains, longTermCapGains, ordinaryIncome, _401k, _hsa, otherPretax, traditionalIra, salt, medicalDental, mortgageInterest, charitable, childTaxCredit, educationCredits, retirementSavingsContributions, otherCredit } from "~/lib/config/page/pageConfig.finalTaxContext";
+import { calculatePayrollTax, calculateSelfEmploymentTax } from "./pageConfig.finalTaxContext";
+import {
+    wageIncome,
+    selfEmploymentIncome,
+    shortTermCapGains,
+    longTermCapGains,
+    ordinaryIncome,
+    _401k,
+    _hsa,
+    otherPretax,
+    traditionalIra,
+    salt,
+    medicalDental,
+    mortgageInterest,
+    charitable,
+    childTaxCredit,
+    educationCredits,
+    retirementSavingsContributions,
+    otherCredit,
+    useItemizedDeductions,
+    totalItemized,
+    totalCredits,
+    allPretax,
+} from "./pageConfig.inputs";
 
 export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
@@ -17,9 +38,6 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             id: "totalIncome",
             label: "Total Income",
             shortLabel: "Total Income",
-            // sankeySettings: {
-            //     node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)" },
-            // },
             calculate: (inputs) => {
                 return (
                     wageIncome(inputs) +
@@ -47,18 +65,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
                 ],
             },
             calculate: (inputs) => {
-                return (
-                    wageIncome(inputs) +
-                    selfEmploymentIncome(inputs) +
-                    shortTermCapGains(inputs) +
-                    ordinaryIncome(inputs)
-                ) -
-                    _401k(inputs) -
-                    _hsa(inputs) -
-                    otherPretax(inputs) -
-                    traditionalIra(inputs)
-
-                    ;
+                return wageIncome(inputs) - allPretax(inputs);
             },
         },
         {
@@ -98,34 +105,16 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         {
             id: "selfEmployment",
             label: "Self-Employment Income",
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 1, col: 2 },
-                link: [
-                    { source: "selfEmployment", target: "ordinaryTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
-                ],
-            },
             calculate: selfEmploymentIncome,
         },
         {
             id: "ordinaryIncome",
             label: "Other Ordinary Income",
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 1, col: 2 },
-                link: [
-                    { source: "ordinaryIncome", target: "ordinaryTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
-                ],
-            },
             calculate: ordinaryIncome,
         },
         {
             id: "shortTermCapGains",
             label: "Short-Term Capital Gains",
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 1, col: 2 },
-                link: [
-                    { source: "shortTermCapGains", target: "ordinaryTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
-                ],
-            },
             calculate: shortTermCapGains,
         },
         {
@@ -154,7 +143,9 @@ export function makePretaxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStat
             shortLabel: "Pretax income 0% tax",
             sankeySettings: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
-
+                link: [
+                    { source: "pretaxIncome", target: "pretaxTakehome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
+                ],
             },
         },
         {
@@ -163,7 +154,9 @@ export function makePretaxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStat
             shortLabel: "Pretax take-home",
             sankeySettings: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 4 },
-
+                link: [
+                    { source: "pretaxTakehome", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 4 },
+                ],
             },
 
         }]
@@ -225,45 +218,41 @@ export function makePretaxDeductionsNodesConfig(taxData: TaxYearConfig, filingSt
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 1, col: 3 },
             },
-            calculate: (inputs) => wageIncome(inputs) - (_401k(inputs) + _hsa(inputs)),
+            calculate: (inputs) => wageIncome(inputs) - allPretax(inputs),
         },
-        {
-            id: "shieldedIncome",
-            label: "Shielded Income",
-            shortLabel: "Shielded",
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
-            },
-            calculate: (inputs) => {
-                const pretax = _401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs);
-                const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
-                const standard = getStandardDeduction(taxData, filingStatus);
-                const deduction = Math.max(itemized, standard);
-                return pretax + deduction;
-            },
-        }];
+    ];
 }
 
-export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function make0taxIncomeNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
     return [
         {
-            id: "deductionAmount",
-            label: "0% tax income tax",
-            shortLabel: "Deduction Used",
+            id: "standardDeduction",
+            label: "0% tax (standard deduction)",
+            shortLabel: "Standard Ded.",
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 3, col: 3 },
                 link: [
-                    { source: "deductionAmount", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
+                    { source: "standardDeduction", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
                 ],
             },
-            calculate: (inputs, taxData) => {
-                const payrollTax = calculatePayrollTax(inputs, taxData);
-                const isItemized = findInputById(inputs, "useItemizedDeductions");
-                if (isItemized) {
-                    return Math.max(0, salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs) - payrollTax);
-                } else {
-                    return Math.max(0, getStandardDeduction(taxData, filingStatus) - payrollTax);
-                }
+            calculate: (inputs, taxData, filingStatus) => {
+                return getStandardDeduction(inputs, taxData, filingStatus);
+            },
+        },
+        {
+            id: "itemizedDeductions",
+            label: "Itemized Deductions",
+            shortLabel: "Itemized Ded.",
+            sankeySettings: {
+                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 3, col: 3 },
+                link: [
+                    { source: "itemizedDeductions", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
+                ],
+            },
+            calculate: (inputs, _taxData, _filingStatus) => {
+                const useItemized = useItemizedDeductions(inputs);
+                const itemized = totalItemized(inputs);
+                return useItemized ? itemized : 0;
             },
         },
     ];
@@ -279,10 +268,13 @@ export function makeDeductionAmountNodesConfig(taxData: TaxYearConfig, filingSta
             sankeySettings: {
                 node: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)", row: 2, col: 2 },
             },
-            calculate: (inputs) => {
-                const afterPretax = wageIncome(inputs) + selfEmploymentIncome(inputs) + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs));
+            calculate: (inputs, taxData, filingStatus) => {
+                const seIncome = selfEmploymentIncome(inputs);
+                const seTax = calculatePayrollTax(inputs, taxData) + seIncome * 0.9235 * (taxData.payroll.socialSecurityRate * 2 + taxData.payroll.medicareRate * 2);
+                const seDeduction = seTax / 2;
+                const afterPretax = wageIncome(inputs) + seIncome + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs)) - seDeduction;
                 const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
-                const standard = getStandardDeduction(taxData, filingStatus);
+                const standard = getStandardDeduction(inputs, taxData, filingStatus);
                 const deduction = Math.max(itemized, standard);
                 return Math.max(0, afterPretax - deduction);
             },
@@ -294,10 +286,6 @@ export function makeDeductionAmountNodesConfig(taxData: TaxYearConfig, filingSta
             sankeySettings: {
                 node: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)", row: 2, col: 2 },
 
-            },
-            calculate: (inputs) => {
-                const afterPretax = wageIncome(inputs) + selfEmploymentIncome(inputs) + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs));
-                return afterPretax;
             },
         },
         {
@@ -314,9 +302,12 @@ export function makeDeductionAmountNodesConfig(taxData: TaxYearConfig, filingSta
             label: "Total Taxable Income",
             shortLabel: "Taxable Income",
             calculate: (inputs) => {
-                const afterPretax = wageIncome(inputs) + selfEmploymentIncome(inputs) + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs));
+                const seIncome = selfEmploymentIncome(inputs);
+                const seTax = calculatePayrollTax(inputs, taxData) + seIncome * 0.9235 * (taxData.payroll.socialSecurityRate * 2 + taxData.payroll.medicareRate * 2);
+                const seDeduction = seTax / 2;
+                const afterPretax = wageIncome(inputs) + seIncome + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs)) - seDeduction;
                 const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
-                const standard = getStandardDeduction(taxData, filingStatus);
+                const standard = getStandardDeduction(inputs, taxData, filingStatus);
                 const deduction = Math.max(itemized, standard);
                 const ordinaryTaxable = Math.max(0, afterPretax - deduction);
                 const ltcgTaxable = longTermCapGains(inputs);
@@ -337,10 +328,13 @@ export function makeDeductionAmountNodesConfig(taxData: TaxYearConfig, filingSta
             sankeySettings: {
                 node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 3, col: 1 },
             },
-            calculate: (inputs) => {
-                const afterPretax = wageIncome(inputs) + selfEmploymentIncome(inputs) + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs));
+            calculate: (inputs, taxData, filingStatus) => {
+                const seIncome = selfEmploymentIncome(inputs);
+                const seTax = calculatePayrollTax(inputs, taxData) + seIncome * 0.9235 * (taxData.payroll.socialSecurityRate * 2 + taxData.payroll.medicareRate * 2);
+                const seDeduction = seTax / 2;
+                const afterPretax = wageIncome(inputs) + seIncome + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs)) - seDeduction;
                 const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
-                const standard = getStandardDeduction(taxData, filingStatus);
+                const standard = getStandardDeduction(inputs, taxData, filingStatus);
                 const deduction = Math.max(itemized, standard);
                 const ordinaryTaxable = Math.max(0, afterPretax - deduction);
                 const brackets = getOrdinaryBrackets(taxData, filingStatus);
@@ -356,9 +350,12 @@ export function makeDeductionAmountNodesConfig(taxData: TaxYearConfig, filingSta
             },
             calculate: (inputs) => {
                 const ltcg = longTermCapGains(inputs);
-                const afterPretax = wageIncome(inputs) + selfEmploymentIncome(inputs) + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs));
+                const seIncome = selfEmploymentIncome(inputs);
+                const seTax = calculatePayrollTax(inputs, taxData) + seIncome * 0.9235 * (taxData.payroll.socialSecurityRate * 2 + taxData.payroll.medicareRate * 2);
+                const seDeduction = seTax / 2;
+                const afterPretax = wageIncome(inputs) + seIncome + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs)) - seDeduction;
                 const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
-                const standard = getStandardDeduction(taxData, filingStatus);
+                const standard = getStandardDeduction(inputs, taxData, filingStatus);
                 const deduction = Math.max(itemized, standard);
                 const ordinaryTaxable = Math.max(0, afterPretax - deduction);
                 return calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinaryTaxable);
@@ -396,10 +393,13 @@ export function makeDeductionAmountNodesConfig(taxData: TaxYearConfig, filingSta
                 node: { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)", row: 3, col: 2 },
             },
             calculate: (inputs) => {
-                const credits = childTaxCredit(inputs) + educationCredits(inputs) + retirementSavingsContributions(inputs) + otherCredit(inputs);
-                const afterPretax = wageIncome(inputs) + selfEmploymentIncome(inputs) + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs));
-                const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
-                const standard = getStandardDeduction(taxData, filingStatus);
+                const credits = totalCredits(inputs);
+                const seIncome = selfEmploymentIncome(inputs);
+                const seTax = calculatePayrollTax(inputs, taxData) + seIncome * 0.9235 * (taxData.payroll.socialSecurityRate * 2 + taxData.payroll.medicareRate * 2);
+                const seDeduction = seTax / 2;
+                const afterPretax = wageIncome(inputs) + seIncome + ordinaryIncome(inputs) + shortTermCapGains(inputs) - (_401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs)) - seDeduction;
+                const itemized = totalItemized(inputs);
+                const standard = getStandardDeduction(inputs, taxData, filingStatus);
                 const deduction = Math.max(itemized, standard);
                 const ordinaryTaxable = Math.max(0, afterPretax - deduction);
                 const brackets = getOrdinaryBrackets(taxData, filingStatus);

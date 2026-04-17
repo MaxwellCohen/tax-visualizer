@@ -1,10 +1,4 @@
 import type { FilingStatus } from "~/lib/taxData";
-import type {
-  FederalTaxCreditKind,
-  IncomeKind,
-  ItemizedDeductionKind,
-  PretaxBenefitKind,
-} from "~/lib/taxCalc.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import type { TaxFormData } from "~/lib/taxForm.types";
 

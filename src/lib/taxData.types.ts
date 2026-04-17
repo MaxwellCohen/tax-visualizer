@@ -1,4 +1,3 @@
-import type { FederalTaxCreditKind } from "~/lib/taxCalc.types";
 
 export type FilingStatus = "single" | "marriedJoint" | "marriedSeparate" | "headOfHousehold";
 
@@ -55,7 +54,7 @@ export type ItemizedDeductionCaps = {
  * Modeled ceiling on total entered amount per credit kind (sum across all rows of that kind).
  * IRS phase-outs and eligibility are not applied; entries are clamped before the nonrefundable tax cap.
  */
-export type FederalTaxCreditCaps = Record<FederalTaxCreditKind, number>;
+export type FederalTaxCreditCaps = Record<string, number>;
 
 export type TaxYearConfig = {
   standardDeduction: FilingStatusRecord<number>;
@@ -64,7 +63,7 @@ export type TaxYearConfig = {
   payroll: PayrollRules;
   pretaxLimits: PretaxBenefitLimits;
   itemizedCaps: ItemizedDeductionCaps;
-  federalTaxCreditCaps: Record<FederalTaxCreditKind, number>;
+  federalTaxCreditCaps: Record<string, number>;
   /** Form 8960-style NIIT rate and MAGI thresholds (from year config / `YearValues`). */
   niit: NiitRules;
   status?: "final" | "planning";

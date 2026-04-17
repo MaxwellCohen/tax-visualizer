@@ -1,6 +1,6 @@
-import type { ItemizedDeductionSource, ItemizedDeductionKind } from "~/lib/taxCalc.types";
+import type { ItemizedDeductionSource } from "~/lib/taxCalc.types";
 
-export const ITEMIZED_DEDUCTION_KIND_VALUES: ItemizedDeductionKind[] = [
+export const ITEMIZED_DEDUCTION_KIND_VALUES: string[] = [
   "medicalDental-medicalDental",
   "salt-salt",
   "mortgageInterest-mortgageInterest",

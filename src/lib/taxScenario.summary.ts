@@ -33,7 +33,9 @@ export function buildScenarioSummaryText(result: TaxResult): string {
   const preTaxTotal = chartMetricNumeric(result, "preTaxTotal");
   const traditionalIra = chartMetricNumeric(result, "traditionalIra");
   const deductionKind = deductionKindFromTaxResult(result);
-  const deductionAmount = chartMetricNumeric(result, "deductionAmount");
+  const standardDeduction = chartMetricNumeric(result, "standardDeduction");
+  const itemizedDeductions = chartMetricNumeric(result, "itemizedDeductions");
+  const deductionAmount = standardDeduction + itemizedDeductions;
 
   return [
     `Tax Visualizer scenario (${taxYear}, ${filingStatus}).`,

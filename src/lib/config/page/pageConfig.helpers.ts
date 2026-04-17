@@ -1,36 +1,18 @@
 import type { FilingStatus, TaxYearConfig, LongTermCapGainsThresholds, FederalTaxBracket } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
+import { allPretax, useItemizedDeductions, wageIncome } from "./pageConfig.inputs";
+import { calculatePayrollTax } from "./pageConfig.finalTaxContext";
 
 export function findInputById(inputs: TaxFormRow[], id: string): number {
-    const kindToIdMap: Record<string, string> = {
-        "input-wages": "input-wages-wages",
-        "input-selfEmployment": "input-selfEmployment-selfEmployment",
-        "input-shortTermCapGains": "input-shortTermCapGains-shortTermCapGains",
-        "input-longTermCapGains": "input-longTermCapGains-longTermCapGains",
-        "input-ordinary": "input-ordinary-ordinary",
-        "input-401k": "input-401k-preTax401kSpouse1",
-        "hsa": "hsa-preTaxHsaSpouse1",
-        "otherPretax": "otherPretax-preTaxOther",
-        "input-traditionalIra": "input-traditionalIra-traditionalIraSpouse1",
-        "childTaxCredit": "childTaxCredit-childTaxCredit",
-        "educationCredits": "educationCredits-educationCredits",
-        "retirementSavingsContributions": "retirementSavingsContributions-retirementSavingsContributions",
-        "otherFederalCredit": "otherFederalCredit-otherFederalCredit",
-        "salt": "salt-salt",
-        "medicalDental": "medicalDental-medicalDental",
-        "mortgageInterest": "mortgageInterest-mortgageInterest",
-        "charitable": "charitable-charitable",
-    };
 
-    const lookupId = kindToIdMap[id] ?? id;
-
-    for (const row of inputs) {
+    
+    for (const row of (inputs || [])) {
         if (row.type === "setting") {
-            if (row.id === id) {
+            if (row.id.includes(id)) {
                 if ("value" in row && typeof row.value === "number") return row.value;
             }
         } else if ("kind" in row) {
-            if (row.kind === lookupId) {
+            if (row.kind.includes(id)) {
                 if ("amount" in row && typeof row.amount === "number") {
                     return row.amount;
                 }
@@ -40,8 +22,14 @@ export function findInputById(inputs: TaxFormRow[], id: string): number {
     return 0;
 }
 
-export function getStandardDeduction(taxData: TaxYearConfig, filingStatus: FilingStatus): number {
-    return taxData.standardDeduction[filingStatus];
+export function getStandardDeduction(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
+    const useItemized = useItemizedDeductions(inputs);
+    if(useItemized) return 0;
+    const income = wageIncome(inputs) - allPretax(inputs)
+    const standard = Math.min(income, taxData.standardDeduction[filingStatus]);
+
+    const payrollTax = calculatePayrollTax(inputs, taxData);
+    return Math.max(0, standard - payrollTax);
 }
 
 export function getOrdinaryBrackets(taxData: TaxYearConfig, filingStatus: FilingStatus): FederalTaxBracket[] {

@@ -1,4 +1,4 @@
-import { effect } from "solid-js/web";
+import { createEffect } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { TaxInputFormCreditsSection } from "~/components/taxInputForm/TaxInputFormCreditsSection";
 import { TaxInputFormDeductionSection } from "~/components/taxInputForm/TaxInputFormDeductionSection";
@@ -43,9 +43,19 @@ export default function TaxInputForm(props: TaxInputFormProps) {
     return calcInputs?.value ?? "single";
   };
 
-  effect(() => {
-    console.log('values',values())
-  })
+  createEffect((prev: string | undefined) => {
+    const newRows = props.value.rows;
+    const currentRows = values().rows;
+
+    const newStr = JSON.stringify(newRows);
+    const currentStr = JSON.stringify(currentRows);
+
+    if (newStr !== currentStr) {
+      form.setFieldValue("rows", newRows);
+    }
+
+    return newStr;
+  });
   return (
     <form
       class="rounded-xl p-5 background-surface border-border shadow-shadow"

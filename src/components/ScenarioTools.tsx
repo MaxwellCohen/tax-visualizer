@@ -11,11 +11,9 @@ export type ScenarioToolsProps = Omit<TaxHomeHandlersCtx, "showStatus">;
 
 export default function ScenarioTools(props: ScenarioToolsProps) {
   const [statusMessage, setStatusMessage] = createSignal<string | null>(null);
-  const [debugApplyCount, setDebugApplyCount] = createSignal(0);
 
   let statusTimer: number | undefined;
   const showStatus = (message: string) => {
-    console.log("showStatus called:", message);
     setStatusMessage(message);
     if (typeof window === "undefined") return;
     if (statusTimer !== undefined) window.clearTimeout(statusTimer);
@@ -23,7 +21,6 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
   };
 
   const wrappedSetTaxInput: typeof props.setTaxInput = (...args: Parameters<typeof props.setTaxInput>) => {
-    console.log("ScenarioTools setTaxInput called, args:", args);
     props.setTaxInput(...args);
   };
 
@@ -76,9 +73,7 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
           presets={props.presets}
           taxInput={props.taxInput}
           onApplyPreset={(id) => {
-            console.log("WRAPPER - onApplyPreset called with:", id);
             handlers.applyPreset(id);
-            console.log("WRAPPER - handlers.applyPreset returned");
           }}
         />
         <ScenarioToolsActions

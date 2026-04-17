@@ -1,6 +1,6 @@
-import type { FederalTaxCreditSource, FederalTaxCreditKind } from "~/lib/taxCalc.types";
+import type { FederalTaxCreditSource } from "~/lib/taxCalc.types";
 
-export const FEDERAL_TAX_CREDIT_KIND_VALUES: FederalTaxCreditKind[] = [
+export const FEDERAL_TAX_CREDIT_KIND_VALUES = [
   "childTaxCredit-childTaxCredit",
   "childTaxCredit-creditForOtherDependents",
   "educationCredits-educationCredits",

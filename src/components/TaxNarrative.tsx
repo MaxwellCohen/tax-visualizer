@@ -37,12 +37,13 @@ export default function TaxNarrative(props: TaxNarrativeProps) {
       effectiveTaxRate: chartMetricNumeric(r, "effectiveTaxRate"),
       deductionAmount: chartMetricNumeric(r, "deductionAmount"),
       standardDeduction: chartMetricNumeric(r, "standardDeduction"),
+      itemizedDeductions: chartMetricNumeric(r, "itemizedDeductions"),
     };
   });
 
   const deductionLabel = () =>
     deductionKindFromTaxResult(props.result) === "itemized"
-      ? `itemized deductions of ${money.format(v().deductionAmount)}`
+      ? `itemized deductions of ${money.format(v().itemizedDeductions)}`
       : `the ${money.format(v().standardDeduction)} standard deduction`;
 
   return (

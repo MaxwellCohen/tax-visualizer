@@ -1,5 +1,4 @@
 import type {
-  FederalTaxCreditKind,
   IncomeSource,
   ItemizedDeductionSource,
   FederalTaxCreditSource,
@@ -25,7 +24,7 @@ export function newIncomeRow(overrides?: Partial<Omit<TaxFormIncomeRow, "type">>
   return {
     type: "income",
     id: newId("inc"),
-    kind: "input-wages-wages",
+    kind: "income-ordinary-wages",
     label: "",
     amount: 0,
     ...overrides,
@@ -36,7 +35,7 @@ export function newPretaxRow(overrides?: Partial<Omit<TaxFormPretaxRow, "type">>
   return {
     type: "pretax",
     id: newId("ptx"),
-    kind: "input-401k-preTax401kSpouse1",
+    kind: "input-pretax-401K-preTax401kSpouse1",
     label: "",
     amount: 0,
     ...overrides,
@@ -58,7 +57,7 @@ export function newCreditRow(overrides?: Partial<Omit<TaxFormCreditRow, "type">>
   return {
     type: "credit",
     id: newId("crd"),
-    kind: "childTaxCredit" as FederalTaxCreditKind,
+    kind: "childTaxCredit",
     label: "",
     amount: 0,
     ...overrides,

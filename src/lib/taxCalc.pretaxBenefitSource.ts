@@ -37,23 +37,23 @@ function applyElectiveDeferral402gLimit(raw401: number, raw403: number, limit: n
 }
 
 export const PRETAX_BENEFIT_KIND_VALUES: PretaxBenefitKind[] = [
-  "input-401k-preTax401kSpouse1",
-  "input-401k-preTax403bSpouse1",
-  "input-401k-preTax457bSpouse1",
-  "input-401k-preTax401kSpouse2",
-  "input-401k-preTax403bSpouse2",
-  "input-401k-preTax457bSpouse2",
-  "hsa-preTaxHsaSpouse1",
-  "hsa-preTaxHsaSpouse2",
-  "otherPretax-preTaxOther",
-  "otherPretax-preTaxHealthFsaSpouse1",
-  "otherPretax-preTaxHealthFsaSpouse2",
-  "otherPretax-preTaxDependentCareFsaSpouse1",
-  "otherPretax-preTaxDependentCareFsaSpouse2",
-  "otherPretax-preTaxCommuterSpouse1",
-  "otherPretax-preTaxCommuterSpouse2",
-  "input-traditionalIra-traditionalIraSpouse1",
-  "input-traditionalIra-traditionalIraSpouse2",
+  "input-pretax-401K-preTax401kSpouse1",
+  "input-pretax-401K-preTax403bSpouse1",
+  "input-pretax-401K-preTax457bSpouse1",
+  "input-pretax-401K-preTax401kSpouse2",
+  "input-pretax-401K-preTax403bSpouse2",
+  "input-pretax-401K-preTax457bSpouse2",
+  "input-pretax-hsa-preTaxHsaSpouse1",
+  "input-pretax-hsa-preTaxHsaSpouse2",
+  "input-pretax-otherPretax-preTaxOther",
+  "input-pretax-otherPretax-preTaxHealthFsaSpouse1",
+  "input-pretax-otherPretax-preTaxHealthFsaSpouse2",
+  "input-pretax-otherPretax-preTaxDependentCareFsaSpouse1",
+  "input-pretax-otherPretax-preTaxDependentCareFsaSpouse2",
+  "input-pretax-otherPretax-preTaxCommuterSpouse1",
+  "input-pretax-otherPretax-preTaxCommuterSpouse2",
+  "input-pretax-traditionalIra-traditionalIraSpouse1",
+  "input-pretax-traditionalIra-traditionalIraSpouse2",
 ];
 
 export function isPretaxSpouse2Kind(kind: string): boolean {
@@ -86,7 +86,7 @@ export function aggregatePretaxFromSources(sources: PretaxBenefitSource[], joint
     } else if (kind.includes("457")) {
       if (kind.includes("spouse2") && joint) raw457s2 += amount;
       else raw457s1 += amount;
-    } else if (kind.includes("hsa")) {
+    } else if (kind.includes("input-pretax-hsa")) {
       if (kind.includes("spouse2") && joint) rawHsa2 += amount;
       else rawHsa1 += amount;
     } else if (kind.includes("traditionalira")) {
@@ -147,25 +147,25 @@ export function pretaxScalarsToMinimalSources(agg: AggregatedPretax): PretaxBene
   const sources: PretaxBenefitSource[] = [];
   
   if (agg.preTax401kSpouse1 > 0) {
-    sources.push({ id: "1", kind: "input-401k-preTax401kSpouse1", label: "401(k)", amount: agg.preTax401kSpouse1 });
+    sources.push({ id: "1", kind: "input-pretax-401K-preTax401kSpouse1", label: "401(k)", amount: agg.preTax401kSpouse1 });
   }
   if (agg.preTax401kSpouse2 > 0) {
-    sources.push({ id: "1b", kind: "input-401k-preTax401kSpouse2", label: "401(k) (2)", amount: agg.preTax401kSpouse2 });
+    sources.push({ id: "1b", kind: "input-pretax-401K-preTax401kSpouse2", label: "401(k) (2)", amount: agg.preTax401kSpouse2 });
   }
   if (agg.preTaxHsaSpouse1 > 0) {
-    sources.push({ id: "2", kind: "hsa-preTaxHsaSpouse1", label: "HSA", amount: agg.preTaxHsaSpouse1 });
+    sources.push({ id: "2", kind: "input-pretax-hsa-preTaxHsaSpouse1", label: "HSA", amount: agg.preTaxHsaSpouse1 });
   }
   if (agg.preTaxHsaSpouse2 > 0) {
-    sources.push({ id: "2b", kind: "hsa-preTaxHsaSpouse2", label: "HSA (2)", amount: agg.preTaxHsaSpouse2 });
+    sources.push({ id: "2b", kind: "input-pretax-hsa-preTaxHsaSpouse2", label: "HSA (2)", amount: agg.preTaxHsaSpouse2 });
   }
   if (agg.traditionalIraSpouse1 > 0) {
-    sources.push({ id: "3", kind: "input-traditionalIra-traditionalIraSpouse1", label: "Traditional IRA", amount: agg.traditionalIraSpouse1 });
+    sources.push({ id: "3", kind: "input-pretax-traditionalIra-traditionalIraSpouse1", label: "Traditional IRA", amount: agg.traditionalIraSpouse1 });
   }
   if (agg.traditionalIraSpouse2 > 0) {
-    sources.push({ id: "3b", kind: "input-traditionalIra-traditionalIraSpouse2", label: "Traditional IRA (2)", amount: agg.traditionalIraSpouse2 });
+    sources.push({ id: "3b", kind: "input-pretax-traditionalIra-traditionalIraSpouse2", label: "Traditional IRA (2)", amount: agg.traditionalIraSpouse2 });
   }
   if (agg.preTaxOther > 0) {
-    sources.push({ id: "4", kind: "otherPretax-preTaxOther", label: "Other", amount: agg.preTaxOther });
+    sources.push({ id: "4", kind: "input-pretax-otherPretax-preTaxOther", label: "Other", amount: agg.preTaxOther });
   }
   
   return sources;

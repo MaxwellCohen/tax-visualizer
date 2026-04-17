@@ -24,8 +24,9 @@ export function SankeyLinkPaths(props: Props) {
         const targetNode = link.target as ChartNode;
         const { x, y } = linkLabelPosition(link);
         const amount = sankeyMoney.format(link.value ?? 0);
+        console.log(`path: ${sourceNode.id} -> ${targetNode.id} row: ${link.row} col: ${link.col} value: ${link.value}`)
         return (
-          <g data-link={`${sourceNode.id} - ${targetNode.id}`} data-row={link.row} data-col={link.col}>
+          <g data-link={`${sourceNode.id} - ${targetNode.id}`} data-row={link.row} data-col={link.col} data-val={link.value}>
             <title>{`${sourceNode.label} → ${targetNode.label}: ${amount}`}</title>
             <path
               d={sankeyLinkPath(link) ?? ""}

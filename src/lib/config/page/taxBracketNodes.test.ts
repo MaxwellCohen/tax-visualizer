@@ -15,8 +15,8 @@ function makeInputs(
 ): TaxFormRow[] {
     return [
         { type: "setting", id: "filingStatus", value: filingStatus },
-        { type: "income", id: "wages-1", kind: "input-wages-wages", label: "Salary", amount: wages },
-        { type: "income", id: "ltcg-1", kind: "input-longTermCapGains-longTermCapGains", label: "Brokerage sale", amount: ltcg },
+        { type: "income", id: "wages-1", kind: "income-ordinary-wages", label: "Salary", amount: wages },
+        { type: "income", id: "ltcg-1", kind: "income-longTermCapGains-longTermCapGains", label: "Brokerage sale", amount: ltcg },
     ];
 }
 
@@ -69,11 +69,11 @@ describe("getLtcgBracketItems", () => {
         const inputs: TaxFormRow[] = [
             { type: "setting", id: "taxYear", value: 2026 },
             { type: "setting", id: "filingStatus", value: "single" },
-            { type: "income", id: "d7961f70-0cab-44c7-bc2a-8ecb247f7f5b", kind: "input-wages-wages", label: "Salary", amount: 120000 },
-            { type: "income", id: "ab23fb03-ae31-4748-a5ca-40a8d18ee78b", kind: "input-longTermCapGains-longTermCapGains", label: "Brokerage sale", amount: 25000 },
+            { type: "income", id: "d7961f70-0cab-44c7-bc2a-8ecb247f7f5b", kind: "income-ordinary-wages", label: "Salary", amount: 120000 },
+            { type: "income", id: "ab23fb03-ae31-4748-a5ca-40a8d18ee78b", kind: "income-longTermCapGains-longTermCapGains", label: "Brokerage sale", amount: 25000 },
             { type: "setting", id: "useItemizedDeductions", value: false },
             { type: "deduction", id: "cc8ec310-93ed-4ac4-ae29-972793043382", kind: "otherItemized", label: "", amount: 0 },
-            { type: "credit", id: "44b8dfb2-810e-411d-a08f-8232fad0c477", kind: "childTaxCredit-childTaxCredit", label: "", amount: 0 },
+            { type: "credit", id: "44b8dfb2-810e-411d-a08f-8232fad0c477", kind: "input-credit-childTax-childTax", label: "", amount: 0 },
         ];
         
         const items = getLtcgBracketItems(taxData2026, "single");
@@ -90,8 +90,8 @@ describe("getLtcgBracketItems", () => {
             rows: [
                 { type: "setting", id: "taxYear", value: 2026 },
                 { type: "setting", id: "filingStatus", value: "single" },
-                { type: "income", id: "wages-1", kind: "input-wages-wages", label: "Salary", amount: 120000 },
-                { type: "income", id: "ltcg-1", kind: "input-longTermCapGains-longTermCapGains", label: "Brokerage sale", amount: 25000 },
+                { type: "income", id: "wages-1", kind: "income-ordinary-wages", label: "Salary", amount: 120000 },
+                { type: "income", id: "ltcg-1", kind: "income-longTermCapGains-longTermCapGains", label: "Brokerage sale", amount: 25000 },
                 { type: "setting", id: "useItemizedDeductions", value: false },
             ],
         };

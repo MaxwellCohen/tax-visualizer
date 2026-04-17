@@ -5,12 +5,8 @@ import type { TaxFormData } from "~/lib/taxForm.types";
 import {
   fallbackScenario,
   normalizeTaxYear,
-  sanitizeFederalTaxCreditKind,
   sanitizeFilingStatus,
-  sanitizeIncomeKind,
-  sanitizeItemizedDeductionKind,
   sanitizeMoney,
-  sanitizePretaxBenefitKind,
 } from "~/lib/taxScenario.sanitizeHelpers";
 
 function sanitizeSettingRow(raw: Record<string, unknown>): TaxFormRow | null {
@@ -39,7 +35,7 @@ function sanitizeOneRow(raw: unknown, index: number): TaxFormRow | null {
     return {
       type: "income",
       id: typeof o.id === "string" && o.id.trim() ? o.id : `inc-${index}`,
-      kind: sanitizeIncomeKind(o.kind),
+      kind: o.kind as string,
       label: typeof o.label === "string" ? o.label : "",
       amount: sanitizeMoney(o.amount),
     };
@@ -48,7 +44,7 @@ function sanitizeOneRow(raw: unknown, index: number): TaxFormRow | null {
     return {
       type: "pretax",
       id: typeof o.id === "string" && o.id.trim() ? o.id : `ptx-${index}`,
-      kind: sanitizePretaxBenefitKind(o.kind),
+      kind: o.kind as string,
       label: typeof o.label === "string" ? o.label : "",
       amount: sanitizeMoney(o.amount),
     };
@@ -57,7 +53,7 @@ function sanitizeOneRow(raw: unknown, index: number): TaxFormRow | null {
     return {
       type: "deduction",
       id: typeof o.id === "string" && o.id.trim() ? o.id : `itm-${index}`,
-      kind: sanitizeItemizedDeductionKind(o.kind),
+      kind: o.kind as string,
       label: typeof o.label === "string" ? o.label : "",
       amount: sanitizeMoney(o.amount),
     };
@@ -66,7 +62,7 @@ function sanitizeOneRow(raw: unknown, index: number): TaxFormRow | null {
     return {
       type: "credit",
       id: typeof o.id === "string" && o.id.trim() ? o.id : `crd-${index}`,
-      kind: sanitizeFederalTaxCreditKind(o.kind),
+      kind: o.kind as string,
       label: typeof o.label === "string" ? o.label : "",
       amount: sanitizeMoney(o.amount),
     };

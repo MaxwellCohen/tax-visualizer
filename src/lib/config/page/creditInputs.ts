@@ -2,7 +2,12 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import type { configItem } from "./pageConfig.types";
-import { findInputById } from "./pageConfig.helpers";
+import {
+    childTaxCredit,
+    educationCredits,
+    retirementSavingsContributions,
+    otherCredit,
+} from "./pageConfig.inputs";
 
 const creditSankeyNode = { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)", row: 3, col: 2 } as const;
 const creditSankeyLink = { fill: "var(--sankey-link-credits)", stroke: "var(--sankey-link-credits)", row: 3, col: 2 } as const;
@@ -10,7 +15,7 @@ const creditSankeyLink = { fill: "var(--sankey-link-credits)", stroke: "var(--sa
 export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
         {
-            id: "childTaxCredit",
+            id: "input-credit-childTax",
             label: "Child Tax Credit",
             shortLabel: "CTC",
             description: "Credit for qualifying children (up to $2000 per child)",
@@ -22,22 +27,22 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 displayOrder: 1,
                 inputType: "currency",
                 subcategories: [
-                    { key: "childTaxCredit-childTaxCredit", labelSingle: "Child tax credit", labelJoint: "Child tax credit" },
-                    { key: "childTaxCredit-creditForOtherDependents", labelSingle: "Credit for other dependents", labelJoint: "Credit for other dependents" },
+                    { key: "input-credit-childTax-childTax", labelSingle: "Child tax credit", labelJoint: "Child tax credit" },
+                    { key: "input-credit-childTax-otherDependents", labelSingle: "Credit for other dependents", labelJoint: "Credit for other dependents" },
                 ],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };
                 },
             },
-            calculate: (inputs: TaxFormRow[]) => findInputById(inputs, "childTaxCredit"),
+            calculate: childTaxCredit,
             sankeySettings: {
                 node: creditSankeyNode,
-                link: [{ source: "childTaxCredit", target: "federalTaxCredits", ...creditSankeyLink }],
+                link: [{ source: "input-credit-childTax", target: "federalTaxCredits", ...creditSankeyLink }],
             },
         },
         {
-            id: "educationCredits",
+            id: "input-credit-education",
             label: "Education Credits",
             shortLabel: "Education",
             description: "American opportunity credit and/or lifetime learning credit",
@@ -48,16 +53,16 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 category: "credit",
                 displayOrder: 2,
                 inputType: "currency",
-                subcategories: [{ key: "educationCredits-educationCredits", labelSingle: "Education credits (AOTC / LLC)", labelJoint: "Education credits (AOTC / LLC)" }],
+                subcategories: [{ key: "input-credit-education-education", labelSingle: "Education credits (AOTC / LLC)", labelJoint: "Education credits (AOTC / LLC)" }],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };
                 },
             },
-            calculate: (inputs: TaxFormRow[]) => findInputById(inputs, "educationCredits"),
+            calculate: educationCredits,
             sankeySettings: {
                 node: creditSankeyNode,
-                link: [{ source: "educationCredits", target: "federalTaxCredits", ...creditSankeyLink }],
+                link: [{ source: "input-credit-education", target: "federalTaxCredits", ...creditSankeyLink }],
             },
         },
         {
@@ -81,14 +86,14 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                     return { valid: true };
                 },
             },
-            calculate: (inputs: TaxFormRow[]) => findInputById(inputs, "retirementSavingsContributions"),
+            calculate: retirementSavingsContributions,
             sankeySettings: {
                 node: creditSankeyNode,
                 link: [{ source: "retirementSavingsContributions", target: "federalTaxCredits", ...creditSankeyLink }],
             },
         },
         {
-            id: "otherFederalCredit",
+            id: "input-credit-other",
             label: "Other Federal Credit",
             shortLabel: "Other",
             description: "Any other federal income tax credit",
@@ -100,22 +105,22 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 displayOrder: 4,
                 inputType: "currency",
                 subcategories: [
-                    { key: "otherFederalCredit-otherFederalCredit", labelSingle: "Other federal credit", labelJoint: "Other federal credit" },
-                    { key: "otherFederalCredit-childAndDependentCare", labelSingle: "Child and dependent care credit", labelJoint: "Child and dependent care credit" },
-                    { key: "otherFederalCredit-foreignTaxCredit", labelSingle: "Foreign tax credit", labelJoint: "Foreign tax credit" },
-                    { key: "otherFederalCredit-residentialCleanEnergy", labelSingle: "Residential clean energy credit", labelJoint: "Residential clean energy credit" },
-                    { key: "otherFederalCredit-electricVehicleCredit", labelSingle: "Clean vehicle / EV credit", labelJoint: "Clean vehicle / EV credit" },
-                    { key: "otherFederalCredit-generalBusinessCredit", labelSingle: "General business credit", labelJoint: "General business credit" },
+                    { key: "input-credit-other-otherFederalCredit", labelSingle: "Other federal credit", labelJoint: "Other federal credit" },
+                    { key: "input-credit-other-childAndDependentCare", labelSingle: "Child and dependent care credit", labelJoint: "Child and dependent care credit" },
+                    { key: "input-credit-other-foreignTaxCredit", labelSingle: "Foreign tax credit", labelJoint: "Foreign tax credit" },
+                    { key: "input-credit-other-residentialCleanEnergy", labelSingle: "Residential clean energy credit", labelJoint: "Residential clean energy credit" },
+                    { key: "input-credit-other-electricVehicleCredit", labelSingle: "Clean vehicle / EV credit", labelJoint: "Clean vehicle / EV credit" },
+                    { key: "input-credit-other-generalBusinessCredit", labelSingle: "General business credit", labelJoint: "General business credit" },
                 ],
                 validate: (value) => {
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     return { valid: true };
                 },
             },
-            calculate: (inputs: TaxFormRow[]) => findInputById(inputs, "otherFederalCredit"),
+            calculate: otherCredit,
             sankeySettings: {
                 node: creditSankeyNode,
-                link: [{ source: "otherFederalCredit", target: "federalTaxCredits", ...creditSankeyLink }],
+                link: [{ source: "input-credit-other", target: "federalTaxCredits", ...creditSankeyLink }],
             },
         },
     ];
