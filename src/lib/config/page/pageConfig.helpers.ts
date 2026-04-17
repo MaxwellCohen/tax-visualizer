@@ -1,7 +1,7 @@
 import type { FilingStatus, TaxYearConfig, LongTermCapGainsThresholds, FederalTaxBracket } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import { allPretax, useItemizedDeductions, wageIncome } from "./pageConfig.inputs";
-import { calculatePayrollTax } from "./pageConfig.finalTaxContext";
+import { calculatePayrollTax } from "./taxCalculations";
 
 export function findInputById(inputs: TaxFormRow[], id: string): number {
 

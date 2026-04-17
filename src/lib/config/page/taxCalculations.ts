@@ -24,6 +24,8 @@ import {
     educationCredits,
     retirementSavingsContributions,
     otherCredit,
+    totalIncome,
+    allPretax,
 } from "./pageConfig.inputs";
 
 export * from "./pageConfig.inputs";
@@ -44,6 +46,44 @@ export function calculateSelfEmploymentTax(inputs: TaxFormRow[], taxData: TaxYea
     const medicareTax = netEarnings * taxData.payroll.medicareRate * 2;
     return ssTax + medicareTax;
 };
+
+export function calculateSelfEmploymentTaxFromIncome(seIncome: number, taxData: TaxYearConfig): number {
+    const netEarnings = seIncome * 0.9235;
+    const ssTaxable = Math.min(netEarnings, taxData.payroll.socialSecurityWageBase);
+    const ssTax = ssTaxable * taxData.payroll.socialSecurityRate * 2;
+    const medicareTax = netEarnings * taxData.payroll.medicareRate * 2;
+    return ssTax + medicareTax;
+}
+
+export function calculateSelfEmploymentDeduction(seIncome: number, taxData: TaxYearConfig): number {
+    return calculateSelfEmploymentTaxFromIncome(seIncome, taxData) / 2;
+}
+
+export type TaxableIncomeResult = {
+    ordinary: number;
+    ltcg: number;
+    total: number;
+    afterPretax: number;
+    deduction: number;
+};
+
+export function calculateTaxableIncome(
+    inputs: TaxFormRow[],
+    taxData: TaxYearConfig,
+    filingStatus: FilingStatus
+): TaxableIncomeResult {
+    const seIncome = selfEmploymentIncome(inputs);
+    const seTax = calculateSelfEmploymentTaxFromIncome(seIncome, taxData);
+    const seDeduction = seTax / 2;
+    const pretax = allPretax(inputs);
+    const afterPretax = totalIncome(inputs) - pretax - seDeduction;
+    const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
+    const standard = getStandardDeduction(inputs, taxData, filingStatus);
+    const deduction = Math.max(itemized, standard);
+    const ordinary = Math.max(0, afterPretax - deduction);
+    const ltcg = longTermCapGains(inputs);
+    return { ordinary, ltcg, total: ordinary + ltcg, afterPretax, deduction };
+}
 
 
 export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: FilingStatus) {

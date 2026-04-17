@@ -1,7 +1,7 @@
 /** Pre-tax inputs: 401(k), HSA, traditional IRA, other payroll pre-tax. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
-import { _401k } from "./pageConfig.finalTaxContext";
+import { _401k } from "./pageConfig.inputs";
 
 export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [

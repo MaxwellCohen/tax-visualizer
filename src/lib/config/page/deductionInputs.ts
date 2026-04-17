@@ -2,7 +2,7 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import { TaxFormRow } from "~/lib/taxForm.types";
-import { calculatePayrollTax } from "~/lib/config/page/pageConfig.finalTaxContext";
+import { calculatePayrollTax } from "~/lib/config/page/taxCalculations";
 import { charitable, medicalDental, mortgageInterest, salt, useItemizedDeductions } from "./pageConfig.inputs";
 import { getStandardDeduction } from "./pageConfig.helpers";
 

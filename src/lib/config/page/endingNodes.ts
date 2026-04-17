@@ -2,7 +2,7 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import { calculateLtcgTaxTotal, calculateOrdinaryTaxTotal, getOrdinaryBrackets, getStandardDeduction } from "./pageConfig.helpers";
-import { buildFinalTaxContext } from "./pageConfig.finalTaxContext";
+import { buildFinalTaxContext } from "./taxCalculations";
 
 export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
     const ctx = buildFinalTaxContext(taxData, filingStatus);
