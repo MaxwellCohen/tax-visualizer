@@ -4,10 +4,10 @@ import { HomeHeader } from "~/routes/taxHome/HomeHeader";
 import { HomeTaxResults } from "~/routes/taxHome/HomeTaxResults";
 import ScenarioTools from "~/components/ScenarioTools";
 import TaxInputForm from "~/components/TaxInputForm";
-import { calculateTaxes, calculateAllConfigValues, type CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
-import type { TaxFormData } from "~/lib/taxForm.types";
-import { getTaxYearFromRows, getFilingStatusFromRows } from "~/lib/taxCalc.inputs";
-import { getAvailableTaxYears, isPlanningTaxYear, getTaxYearConfig } from "~/lib/taxData";
+import { calculateTaxes } from "~/lib/taxCalc.calculateTaxes";
+import type { TaxFormData } from "~/lib/taxForm.types"
+import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
+import { getAvailableTaxYears, isPlanningTaxYear } from "~/lib/taxData";
 import { getScenarioPresets } from "~/lib/taxScenario";
 import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { wireTaxHomePersistence } from "~/routes/taxHome/taxHomePersistence";
@@ -21,21 +21,9 @@ export default function HomeContent() {
   const [baselineInput, setBaselineInput] = createSignal<TaxFormData | null>(null);
 
   const taxResult = createMemo(() => calculateTaxes(taxInput()));
-  const baselineResult = createMemo(() => {
-    const saved = baselineInput();
-    return saved ? calculateTaxes(saved) : null;
-  });
   const isPlanningYear = createMemo(() => isPlanningTaxYear(getTaxYearFromRows(taxInput().rows)));
 
-  const calculatedConfig = createMemo((): CalculatedConfigItem[] | null => {
-    const input = taxInput();
-    const rows = input.rows;
-    const taxYear = getTaxYearFromRows(rows);
-    const taxData = getTaxYearConfig(taxYear);
-    if (!taxData) return null;
-    const filingStatus = getFilingStatusFromRows(rows);
-    return calculateAllConfigValues(input, taxData, filingStatus);
-  });
+
 
   const { syncScenarioToUrl } = wireTaxHomePersistence({
     taxInput,
@@ -47,7 +35,6 @@ export default function HomeContent() {
   effect(() => {
     console.log("root taxInput", taxInput());
     console.log("root taxResult", taxResult());
-    console.log("root calculatedConfig", calculatedConfig());
   });
 
   return (
@@ -75,9 +62,8 @@ export default function HomeContent() {
 
       <HomeTaxResults
         taxResult={taxResult}
-        baselineResult={baselineResult}
+        taxInput={taxInput}
         isPlanningYear={isPlanningYear}
-        calculatedConfig={calculatedConfig}
       />
     </main>
   );

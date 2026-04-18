@@ -6,7 +6,6 @@ import { TaxSummaryMetric } from "~/components/taxSummary/TaxSummaryMetric";
 
 type TaxSummaryProps = {
   result: TaxResult;
-  baselineResult?: TaxResult | null;
 };
 
 function MetricItem(props: { metric: MetricDisplay }) {
@@ -32,23 +31,6 @@ function MetricItem(props: { metric: MetricDisplay }) {
   );
 }
 
-function BaselineComparison(props: { result: TaxResult; baseline: TaxResult }) {
-  const comparisons = () => getBaselineComparison(props.result, props.baseline);
-  
-  return (
-    <div class="grid gap-3 md:grid-cols-3">
-      {comparisons().map((comp) => (
-        <TaxSummaryMetric
-          label={`Vs baseline ${comp.label.toLowerCase()}`}
-          value={comp.delta ?? comp.currentValue}
-          highlight={comp.isPositiveDelta !== undefined ? 
-            (comp.id === "take-home-pay" ? comp.isPositiveDelta : !comp.isPositiveDelta) 
-            : false}
-        />
-      ))}
-    </div>
-  );
-}
 
 function FootnotesDisplay(props: { footnotes: FootnoteDisplay[] }) {
   if (props.footnotes.length === 0) return null;
@@ -94,9 +76,6 @@ export default function TaxSummary(props: TaxSummaryProps) {
             <MetricItem metric={m} />
           ))}
         </div>
-        <Show when={props.baselineResult}>
-          <BaselineComparison result={props.result} baseline={props.baselineResult!} />
-        </Show>
         <FootnotesDisplay footnotes={footnotes()} />
       </CollapsibleBlock>
     </section>

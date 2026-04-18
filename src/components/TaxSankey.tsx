@@ -1,4 +1,4 @@
-import { Show, createMemo } from "solid-js";
+import { Accessor, Show, createMemo } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { sankey } from "d3-sankey";
 import type { SankeyGraph } from "d3-sankey";
@@ -11,7 +11,7 @@ import { SankeyLink } from "~/lib/config/page/Page.config";
 import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 
 type TaxSankeyProps = {
-  calculatedConfig: CalculatedConfigItem[] | null;
+  calculatedConfig: Accessor<CalculatedConfigItem[] | null>;
 };
 
 function makeSankeyData(cc: CalculatedConfigItem[] | null) {
@@ -91,7 +91,7 @@ function makeSankeyData(cc: CalculatedConfigItem[] | null) {
 }
 
 export default function TaxSankey(props: TaxSankeyProps) {
-  const sankeyData = createMemo(() => makeSankeyData(props.calculatedConfig));
+  const sankeyData = createMemo(() => makeSankeyData(props.calculatedConfig()));
 
   return (
     <section

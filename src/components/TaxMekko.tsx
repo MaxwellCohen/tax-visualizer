@@ -1,4 +1,4 @@
-import { Show, createMemo } from "solid-js";
+import { Accessor, Show, createMemo } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 import { buildMekkoFromConfig } from "~/lib/taxCharts.buildMekko";
@@ -6,14 +6,14 @@ import { MekkoChartSvg } from "~/components/taxMekko/MekkoChartSvg";
 import { computeMekkoLayout } from "~/components/taxMekko/mekkoLayout";
 
 type TaxMekkoProps = {
-  calculatedConfig: CalculatedConfigItem[] | null;
+  calculatedConfig: Accessor<CalculatedConfigItem[] | null>;
 };
 
 export default function TaxMekko(props: TaxMekkoProps) {
   const layout = createMemo(() => {
-    if (!props.calculatedConfig) return undefined;
-    const rows = buildMekkoFromConfig(props.calculatedConfig);
-    return computeMekkoLayout(props.calculatedConfig, rows);
+    if (!props.calculatedConfig()) return undefined;
+    const rows = buildMekkoFromConfig(props.calculatedConfig()!);
+    return computeMekkoLayout(props.calculatedConfig()!, rows);
   });
 
   return (

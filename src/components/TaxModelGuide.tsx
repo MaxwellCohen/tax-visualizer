@@ -38,11 +38,6 @@ export default function TaxModelGuide(props: TaxModelGuideProps) {
       <CollapsibleBlock title="Model guide" bodyClass="mt-4">
         <div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
           <GuideColumn title="What this models">
-            <li>
-              One calculation path: the app runs <code class="rounded bg-black/5 px-1">calculateTaxes</code> once per
-              scenario and passes the resulting totals to the summary, Sankey, and Mekko (charts do not use a separate tax
-              engine).
-            </li>
             <li>Federal ordinary income tax brackets (short-term gains use these same rates).</li>
             <li>Long-term capital gains stacked on top of ordinary taxable income.</li>
             <li>Estimated net investment income tax (NIIT) on short- and long-term gains when income exceeds filing thresholds.</li>
