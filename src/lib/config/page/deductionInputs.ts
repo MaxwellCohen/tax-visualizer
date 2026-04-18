@@ -3,6 +3,7 @@ import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import { calculatePayrollTax } from "~/lib/config/page/taxCalculations";
 import { charitable, medicalDental, mortgageInterest } from "./pageConfig.inputs";
+import { getStandardDeduction } from "./pageConfig.helpers";
 
 
 export function makePayrollFromWagesInputConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
@@ -58,19 +59,19 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
 
         {
             id: "standard",
-            label: "0% tax (standard deduction)",
+            label: "0% tax",
             shortLabel: "Standard",
             description: "Standard deduction based on filing status",
             kindDetail: {
                 modelingNote: "Applied automatically if greater than itemized deductions",
             },
             sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
+                // node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 link: [
                     { source: "ordinaryTaxableIncome", target: "standardDeduction", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
                 ],
             },
-            // calculate: getStandardDeduction
+            calculate: getStandardDeduction
         },
         {
             id: "deduction-salt",

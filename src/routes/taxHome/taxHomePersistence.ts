@@ -10,13 +10,56 @@ import {
   serializeScenarioInput,
 } from "~/lib/taxScenario";
 
+/** Max total URL length before dropping the scenario query param (browser/practical limits). */
+export const MAX_SCENARIO_URL_LENGTH = 10_000;
+
+/** Tracks the last `scenario` query value after we sync the address bar (for tooling / consistency). */
+const SESSION_LAST_URL_SCENARIO_Q = "taxvizLastUrlScenarioQ";
+
+function writeSessionLastUrlScenario(encodedParam: string | null): void {
+  try {
+    window.sessionStorage.setItem(SESSION_LAST_URL_SCENARIO_Q, encodedParam ?? "");
+  } catch {
+    /* private mode */
+  }
+}
+
+function syncSessionStorageWithAddressBar(): void {
+  if (typeof window === "undefined") return;
+  const v = new URL(window.location.href).searchParams.get(SCENARIO_QUERY_PARAM);
+  writeSessionLastUrlScenario(v);
+}
+
 type PersistenceArgs = {
   taxInput: Accessor<TaxFormData>;
   setTaxInput: Setter<TaxFormData>;
   setBaselineInput: Setter<TaxFormData | null>;
 };
 
-export function wireTaxHomePersistence(args: PersistenceArgs): void {
+/**
+ * Builds a full URL string with the serialized scenario, mirroring address-bar update rules.
+ * Use for share links so the clipboard matches what `applyScenarioToUrl` would set.
+ */
+export function buildUrlWithScenario(baseHref: string, input: TaxFormData): string {
+  const encoded = serializeScenarioInput(input);
+  const url = new URL(baseHref);
+  url.searchParams.set(SCENARIO_QUERY_PARAM, encoded);
+  if (url.toString().length > MAX_SCENARIO_URL_LENGTH) {
+    url.searchParams.delete(SCENARIO_QUERY_PARAM);
+  }
+  return url.toString();
+}
+
+export function applyScenarioToUrl(input: TaxFormData): void {
+  if (typeof window === "undefined") return;
+  const next = buildUrlWithScenario(window.location.href, input);
+  window.history.replaceState({}, "", next);
+  syncSessionStorageWithAddressBar();
+}
+
+export function wireTaxHomePersistence(args: PersistenceArgs): {
+  syncScenarioToUrl: () => void;
+} {
   const [storageReady, setStorageReady] = createSignal(false);
   const availableYears = getAvailableTaxYears();
   const defaultYear = availableYears[0] ?? new Date().getFullYear();
@@ -24,19 +67,18 @@ export function wireTaxHomePersistence(args: PersistenceArgs): void {
   onMount(() => {
     const url = new URL(window.location.href);
     const sharedScenario = url.searchParams.get(SCENARIO_QUERY_PARAM);
-    
-    // Always prefer URL param if present - this enables sharing via URL
-    const urlInput = sharedScenario
+    const hasScenarioQuery = sharedScenario != null && sharedScenario.length > 0;
+
+    const urlInput = hasScenarioQuery
       ? deserializeScenarioInput(sharedScenario, availableYears, defaultYear)
       : null;
-    
+
     let savedInput: ReturnType<typeof deserializeScenarioInput> = null;
     let savedBaseline: ReturnType<typeof deserializeScenarioInput> = null;
 
     try {
       const storedScenario = window.localStorage.getItem(SAVED_SCENARIO_STORAGE_KEY);
-      // Only use localStorage if no URL param
-      if (!urlInput && storedScenario) {
+      if (storedScenario) {
         savedInput = deserializeScenarioInput(storedScenario, availableYears, defaultYear);
       }
       const storedBaseline = window.localStorage.getItem(BASELINE_SCENARIO_STORAGE_KEY);
@@ -47,10 +89,17 @@ export function wireTaxHomePersistence(args: PersistenceArgs): void {
       console.warn("Failed to read scenarios from localStorage:", e);
     }
 
-    if (urlInput) {
-      args.setTaxInput(urlInput);
+    // URL is authoritative when ?scenario= is present; otherwise use localStorage, else keep starter.
+    if (hasScenarioQuery) {
+      if (urlInput) {
+        args.setTaxInput(urlInput);
+        writeSessionLastUrlScenario(sharedScenario);
+      } else if (savedInput) {
+        args.setTaxInput(savedInput);
+      }
     } else if (savedInput) {
       args.setTaxInput(savedInput);
+      writeSessionLastUrlScenario(null);
     }
 
     if (savedBaseline) {
@@ -64,22 +113,19 @@ export function wireTaxHomePersistence(args: PersistenceArgs): void {
     if (!storageReady() || typeof window === "undefined") return;
     const input = args.taxInput();
     const encoded = serializeScenarioInput(input);
-    
+
     // Always save to localStorage (primary persistence)
     try {
       window.localStorage.setItem(SAVED_SCENARIO_STORAGE_KEY, encoded);
     } catch (e) {
       console.warn("Failed to save scenario to localStorage:", e);
     }
-    
-    // Update URL only if it fits within reasonable length
-    // localStorage is the source of truth, URL is optional for sharing
-    const url = new URL(window.location.href);
-    url.searchParams.set(SCENARIO_QUERY_PARAM, encoded);
-    if (url.toString().length > 10000) {
-      // For very long URLs, use localStorage only for persistence
-      url.searchParams.delete(SCENARIO_QUERY_PARAM);
-    }
-    window.history.replaceState({}, "", url);
   });
+
+  return {
+    syncScenarioToUrl: () => {
+      if (!storageReady() || typeof window === "undefined") return;
+      applyScenarioToUrl(args.taxInput());
+    },
+  };
 }

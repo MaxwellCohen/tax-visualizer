@@ -4,6 +4,7 @@ import { TaxInputFormDeductionSection } from "~/components/taxInputForm/TaxInput
 import { TaxInputFormFilingSection } from "~/components/taxInputForm/TaxInputFormFilingSection";
 import { TaxInputFormIncomeSection } from "~/components/taxInputForm/TaxInputFormIncomeSection";
 import { TaxInputFormPreTaxSection } from "~/components/taxInputForm/TaxInputFormPreTaxSection";
+import { TaxInputCommitToUrlProvider } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import { createTaxInputForm, type TaxInputFormOuterProps } from "~/components/taxInputForm/hooks/formCore";
 import { wireTaxYearLimitsEffect } from "~/components/taxInputForm/hooks/taxYearLimitsEffect";
 
@@ -42,50 +43,50 @@ export default function TaxInputForm(props: TaxInputFormProps) {
   };
 
   return (
-    <form
-      class="rounded-xl p-5 background-surface border-border shadow-shadow"
-    >
-      <CollapsibleBlock title="Filing details & income" bodyClass="mt-4 space-y-4">
-        <TaxInputFormFilingSection form={form} values={values} availableYears={props.availableYears} />
-        <TaxInputFormIncomeSection
-          form={form}
-          values={values}
-          addSource={addSource}
-          removeSourceAt={removeSourceAt}
-          taxData={taxData}
-          filingStatus={filingStatus}
-        />
-        <TaxInputFormPreTaxSection
-          form={form}
-          values={values}
-          preTaxBenefitsTotal={limits.preTaxBenefitsTotal}
-          isMarriedJoint={limits.isMarriedJoint}
-          addPretaxBenefit={addPretaxBenefit}
-          removePretaxBenefitAt={removePretaxBenefitAt}
-          clearAll={clearAllPretaxBenefits}
-          taxData={taxData}
-          filingStatus={filingStatus}
-        />
-        <TaxInputFormDeductionSection
-          form={form}
-          values={values}
-          standardDeduction={deduction.standardDeduction}
-          itemizedBeatsStandard={deduction.itemizedBeatsStandard}
-          addItemizedDeduction={addItemizedDeduction}
-          removeItemizedDeductionAt={removeItemizedDeductionAt}
-          clearAll={clearAllItemizedDeductions}
-          taxData={taxData}
-        />
-        <TaxInputFormCreditsSection
-          form={form}
-          values={values}
-          addFederalTaxCredit={addFederalTaxCredit}
-          removeFederalTaxCreditAt={removeFederalTaxCreditAt}
-          clearAll={clearAllFederalTaxCredits}
-          taxData={taxData}
-          filingStatus={filingStatus}
-        />
-      </CollapsibleBlock>
-    </form>
+    <TaxInputCommitToUrlProvider onCommitToUrl={props.onCommitToUrl}>
+      <form class="rounded-xl p-5 background-surface border-border shadow-shadow">
+        <CollapsibleBlock title="Filing details & income" bodyClass="mt-4 space-y-4">
+          <TaxInputFormFilingSection form={form} values={values} availableYears={props.availableYears} />
+          <TaxInputFormIncomeSection
+            form={form}
+            values={values}
+            addSource={addSource}
+            removeSourceAt={removeSourceAt}
+            taxData={taxData}
+            filingStatus={filingStatus}
+          />
+          <TaxInputFormPreTaxSection
+            form={form}
+            values={values}
+            preTaxBenefitsTotal={limits.preTaxBenefitsTotal}
+            isMarriedJoint={limits.isMarriedJoint}
+            addPretaxBenefit={addPretaxBenefit}
+            removePretaxBenefitAt={removePretaxBenefitAt}
+            clearAll={clearAllPretaxBenefits}
+            taxData={taxData}
+            filingStatus={filingStatus}
+          />
+          <TaxInputFormDeductionSection
+            form={form}
+            values={values}
+            standardDeduction={deduction.standardDeduction}
+            itemizedBeatsStandard={deduction.itemizedBeatsStandard}
+            addItemizedDeduction={addItemizedDeduction}
+            removeItemizedDeductionAt={removeItemizedDeductionAt}
+            clearAll={clearAllItemizedDeductions}
+            taxData={taxData}
+          />
+          <TaxInputFormCreditsSection
+            form={form}
+            values={values}
+            addFederalTaxCredit={addFederalTaxCredit}
+            removeFederalTaxCreditAt={removeFederalTaxCreditAt}
+            clearAll={clearAllFederalTaxCredits}
+            taxData={taxData}
+            filingStatus={filingStatus}
+          />
+        </CollapsibleBlock>
+      </form>
+    </TaxInputCommitToUrlProvider>
   );
 }

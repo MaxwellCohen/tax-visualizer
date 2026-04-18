@@ -8,6 +8,7 @@ import {
   serializeScenarioInput,
 } from "~/lib/taxScenario";
 import { cloneScenario, starterScenario } from "~/routes/taxHome/scenarioInit";
+import { buildUrlWithScenario } from "~/routes/taxHome/taxHomePersistence";
 
 export type TaxHomeHandlersCtx = {
   presets: ScenarioPreset[];
@@ -19,6 +20,7 @@ export type TaxHomeHandlersCtx = {
   setBaselineInput: Setter<TaxFormData | null>;
   taxResult: Accessor<ReturnType<typeof import("~/lib/taxCalc.calculateTaxes").calculateTaxes>>;
   showStatus: (message: string) => void;
+  syncScenarioToUrl: () => void;
 };
 
 export function createTaxHomeHandlers(ctx: TaxHomeHandlersCtx) {
@@ -44,6 +46,7 @@ export function createTaxHomeHandlers(ctx: TaxHomeHandlersCtx) {
         const newInput = preset.buildInput(year);
         console.log("APPLY PRESET - about to call setTaxInput", { presetId, year, newInputRows: newInput.rows.length });
         ctx.setTaxInput(newInput);
+        ctx.syncScenarioToUrl();
         ctx.showStatus(`Loaded preset: ${preset.label}.`);
         console.log("APPLY PRESET - called setTaxInput, status shown");
       } catch (e) {
@@ -53,7 +56,8 @@ export function createTaxHomeHandlers(ctx: TaxHomeHandlersCtx) {
     },
     copyShareLink: async () => {
       if (typeof window === "undefined") return;
-      await copyText(window.location.href, "Share link copied.");
+      const href = buildUrlWithScenario(window.location.href, ctx.taxInput());
+      await copyText(href, "Share link copied.");
     },
     copySummary: async () => {
       const result = ctx.taxResult();
@@ -75,6 +79,7 @@ export function createTaxHomeHandlers(ctx: TaxHomeHandlersCtx) {
       const saved = ctx.baselineInput();
       if (!saved) return;
       ctx.setTaxInput(cloneScenario(saved, ctx.availableYears, ctx.defaultYear));
+      ctx.syncScenarioToUrl();
       ctx.showStatus("Loaded saved baseline.");
     },
     clearBaseline: () => {
@@ -86,6 +91,7 @@ export function createTaxHomeHandlers(ctx: TaxHomeHandlersCtx) {
     },
     resetScenario: () => {
       ctx.setTaxInput(starterScenario(ctx.defaultYear));
+      ctx.syncScenarioToUrl();
       ctx.showStatus("Scenario reset to the starter example.");
     },
   };

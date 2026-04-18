@@ -48,7 +48,7 @@ export function HomeContent() {
     return calculateAllConfigValues(input, taxData, filingStatus);
   });
 
-  wireTaxHomePersistence({
+  const { syncScenarioToUrl } = wireTaxHomePersistence({
     taxInput,
     setTaxInput,
     setBaselineInput,
@@ -68,12 +68,14 @@ export function HomeContent() {
         baselineInput={baselineInput}
         setBaselineInput={setBaselineInput}
         taxResult={taxResult}
+        syncScenarioToUrl={syncScenarioToUrl}
       />
 
       <TaxInputForm
         value={taxInput()}
         availableYears={availableYears}
         onChange={handleSetTaxInput}
+        onCommitToUrl={syncScenarioToUrl}
       />
 
       <Show when={taxResult()} fallback={<TaxYearInvalid />}>

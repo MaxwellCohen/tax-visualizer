@@ -23,21 +23,10 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         incomeRows: incomeSourcesToRows([
           newIncomeSource({ kind: "income-ordinary-wages", amount: 90_000, label: "Salary" }),
         ]),
-        pretaxRows: pretaxSourcesToRows(
-          pretaxScalarsToMinimalSources({
-            ...emptyAggregatedPretax(),
-            preTax401kSpouse1: 0,
-            preTax401kSpouse2: 0,
-            preTaxHsaSpouse1: 0,
-            preTaxHsaSpouse2: 0,
-            preTaxOther: 0,
-            traditionalIraSpouse1: 0,
-            traditionalIraSpouse2: 0,
-          }),
-        ),
+        pretaxRows: [],
         useItemizedDeductions: false,
-        deductionRows: itemizedSourcesToRows([newItemizedDeductionSource()]),
-        creditRows: federalCreditsToRows([newFederalTaxCreditSource()]),
+        deductionRows: [],
+        creditRows: [],
       }),
   },
   {
@@ -52,21 +41,10 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
           newIncomeSource({ kind: "income-ordinary-wages", amount: 120_000, label: "Salary" }),
           newIncomeSource({ kind: "income-longTermCapGains-longTermCapGains", amount: 25_000, label: "Brokerage sale" }),
         ]),
-        pretaxRows: pretaxSourcesToRows(
-          pretaxScalarsToMinimalSources({
-            ...emptyAggregatedPretax(),
-            preTax401kSpouse1: 10_000,
-            preTax401kSpouse2: 0,
-            preTaxHsaSpouse1: 0,
-            preTaxHsaSpouse2: 0,
-            preTaxOther: 0,
-            traditionalIraSpouse1: 0,
-            traditionalIraSpouse2: 0,
-          }),
-        ),
+        pretaxRows: [{ id: "1", type: 'pretax', kind: "input-pretax-401K-preTax401kSpouse1", label: "401(k)", amount: 10000 }],
         useItemizedDeductions: false,
-        deductionRows: itemizedSourcesToRows([newItemizedDeductionSource()]),
-        creditRows: federalCreditsToRows([newFederalTaxCreditSource()]),
+        deductionRows: [],
+        creditRows: [],
       }),
   },
   {
@@ -93,8 +71,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
           }),
         ),
         useItemizedDeductions: false,
-        deductionRows: itemizedSourcesToRows([newItemizedDeductionSource()]),
-        creditRows: federalCreditsToRows([newFederalTaxCreditSource()]),
+        deductionRows: [],
+        creditRows: [],
       }),
   },
   {
@@ -122,8 +100,11 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
           }),
         ),
         useItemizedDeductions: false,
-        deductionRows: itemizedSourcesToRows([newItemizedDeductionSource()]),
-        creditRows: federalCreditsToRows([newFederalTaxCreditSource()]),
+        deductionRows: [],
+        creditRows: [],
       }),
   },
 ];
+
+
+console.log("SCENARIO_PRESETS", SCENARIO_PRESETS);

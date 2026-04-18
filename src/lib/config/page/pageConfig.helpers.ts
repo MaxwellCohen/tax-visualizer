@@ -23,6 +23,7 @@ export function findInputById(inputs: TaxFormRow[], id: string): number {
 
 export function getStandardDeduction(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
     const useItemized = useItemizedDeductions(inputs);
+    console.log("useItemized", useItemized);
     if(useItemized) return 0;
     const income = wageIncome(inputs) - allPretax(inputs)
     const standard = Math.min(income, taxData.standardDeduction[filingStatus]);

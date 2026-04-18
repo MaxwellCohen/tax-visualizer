@@ -6,6 +6,7 @@ import type { TaxFormData, TaxFormDeductionRow } from "~/lib/taxForm.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { ItemizedDeductionSourceRow } from "~/components/taxInputForm/ItemizedDeductionSourceFields";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 import {
@@ -30,6 +31,7 @@ type Props = {
 };
 
 export function TaxInputFormDeductionSection(props: Props) {
+  const commitToUrl = useTaxInputCommitToUrl();
   const calc = createMemo(() => rowsToTaxCalculationInputs(props.values().rows));
   const itemizedTotal = () => sumLabeledAmountSources(calc().itemizedDeductions);
   const useItemizedIdx = createMemo(() => settingRowIndex(props.values().rows, "useItemizedDeductions"));
@@ -68,7 +70,10 @@ export function TaxInputFormDeductionSection(props: Props) {
                 type="checkbox"
                 checked={field().state.value as boolean}
                 onChange={e => field().handleChange(e.currentTarget.checked)}
-                onBlur={field().handleBlur}
+                onBlur={() => {
+                  field().handleBlur();
+                  commitToUrl?.();
+                }}
                 class="h-4 w-4 rounded"
                 style={{ "accent-color": "var(--accent)" }}
               />

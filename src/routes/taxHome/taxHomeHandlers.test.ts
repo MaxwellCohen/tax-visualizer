@@ -6,6 +6,7 @@ import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
 import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import { getScenarioPresets } from "~/lib/taxScenario";
 import { createTaxHomeHandlers } from "~/routes/taxHome/taxHomeHandlers";
+import { buildUrlWithScenario } from "~/routes/taxHome/taxHomePersistence";
 
 describe("createTaxHomeHandlers", () => {
   const presets = getScenarioPresets();
@@ -20,6 +21,7 @@ describe("createTaxHomeHandlers", () => {
     baseline = v;
   });
   const showStatus = vi.fn();
+  const syncScenarioToUrl = vi.fn();
 
   const ctx = () => ({
     presets,
@@ -31,11 +33,13 @@ describe("createTaxHomeHandlers", () => {
     setBaselineInput: setBaselineInput as unknown as Setter<typeof baseline>,
     taxResult: () => calculateTaxes(taxInput),
     showStatus,
+    syncScenarioToUrl,
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
     baseline = null;
+    syncScenarioToUrl.mockClear();
   });
 
   it("applyPreset updates input and status", () => {
@@ -43,6 +47,7 @@ describe("createTaxHomeHandlers", () => {
     const h = createTaxHomeHandlers(ctx());
     h.applyPreset("singleW2");
     expect(setTaxInput).toHaveBeenCalled();
+    expect(syncScenarioToUrl).toHaveBeenCalled();
     expect(showStatus).toHaveBeenCalledWith(expect.stringContaining("preset"));
   });
 
@@ -76,13 +81,15 @@ describe("createTaxHomeHandlers", () => {
     expect(showStatus).toHaveBeenCalledWith("Clipboard access is unavailable in this browser.");
   });
 
-  it("copyShareLink writes location href to clipboard", async () => {
+  it("copyShareLink writes URL with serialized scenario to clipboard", async () => {
     taxInput = baseInput();
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal("navigator", { clipboard: { writeText } });
-    vi.stubGlobal("window", { location: { href: "https://example.test/page" } });
+    const href = "https://example.test/page";
+    vi.stubGlobal("window", { location: { href } });
     await createTaxHomeHandlers(ctx()).copyShareLink();
-    expect(writeText).toHaveBeenCalledWith("https://example.test/page");
+    expect(writeText).toHaveBeenCalledWith(buildUrlWithScenario(href, taxInput));
+    expect(writeText.mock.calls[0][0]).toContain("scenario=");
   });
 
   it("saveBaseline persists to localStorage", () => {
@@ -100,6 +107,7 @@ describe("createTaxHomeHandlers", () => {
     setTaxInput.mockClear();
     createTaxHomeHandlers(ctx()).loadBaseline();
     expect(setTaxInput).toHaveBeenCalled();
+    expect(syncScenarioToUrl).toHaveBeenCalled();
   });
 
   it("loadBaseline no-ops without baseline", () => {
@@ -121,6 +129,7 @@ describe("createTaxHomeHandlers", () => {
     taxInput = baseInput({ pretaxRows: withPretaxTotals({ "input-pretax-401K-preTax401kSpouse1": 9_000 }) });
     createTaxHomeHandlers(ctx()).resetScenario();
     expect(setTaxInput).toHaveBeenCalled();
+    expect(syncScenarioToUrl).toHaveBeenCalled();
     const last = setTaxInput.mock.calls.at(-1)![0];
     expect(
       aggregatePretaxFromSources(

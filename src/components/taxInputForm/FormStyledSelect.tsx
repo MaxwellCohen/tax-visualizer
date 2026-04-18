@@ -1,4 +1,5 @@
 import type { JSX } from "solid-js";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import { inputClass, labelClass } from "~/components/taxInputForm/shared";
 
 type Option = { value: string | number; label: string };
@@ -14,6 +15,11 @@ type Props = {
 };
 
 export function FormStyledSelect(props: Props) {
+  const commitToUrl = useTaxInputCommitToUrl();
+  const onBlur = () => {
+    props.onBlur();
+    commitToUrl?.();
+  };
   const select = (
     <select
       class={inputClass}
@@ -21,7 +27,7 @@ export function FormStyledSelect(props: Props) {
       value={props.value}
       aria-label={props.hideLabel ? props.label : undefined}
       onChange={props.onChange}
-      onBlur={props.onBlur}
+      onBlur={onBlur}
     >
       {props.options
         ? props.options.map(opt => <option value={opt.value}>{opt.label}</option>)

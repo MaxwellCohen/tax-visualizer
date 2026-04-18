@@ -9,6 +9,7 @@ import {
 } from "~/components/taxInputForm/shared";
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import { indexOfTypedRowById } from "~/lib/taxForm.rows";
@@ -24,6 +25,7 @@ type IncomeSourceFieldsProps = {
 };
 
 export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
+  const commitToUrl = useTaxInputCommitToUrl();
   const rowIndex = createMemo(() => indexOfTypedRowById(props.values().rows, "income", props.rowId));
   const fieldPrefix = createMemo(() => {
     const i = rowIndex();
@@ -58,7 +60,10 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
                 aria-label="Label (optional)"
                 value={field().state.value}
                 onInput={e => field().handleChange(e.currentTarget.value)}
-                onBlur={field().handleBlur}
+                onBlur={() => {
+                  field().handleBlur();
+                  commitToUrl?.();
+                }}
               />
             )}
           </props.form.Field>

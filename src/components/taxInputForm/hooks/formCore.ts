@@ -17,6 +17,8 @@ import { newIncomeRow, newPretaxRow } from "~/lib/taxForm.factories";
 export type TaxInputFormOuterProps = {
   value: TaxFormData;
   onChange: (nextValue: TaxFormData) => void;
+  /** Called when focus leaves a field inside the form (focusout); use to sync URL without per-keystroke updates. */
+  onCommitToUrl?: () => void;
 };
 
 function insertIndexForNewIncome(rows: TaxFormRow[]): number {

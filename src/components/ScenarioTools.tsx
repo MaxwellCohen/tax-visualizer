@@ -34,6 +34,7 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
     setBaselineInput: props.setBaselineInput,
     taxResult: props.taxResult,
     showStatus,
+    syncScenarioToUrl: props.syncScenarioToUrl,
   });
   return (
     <section

@@ -11,7 +11,6 @@ import { getAvailableTaxYears, isPlanningTaxYear, getTaxYearConfig } from "~/lib
 import { getScenarioPresets } from "~/lib/taxScenario";
 import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { wireTaxHomePersistence } from "~/routes/taxHome/taxHomePersistence";
-import { effect } from "solid-js/web";
 
 export default function HomeContent() {
   const availableYears = getAvailableTaxYears();
@@ -37,15 +36,10 @@ export default function HomeContent() {
     return calculateAllConfigValues(input, taxData, filingStatus);
   });
 
-  wireTaxHomePersistence({
+  const { syncScenarioToUrl } = wireTaxHomePersistence({
     taxInput,
     setTaxInput,
     setBaselineInput,
-  });
-  effect(() => {
-    console.log("taxInput", taxInput());
-    console.log("taxResult", taxResult());
-    console.log("calculatedConfig", calculatedConfig());
   });
 
   return (
@@ -61,12 +55,14 @@ export default function HomeContent() {
         baselineInput={baselineInput}
         setBaselineInput={setBaselineInput}
         taxResult={taxResult}
+        syncScenarioToUrl={syncScenarioToUrl}
       />
 
       <TaxInputForm
         value={taxInput()}
         availableYears={availableYears}
         onChange={setTaxInput}
+        onCommitToUrl={syncScenarioToUrl}
       />
 
       <HomeTaxResults

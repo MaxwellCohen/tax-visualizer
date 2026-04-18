@@ -100,6 +100,12 @@ export function sanitizeScenarioInput(
     return fallbackScenario(fallbackYear);
   }
 
+  // Wire format from serializeScenarioInput / URLs: JSON array of rows only.
+  if (Array.isArray(rawValue)) {
+    const rows = sanitizeRowsList(rawValue, availableYears, fallbackYear);
+    return clampTaxFormData({ rows });
+  }
+
   const raw = rawValue as { version?: unknown; rows?: unknown };
   if (raw.version !== 5 || raw.rows === undefined) {
     return fallbackScenario(normalizeTaxYear(undefined, availableYears, fallbackYear));

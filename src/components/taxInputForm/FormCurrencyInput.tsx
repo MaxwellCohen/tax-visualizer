@@ -1,4 +1,5 @@
 import type { Accessor } from "solid-js";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import { inputClass, parseCurrencyInput } from "~/components/taxInputForm/shared";
 
 type NumberFieldApi = {
@@ -16,6 +17,11 @@ type Props = {
 };
 
 export function FormCurrencyInput(props: Props) {
+  const commitToUrl = useTaxInputCommitToUrl();
+  const onBlur = () => {
+    props.field().handleBlur();
+    commitToUrl?.();
+  };
   return (
     <input
       type="number"
@@ -26,7 +32,7 @@ export function FormCurrencyInput(props: Props) {
       aria-label={props.ariaLabel}
       value={props.field().state.value}
       onInput={e => props.field().handleChange(parseCurrencyInput(e.currentTarget.value))}
-      onBlur={props.field().handleBlur}
+      onBlur={onBlur}
     />
   );
 }

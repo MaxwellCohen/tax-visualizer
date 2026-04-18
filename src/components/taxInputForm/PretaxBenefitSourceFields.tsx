@@ -3,6 +3,7 @@ import type { TaxFormData } from "~/lib/taxForm.types";
 import { indexOfTypedRowById } from "~/lib/taxForm.rows";
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import {
   inputClass,
   pretaxBenefitKindSelectOptions,
@@ -30,6 +31,7 @@ const pretaxDetailRowTdClass =
   "border-t border-(--border-subtle) px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
 
 export function PretaxBenefitSourceRow(props: Props) {
+  const commitToUrl = useTaxInputCommitToUrl();
   const configItems = createMemo(() => {
     const td = props.taxData();
     const fs = props.filingStatus();
@@ -98,7 +100,10 @@ export function PretaxBenefitSourceRow(props: Props) {
                   aria-label="Label (optional)"
                   value={field().state.value}
                   onInput={e => field().handleChange(e.currentTarget.value)}
-                  onBlur={field().handleBlur}
+                  onBlur={() => {
+                    field().handleBlur();
+                    commitToUrl?.();
+                  }}
                 />
               )}
             </props.form.Field>

@@ -4,6 +4,7 @@ import type { TaxFormData } from "~/lib/taxForm.types";
 import { indexOfTypedRowById } from "~/lib/taxForm.rows";
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import {
   inputClass,
   itemizedDeductionSelectOptions,
@@ -29,6 +30,7 @@ const deductionDetailRowTdClass =
   "border-t border-(--border-subtle) px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
 
 export function ItemizedDeductionSourceRow(props: Props) {
+  const commitToUrl = useTaxInputCommitToUrl();
   const filingStatus = props.form.useStore((s: { values: TaxFormData }): FilingStatus =>
     getFilingStatusFromRows(s.values.rows) ?? "single",
   );
@@ -101,7 +103,10 @@ export function ItemizedDeductionSourceRow(props: Props) {
                   aria-label="Label (optional)"
                   value={field().state.value}
                   onInput={e => field().handleChange(e.currentTarget.value)}
-                  onBlur={field().handleBlur}
+                  onBlur={() => {
+                    field().handleBlur();
+                    commitToUrl?.();
+                  }}
                 />
               )}
             </props.form.Field>
