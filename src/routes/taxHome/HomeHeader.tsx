@@ -13,8 +13,8 @@ export function HomeHeader() {
         long-term capital gains (0% / 15% / 20%), payroll taxes on wages, and take-home pay.
       </p>
       <p class="max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-        Use a preset if you want a fast tour, then save a baseline and change one variable at a
-        time to see what really moved the result.
+        Use a preset if you want a fast tour, then change one variable at a time to see what really
+        moved the result.
       </p>
     </header>
   );

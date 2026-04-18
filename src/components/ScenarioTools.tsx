@@ -66,9 +66,8 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
         }
       >
         <p class="max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          Try a starter scenario, share the current case, or save a baseline to compare how one
-          change affects take-home pay and taxes. Your latest scenario is saved locally in this
-          browser.
+          Try a starter scenario or share the current case. Your latest scenario is saved locally in
+          this browser.
         </p>
         <ScenarioToolsPresets
           presets={props.presets}
@@ -78,13 +77,8 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
           }}
         />
         <ScenarioToolsActions
-          hasBaseline={props.baselineInput() != null}
           onCopyShareLink={() => void handlers.copyShareLink()}
           onCopySummary={() => void handlers.copySummary()}
-          onSaveBaseline={handlers.saveBaseline}
-          onLoadBaseline={handlers.loadBaseline}
-          onClearBaseline={handlers.clearBaseline}
-          onResetScenario={handlers.resetScenario}
         />
       </CollapsibleBlock>
     </section>
