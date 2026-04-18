@@ -3,14 +3,12 @@ import { createMemo, Show } from "solid-js";
 import TaxMekko from "~/components/TaxMekko";
 import TaxSankey from "~/components/TaxSankey";
 import TaxSummary from "~/components/TaxSummary";
-import type { TaxFormData, TaxResult } from "~/lib/taxForm.types";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import { TaxYearInvalid } from "./TaxYearInvalid";
 import { getFilingStatusFromRows, getTaxYearFromRows } from "~/lib/taxCalc.inputs";
 import { getTaxYearConfig } from "~/lib/taxData";
 import { calculateAllConfigValues, type CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 type HomeTaxResultsProps = {
-  taxResult: Accessor<TaxResult | null>;
-  isPlanningYear: Accessor<boolean>;
   taxInput: Accessor<TaxFormData>;
 };
 
@@ -25,16 +23,16 @@ export function HomeTaxResults(props: HomeTaxResultsProps) {
     return calculateAllConfigValues(input, taxData, filingStatus);
   });
   return (
-    <Show when={props.taxResult()} fallback={<TaxYearInvalid />}>
-      {(result) => (
+    <Show when={calculatedConfig() !== null} fallback={<TaxYearInvalid />}>
+      
         <>
           <TaxSankey calculatedConfig={calculatedConfig} />
           <TaxMekko calculatedConfig={calculatedConfig} />
           <TaxSummary
-            result={result()}
+            calculatedConfig={calculatedConfig}
           />
         </>
-      )}
+      
     </Show>
   );
 }

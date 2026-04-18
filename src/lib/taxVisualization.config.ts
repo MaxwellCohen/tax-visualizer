@@ -25,8 +25,8 @@ export type MetricConfig = {
   highlight?: boolean;
   showWhen?: (result: TaxResult) => boolean;
   hideWhenZero?: boolean;
-  displayOrder: number;
-  category: "income" | "pretax" | "deduction" | "tax" | "credits" | "takehome" | "rate";
+  // displayOrder: number;
+  category: string;
 };
 
 /** Default Tax Summary rows: derived from configItem `summary` hints (single ordering source). */
@@ -46,13 +46,13 @@ function buildDefaultMetricsConfig(): MetricConfig[] {
         return typeof line?.value === "number" ? line.value : undefined;
       },
       format: s.format ?? "currency",
-      displayOrder: s.displayOrder,
+      // displayOrder: s.displayOrder,
       category: s.category as any,
       highlight: s.highlight,
       hideWhenZero: s.hideWhenZero,
     });
   }
-  configs.sort((a, b) => a.displayOrder - b.displayOrder);
+  // configs.sort((a, b) => a.displayOrder - b.displayOrder);
   return configs;
 }
 
@@ -64,7 +64,7 @@ export type MetricDisplay = {
   value: string;
   highlight?: boolean;
   category: MetricConfig["category"];
-  displayOrder: number;
+  // displayOrder: number;
 };
 
 export function computeMetrics(result: TaxResult, config?: MetricConfig[]): MetricDisplay[] {
@@ -87,10 +87,10 @@ export function computeMetrics(result: TaxResult, config?: MetricConfig[]): Metr
         value: formatted,
         highlight: row.highlight,
         category: row.category,
-        displayOrder: row.displayOrder,
+        // displayOrder: row.displayOrder,
       };
     })
-    .sort((a, b) => a.displayOrder - b.displayOrder);
+    // .sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
 function formatValue(value: number | undefined, format: "currency" | "percent" | "number"): string {

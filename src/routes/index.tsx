@@ -1,13 +1,11 @@
-import { createMemo, createSignal } from "solid-js";
+import { createSignal } from "solid-js";
 import { RouteSeo } from "~/components/Seo";
 import { HomeHeader } from "~/routes/taxHome/HomeHeader";
 import { HomeTaxResults } from "~/routes/taxHome/HomeTaxResults";
 import ScenarioTools from "~/components/ScenarioTools";
 import TaxInputForm from "~/components/TaxInputForm";
-import { calculateTaxes } from "~/lib/taxCalc.calculateTaxes";
 import type { TaxFormData } from "~/lib/taxForm.types"
-import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
-import { getAvailableTaxYears, isPlanningTaxYear } from "~/lib/taxData";
+import { getAvailableTaxYears } from "~/lib/taxData";
 import { getScenarioPresets } from "~/lib/taxScenario";
 import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { effect } from "solid-js/web";
@@ -23,16 +21,12 @@ export default function HomeContent() {
   const [taxInput, setTaxInput] = createSignal<TaxFormData>( 
     deserializeScenarioInputFromSearchParams(searchParams as Record<string, string>) || starterScenario(defaultYear)
   );
-  const taxResult = createMemo(() => calculateTaxes(taxInput()));
-  const isPlanningYear = createMemo(() => isPlanningTaxYear(getTaxYearFromRows(taxInput().rows)));
   const  syncScenarioToUrl  = () => {
-    console.log("syncScenarioToUrl", serializeScenarioInput(taxInput()));
     setSearchParams({[SCENARIO_QUERY_PARAM]: serializeScenarioInput(taxInput())});
   }
 
   effect(() => {
     console.log("root taxInput", taxInput());
-    console.log("root taxResult", taxResult());
   });
 
   return (
@@ -56,9 +50,7 @@ export default function HomeContent() {
       />
 
       <HomeTaxResults
-        taxResult={taxResult}
         taxInput={taxInput}
-        isPlanningYear={isPlanningYear}
       />
     </main>
   );

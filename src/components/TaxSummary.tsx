@@ -1,14 +1,16 @@
 import { Show } from "solid-js";
-import type { TaxResult } from "~/lib/taxForm.types";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
-import { computeMetrics, computeFootnotes, type MetricDisplay, type FootnoteDisplay } from "~/lib/taxVisualization.config";
+import { type MetricDisplay } from "~/lib/taxVisualization.config";
 import { TaxSummaryMetric } from "~/components/taxSummary/TaxSummaryMetric";
+import { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
+import { Accessor } from "solid-js";
 
 type TaxSummaryProps = {
-  result: TaxResult;
+  calculatedConfig: Accessor<CalculatedConfigItem[] | null>;
 };
 
 function MetricItem(props: { metric: MetricDisplay }) {
+  console.log("MetricItem", JSON.stringify(props.metric, null, 2));
   const displayValue = () => {
     if (props.metric.category === "credits") {
       const numValue = parseFloat(props.metric.value.replace(/[^0-9.-]/g, ""));
@@ -18,49 +20,20 @@ function MetricItem(props: { metric: MetricDisplay }) {
     }
     return props.metric.value;
   };
-  
+
   return (
     <Show when={parseFloat(props.metric.value.replace(/[^0-9.-]/g, "")) > 0}>
-
-    <TaxSummaryMetric 
-      label={props.metric.label} 
-      value={displayValue()} 
-      highlight={props.metric.highlight}
+      <TaxSummaryMetric
+        label={props.metric.label}
+        value={displayValue()}
+        highlight={props.metric.highlight}
       />
-      </Show>
-  );
-}
-
-
-function FootnotesDisplay(props: { footnotes: FootnoteDisplay[] }) {
-  if (props.footnotes.length === 0) return null;
-  
-  return (
-    <>
-      <div class="space-y-1.5 text-xs leading-relaxed" style={{ color: "var(--text-faint)" }}>
-        {props.footnotes.filter(f => ["effective-rate-formula", "take-home-formula"].includes(f.id)).map((f) => (
-          <p>
-            {f.id === "effective-rate-formula" ? "Effective tax rate = " : "Take-home pay = "}
-            <code>{f.text}</code>.
-          </p>
-        ))}
-      </div>
-      <p class="text-xs" style={{ color: "var(--text-faint)" }}>
-        {props.footnotes.filter(f => ["pretax-breakdown", "federal-tax-breakdown", "taxable-income-breakdown", "payroll-breakdown"].includes(f.id)).map((f, i) => (
-          <>
-            {i > 0 && <br />}
-            {f.text}
-          </>
-        ))}
-      </p>
-    </>
+    </Show>
   );
 }
 
 export default function TaxSummary(props: TaxSummaryProps) {
-  const metrics = () => computeMetrics(props.result);
-  const footnotes = () => computeFootnotes(props.result);
-  
+  console.log("TaxSummary", JSON.stringify(props.calculatedConfig, null, 2));
   return (
     <section
       class="rounded-xl p-5"
@@ -72,11 +45,18 @@ export default function TaxSummary(props: TaxSummaryProps) {
     >
       <CollapsibleBlock title="Tax Summary" bodyClass="mt-4 space-y-4">
         <div class="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
-          {metrics().map((m) => (
-            <MetricItem metric={m} />
+          {props.calculatedConfig()?.map((m) => (
+            <MetricItem
+              metric={{
+                id: m.id,
+                category: m.summary?.category ?? "income",
+                label: m.label,
+                value: m.computedValue.toString(),
+              }}
+            />
           ))}
         </div>
-        <FootnotesDisplay footnotes={footnotes()} />
+        {/* <FootnotesDisplay footnotes={footnotes()} /> */}
       </CollapsibleBlock>
     </section>
   );
