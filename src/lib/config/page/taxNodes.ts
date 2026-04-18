@@ -13,8 +13,8 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
     const creditsHubNode = {
         fill: "var(--sankey-node-credits)",
         stroke: "var(--sankey-link-credits)",
-        row: creditsRow,
         col: 3,
+        row: 40,
     } as const;
     const creditLinkCreditsRow = {
         fill: "var(--sankey-link-credits)",
@@ -58,6 +58,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
                         source: "federalTaxCredits",
                         target: "takeHomePay",
                         ...creditLinkCreditsRow,
+                        row: 40,
                     },
                 ],
             },
