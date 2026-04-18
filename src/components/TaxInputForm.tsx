@@ -51,8 +51,8 @@ export default function TaxInputForm(props: TaxInputFormProps) {
     const incoming = props.value;
     untrack(() => {
       const current = values();
-      if (!evaluate(incoming, current)) {
-        form.reset(incoming);
+      if (!evaluate(incoming(), current)) {
+        form.reset(incoming());
       }
     });
   });

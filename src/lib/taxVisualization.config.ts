@@ -188,66 +188,7 @@ export function computeFootnotes(result: TaxResult, config?: FootnoteConfig[]): 
     .sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
-export function getBaselineComparison(
-  result: TaxResult,
-  baseline: TaxResult | null,
-  metrics?: MetricConfig[],
-): Array<{ id: string; label: string; currentValue: string; delta?: string; isPositiveDelta?: boolean }> {
-  if (!baseline) return [];
 
-  const currentMetrics = computeMetrics(result, metrics);
-  const baselineMetrics = computeMetrics(baseline, metrics);
 
-  return currentMetrics
-    .filter((m) => ["take-home-pay", "federal-income-tax", "payroll-tax"].includes(m.id))
-    .map((m) => computeBaselineComparison(m, baselineMetrics, result, baseline));
-}
 
-function computeBaselineComparison(
-  m: MetricDisplay,
-  baselineMetrics: MetricDisplay[],
-  result: TaxResult,
-  baseline: TaxResult,
-) {
-  const baselineMetric = baselineMetrics.find((bm) => bm.id === m.id);
-  const currentValue = m.value;
-  let delta: string | undefined;
-  let isPositiveDelta: boolean | undefined;
 
-  if (!baselineMetric) {
-    return { id: m.id, label: m.label, currentValue, delta, isPositiveDelta };
-  }
-
-  const comparison = calculateDelta(m.id, result, baseline);
-  if (comparison.diff !== 0) {
-    delta = (comparison.diff > 0 ? "+" : "") + currencyFormatter.format(comparison.diff);
-    isPositiveDelta = comparison.isPositive;
-  }
-
-  return { id: m.id, label: m.label, currentValue, delta, isPositiveDelta };
-}
-
-function calculateDelta(
-  metricId: string,
-  result: TaxResult,
-  baseline: TaxResult,
-): { diff: number; isPositive: boolean } {
-  switch (metricId) {
-    case "take-home-pay": {
-      const takeHomeDiff =
-        chartMetricNumeric(result, "takeHomePay") - chartMetricNumeric(baseline, "takeHomePay");
-      return { diff: takeHomeDiff, isPositive: takeHomeDiff > 0 };
-    }
-    case "federal-income-tax": {
-      const fedDiff =
-        chartMetricNumeric(result, "federalIncomeTax") - chartMetricNumeric(baseline, "federalIncomeTax");
-      return { diff: fedDiff, isPositive: fedDiff < 0 };
-    }
-    case "payroll-tax": {
-      const payrollDiff = chartMetricNumeric(result, "payrollTax") - chartMetricNumeric(baseline, "payrollTax");
-      return { diff: payrollDiff, isPositive: payrollDiff < 0 };
-    }
-    default:
-      return { diff: 0, isPositive: false };
-  }
-}

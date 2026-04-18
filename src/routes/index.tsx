@@ -49,7 +49,7 @@ export default function HomeContent() {
       />
 
       <TaxInputForm
-        value={taxInput()}
+        value={taxInput}
         availableYears={availableYears}
         onChange={setTaxInput}
         onCommitToUrl={syncScenarioToUrl}

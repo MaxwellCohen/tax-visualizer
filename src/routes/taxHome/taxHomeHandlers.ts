@@ -2,11 +2,7 @@ import type { Accessor, Setter } from "solid-js";
 import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import type { ScenarioPreset } from "~/lib/taxScenario.types";
-import {
-  BASELINE_SCENARIO_STORAGE_KEY,
-  serializeScenarioInput,
-} from "~/lib/taxScenario";
-import { cloneScenario, starterScenario } from "~/routes/taxHome/scenarioInit";
+import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { buildUrlWithScenario } from "~/routes/taxHome/taxHomePersistence";
 
 export type TaxHomeHandlersCtx = {
@@ -55,13 +51,7 @@ export function createTaxHomeHandlers(ctx: TaxHomeHandlersCtx) {
       const href = buildUrlWithScenario(window.location.href, ctx.taxInput());
       await copyText(href, "Share link copied.");
     },
-    saveBaseline: () => {
-      const current = cloneScenario(ctx.taxInput(), ctx.availableYears, ctx.defaultYear);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(BASELINE_SCENARIO_STORAGE_KEY, serializeScenarioInput(current));
-      }
-      ctx.showStatus("Current scenario saved as baseline.");
-    },
+   
     resetScenario: () => {
       ctx.setTaxInput(starterScenario(ctx.defaultYear));
       ctx.syncScenarioToUrl();

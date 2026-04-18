@@ -13,10 +13,11 @@ import {
   settingRowIndex,
 } from "~/lib/taxForm.rows";
 import { newIncomeRow, newPretaxRow } from "~/lib/taxForm.factories";
+import { createMemo, type Signal } from "solid-js";
 
 export type TaxInputFormOuterProps = {
-  value: TaxFormData;
-  onChange: (nextValue: TaxFormData) => void;
+  value: Signal<TaxFormData>[0];
+  onChange: Signal<TaxFormData>[1];
   /** Called when focus leaves a field inside the form (focusout); use to sync URL without per-keystroke updates. */
   onCommitToUrl?: () => void;
 };
@@ -59,9 +60,9 @@ function removeRowAt(rows: TaxFormRow[], index: number): TaxFormRow[] {
 
 export function createTaxInputForm(props: TaxInputFormOuterProps) {
   /** Snapshot once per form instance — reactive `props.value` must not drive `defaultValues` or TanStack's `api.update` resets the store on every parent render (drops `kind`, resets selects). */
-  const defaultValuesAtInit = props.value;
+  // const defaultValuesAtInit = ;
   const form = createForm(() => ({
-    defaultValues: defaultValuesAtInit,
+    defaultValues: props.value(),
     listeners: {
       onChange: ({ formApi }) => {
         props.onChange(formApi.state.values);
@@ -69,7 +70,7 @@ export function createTaxInputForm(props: TaxInputFormOuterProps) {
     },
   }));
 
-  const values = form.useStore((s) => s.values);
+  const values = createMemo(form.useStore((s) => s.values));
 
   const limits = createLimitMemos(values);
   const deduction = createDeductionMemos(values, limits.selectedTaxConfig);

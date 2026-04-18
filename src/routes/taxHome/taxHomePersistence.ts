@@ -3,11 +3,15 @@ import type { Accessor, Setter } from "solid-js";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import { getAvailableTaxYears } from "~/lib/taxData";
 import {
-  SAVED_SCENARIO_STORAGE_KEY,
-  SCENARIO_QUERY_PARAM,
+  
   deserializeScenarioInput,
   serializeScenarioInput,
 } from "~/lib/taxScenario";
+import {
+  SAVED_SCENARIO_STORAGE_KEY,
+  SCENARIO_QUERY_PARAM,
+} from "~/lib/taxScenario.keys.constants"
+
 
 /** Max total URL length before dropping the scenario query param (browser/practical limits). */
 export const MAX_SCENARIO_URL_LENGTH = 10_000;
