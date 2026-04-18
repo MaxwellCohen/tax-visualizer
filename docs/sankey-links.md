@@ -2,6 +2,8 @@
 
 Mermaid diagram of Sankey **source → target** edges defined under `[src/lib/config/page](../src/lib/config/page)`. Parallel links with the same endpoints are drawn once. Ordinary bracket slices use `bracket-i-income` for each index `i` from `[getBracketItems](../src/lib/config/page/taxBracketNodes.ts)`.
 
+**Credits layout:** Credit **inputs** use a Sankey **node** on the credits row/col (below brackets, col 3). The **take-home path for credits** matches deductions: **`ordinaryTaxableIncome` → `federalTaxCredits` → `takeHomePay`**, with link values = `computeFederalTaxCreditsApplied` (same cap as `federalTaxCreditsApplied`). The row index is `getCreditsSankeyRow` in [`pageConfig.helpers.ts`](../src/lib/config/page/pageConfig.helpers.ts).
+
 ```mermaid
 flowchart LR
   subgraph incomeIn["Income inputs"]
@@ -28,7 +30,7 @@ flowchart LR
     lti["longTermTaxableIncome"]
   end
 
-  subgraph deductions["Deductions"]
+  subgraph deductions["Deductions col 3"]
     std["standardDeduction"]
     item["itemizedDeductions"]
   end
@@ -38,11 +40,7 @@ flowchart LR
     setx["selfEmploymentTax"]
   end
 
-  subgraph credits["Credits"]
-    ctc["input-credit-childTax"]
-    edu["input-credit-education"]
-    sav["retirementSavingsContributions"]
-    oth["input-credit-other"]
+  subgraph creditsBand["Credits col 3, below brackets"]
     ftc["federalTaxCredits"]
   end
 
@@ -83,6 +81,9 @@ flowchart LR
   bi --> thp
   bi --> fit
 
+  otiN --> ftc
+  ftc --> thp
+
   otiN --> pt
   pt --> fpt
 
@@ -93,12 +94,7 @@ flowchart LR
   std --> thp
 
   otiN --> item
-
-  ctc --> ftc
-  edu --> ftc
-  sav --> ftc
-  oth --> ftc
-  ftc --> fit
+  item --> thp
 ```
 
 
@@ -107,6 +103,9 @@ flowchart LR
 
 - Pretax inputs each register `wages` → `pretaxDeductions` (same edge, multiple config rows).
 - Payroll: `ordinaryTaxableIncome` → `payrollTax` → `federalPayrollTaxes` (via `payrollTaxWages` and `payrollTax` items).
-- `itemizedDeductions` → `takeHomePay` exists only as a commented-out link in `incomeNodes.ts`.
-- Each federal ordinary bracket adds nodes `bracket-i-income`, `bracket-i-keep`, `bracket-i-tax`; Sankey links use `bracket-i-income` as the hub for flows to `takeHomePay` and `federalIncomeTax`.
+- Each federal ordinary bracket adds nodes `bracket-i-income`, `bracket-i-keep`, `bracket-i-tax`; Sankey links use `bracket-i-income` as the hub for flows to `takeHomePay` (keep) and `federalIncomeTax` (tax). LTCG tax flows `ltcg-income` → `federalIncomeTax`; LTCG keep flows to `takeHomePay`.
+- **Federal income tax node:** Bracket and LTCG tax ribbons terminate at `federalIncomeTax` (gross tax per slice); the node’s summary value is still net federal income tax after credits (link sums may not match that number). [`taxNodes.ts`](../src/lib/config/page/taxNodes.ts) bridges `sankeyOrdinaryToFederalTaxCredits` and `sankeyFederalTaxCreditsToTakeHome` add **`ordinaryTaxableIncome` → `federalTaxCredits` → `takeHomePay`** using `computeFederalTaxCreditsApplied` in [`taxCalculations.ts`](../src/lib/config/page/taxCalculations.ts).
+- Credit **input** rows in [`creditInputs.ts`](../src/lib/config/page/creditInputs.ts) keep a Sankey **node** for styling but do **not** emit Sankey **links** into `federalTaxCredits` (avoids double-counting the hub; amounts still drive totals via `federalTaxCredits`’s `calculate: totalCredits`).
+- Refundable credit amounts beyond gross federal tax are not shown as a separate ribbon (same cap as `federalTaxCreditsApplied`).
 
+**Other Sankey implementation:** [`taxCharts.sankeyBuilder.ts`](../src/lib/taxCharts.sankeyBuilder.ts) builds a separate chart from `TaxResult` metrics (including `allocateFederalCreditsTopMarginalSlices` in [`taxCharts.visualizationBundle.ts`](../src/lib/taxCharts.visualizationBundle.ts)). That pipeline is not the same as the page `configItem` graph above.

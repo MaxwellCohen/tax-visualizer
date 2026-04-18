@@ -1,9 +1,9 @@
 /** Deduction inputs: standard, SALT, medical, mortgage, charity. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
-import { calculatePayrollTax } from "~/lib/config/page/taxCalculations";
+import { calculatePayrollTax, salt, totalItemized, useItemizedDeductions } from "~/lib/config/page/taxCalculations";
 import { charitable, medicalDental, mortgageInterest } from "./pageConfig.inputs";
-import { getStandardDeduction } from "./pageConfig.helpers";
+import { getItemizedDeductions, getStandardDeduction } from "./pageConfig.helpers";
 
 
 export function makePayrollFromWagesInputConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
@@ -74,6 +74,22 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             calculate: getStandardDeduction
         },
         {
+            id: "Itemized Deductions",
+            label: "Itemized Deductions",
+            shortLabel: "Itemized",
+            description: "Itemized deductions based on filing status",
+            kindDetail: {
+                modelingNote: "Applied automatically if greater than standard deduction",
+            },
+            sankeySettings: {
+                // node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
+                link: [
+                    { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
+                ],
+            },
+            calculate: getItemizedDeductions
+        },
+        {
             id: "deduction-salt",
             label: "State & Local Taxes (SALT)",
             shortLabel: "deduction-salt",
@@ -95,13 +111,6 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     return { valid: true };
                 },
             },
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
-                link: [
-                    { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
-                ],
-            },
-            // calculate: salt
         },
         {
             id: "deduction-medicalDental",
@@ -121,13 +130,6 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     return { valid: true };
                 },
             },
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
-                link: [
-                    { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
-                ],
-            },
-            calculate: medicalDental
         },
         {
             id: "deduction-mortgageInterest",
@@ -147,13 +149,6 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     return { valid: true };
                 },
             },
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
-                link: [
-                    { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 0, col: 2 },
-                ],
-            },
-            calculate: mortgageInterest
         },
         {
             id: "deduction-charitable",
@@ -173,13 +168,13 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     return { valid: true };
                 },
             },
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
-                link: [
-                    { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 3, col: 2 },
-                ],
-            },
-            calculate: charitable
+            // sankeySettings: {
+            //     // node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
+            //     // link: [
+            //     //     { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 3, col: 2 },
+            //     // ],
+            // },
+            // calculate: charitable
         },
     ];
 }

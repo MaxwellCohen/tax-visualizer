@@ -1,14 +1,18 @@
 import type { FilingStatus, TaxYearConfig, LongTermCapGainsThresholds, FederalTaxBracket } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import { allPretax, useItemizedDeductions, wageIncome } from "./pageConfig.inputs";
-import { calculatePayrollTax, calculateSelfEmploymentTax } from "./taxCalculations";
+import { calculatePayrollTax, calculateSelfEmploymentTax, totalItemized } from "./taxCalculations";
 
 export function findInputById(inputs: TaxFormRow[], id: string): number {
     let sum = 0;
     for (const row of (inputs || [])) {
         if (row.type === "setting") {
             if (row.id.includes(id)) {
-                if ("value" in row && typeof row.value === "number") return row.value;
+                if ("value" in row) {
+                    const v = row.value;
+                    if (typeof v === "number") return v;
+                    if (typeof v === "boolean") return v ? 1 : 0;
+                }
             }
         } else if ("kind" in row) {
             if (row.kind.includes(id)) {
@@ -23,16 +27,33 @@ export function findInputById(inputs: TaxFormRow[], id: string): number {
 
 export function getStandardDeduction(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
     const useItemized = useItemizedDeductions(inputs);
-    console.log("useItemized", useItemized);
-    if(useItemized) return 0;
+    if (useItemized) return 0;
     const income = wageIncome(inputs) - allPretax(inputs)
     const standard = Math.min(income, taxData.standardDeduction[filingStatus]);
     const payrollTax = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
     return Math.max(0, standard - payrollTax);
 }
+export function getItemizedDeductions(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
+    const useItemized = useItemizedDeductions(inputs);
+    if (!useItemized) return 0;
+    const income = wageIncome(inputs) - allPretax(inputs)
+    const itemized = totalItemized(inputs);
+    const payrollTax = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
+    return Math.max(0, itemized - payrollTax);
+}
 
 export function getOrdinaryBrackets(taxData: TaxYearConfig, filingStatus: FilingStatus): FederalTaxBracket[] {
     return taxData.federalBrackets[filingStatus];
+}
+
+/** Row index for the credits Sankey band: below ordinary brackets (`bracketRow = 5 + i * 4`) and below LTCG (`ltcg-income` at row 50). */
+const LTCG_SANKEY_INCOME_ROW = 50;
+const CREDITS_SANKEY_PADDING = 2;
+
+export function getCreditsSankeyRow(taxData: TaxYearConfig, filingStatus: FilingStatus): number {
+    const n = taxData.federalBrackets[filingStatus].length;
+    const belowOrdinaryBrackets = 5 + n * 4 + CREDITS_SANKEY_PADDING;
+    return Math.max(belowOrdinaryBrackets, LTCG_SANKEY_INCOME_ROW + CREDITS_SANKEY_PADDING);
 }
 
 

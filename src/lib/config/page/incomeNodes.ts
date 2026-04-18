@@ -4,11 +4,14 @@ import type { configItem } from "./pageConfig.types";
 import {
     calculateLtcgTaxTotal,
     calculateOrdinaryTaxTotal,
+    getCreditsSankeyRow,
     getOrdinaryBrackets,
+    getItemizedDeductions,
     getStandardDeduction,
 } from "./pageConfig.helpers";
-import { 
+import {
     calculateTaxableIncome,
+    computeFederalTaxCreditsApplied,
 } from "./taxCalculations";
 import {
     wageIncome,
@@ -22,7 +25,6 @@ import {
     traditionalIra,
     useItemizedDeductions,
     totalItemized,
-    totalCredits,
     allPretax,
     totalIncome,
 } from "./pageConfig.inputs";
@@ -232,15 +234,11 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
             shortLabel: "Itemized Ded.",
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 3, col: 3 },
-                // link: [
-                //     { source: "itemizedDeductions", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
-                // ],
+                link: [
+                    { source: "itemizedDeductions", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
+                ],
             },
-            calculate: (inputs, _taxData, _filingStatus) => {
-                const useItemized = useItemizedDeductions(inputs);
-                if (!useItemized) return 0;
-                return totalItemized(inputs);
-            },
+            calculate: getItemizedDeductions
         },
     ];
 }
@@ -348,17 +346,13 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             label: "Federal Credits Applied",
             shortLabel: "Credits Applied",
             sankeySettings: {
-                node: { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)", row: 3, col: 2 },
+                node: (() => {
+                    const row = getCreditsSankeyRow(_taxData, _filingStatus);
+                    return { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)", row, col: 3 };
+                })(),
             },
-            calculate: (inputs, taxData, filingStatus) => {
-                const credits = totalCredits(inputs);
-                const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
-                const brackets = getOrdinaryBrackets(taxData, filingStatus);
-                const ordinaryTax = calculateOrdinaryTaxTotal(ordinary, brackets).tax;
-                const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
-                const totalTax = ordinaryTax + ltcgTax;
-                return Math.min(credits, totalTax);
-            },
+            calculate: (inputs, taxData, filingStatus) =>
+                computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
         },
         {
             id: "socialSecurityTax",

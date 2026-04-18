@@ -7,11 +7,12 @@ import {
     retirementSavingsContributions,
     otherCredit,
 } from "./pageConfig.inputs";
+import { getCreditsSankeyRow } from "./pageConfig.helpers";
 
-const creditSankeyNode = { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)", row: 3, col: 2 } as const;
-const creditSankeyLink = { fill: "var(--sankey-link-credits)", stroke: "var(--sankey-link-credits)", row: 3, col: 2 } as const;
+export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+    const row = getCreditsSankeyRow(taxData, filingStatus);
+    const creditSankeyNode = { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)", row, col: 3 } as const;
 
-export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
         {
             id: "input-credit-childTax",
@@ -39,7 +40,6 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             calculate: childTaxCredit,
             sankeySettings: {
                 node: creditSankeyNode,
-                link: [{ source: "input-credit-childTax", target: "federalTaxCredits", ...creditSankeyLink }],
             },
         },
         {
@@ -63,7 +63,6 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             calculate: educationCredits,
             sankeySettings: {
                 node: creditSankeyNode,
-                link: [{ source: "input-credit-education", target: "federalTaxCredits", ...creditSankeyLink }],
             },
         },
         {
@@ -90,7 +89,6 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             calculate: retirementSavingsContributions,
             sankeySettings: {
                 node: creditSankeyNode,
-                link: [{ source: "retirementSavingsContributions", target: "federalTaxCredits", ...creditSankeyLink }],
             },
         },
         {
@@ -121,7 +119,6 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             calculate: otherCredit,
             sankeySettings: {
                 node: creditSankeyNode,
-                link: [{ source: "input-credit-other", target: "federalTaxCredits", ...creditSankeyLink }],
             },
         },
     ];

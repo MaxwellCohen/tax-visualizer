@@ -27,6 +27,7 @@ import {
     otherCredit,
     totalIncome,
     allPretax,
+    totalCredits,
 } from "./pageConfig.inputs";
 
 export * from "./pageConfig.inputs";
@@ -86,6 +87,20 @@ export function calculateTaxableIncome(
     return { ordinary, ltcg, total: ordinary + ltcg, afterPretax, deduction };
 }
 
+/** Nonrefundable credits absorbed against federal income tax before credits (capped at gross federal tax). */
+export function computeFederalTaxCreditsApplied(
+    inputs: TaxFormRow[],
+    taxData: TaxYearConfig,
+    filingStatus: FilingStatus,
+): number {
+    const credits = totalCredits(inputs);
+    const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
+    const brackets = getOrdinaryBrackets(taxData, filingStatus);
+    const ordinaryTax = calculateOrdinaryTaxTotal(ordinary, brackets).tax;
+    const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
+    const totalTax = ordinaryTax + ltcgTax;
+    return Math.min(credits, totalTax);
+}
 
 export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: FilingStatus) {
     

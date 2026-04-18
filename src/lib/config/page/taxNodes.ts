@@ -1,41 +1,67 @@
-/** Tax nodes: federal income tax (and credits into tax), payroll tax, self-employment tax. */
+/** Tax nodes: federal income tax, payroll tax, self-employment tax. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
-import {
-    calculateLtcgTaxTotal,
-    calculateOrdinaryTaxTotal,
-    getOrdinaryBrackets,
-} from "./pageConfig.helpers";
-import { calculateTaxableIncome, calculateSelfEmploymentTax } from "./taxCalculations";
+import { getCreditsSankeyRow } from "./pageConfig.helpers";
+import { calculateSelfEmploymentTax, computeFederalTaxCreditsApplied } from "./taxCalculations";
 import {
     totalCredits,
 } from "./pageConfig.inputs";
 
 export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+    const creditsRow = getCreditsSankeyRow(taxData, filingStatus);
+
+    const creditsHubNode = {
+        fill: "var(--sankey-node-credits)",
+        stroke: "var(--sankey-link-credits)",
+        row: creditsRow,
+        col: 3,
+    } as const;
+    const creditLinkCreditsRow = {
+        fill: "var(--sankey-link-credits)",
+        stroke: "var(--sankey-link-credits)",
+        row: creditsRow,
+        col: 3,
+    } as const;
+
     return [
-        {
-            id: "federalIncomeTaxBeforeCredits",
-            label: "Fed Tax Before Credits",
-            shortLabel: "Fed Tax Before Credits",
-            calculate: (inputs) => {
-                const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
-                const brackets = getOrdinaryBrackets(taxData, filingStatus);
-                const ordinaryTax = calculateOrdinaryTaxTotal(ordinary, brackets).tax;
-                const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
-                return ordinaryTax + ltcgTax;
-            },
-        },
         {
             id: "federalTaxCredits",
             label: "Federal Tax Credits",
             shortLabel: "Credits",
             sankeySettings: {
-                node: { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)", row: 3, col: 2 },
-                link: [
-                    { source: "federalTaxCredits", target: "federalIncomeTax", fill: "var(--sankey-link-credits)", stroke: "var(--sankey-link-credits)", row: 3, col: 2 },
-                ],
+                node: creditsHubNode,
             },
             calculate: totalCredits,
+        },
+        {
+            id: "sankeyOrdinaryToFederalTaxCredits",
+            label: "Ordinary income to federal credits",
+            shortLabel: "Ordinary → credits",
+            sankeySettings: {
+                link: [
+                    {
+                        source: "ordinaryTaxableIncome",
+                        target: "federalTaxCredits",
+                        ...creditLinkCreditsRow,
+                    },
+                ],
+            },
+            calculate: (inputs) => computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
+        },
+        {
+            id: "sankeyFederalTaxCreditsToTakeHome",
+            label: "Federal credits to take-home",
+            shortLabel: "Credits → take-home",
+            sankeySettings: {
+                link: [
+                    {
+                        source: "federalTaxCredits",
+                        target: "takeHomePay",
+                        ...creditLinkCreditsRow,
+                    },
+                ],
+            },
+            calculate: (inputs) => computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
         },
         {
             id: "selfEmploymentTax",
