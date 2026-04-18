@@ -264,7 +264,13 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             shortLabel: "Ordinary (Pre-Ded)",
             sankeySettings: {
                 node: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)", row: 2, col: 2 },
-
+            },
+            summary: {
+                summaryId: "ordinary-taxable-income",
+                label: "Ordinary Taxable Income",
+                category: "income",
+                displayOrder: 1.5,
+                format: "currency",
             },
         },
         {
@@ -275,6 +281,13 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
                 node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: 3, col: 2 },
             },
             calculate: longTermCapGains,
+            summary: {
+                summaryId: "long-term-taxable-income",
+                label: "Long-Term Capital Gains",
+                category: "income",
+                displayOrder: 1.8,
+                format: "currency",
+            },
         },
         {
             id: "taxableIncome",
@@ -304,6 +317,13 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
                 const brackets = getOrdinaryBrackets(taxData, filingStatus);
                 return calculateOrdinaryTaxTotal(ordinary, brackets).tax;
             },
+            summary: {
+                summaryId: "federal-ordinary-income-tax",
+                label: "Ordinary Income Tax",
+                category: "tax",
+                displayOrder: 4.5,
+                format: "currency",
+            },
         },
         {
             id: "federalLongTermCapGainsTax",
@@ -315,6 +335,13 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             calculate: (inputs, taxData, filingStatus) => {
                 const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
                 return calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
+            },
+            summary: {
+                summaryId: "federal-ltcg-tax",
+                label: "Capital Gains Tax",
+                category: "tax",
+                displayOrder: 4.7,
+                format: "currency",
             },
         },
         {

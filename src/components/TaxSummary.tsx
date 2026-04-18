@@ -3,14 +3,13 @@ import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { type MetricDisplay } from "~/lib/taxVisualization.config";
 import { TaxSummaryMetric } from "~/components/taxSummary/TaxSummaryMetric";
 import { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
-import { Accessor } from "solid-js";
+import { Accessor, createMemo } from "solid-js";
 
 type TaxSummaryProps = {
   calculatedConfig: Accessor<CalculatedConfigItem[] | null>;
 };
 
 function MetricItem(props: { metric: MetricDisplay }) {
-  console.log("MetricItem", JSON.stringify(props.metric, null, 2));
   const displayValue = () => {
     if (props.metric.category === "credits") {
       const numValue = parseFloat(props.metric.value.replace(/[^0-9.-]/g, ""));
@@ -21,8 +20,10 @@ function MetricItem(props: { metric: MetricDisplay }) {
     return props.metric.value;
   };
 
+  const parsedValue = parseFloat(props.metric.value.replace(/[^0-9.-]/g, ""));
+  
   return (
-    <Show when={parseFloat(props.metric.value.replace(/[^0-9.-]/g, "")) > 0}>
+    <Show when={parsedValue > 0}>
       <TaxSummaryMetric
         label={props.metric.label}
         value={displayValue()}
@@ -33,7 +34,17 @@ function MetricItem(props: { metric: MetricDisplay }) {
 }
 
 export default function TaxSummary(props: TaxSummaryProps) {
-  console.log("TaxSummary", JSON.stringify(props.calculatedConfig, null, 2));
+  const metrics = createMemo(() => {
+    return props.calculatedConfig()?.map((m) => ({
+      metric: {
+        id: m.id,
+        category: m.summary?.category ?? "income",
+        label: m.label,
+        value: m.computedValue.toString(),
+      }
+    })) ?? [];
+  });
+
   return (
     <section
       class="rounded-xl p-5"
@@ -45,16 +56,14 @@ export default function TaxSummary(props: TaxSummaryProps) {
     >
       <CollapsibleBlock title="Tax Summary" bodyClass="mt-4 space-y-4">
         <div class="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
-          {props.calculatedConfig()?.map((m) => (
-            <MetricItem
-              metric={{
-                id: m.id,
-                category: m.summary?.category ?? "income",
-                label: m.label,
-                value: m.computedValue.toString(),
-              }}
-            />
-          ))}
+          <Show 
+            when={() => metrics().length > 0}
+            fallback={<div class="col-span-full text-center py-4">No tax data available</div>}
+          >
+            {metrics().map((item) => (
+              <MetricItem metric={item.metric} />
+            ))}
+          </Show>
         </div>
         {/* <FootnotesDisplay footnotes={footnotes()} /> */}
       </CollapsibleBlock>
