@@ -22,7 +22,7 @@ export function HomeTaxResults(props: HomeTaxResultsProps) {
       {(result) => (
         <>
           <TaxSankey calculatedConfig={props.calculatedConfig()} />
-          <TaxMekko result={result()} calculatedConfig={props.calculatedConfig()} />
+          <TaxMekko calculatedConfig={props.calculatedConfig()} />
           <TaxSummary
             result={result()}
             baselineResult={props.baselineResult()}

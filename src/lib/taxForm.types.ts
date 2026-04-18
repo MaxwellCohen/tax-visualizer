@@ -3,7 +3,7 @@ import type {
   DeductionKind,
   TaxSegment,
 } from "~/lib/taxCalc.types";
-import type { MekkoRow } from "~/lib/taxCharts.types";
+import type { MekkoRow } from "~/lib/taxCharts.buildMekko";
 
 /** Single setting key in the form row list */
 export type TaxFormSettingId = "taxYear" | "filingStatus" | "useItemizedDeductions";

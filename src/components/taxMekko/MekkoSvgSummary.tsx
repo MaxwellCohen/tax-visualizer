@@ -1,23 +1,15 @@
 import { Show } from "solid-js";
-import type { TaxResult } from "~/lib/taxForm.types";
-import { chartMetricNumeric } from "~/lib/taxChartMetricRead";
 import { PAD_T, SUMMARY_H, pct } from "~/components/taxMekko/constants";
 import { money } from "~/lib/moneyFormat";
 import type { MekkoLayout } from "~/components/taxMekko/mekkoLayout";
 
 type Props = {
   L: MekkoLayout;
-  result: TaxResult;
 };
 
 export function MekkoSvgSummary(props: Props) {
   const L = props.L;
-  const r = props.result;
-  const takeHomePay = chartMetricNumeric(r, "takeHomePay");
-  const preTaxTotal = chartMetricNumeric(r, "preTaxTotal");
-  const traditionalIra = chartMetricNumeric(r, "traditionalIra");
-  const federalIncomeTax = chartMetricNumeric(r, "federalIncomeTax");
-  const payrollTax = chartMetricNumeric(r, "payrollTax");
+  const { takeHomePay, preTaxTotal, traditionalIra, federalIncomeTax, payrollTax } = L;
   return (
     <>
       <text

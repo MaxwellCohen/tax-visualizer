@@ -82,7 +82,7 @@ export function HomeContent() {
         {(result) => (
           <>
             <TaxSankey calculatedConfig={calculatedConfig()} />
-            <TaxMekko result={result()} calculatedConfig={calculatedConfig()} />
+            <TaxMekko calculatedConfig={calculatedConfig()} />
             <TaxSummary
               result={result()}
               baselineResult={baselineResult()}

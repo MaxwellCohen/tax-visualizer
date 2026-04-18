@@ -35,6 +35,9 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                     { source: "ordinaryTaxableIncome", target: `${bracketId}-income`, fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: bracketRow, col: 2 },
                 ],
             },
+            mekkoSettings: {
+                column: { row: bracketRow, col: 3, fill: "var(--mekko-keep)", stroke: "var(--mekko-keep)", kind: "ordinaryBracket" },
+            },
             calculate: incomeCalculate,
         });
 

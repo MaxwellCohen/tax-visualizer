@@ -45,6 +45,14 @@ export type SankeyNode = {
     stroke: string;
 };
 
+export type MekkoColumn = {
+    row: number;
+    col: number;
+    fill: string;
+    stroke: string;
+    kind: "deduction" | "pretax" | "ordinaryBracket" | "ltcgBracket";
+};
+
 export type SankeyCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary" | "takehome" | "rate";
 
 export type TaxTreatment = "ordinary" | "selfEmployment" | "shortTermCapGains" | "longTermCapGains";
@@ -65,6 +73,9 @@ export type configItem = {
         node?: SankeyNode;
     } | {
         link?: SankeyLink[];
+    };
+    mekkoSettings?: {
+        column?: MekkoColumn;
     };
     summary?: {
         summaryId: string;

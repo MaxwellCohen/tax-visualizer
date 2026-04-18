@@ -1,6 +1,5 @@
-import type { TaxResult } from "~/lib/taxForm.types";
-import type { MekkoRow } from "~/lib/taxCharts";
-import { chartMetricNumeric } from "~/lib/taxChartMetricRead";
+import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
+import type { MekkoRow } from "~/lib/taxCharts.buildMekko";
 import { H, PAD_B, PAD_L, PAD_R, PAD_T, SUMMARY_GAP, SUMMARY_H, W } from "~/components/taxMekko/constants";
 import { incomeY, incomeYAxis } from "~/components/taxMekko/incomeScale";
 
@@ -16,6 +15,11 @@ export type MekkoLayout = {
   takeShare: number;
   pretaxShare: number;
   taxShare: number;
+  takeHomePay: number;
+  preTaxTotal: number;
+  traditionalIra: number;
+  federalIncomeTax: number;
+  payrollTax: number;
   rowLayouts: Array<{
     row: MekkoRow;
     rowTop: number;
@@ -27,8 +31,12 @@ export type MekkoLayout = {
   }>;
 };
 
-export function computeMekkoLayout(result: TaxResult, rows: MekkoRow[]): MekkoLayout | undefined {
-  const totalIncome = chartMetricNumeric(result, "totalIncome");
+function findConfigValue(cc: CalculatedConfigItem[], id: string): number {
+  return cc.find(i => i.id === id)?.computedValue ?? 0;
+}
+
+export function computeMekkoLayout(cc: CalculatedConfigItem[], rows: MekkoRow[]): MekkoLayout | undefined {
+  const totalIncome = findConfigValue(cc, "totalIncome");
   if (rows.length === 0) return undefined;
 
   
@@ -43,14 +51,20 @@ export function computeMekkoLayout(result: TaxResult, rows: MekkoRow[]): MekkoLa
   const plotH = plotBottom - plotTop;
   const { yMax, yTicks } = incomeYAxis(visualTotal, plotH);
 
-  const takeShare = totalIncome > 0 ? chartMetricNumeric(result, "takeHomePay") / totalIncome : 0;
+  const takeHomePay = findConfigValue(cc, "takeHomePay");
+  const preTaxTotal = findConfigValue(cc, "preTaxTotal");
+  const traditionalIra = findConfigValue(cc, "traditionalIra");
+  const federalIncomeTax = findConfigValue(cc, "federalIncomeTax");
+  const payrollTax = findConfigValue(cc, "payrollTax");
+
+  const takeShare = totalIncome > 0 ? takeHomePay / totalIncome : 0;
   const pretaxShare =
     totalIncome > 0
-      ? (chartMetricNumeric(result, "preTaxTotal") + chartMetricNumeric(result, "traditionalIra")) / totalIncome
+      ? (preTaxTotal + traditionalIra) / totalIncome
       : 0;
   const taxShare =
     totalIncome > 0
-      ? (chartMetricNumeric(result, "federalIncomeTax") + chartMetricNumeric(result, "payrollTax")) / totalIncome
+      ? (federalIncomeTax + payrollTax) / totalIncome
       : 0;
 
   let cumulative = 0;
@@ -79,6 +93,11 @@ export function computeMekkoLayout(result: TaxResult, rows: MekkoRow[]): MekkoLa
     takeShare,
     pretaxShare,
     taxShare,
+    takeHomePay,
+    preTaxTotal,
+    traditionalIra,
+    federalIncomeTax,
+    payrollTax,
     rowLayouts,
   };
 }

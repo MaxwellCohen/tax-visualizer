@@ -1,20 +1,19 @@
 import { Show, createMemo } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
-import type { TaxResult } from "~/lib/taxForm.types";
 import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
-import { buildMekkoRows } from "~/lib/taxCharts";
+import { buildMekkoFromConfig } from "~/lib/taxCharts.buildMekko";
 import { MekkoChartSvg } from "~/components/taxMekko/MekkoChartSvg";
 import { computeMekkoLayout } from "~/components/taxMekko/mekkoLayout";
 
 type TaxMekkoProps = {
-  result: TaxResult;
   calculatedConfig: CalculatedConfigItem[] | null;
 };
 
 export default function TaxMekko(props: TaxMekkoProps) {
   const layout = createMemo(() => {
-    const rows = props.result.display?.mekko.rows ?? buildMekkoRows(props.result);
-    return computeMekkoLayout(props.result, rows);
+    if (!props.calculatedConfig) return undefined;
+    const rows = buildMekkoFromConfig(props.calculatedConfig);
+    return computeMekkoLayout(props.calculatedConfig, rows);
   });
 
   return (
@@ -44,7 +43,7 @@ export default function TaxMekko(props: TaxMekkoProps) {
             </p>
           }
         >
-          {L => <MekkoChartSvg L={L} result={props.result} />}
+          {L => <MekkoChartSvg L={L} />}
         </Show>
       </CollapsibleBlock>
     </section>
