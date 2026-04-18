@@ -19,6 +19,9 @@ export function TaxInputFormFilingSection(props: Props) {
   const taxYearIdx = createMemo(() => settingRowIndex(props.values().rows, "taxYear"));
   const filingIdx = createMemo(() => settingRowIndex(props.values().rows, "filingStatus"));
   const taxYear = createMemo(() => getTaxYearFromRows(props.values().rows));
+  const taxYearOptions = createMemo(() =>
+    props.availableYears.map(year => ({ value: year, label: String(year) })),
+  );
 
   return (
     <section class="space-y-4">
@@ -33,10 +36,10 @@ export function TaxInputFormFilingSection(props: Props) {
           {(field: any) => (
             <FormStyledSelect
               label="Tax Year"
-              value={field().state.value as number}
+              value={() => field().state.value as number}
               onChange={e => field().handleChange(Number(e.currentTarget.value))}
               onBlur={field().handleBlur}
-              options={props.availableYears.map(year => ({ value: year, label: String(year) }))}
+              options={taxYearOptions()}
             />
           )}
         </props.form.Field>
@@ -45,7 +48,7 @@ export function TaxInputFormFilingSection(props: Props) {
           {(field: any) => (
             <FormStyledSelect
               label="Filing Status"
-              value={field().state.value as FilingStatus}
+              value={() => field().state.value as FilingStatus}
               onChange={e => field().handleChange(e.currentTarget.value as FilingStatus)}
               onBlur={field().handleBlur}
               options={filingStatusOptions}

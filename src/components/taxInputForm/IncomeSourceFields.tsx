@@ -10,8 +10,12 @@ import {
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
 import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
+import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldValidationMessage";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
+import { validateLineItemAmount } from "~/lib/config";
+import type { ValidationContext } from "~/lib/config/types";
 import type { TaxFormData } from "~/lib/taxForm.types";
+import type { TaxYearConfig } from "~/lib/taxData.types";
 import { indexOfTypedRowById } from "~/lib/taxForm.rows";
 
 type IncomeSourceFieldsProps = {
@@ -22,6 +26,8 @@ type IncomeSourceFieldsProps = {
   onRemove: () => void;
   configItems: configItem[];
   isMarriedJoint: boolean;
+  taxData: Accessor<TaxYearConfig | null>;
+  validationCtx: Accessor<ValidationContext | undefined>;
 };
 
 export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
@@ -38,15 +44,18 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
     const i = rowIndex();
     return i >= 0 ? `rows[${i}]` : "";
   });
+
+  /** Key `<Show keyed>` by stable row id — not `rows[i]` — so index shifts do not remount the row and reset `<select>`. */
+  const showWhenKey = createMemo(() => (rowIndex() >= 0 ? props.rowId : false));
   const kindOptions = createMemo(() => incomeKindSelectOptions(props.configItems, props.isMarriedJoint));
   return (
-    <Show when={fieldPrefix()} keyed>
+    <Show when={showWhenKey()} keyed>
       <tr class={taxInputFormTableTrClass}>
         <td class={`${taxInputFormTableTdLabeled} pl-3`} data-label="Type">
           <FormStyledSelect
             label="Income type"
             hideLabel
-            value={kind() ?? ""}
+            value={() => kind() ?? ""}
             onChange={(e) => {
               const i = rowIndex();
               if (i < 0) return;
@@ -78,8 +87,21 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
           </props.form.Field>
         </td>
         <td class={taxInputFormTableTdLabeled} data-label="Amount">
-          <props.form.Field name={`${fieldPrefix()}.amount`}>
-            {(field: any) => <FormCurrencyInput field={field} ariaLabel="Amount" />}
+          <props.form.Field
+            name={`${fieldPrefix()}.amount`}
+            validators={{
+              onChange: ({ value }: { value: unknown }) =>
+                validateLineItemAmount(kind(), value as number, props.validationCtx(), props.taxData()),
+              onBlur: ({ value }: { value: unknown }) =>
+                validateLineItemAmount(kind(), value as number, props.validationCtx(), props.taxData()),
+            }}
+          >
+            {(field: any) => (
+              <div>
+                <FormCurrencyInput field={field} ariaLabel="Amount" />
+                <FormFieldValidationMessage field={field} />
+              </div>
+            )}
           </props.form.Field>
         </td>
         <td class={taxInputFormTableTdActions}>

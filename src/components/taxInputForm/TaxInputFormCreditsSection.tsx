@@ -4,6 +4,7 @@ import Accordion from "~/components/Accordion";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
 import type { TaxFormData, TaxFormCreditRow } from "~/lib/taxForm.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
+import type { ValidationContext } from "~/lib/config/types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { FederalTaxCreditSourceRow } from "~/components/taxInputForm/FederalTaxCreditSourceFields";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
@@ -21,6 +22,7 @@ type Props = {
   clearAll: () => void;
   taxData: Accessor<TaxYearConfig | null>;
   filingStatus: Accessor<FilingStatus>;
+  validationCtx: Accessor<ValidationContext | undefined>;
 };
 
 export function TaxInputFormCreditsSection(props: Props) {
@@ -101,6 +103,7 @@ export function TaxInputFormCreditsSection(props: Props) {
                   }}
                   taxData={props.taxData}
                   filingStatus={props.filingStatus}
+                  validationCtx={props.validationCtx}
                 />
               )}
             </For>

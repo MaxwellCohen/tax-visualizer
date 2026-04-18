@@ -7,8 +7,9 @@ import { money, taxInputFormTableThClass } from "~/components/taxInputForm/share
 import type { TaxFormData, TaxFormIncomeRow } from "~/lib/taxForm.types";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
+import type { ValidationContext } from "~/lib/config/types";
 import { getInputItems } from "~/lib/config";
-
+import { effect } from "solid-js/web";
 type Props = {
   form: TaxInputFormApi;
   values: Accessor<TaxFormData>;
@@ -16,6 +17,7 @@ type Props = {
   removeSourceAt: (i: number) => void;
   taxData: Accessor<TaxYearConfig | null>;
   filingStatus: Accessor<FilingStatus>;
+  validationCtx: Accessor<ValidationContext | undefined>;
 };
 
 const addSourceBtnClass =
@@ -43,6 +45,10 @@ export function TaxInputFormIncomeSection(props: Props) {
 
   const isMarriedJoint = createMemo(() => props.filingStatus() === "marriedJoint");
 
+
+  effect(() => {
+    console.log("incomeRowIds", props.values());
+  });
   return (
     <Accordion
       summary={
@@ -100,6 +106,8 @@ export function TaxInputFormIncomeSection(props: Props) {
                   }}
                   configItems={configItems()}
                   isMarriedJoint={isMarriedJoint()}
+                  taxData={props.taxData}
+                  validationCtx={props.validationCtx}
                 />
               )}
             </For>

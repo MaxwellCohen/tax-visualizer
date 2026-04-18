@@ -58,8 +58,10 @@ function removeRowAt(rows: TaxFormRow[], index: number): TaxFormRow[] {
 }
 
 export function createTaxInputForm(props: TaxInputFormOuterProps) {
+  /** Snapshot once per form instance — reactive `props.value` must not drive `defaultValues` or TanStack's `api.update` resets the store on every parent render (drops `kind`, resets selects). */
+  const defaultValuesAtInit = props.value;
   const form = createForm(() => ({
-    defaultValues: props.value,
+    defaultValues: defaultValuesAtInit,
     listeners: {
       onChange: ({ formApi }) => {
         props.onChange(formApi.state.values);

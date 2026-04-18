@@ -8,6 +8,7 @@ import {
 } from "~/components/taxInputForm/shared";
 import type { TaxFormData, TaxFormPretaxRow } from "~/lib/taxForm.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
+import type { ValidationContext } from "~/lib/config/types";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
 
@@ -21,6 +22,7 @@ type Props = {
   clearAll: () => void;
   taxData: Accessor<TaxYearConfig | null>;
   filingStatus: Accessor<FilingStatus>;
+  validationCtx: Accessor<ValidationContext | undefined>;
 };
 
 const addBenefitBtnClass =
@@ -114,6 +116,7 @@ export function TaxInputFormPreTaxSection(props: Props) {
                   isMarriedJoint={() => props.isMarriedJoint()}
                   taxData={props.taxData}
                   filingStatus={props.filingStatus}
+                  validationCtx={props.validationCtx}
                 />
               )}
             </For>

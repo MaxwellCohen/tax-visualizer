@@ -4,6 +4,7 @@ import Accordion from "~/components/Accordion";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
 import type { TaxFormData, TaxFormDeductionRow } from "~/lib/taxForm.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
+import type { ValidationContext } from "~/lib/config/types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { ItemizedDeductionSourceRow } from "~/components/taxInputForm/ItemizedDeductionSourceFields";
 import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
@@ -28,6 +29,7 @@ type Props = {
   removeItemizedDeductionAt: (rowIndex: number) => void;
   clearAll: () => void;
   taxData: Accessor<TaxYearConfig | null>;
+  validationCtx: Accessor<ValidationContext | undefined>;
 };
 
 export function TaxInputFormDeductionSection(props: Props) {
@@ -144,6 +146,7 @@ export function TaxInputFormDeductionSection(props: Props) {
                         if (i >= 0) props.removeItemizedDeductionAt(i);
                       }}
                       taxData={props.taxData}
+                      validationCtx={props.validationCtx}
                     />
                   )}
                 </For>

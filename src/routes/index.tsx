@@ -11,6 +11,7 @@ import { getAvailableTaxYears, isPlanningTaxYear, getTaxYearConfig } from "~/lib
 import { getScenarioPresets } from "~/lib/taxScenario";
 import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { wireTaxHomePersistence } from "~/routes/taxHome/taxHomePersistence";
+import { effect } from "solid-js/web";
 
 export default function HomeContent() {
   const availableYears = getAvailableTaxYears();
@@ -40,6 +41,13 @@ export default function HomeContent() {
     taxInput,
     setTaxInput,
     setBaselineInput,
+  });
+
+
+  effect(() => {
+    console.log("root taxInput", taxInput());
+    console.log("root taxResult", taxResult());
+    console.log("root calculatedConfig", calculatedConfig());
   });
 
   return (

@@ -1,4 +1,5 @@
-import type { JSX } from "solid-js";
+import type { Accessor, JSX } from "solid-js";
+import { For, createEffect } from "solid-js";
 import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import { inputClass, labelClass } from "~/components/taxInputForm/shared";
 
@@ -6,7 +7,7 @@ type Option = { value: string | number; label: string };
 
 type Props = {
   label: string;
-  value: string | number;
+  value: Accessor<string | number>;
   onChange: (e: Event & { currentTarget: HTMLSelectElement }) => void;
   onBlur: () => void;
   options?: Option[];
@@ -15,23 +16,48 @@ type Props = {
 };
 
 export function FormStyledSelect(props: Props) {
+  let selectEl: HTMLSelectElement | undefined;
   const commitToUrl = useTaxInputCommitToUrl();
   const onBlur = () => {
     props.onBlur();
     commitToUrl?.();
   };
+
+  /** Native `<select>` can drop the visible selection when `<option>` nodes reconcile; re-apply after DOM settles (value may be unchanged). */
+  createEffect(() => {
+    const v = String(props.value());
+    const opts = props.options;
+    if (opts) {
+      opts.length;
+    }
+    const el = selectEl;
+    if (!el) return;
+    queueMicrotask(() => {
+      if (el.isConnected && el.value !== v) {
+        el.value = v;
+      }
+    });
+  });
+
   const select = (
     <select
+      ref={(el) => {
+        selectEl = el;
+      }}
       class={inputClass}
       style={{ background: "var(--input-bg)", color: "var(--text)" }}
-      value={props.value}
+      value={String(props.value())}
       aria-label={props.hideLabel ? props.label : undefined}
       onChange={props.onChange}
       onBlur={onBlur}
     >
-      {props.options
-        ? props.options.map(opt => <option value={opt.value}>{opt.label}</option>)
-        : props.children}
+      {props.options ? (
+        <For each={props.options}>
+          {(opt) => <option value={String(opt.value)}>{opt.label}</option>}
+        </For>
+      ) : (
+        props.children
+      )}
     </select>
   );
   if (props.hideLabel) {

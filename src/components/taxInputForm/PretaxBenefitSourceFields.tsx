@@ -12,8 +12,10 @@ import {
   taxInputFormTableTdLabeled,
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
+import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldValidationMessage";
 import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { getInputItems } from "~/lib/config";
+import { getInputItems, validateLineItemAmount } from "~/lib/config";
+import type { ValidationContext } from "~/lib/config/types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 
 type Props = {
@@ -25,6 +27,7 @@ type Props = {
   isMarriedJoint: () => boolean;
   taxData: Accessor<TaxYearConfig | null>;
   filingStatus: Accessor<FilingStatus>;
+  validationCtx: Accessor<ValidationContext | undefined>;
 };
 
 const pretaxDetailRowTdClass =
@@ -74,15 +77,17 @@ export function PretaxBenefitSourceRow(props: Props) {
     return i >= 0 ? `rows[${i}]` : "";
   });
 
+  const showWhenKey = createMemo(() => (rowIndex() >= 0 ? props.rowId : false));
+
   return (
-    <Show when={fieldPrefix()} keyed>
+    <Show when={showWhenKey()} keyed>
       <>
         <tr class={taxInputFormTableTrClass}>
           <td class={`${taxInputFormTableTdLabeled} pl-3`} data-label="Type">
             <FormStyledSelect
               label="Benefit type"
               hideLabel
-              value={kind() ?? ""}
+              value={() => kind() ?? ""}
               onChange={(e) => {
                 const i = rowIndex();
                 if (i < 0) return;
@@ -114,8 +119,21 @@ export function PretaxBenefitSourceRow(props: Props) {
             </props.form.Field>
           </td>
           <td class={taxInputFormTableTdLabeled} data-label="Amount">
-            <props.form.Field name={`${fieldPrefix()}.amount`}>
-              {(field: any) => <FormCurrencyInput field={field} ariaLabel="Amount" />}
+            <props.form.Field
+              name={`${fieldPrefix()}.amount`}
+              validators={{
+                onChange: ({ value }: { value: unknown }) =>
+                  validateLineItemAmount(kind(), value as number, props.validationCtx(), props.taxData()),
+                onBlur: ({ value }: { value: unknown }) =>
+                  validateLineItemAmount(kind(), value as number, props.validationCtx(), props.taxData()),
+              }}
+            >
+              {(field: any) => (
+                <div>
+                  <FormCurrencyInput field={field} ariaLabel="Amount" />
+                  <FormFieldValidationMessage field={field} />
+                </div>
+              )}
             </props.form.Field>
           </td>
           <td class={taxInputFormTableTdActions}>

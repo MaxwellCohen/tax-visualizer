@@ -1,3 +1,5 @@
+import type { ValidationContext } from "~/lib/config/types";
+import { getYearValues } from "~/lib/config/yearValues";
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import { makeCreditInputsConfig } from "./creditInputs";
 import { makeDeductionInputsConfig, makePayrollFromWagesInputConfig, makePayrollTaxInputConfig } from "./deductionInputs";
@@ -7,7 +9,7 @@ import { makeDeductionAmountNodesConfig, makeIncomeNodesConfig, makePretaxIncome
 import { makePretaxInputsConfig } from "./pretaxInputs";
 import { getBracketItems, getLtcgBracketItems } from "./taxBracketNodes";
 import { makeTaxNodesConfig } from "./taxNodes";
-import type { configItem } from "./pageConfig.types";
+import type { configItem, InputRowSettings } from "./pageConfig.types";
 import type { TaxTreatment } from "./pageConfig.types";
 
 export type {
@@ -45,6 +47,61 @@ export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatu
 
 export function getInputItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
     return getConfigItems(taxData, filingStatus).filter((item) => 'inputRowSettings' in item)
+}
+
+/** Build {@link ValidationContext} for `inputRowSettings.validate` on config items (limits from `YearValues`). */
+export function buildValidationContext(
+    taxYear: number,
+    filingStatus: FilingStatus,
+): ValidationContext | undefined {
+    const yearValues = getYearValues(taxYear);
+    if (!yearValues) return undefined;
+    return {
+        yearValues,
+        filingStatus,
+        taxYear,
+        isJoint: filingStatus === "marriedJoint",
+    };
+}
+
+/** Resolve `inputRowSettings.validate` for a line-item `kind` (subcategory key). */
+export function findValidateForKind(
+    taxData: TaxYearConfig | null | undefined,
+    filingStatus: FilingStatus,
+    kind: string | undefined,
+): NonNullable<InputRowSettings["validate"]> | undefined {
+    if (!taxData || kind == null) return undefined;
+    for (const item of getInputItems(taxData, filingStatus)) {
+        const s = item.inputRowSettings;
+        if (!s?.validate) continue;
+        const subs = s.subcategories;
+        if (subs?.some((sub) => sub.key === kind)) {
+            return s.validate;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Runs the config object's `validate` for this kind. Rules live on {@link configItem} `inputRowSettings` only
+ * (see `incomeInputs`, `pretaxInputs`, `deductionInputs`, `creditInputs`).
+ */
+export function validateLineItemAmount(
+    kind: string | undefined,
+    value: number,
+    ctx: ValidationContext | undefined,
+    taxData: TaxYearConfig | null | undefined,
+): string | undefined {
+    if (kind == null || !ctx) return undefined;
+    if (!Number.isFinite(value)) return "Enter a valid number";
+    const fn = findValidateForKind(taxData, ctx.filingStatus, kind);
+    if (fn) {
+        const r = fn(value, ctx);
+        if (!r.valid) return r.message ?? "Invalid amount";
+        return undefined;
+    }
+    if (value < 0) return "Cannot be negative";
+    return undefined;
 }
 
 export type IncomeKindConfig = {
