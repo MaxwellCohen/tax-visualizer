@@ -1,7 +1,7 @@
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import { findInputById } from "./pageConfig.helpers";
 
-export const wageIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary-wages");
+export const wageIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary");
 export const selfEmploymentIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary-selfEmployment");
 export const ordinaryIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary");
 export const shortTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary-shortTermCapGains");

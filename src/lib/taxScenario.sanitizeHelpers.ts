@@ -1,14 +1,10 @@
 import type { FilingStatus } from "~/lib/taxData";
-import {
-  emptyAggregatedPretax,
-  pretaxScalarsToMinimalSources,
-} from "~/lib/taxCalc.pretaxBenefitSource";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import {
   newCreditRow,
   newDeductionRow,
   newIncomeRow,
-  pretaxSourcesToRows,
+  newPretaxRow,
   taxFormDataFromParts,
 } from "~/lib/taxForm.factories";
 
@@ -37,10 +33,10 @@ export function fallbackScenario(fallbackYear: number): TaxFormData {
   return taxFormDataFromParts({
     taxYear: fallbackYear,
     filingStatus: DEFAULT_FILING_STATUS,
-    incomeRows: [newIncomeRow({ kind: "income-ordinary-wages", amount: 90_000 })],
-    pretaxRows: pretaxSourcesToRows(pretaxScalarsToMinimalSources(emptyAggregatedPretax())),
+    incomeRows: [newIncomeRow({ amount: 90_000 })],
+    pretaxRows: [newPretaxRow()],
     useItemizedDeductions: false,
-    deductionRows: [newDeductionRow({ kind: "otherItemized" })],
+    deductionRows: [newDeductionRow()],
     creditRows: [newCreditRow()],
   });
 }

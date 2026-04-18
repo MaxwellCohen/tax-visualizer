@@ -2,6 +2,7 @@ import { clampTaxFormData } from "~/lib/taxCalc.clamp";
 import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import type { TaxFormData } from "~/lib/taxForm.types";
+import { pruneDisallowedLineItemKinds } from "~/lib/taxScenario.pruneLineItemKinds";
 import {
   fallbackScenario,
   normalizeTaxYear,
@@ -88,7 +89,7 @@ function sanitizeRowsList(raw: unknown, availableYears: number[], fallbackYear: 
   const rowsWithYear = out.map((r) =>
     r.type === "setting" && r.id === "taxYear" ? { ...r, value: ty } : r,
   );
-  return rowsWithYear;
+  return pruneDisallowedLineItemKinds(rowsWithYear);
 }
 
 export function sanitizeScenarioInput(

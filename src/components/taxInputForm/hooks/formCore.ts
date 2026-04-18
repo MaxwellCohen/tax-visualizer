@@ -75,7 +75,7 @@ export function createTaxInputForm(props: TaxInputFormOuterProps) {
   const addSource = () => {
     const v = values();
     const idx = insertIndexForNewIncome(v.rows);
-    const newRows = spliceRows(v.rows, idx, newIncomeRow({ kind: "ordinary" }));
+    const newRows = spliceRows(v.rows, idx, newIncomeRow());
     form.setFieldValue("rows", newRows);
     props.onChange({ ...v, rows: newRows });
   };
@@ -90,7 +90,7 @@ export function createTaxInputForm(props: TaxInputFormOuterProps) {
 
   const addPretaxBenefit = () => {
     const v = values();
-    const src = newPretaxBenefitSource({ kind: "preTax401kSpouse1" });
+    const src = newPretaxBenefitSource();
     const idx = insertIndexForNewPretax(v.rows);
     const newRows = spliceRows(v.rows, idx, newPretaxRow({ id: src.id, kind: src.kind, label: src.label, amount: src.amount }));
     form.setFieldValue("rows", newRows);

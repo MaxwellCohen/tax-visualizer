@@ -5,6 +5,12 @@ import type {
   PretaxBenefitSource,
 } from "~/lib/taxCalc.types";
 import type { FilingStatus } from "~/lib/taxData.types";
+import {
+  DEFAULT_FEDERAL_CREDIT_KIND,
+  DEFAULT_INCOME_KIND,
+  DEFAULT_ITEMIZED_DEDUCTION_KIND,
+  DEFAULT_PRETAX_BENEFIT_KIND,
+} from "~/lib/config/page/inputKindKeys";
 import type {
   TaxFormCreditRow,
   TaxFormData,
@@ -24,7 +30,7 @@ export function newIncomeRow(overrides?: Partial<Omit<TaxFormIncomeRow, "type">>
   return {
     type: "income",
     id: newId("inc"),
-    kind: "income-ordinary-wages",
+    kind: DEFAULT_INCOME_KIND,
     label: "",
     amount: 0,
     ...overrides,
@@ -35,7 +41,7 @@ export function newPretaxRow(overrides?: Partial<Omit<TaxFormPretaxRow, "type">>
   return {
     type: "pretax",
     id: newId("ptx"),
-    kind: "input-pretax-401K-preTax401kSpouse1",
+    kind: DEFAULT_PRETAX_BENEFIT_KIND,
     label: "",
     amount: 0,
     ...overrides,
@@ -46,7 +52,7 @@ export function newDeductionRow(overrides?: Partial<Omit<TaxFormDeductionRow, "t
   return {
     type: "deduction",
     id: newId("itm"),
-    kind: "otherItemized",
+    kind: DEFAULT_ITEMIZED_DEDUCTION_KIND,
     label: "",
     amount: 0,
     ...overrides,
@@ -57,7 +63,7 @@ export function newCreditRow(overrides?: Partial<Omit<TaxFormCreditRow, "type">>
   return {
     type: "credit",
     id: newId("crd"),
-    kind: "childTaxCredit",
+    kind: DEFAULT_FEDERAL_CREDIT_KIND,
     label: "",
     amount: 0,
     ...overrides,

@@ -46,6 +46,10 @@ export function ItemizedDeductionSourceRow(props: Props) {
     itemizedDeductionSelectOptions('deduction', configItems())
   );
 
+  const rowIndex = props.form.useStore((s: { values: TaxFormData }) =>
+    indexOfTypedRowById(s.values.rows, "deduction", props.rowId),
+  );
+
   const kind = props.form.useStore((s: { values: TaxFormData }): string | undefined => {
     const i = indexOfTypedRowById(s.values.rows, "deduction", props.rowId);
     const r = i >= 0 ? s.values.rows[i] : undefined;
@@ -68,7 +72,6 @@ export function ItemizedDeductionSourceRow(props: Props) {
     };
   });
 
-  const rowIndex = createMemo(() => indexOfTypedRowById(props.values().rows, "deduction", props.rowId));
   const fieldPrefix = createMemo(() => {
     const i = rowIndex();
     return i >= 0 ? `rows[${i}]` : "";
@@ -79,18 +82,20 @@ export function ItemizedDeductionSourceRow(props: Props) {
       <>
         <tr class={taxInputFormTableTrClass}>
           <td class={`${taxInputFormTableTdLabeled} pl-3`} data-label="Category">
-            <props.form.Field name={`${fieldPrefix()}.kind`}>
-              {(field: any) => (
-                <FormStyledSelect
-                  label="Deduction category"
-                  hideLabel
-                  value={field().state.value}
-                  onChange={e => field().handleChange(e.currentTarget.value)}
-                  onBlur={field().handleBlur}
-                  options={kindOptions()}
-                />
-              )}
-            </props.form.Field>
+            <FormStyledSelect
+              label="Deduction category"
+              hideLabel
+              value={kind() ?? ""}
+              onChange={(e) => {
+                const i = rowIndex();
+                if (i < 0) return;
+                void props.form.setFieldValue(`rows[${i}].kind`, e.currentTarget.value);
+              }}
+              onBlur={() => {
+                commitToUrl?.();
+              }}
+              options={kindOptions()}
+            />
           </td>
           <td class={taxInputFormTableTdLabeled} data-label="Label (optional)">
             <props.form.Field name={`${fieldPrefix()}.label`}>

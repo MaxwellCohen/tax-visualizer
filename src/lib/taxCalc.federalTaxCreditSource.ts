@@ -1,6 +1,5 @@
+import { DEFAULT_FEDERAL_CREDIT_KIND } from "~/lib/config/page/inputKindKeys";
 import type { FederalTaxCreditSource } from "~/lib/taxCalc.types";
-
-
 
 export function newFederalTaxCreditSource(
   overrides?: Partial<Omit<FederalTaxCreditSource, "id">>
@@ -10,7 +9,7 @@ export function newFederalTaxCreditSource(
     : `crd-${Math.random().toString(36).slice(2)}`;
   return {
     id,
-    kind: "childTaxCredit-childTaxCredit",
+    kind: DEFAULT_FEDERAL_CREDIT_KIND,
     label: "",
     amount: 0,
     ...overrides,

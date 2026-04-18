@@ -77,7 +77,7 @@ export function calculateTaxableIncome(
     const seTax = calculateSelfEmploymentTaxFromIncome(seIncome, taxData);
     const seDeduction = seTax / 2;
     const pretax = allPretax(inputs);
-    const afterPretax = totalIncome(inputs) - pretax - seDeduction;
+    const afterPretax = ordinaryIncome(inputs) - pretax - seDeduction;
     const itemized =  findInputById( inputs, 'deduction-');
     const standard = Math.min(afterPretax, taxData.standardDeduction[filingStatus]);
     const deduction = Math.max(itemized, standard);

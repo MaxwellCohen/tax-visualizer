@@ -1,7 +1,7 @@
 import type { FilingStatus, TaxYearConfig, LongTermCapGainsThresholds, FederalTaxBracket } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import { allPretax, useItemizedDeductions, wageIncome } from "./pageConfig.inputs";
-import { calculatePayrollTax } from "./taxCalculations";
+import { calculatePayrollTax, calculateSelfEmploymentTax } from "./taxCalculations";
 
 export function findInputById(inputs: TaxFormRow[], id: string): number {
     let sum = 0;
@@ -27,7 +27,7 @@ export function getStandardDeduction(inputs: TaxFormRow[], taxData: TaxYearConfi
     if(useItemized) return 0;
     const income = wageIncome(inputs) - allPretax(inputs)
     const standard = Math.min(income, taxData.standardDeduction[filingStatus]);
-    const payrollTax = calculatePayrollTax(inputs, taxData);
+    const payrollTax = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
     return Math.max(0, standard - payrollTax);
 }
 

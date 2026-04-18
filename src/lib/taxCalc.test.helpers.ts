@@ -1,3 +1,4 @@
+import { DEFAULT_FEDERAL_CREDIT_KIND } from "~/lib/config/page/inputKindKeys";
 import type { FederalTaxCreditSource, PretaxBenefitKind, PretaxBenefitSource } from "~/lib/taxCalc.types";
 import type { TaxFormCreditRow, TaxFormData, TaxFormDeductionRow, TaxFormIncomeRow, TaxFormPretaxRow } from "~/lib/taxForm.types";
 import type { FilingStatus } from "~/lib/taxData.types";
@@ -44,7 +45,7 @@ export function withPretaxTotals(partial: Partial<Record<string, number>>): TaxF
 
 export function withFederalCreditsTotal(amount: number): TaxFormCreditRow[] {
   const sources: FederalTaxCreditSource[] = [
-    { id: "1", kind: "childTaxCredit-childTaxCredit", label: "Child Tax Credit", amount },
+    { id: "1", kind: DEFAULT_FEDERAL_CREDIT_KIND, label: "Child Tax Credit", amount },
   ];
   return federalCreditsToRows(sources);
 }

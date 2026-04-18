@@ -43,6 +43,10 @@ export function PretaxBenefitSourceRow(props: Props) {
     pretaxBenefitKindSelectOptions(configItems(), props.isMarriedJoint())
   );
 
+  const rowIndex = props.form.useStore((s: { values: TaxFormData }) =>
+    indexOfTypedRowById(s.values.rows, "pretax", props.rowId),
+  );
+
   const kind = props.form.useStore((s: { values: TaxFormData }): string | undefined => {
     const i = indexOfTypedRowById(s.values.rows, "pretax", props.rowId);
     const r = i >= 0 ? s.values.rows[i] : undefined;
@@ -65,7 +69,6 @@ export function PretaxBenefitSourceRow(props: Props) {
     };
   });
 
-  const rowIndex = createMemo(() => indexOfTypedRowById(props.values().rows, "pretax", props.rowId));
   const fieldPrefix = createMemo(() => {
     const i = rowIndex();
     return i >= 0 ? `rows[${i}]` : "";
@@ -76,18 +79,20 @@ export function PretaxBenefitSourceRow(props: Props) {
       <>
         <tr class={taxInputFormTableTrClass}>
           <td class={`${taxInputFormTableTdLabeled} pl-3`} data-label="Type">
-            <props.form.Field name={`${fieldPrefix()}.kind`}>
-              {(field: any) => (
-                <FormStyledSelect
-                  label="Benefit type"
-                  hideLabel
-                  value={field().state.value}
-                  onChange={e => field().handleChange(e.currentTarget.value)}
-                  onBlur={field().handleBlur}
-                  options={kindOptions()}
-                />
-              )}
-            </props.form.Field>
+            <FormStyledSelect
+              label="Benefit type"
+              hideLabel
+              value={kind() ?? ""}
+              onChange={(e) => {
+                const i = rowIndex();
+                if (i < 0) return;
+                void props.form.setFieldValue(`rows[${i}].kind`, e.currentTarget.value);
+              }}
+              onBlur={() => {
+                commitToUrl?.();
+              }}
+              options={kindOptions()}
+            />
           </td>
           <td class={taxInputFormTableTdLabeled} data-label="Label (optional)">
             <props.form.Field name={`${fieldPrefix()}.label`}>

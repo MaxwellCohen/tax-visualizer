@@ -25,9 +25,9 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                     { key: "input-pretax-401K-preTax403bSpouse2", labelSingle: "403(b) deferrals (2)", labelJoint: "403(b) deferrals (2)" },
                     { key: "input-pretax-401K-preTax457bSpouse2", labelSingle: "457(b) deferrals (2)", labelJoint: "457(b) deferrals (2)" },
                 ],
-                getLimit: (yearValues) => yearValues.limits["401k"] ?? 23000,
+                getLimit: (yearValues) => yearValues.limits.electiveDeferral401k ?? 23000,
                 validate: (value, ctx) => {
-                    const limit = ctx.yearValues.limits["401k"] ?? 23000;
+                    const limit = ctx.yearValues.limits.electiveDeferral401k ?? 23000;
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
                     return { valid: true };
@@ -59,11 +59,11 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 ],
                 getFilingStatusLimit: (yearValues, filingStatus) => {
                     const isJoint = filingStatus === "marriedJoint";
-                    return isJoint ? (yearValues.limits["input-pretax-hsaFamily"] ?? 8300) : (yearValues.limits["input-pretax-hsaSelfOnly"] ?? 4150);
+                    return isJoint ? (yearValues.limits.hsaFamily ?? 8550) : (yearValues.limits.hsaSelfOnly ?? 4300);
                 },
                 validate: (value, ctx) => {
                     const isJoint = ctx.filingStatus === "marriedJoint";
-                    const limit = isJoint ? (ctx.yearValues.limits["input-pretax-hsaFamily"] ?? 8300) : (ctx.yearValues.limits["input-pretax-hsaSelfOnly"] ?? 4150);
+                    const limit = isJoint ? (ctx.yearValues.limits.hsaFamily ?? 8550) : (ctx.yearValues.limits.hsaSelfOnly ?? 4300);
                     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
                     if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
                     return { valid: true };

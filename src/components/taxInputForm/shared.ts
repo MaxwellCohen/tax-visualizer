@@ -51,7 +51,11 @@ export const pretaxFieldCaptionClass =
 
 export { money } from "~/lib/moneyFormat";
 
-/** Dropdown options for pretax rows; filters out empty labels based on filing status. */
+function isPretaxSecondSpouseSubKey(key: string): boolean {
+  return key.includes("Spouse2");
+}
+
+/** Dropdown options for pretax rows; filters out empty labels and MFJ-only spouse (2) lines when not filing jointly. */
 export function pretaxBenefitKindSelectOptions(
   items: configItem[],
   isMarriedJoint: boolean
@@ -60,10 +64,12 @@ export function pretaxBenefitKindSelectOptions(
     .filter(item => item.inputRowSettings?.category === "pretax")
     .flatMap(item => {
       const subs = item.inputRowSettings?.subcategories ?? [];
-      return subs.map(sub => ({
-        value: sub.key,
-        label: isMarriedJoint ? sub.labelJoint : sub.labelSingle,
-      }));
+      return subs
+        .filter(sub => isMarriedJoint || !isPretaxSecondSpouseSubKey(sub.key))
+        .map(sub => ({
+          value: sub.key,
+          label: isMarriedJoint ? sub.labelJoint : sub.labelSingle,
+        }));
     })
     .filter(opt => opt.label.length > 0);
 }

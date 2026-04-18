@@ -1,13 +1,12 @@
+import { DEFAULT_ITEMIZED_DEDUCTION_KIND } from "~/lib/config/page/inputKindKeys";
 import type { ItemizedDeductionSource } from "~/lib/taxCalc.types";
 
+/** Subcategory keys from `makeDeductionInputsConfig` itemized rows (for tests / validation). */
 export const ITEMIZED_DEDUCTION_KIND_VALUES: string[] = [
-  "medicalDental-medicalDental",
-  "salt-salt",
-  "mortgageInterest-mortgageInterest",
-  "charitable-charitable",
-  "investmentInterest",
-  "casualtyTheft",
-  "otherItemized",
+  "deduction-salt-salt",
+  "deduction-medicalDental-medicalDental",
+  "deduction-mortgageInterest-mortgageInterest",
+  "deduction-charitable-charitable",
 ];
 
 export function newItemizedDeductionSource(
@@ -18,7 +17,7 @@ export function newItemizedDeductionSource(
     : `itm-${Math.random().toString(36).slice(2)}`;
   return {
     id,
-    kind: "otherItemized",
+    kind: DEFAULT_ITEMIZED_DEDUCTION_KIND,
     label: "",
     amount: 0,
     ...overrides,

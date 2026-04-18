@@ -59,7 +59,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
 
         {
             id: "standard",
-            label: "0% tax",
+            label: "Standard deduction",
             shortLabel: "Standard",
             description: "Standard deduction based on filing status",
             kindDetail: {
@@ -79,7 +79,8 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             shortLabel: "deduction-salt",
             description: "State and local taxes you elect to deduct",
             kindDetail: {
-                limitNote: "$10,000 cap (single) / $10,000 (married)",
+                limitNote:
+                    "Annual cap on combined state/local income, sales, and property taxes (varies by tax year and filing status). MAGI-based SALT reduction for very high incomes is not modeled.",
             },
             inputRowSettings: {
                 category: "deduction",

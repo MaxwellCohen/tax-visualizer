@@ -17,9 +17,11 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             id: "input-credit-childTax",
             label: "Child Tax Credit",
             shortLabel: "CTC",
-            description: "Credit for qualifying children (up to $2000 per child)",
+            description:
+                "Credit for qualifying children; maximum per child depends on tax year. Refundable amount may apply as Additional CTC (Schedule 8812).",
             kindDetail: {
-                modelingNote: "$2000 per child, $500 refundable if greater than tax liability",
+                modelingNote:
+                    "Nonrefundable portion offsets income tax; refundable Additional CTC has separate rules (earned income, etc.). Credit for other dependents uses a different maximum.",
             },
             inputRowSettings: {
                 category: "credit",
@@ -70,7 +72,7 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             shortLabel: "Saver's Credit",
             description: "Saver's credit for eligible retirement contributions",
             kindDetail: {
-                limitNote: "Up to $2000 credit (based on income)",
+                limitNote: "Up to $1,000 credit ($2,000 MFJ) at the maximum rate; percentage depends on AGI and filing status",
             },
             inputRowSettings: {
                 category: "credit",
