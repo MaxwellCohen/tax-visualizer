@@ -10,25 +10,25 @@ import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
 import { getAvailableTaxYears, isPlanningTaxYear } from "~/lib/taxData";
 import { getScenarioPresets } from "~/lib/taxScenario";
 import { starterScenario } from "~/routes/taxHome/scenarioInit";
-import { wireTaxHomePersistence } from "~/routes/taxHome/taxHomePersistence";
 import { effect } from "solid-js/web";
+import { useSearchParams } from "@solidjs/router";
+import { deserializeScenarioInputFromSearchParams, serializeScenarioInput } from "~/lib/taxScenario.serialize";
+import { SCENARIO_QUERY_PARAM } from "~/lib/taxScenario.keys.constants";
 
 export default function HomeContent() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const availableYears = getAvailableTaxYears();
   const defaultYear = availableYears[0] ?? new Date().getFullYear();
   const presets = getScenarioPresets();
-  const [taxInput, setTaxInput] = createSignal<TaxFormData>(starterScenario(defaultYear));
-
+  const [taxInput, setTaxInput] = createSignal<TaxFormData>( 
+    deserializeScenarioInputFromSearchParams(searchParams as Record<string, string>) || starterScenario(defaultYear)
+  );
   const taxResult = createMemo(() => calculateTaxes(taxInput()));
   const isPlanningYear = createMemo(() => isPlanningTaxYear(getTaxYearFromRows(taxInput().rows)));
-
-
-
-  const { syncScenarioToUrl } = wireTaxHomePersistence({
-    taxInput,
-    setTaxInput
-  });
-
+  const  syncScenarioToUrl  = () => {
+    console.log("syncScenarioToUrl", serializeScenarioInput(taxInput()));
+    setSearchParams({[SCENARIO_QUERY_PARAM]: serializeScenarioInput(taxInput())});
+  }
 
   effect(() => {
     console.log("root taxInput", taxInput());
