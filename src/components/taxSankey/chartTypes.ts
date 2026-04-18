@@ -1,8 +1,14 @@
 import { sankeyLinkHorizontal } from "d3-sankey";
 import type { SankeyLinkMinimal, SankeyNodeMinimal } from "d3-sankey";
-import type { SankeyChartNode } from "~/lib/taxCharts";
 
-export interface ChartNode extends SankeyNodeMinimal<ChartNode, ChartLink>, SankeyChartNode {
+export interface ChartNode extends SankeyNodeMinimal<ChartNode, ChartLink> {
+  id: string;
+  label: string;
+  kind: string;
+  amount?: number;
+  incomeAmount?: number;
+  taxAmount?: number;
+  marginalRate?: number;
   row: number;
   col: number;
 }

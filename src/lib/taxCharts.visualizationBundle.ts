@@ -4,8 +4,6 @@ import {
   getLongTermCapitalGainsSegments,
   getOrdinaryFederalSegments,
 } from "~/lib/taxChartMetricRead";
-import { netInvestmentIncomeTaxPerSegment } from "~/lib/taxCharts.sankeyNiit";
-import { ltcgSegmentKey, ordinarySegmentKey } from "~/lib/taxCharts.sankeySegmentKeys";
 
 /**
  * Derived chart numbers from resolved metrics only. Authoritative tax math lives in
@@ -22,25 +20,20 @@ export type FederalSliceAfterCredits = { federalToTax: number; creditPortion: nu
 export function allocateFederalCreditsTopMarginalSlices(result: TaxResult): Map<string, FederalSliceAfterCredits> {
   type Row = { nodeId: string; federalGross: number; marginalRate: number };
   const rows: Row[] = [];
-  const niitBySegment = netInvestmentIncomeTaxPerSegment(result);
 
   for (const segment of getOrdinaryFederalSegments(result)) {
-    const segmentId = ordinarySegmentKey(segment);
-    const nodeId = `ordinary-bracket-${segmentId}`;
-    const niitPart = niitBySegment.ordinary.get(segmentId) ?? 0;
+    const nodeId = `ordinary-bracket-${segment.id ?? `ordinary-${segment.rangeStart}`}`;
     rows.push({
       nodeId,
-      federalGross: segment.taxAmount + niitPart,
+      federalGross: segment.taxAmount,
       marginalRate: segment.marginalRate,
     });
   }
   for (const segment of getLongTermCapitalGainsSegments(result)) {
-    const segmentId = ltcgSegmentKey(segment);
-    const nodeId = `ltcg-bracket-${segmentId}`;
-    const niitPart = niitBySegment.ltcg.get(segmentId) ?? 0;
+    const nodeId = `ltcg-bracket-${segment.id ?? `ltcg-${segment.rangeStart}`}`;
     rows.push({
       nodeId,
-      federalGross: segment.taxAmount + niitPart,
+      federalGross: segment.taxAmount,
       marginalRate: segment.marginalRate,
     });
   }
@@ -84,8 +77,3 @@ export function takeHomeAttributableToBracketFlows(result: TaxResult): number {
     chartMetricNumeric(result, "takeHomePay") - chartMetricNumeric(result, "federalTaxCreditsApplied"),
   );
 }
-
-
-
-
-
