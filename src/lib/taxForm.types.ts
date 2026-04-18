@@ -65,16 +65,11 @@ export type TaxComputedNumericRow = {
   label?: string;
 };
 
-/** Bracket segment arrays serialized on {@link TaxResult.rows} (not folded into {@link TaxComputedNumericRow}). */
-export type TaxComputedSegmentRow = {
-  type: "computed-segments";
-  id: string;
-  segments: TaxSegment[];
-};
+
 
 export type TaxComputedRow = TaxComputedNumericRow;
 
-export type TaxResultRow = TaxFormRow | TaxComputedRow | TaxComputedSegmentRow;
+export type TaxResultRow = TaxFormRow | TaxComputedRow ;
 
 /** Pre-built Mekko band rows (aligned with Sankey federal credit split). */
 export type TaxResultMekkoDisplay = {
@@ -148,7 +143,3 @@ export function isComputedRow(row: TaxResultRow): row is TaxComputedRow {
   return row.type === "computed";
 }
 
-
-export function isFormRow(row: TaxResultRow): row is TaxFormRow {
-  return row.type !== "computed" && row.type !== "computed-segments";
-}

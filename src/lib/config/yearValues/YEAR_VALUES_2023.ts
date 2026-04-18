@@ -1,4 +1,5 @@
-import type { YearValues, FilingStatus } from "../types";
+import type { YearValues } from "../types";
+import type { FilingStatus } from "~/lib/taxData.types";
 
 function buildBrackets(
   single: number[],

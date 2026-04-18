@@ -112,11 +112,7 @@ export function validateLineItemAmount(
     return undefined;
 }
 
-export type IncomeKindConfig = {
-    id: string;
-    label: string;
-    taxTreatment: TaxTreatment;
-};
+
 
 export type DeductionKindConfig = {
     id: string;

@@ -54,17 +54,6 @@ export function getOrdinaryFederalSegments(result: TaxResult): TaxSegment[] {
   }));
 }
 
-export function getLongTermCapitalGainsSegments(result: TaxResult): TaxSegment[] {
-  const brackets = getLtcgBracketItems(result);
-  return brackets.map(b => ({
-    id: b.id,
-    marginalRate: b.marginalRate,
-    rangeStart: 0,
-    rangeEnd: null,
-    incomeAmount: b.income,
-    taxAmount: b.tax,
-  }));
-}
 
 export type BracketItem = {
   id: string;

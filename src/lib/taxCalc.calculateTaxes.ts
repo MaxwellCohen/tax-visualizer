@@ -14,7 +14,7 @@
 import { computeTaxMetricLines } from "~/lib/config/chartMetricsRegistry";
 import { clampTaxFormData } from "~/lib/taxCalc.clamp";
 import { buildTaxResultDisplayBundle } from "~/lib/taxResult.display";
-import type { TaxFormData, TaxMetricLine, TaxResult, TaxComputedRow, TaxComputedSegmentRow } from "~/lib/taxForm.types";
+import type { TaxFormData, TaxMetricLine, TaxResult, TaxComputedRow } from "~/lib/taxForm.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import { getTaxYearConfig } from "~/lib/taxData";
 import { getTaxYearFromRows, rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
@@ -34,8 +34,8 @@ export function calculateAllConfigValues(
   }));
 }
 
-function metricLinesToComputedRows(lines: readonly TaxMetricLine[]): (TaxComputedRow | TaxComputedSegmentRow)[] {
-  const rows: (TaxComputedRow | TaxComputedSegmentRow)[] = [];
+function metricLinesToComputedRows(lines: readonly TaxMetricLine[]): TaxComputedRow[] {
+  const rows: (TaxComputedRow )[] = [];
   for (const line of lines) {
     if (line.valueKind === "number") {
       const v = line.value;

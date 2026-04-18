@@ -1,8 +1,9 @@
+import type { FilingStatus } from "~/lib/taxData.types";
+
 export type ItemCategory = "income" | "pretax" | "deduction" | "credit";
 export type TaxTreatment = "ordinary" | "selfEmployment" | "shortTermCapGains" | "longTermCapGains" | "taxExempt" | "deduction" | "credit";
 export type CalculationType = "aggregate" | "passThrough" | "derived";
 
-export type FilingStatus = "single" | "marriedJoint" | "marriedSeparate" | "headOfHousehold";
 
 export type Bracket = {
   upTo: number | null;
