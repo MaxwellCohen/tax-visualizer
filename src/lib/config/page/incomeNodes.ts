@@ -10,6 +10,8 @@ import {
     getStandardDeduction,
 } from "./pageConfig.helpers";
 import {
+    calculatePayrollTax,
+    calculateSelfEmploymentDeduction,
     calculateTaxableIncome,
     computeFederalTaxCreditsApplied,
 } from "./taxCalculations";
@@ -377,6 +379,86 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             calculate: (inputs, td) => {
                 const wages = wageIncome(inputs);
                 return wages * td.payroll.medicareRate;
+            },
+        },
+    ];
+}
+
+/** Mekko vertical slices before federal brackets: deferrals, SE adjustment, deduction shield. */
+export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+    return [
+        {
+            id: "mekkoPretaxDeferrals",
+            label: "Pre-tax deferrals",
+            shortLabel: "Pre-tax deferrals",
+            mekkoSettings: {
+                column: {
+                    row: 0,
+                    col: 3,
+                    fill: "var(--mekko-pretax)",
+                    stroke: "var(--mekko-pretax)",
+                    kind: "pretax",
+                },
+            },
+            calculate: (inputs) => allPretax(inputs),
+        },
+        {
+            id: "mekkoSelfEmploymentTaxDeduction",
+            label: "½ self-employment tax (deductible)",
+            shortLabel: "½ SE tax",
+            mekkoSettings: {
+                column: {
+                    row: 0,
+                    col: 3,
+                    fill: "var(--mekko-pretax)",
+                    stroke: "var(--mekko-pretax)",
+                    kind: "seAdjustment",
+                },
+            },
+            calculate: (inputs) => {
+                const se = selfEmploymentIncome(inputs);
+                return calculateSelfEmploymentDeduction(se, taxData);
+            },
+        },
+        {
+            id: "mekkoDeductionShieldNet",
+            label: "Standard / itemized (shielded ordinary, net of payroll)",
+            shortLabel: "Deduction shield",
+            mekkoSettings: {
+                column: {
+                    row: 0,
+                    col: 3,
+                    fill: "var(--mekko-deduction)",
+                    stroke: "var(--mekko-deduction)",
+                    kind: "deduction",
+                },
+            },
+            calculate: (inputs, td, fs) => {
+                const t = calculateTaxableIncome(inputs, td, fs);
+                const shield = Math.max(0, t.afterPretax - t.ordinary);
+                const payrollTax = calculatePayrollTax(inputs, td);
+                const payrollFromShield = Math.min(payrollTax, shield);
+                return Math.max(0, shield - payrollFromShield);
+            },
+        },
+        {
+            id: "mekkoPayrollTaxFromShield",
+            label: "Payroll taxes (wage FICA)",
+            shortLabel: "Payroll taxes",
+            mekkoSettings: {
+                column: {
+                    row: 0,
+                    col: 3,
+                    fill: "var(--mekko-tax)",
+                    stroke: "var(--mekko-tax)",
+                    kind: "payrollTax",
+                },
+            },
+            calculate: (inputs, td, fs) => {
+                const t = calculateTaxableIncome(inputs, td, fs);
+                const shield = Math.max(0, t.afterPretax - t.ordinary);
+                const payrollTax = calculatePayrollTax(inputs, td);
+                return Math.min(payrollTax, shield);
             },
         },
     ];

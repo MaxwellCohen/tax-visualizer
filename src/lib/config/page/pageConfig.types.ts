@@ -50,7 +50,7 @@ export type MekkoColumn = {
     col: number;
     fill: string;
     stroke: string;
-    kind: "deduction" | "pretax" | "ordinaryBracket" | "ltcgBracket";
+    kind: "deduction" | "pretax" | "seAdjustment" | "payrollTax" | "ordinaryBracket" | "ltcgBracket";
 };
 
 export type SankeyCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary" | "takehome" | "rate";

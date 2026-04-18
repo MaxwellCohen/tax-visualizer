@@ -5,7 +5,14 @@ import { makeCreditInputsConfig } from "./creditInputs";
 import { makeDeductionInputsConfig, makePayrollFromWagesInputConfig, makePayrollTaxInputConfig } from "./deductionInputs";
 import { makeEndingNodesConfig } from "./endingNodes";
 import { makeIncomeInputsConfig } from "./incomeInputs";
-import { makeDeductionAmountNodesConfig, makeIncomeNodesConfig, makePretaxIncomeNodesConfig, makePretaxDeductionsNodesConfig, make0taxIncomeNodesConfig } from "./incomeNodes";
+import {
+    makeDeductionAmountNodesConfig,
+    makeIncomeNodesConfig,
+    makePretaxIncomeNodesConfig,
+    makePretaxDeductionsNodesConfig,
+    make0taxIncomeNodesConfig,
+    makeMekkoSliceNodesConfig,
+} from "./incomeNodes";
 import { makePretaxInputsConfig } from "./pretaxInputs";
 import { getBracketItems, getLtcgBracketItems } from "./taxBracketNodes";
 import { makeTaxNodesConfig } from "./taxNodes";
@@ -39,6 +46,7 @@ export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatu
         ...makePayrollTaxInputConfig(taxData, filingStatus),
         ...makePretaxIncomeNodesConfig(taxData, filingStatus),
         ...makeTaxNodesConfig(taxData, filingStatus),
+        ...makeMekkoSliceNodesConfig(taxData, filingStatus),
         ...getBracketItems(taxData, filingStatus),
         ...getLtcgBracketItems(taxData, filingStatus),
         ...makeEndingNodesConfig(taxData, filingStatus),

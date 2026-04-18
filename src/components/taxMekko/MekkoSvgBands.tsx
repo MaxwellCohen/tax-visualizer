@@ -1,10 +1,38 @@
 import { For, Show } from "solid-js";
 import { money } from "~/lib/moneyFormat";
 import type { MekkoLayout } from "~/components/taxMekko/mekkoLayout";
+import type { MekkoRow } from "~/lib/taxCharts.buildMekko";
 
 type Props = {
   L: MekkoLayout;
 };
+
+function bandTitle(row: MekkoRow): string {
+  if (row.kind === "pretax") {
+    return `${row.label}: ${money.format(row.total)} deferred (payroll pre-tax & deductible IRA).`;
+  }
+  if (row.kind === "seAdjustment") {
+    return `${row.label}: ${money.format(row.total)} deductible against ordinary income (not cash).`;
+  }
+  if (row.kind === "payrollTax") {
+    return `${row.label}: ${money.format(row.total)} wage Social Security & Medicare (carved from the same pool as the deduction shield).`;
+  }
+  if (row.kind === "deduction") {
+    return `${row.label}: ${money.format(row.total)} shielded by standard or itemized deduction (not taxed as ordinary), after payroll carve-out.`;
+  }
+  if (row.kind === "ltcgBracket") {
+    return `${row.label}: preferential federal tax ${money.format(row.tax)}; ${money.format(row.keep)} of this slice remains before payroll tax.`;
+  }
+  return `${row.label}: federal tax ${money.format(row.tax)}; ${money.format(row.keep)} of this slice remains before payroll tax.`;
+}
+
+function bandFill(row: MekkoRow): string {
+  if (row.kind === "deduction") return "var(--mekko-deduction)";
+  if (row.kind === "payrollTax") return "var(--mekko-tax)";
+  if (row.kind === "pretax" || row.kind === "seAdjustment") return "var(--mekko-pretax)";
+  if (row.kind === "ltcgBracket") return "var(--mekko-ltcg)";
+  return "var(--mekko-keep)";
+}
 
 export function MekkoSvgBands(props: Props) {
   const L = props.L;
@@ -13,12 +41,7 @@ export function MekkoSvgBands(props: Props) {
       {item => {
         const { row, rowTop, rowH, keepW, taxW } = item;
         const labelMidY = rowTop + rowH / 2 + 4;
-        const bracketTitle =
-          row.kind === "deduction"
-            ? `${row.label}: ${money.format(row.total)} shielded by deduction (not taxed).`
-            : row.kind === "ltcgBracket"
-              ? `${row.label}: preferential federal tax ${money.format(row.tax)}; ${money.format(row.keep)} of this slice remains before payroll tax.`
-              : `${row.label} bracket slice: federal tax ${money.format(row.tax)}; ${money.format(row.keep)} of this slice remains before payroll tax.`;
+        const bracketTitle = bandTitle(row);
         return (
           <g>
             <text
@@ -36,15 +59,7 @@ export function MekkoSvgBands(props: Props) {
               y={rowTop}
               width={Math.max(0, keepW)}
               height={rowH}
-              fill={
-                row.kind === "deduction"
-                  ? "var(--mekko-deduction)"
-                  : row.kind === "pretax"
-                    ? "var(--mekko-pretax)"
-                    : row.kind === "ltcgBracket"
-                      ? "var(--mekko-ltcg)"
-                      : "var(--mekko-keep)"
-              }
+              fill={bandFill(row)}
               stroke="var(--border-subtle)"
               stroke-width={0.5}
             >

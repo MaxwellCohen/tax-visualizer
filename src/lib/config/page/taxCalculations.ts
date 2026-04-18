@@ -5,7 +5,6 @@ import {
     calculateOrdinaryTaxTotal,
     findInputById,
     getOrdinaryBrackets,
-    getStandardDeduction,
 } from "./pageConfig.helpers";
 import {
     wageIncome,
@@ -117,22 +116,10 @@ export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: Filin
     };
 
     const calculateFederalIncomeTaxAfterCredits = (inputs: TaxFormRow[]): number => {
-        const wages = wageIncome(inputs);
-        const seIncome = selfEmploymentIncome(inputs);
-        const seTax = seIncome * 0.9235 * (taxData.payroll.socialSecurityRate * 2 + taxData.payroll.medicareRate * 2);
-        const seDeduction = seTax / 2;
-        const ordinary = ordinaryIncome(inputs);
-        const stcg = shortTermCapGains(inputs);
-        const ltcg = longTermCapGains(inputs);
-        const pretax = _401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs);
-        const afterPretax = wages + seIncome + ordinary + stcg - pretax - seDeduction;
-        const itemized = salt(inputs) + medicalDental(inputs) + mortgageInterest(inputs) + charitable(inputs);
-        const standard = getStandardDeduction(inputs, taxData, filingStatus);
-        const deduction = Math.max(itemized, standard);
-        const ordinaryTaxable = Math.max(0, afterPretax - deduction);
+        const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
         const brackets = getOrdinaryBrackets(taxData, filingStatus);
-        const ordinaryTax = calculateOrdinaryTaxTotal(ordinaryTaxable, brackets).tax;
-        const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinaryTaxable);
+        const ordinaryTax = calculateOrdinaryTaxTotal(ordinary, brackets).tax;
+        const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
         const totalTax = ordinaryTax + ltcgTax;
         const credits = childTaxCredit(inputs) + educationCredits(inputs) + retirementSavingsContributions(inputs) + otherCredit(inputs);
         return Math.max(0, totalTax - credits);

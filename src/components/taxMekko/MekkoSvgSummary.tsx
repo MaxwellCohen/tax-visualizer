@@ -9,7 +9,7 @@ type Props = {
 
 export function MekkoSvgSummary(props: Props) {
   const L = props.L;
-  const { takeHomePay, preTaxTotal, traditionalIra, federalIncomeTax, payrollTax } = L;
+  const { takeHomePay, preTaxTotal, traditionalIra, federalIncomeTax, payrollTax, federalTaxCreditsApplied } = L;
   return (
     <>
       <text
@@ -21,6 +21,20 @@ export function MekkoSvgSummary(props: Props) {
         fill="var(--text-muted)"
       >
         Cash, pre-tax & taxes (share of gross)
+      </text>
+      <text
+        x={(L.plotLeft + L.plotRight) / 2}
+        y={26}
+        text-anchor="middle"
+        font-size="9"
+        font-family="var(--font-body)"
+        fill="var(--text-faint)"
+      >
+        {`Payroll tax ${money.format(payrollTax)}${
+          federalTaxCreditsApplied > 0
+            ? ` · Federal credits applied ${money.format(federalTaxCreditsApplied)}`
+            : ""
+        }`}
       </text>
       <g transform={`translate(${L.plotLeft}, ${PAD_T})`}>
         <rect

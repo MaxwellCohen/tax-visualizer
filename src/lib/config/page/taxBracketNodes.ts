@@ -92,6 +92,9 @@ export function getLtcgBracketItems(_taxData: TaxYearConfig, _filingStatus: Fili
                 { source: "longTermTaxableIncome", target: "ltcg-income", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: ltcgIncomeRow, col: 2 },
             ],
         },
+        mekkoSettings: {
+            column: { row: ltcgIncomeRow, col: 3, fill: "var(--mekko-ltcg)", stroke: "var(--mekko-ltcg)", kind: "ltcgBracket" },
+        },
         calculate: longTermCapGains,
     });
 

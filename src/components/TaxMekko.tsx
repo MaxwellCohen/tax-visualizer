@@ -27,12 +27,14 @@ export default function TaxMekko(props: TaxMekkoProps) {
     >
       <CollapsibleBlock title="Income & federal brackets (Mekko)" bodyClass="mt-4">
         <p class="mb-4 max-w-3xl text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          How to read this: each horizontal band is a slice of gross income. A band can be a
-          deduction, an <strong>ordinary</strong> federal bracket slice (wages, other income,
-          short-term gains), or a <strong>long-term gain</strong> bucket (0% / 15% / 20%, separate
-          from ordinary rates). Width shows federal tax on that slice versus what remains before
-          payroll tax. The top bar is a high-level split of gross income into modeled take-home cash,
-          payroll pre-tax / IRA contributions, and taxes.
+          How to read this: the <strong>left axis is gross income</strong> (same as “Total Income”).
+          From bottom to top, bands are <strong>pre-tax deferrals</strong>, the <strong>½ SE tax</strong>{" "}
+          deduction (if any), <strong>deduction shield</strong> (standard/itemized on ordinary, net of
+          wage payroll taxes carved out), <strong>wage payroll taxes</strong> (FICA taken from that same
+          shield pool), then <strong>ordinary federal brackets</strong> (green / red), then{" "}
+          <strong>long-term gains</strong>. Together they fill gross. The line under the summary bar shows
+          total payroll tax and federal credits. The bar above is take-home vs pre-tax deferrals vs all
+          taxes (income + payroll).
         </p>
         <Show
           keyed
