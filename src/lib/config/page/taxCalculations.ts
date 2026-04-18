@@ -24,7 +24,6 @@ import {
     educationCredits,
     retirementSavingsContributions,
     otherCredit,
-    totalIncome,
     allPretax,
     totalCredits,
 } from "./pageConfig.inputs";

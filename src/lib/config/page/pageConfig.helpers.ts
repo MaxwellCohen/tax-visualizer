@@ -33,11 +33,11 @@ export function getStandardDeduction(inputs: TaxFormRow[], taxData: TaxYearConfi
     const payrollTax = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
     return Math.max(0, standard - payrollTax);
 }
-export function getItemizedDeductions(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
+export function getItemizedDeductions(inputs: TaxFormRow[], taxData: TaxYearConfig, _filingStatus: FilingStatus): number {
     const useItemized = useItemizedDeductions(inputs);
     if (!useItemized) return 0;
     const income = wageIncome(inputs) - allPretax(inputs)
-    const itemized = totalItemized(inputs);
+    const itemized = Math.min(totalItemized(inputs), income);
     const payrollTax = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
     return Math.max(0, itemized - payrollTax);
 }

@@ -1,12 +1,8 @@
-import { newFederalTaxCreditSource } from "~/lib/taxCalc.federalTaxCreditSource";
-import { newItemizedDeductionSource } from "~/lib/taxCalc.itemizedDeductionSource";
 import { newIncomeSource } from "~/lib/taxCalc.labeledAmountSource";
 import { emptyAggregatedPretax, pretaxScalarsToMinimalSources } from "~/lib/taxCalc.pretaxBenefitSource";
 import type { ScenarioPreset } from "~/lib/taxScenario.types";
 import {
-  federalCreditsToRows,
   incomeSourcesToRows,
-  itemizedSourcesToRows,
   pretaxSourcesToRows,
   taxFormDataFromParts,
 } from "~/lib/taxForm.factories";

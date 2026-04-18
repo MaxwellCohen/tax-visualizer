@@ -1,7 +1,7 @@
 import { Show } from "solid-js";
 import type { TaxResult } from "~/lib/taxForm.types";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
-import { computeMetrics, computeFootnotes, getBaselineComparison, type MetricDisplay, type FootnoteDisplay } from "~/lib/taxVisualization.config";
+import { computeMetrics, computeFootnotes, type MetricDisplay, type FootnoteDisplay } from "~/lib/taxVisualization.config";
 import { TaxSummaryMetric } from "~/components/taxSummary/TaxSummaryMetric";
 
 type TaxSummaryProps = {

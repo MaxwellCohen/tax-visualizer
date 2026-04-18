@@ -25,8 +25,6 @@ import {
     _hsa,
     otherPretax,
     traditionalIra,
-    useItemizedDeductions,
-    totalItemized,
     allPretax,
     totalIncome,
 } from "./pageConfig.inputs";
@@ -385,7 +383,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
 }
 
 /** Mekko vertical slices before federal brackets: deferrals, SE adjustment, deduction shield. */
-export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
         {
             id: "mekkoPretaxDeferrals",

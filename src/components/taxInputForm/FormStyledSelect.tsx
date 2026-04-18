@@ -27,16 +27,16 @@ export function FormStyledSelect(props: Props) {
   createEffect(() => {
     const v = String(props.value());
     const opts = props.options;
-    if (opts) {
-      opts.length;
-    }
-    const el = selectEl;
-    if (!el) return;
-    queueMicrotask(() => {
-      if (el.isConnected && el.value !== v) {
-        el.value = v;
+    if (opts && opts.length) {
+      const el = selectEl;
+      if (el) {
+        queueMicrotask(() => {
+          if (el.isConnected && el.value !== v) {
+            el.value = v;
+          }
+        });
       }
-    });
+    }
   });
 
   const select = (

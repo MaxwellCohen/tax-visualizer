@@ -1,8 +1,7 @@
 /** Deduction inputs: standard, SALT, medical, mortgage, charity. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
-import { calculatePayrollTax, salt, totalItemized, useItemizedDeductions } from "~/lib/config/page/taxCalculations";
-import { charitable, medicalDental, mortgageInterest } from "./pageConfig.inputs";
+import { calculatePayrollTax } from "~/lib/config/page/taxCalculations";
 import { getItemizedDeductions, getStandardDeduction } from "./pageConfig.helpers";
 
 
