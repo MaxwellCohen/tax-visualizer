@@ -3,7 +3,6 @@ const buttonClass =
 
 type Props = {
   onCopyShareLink: () => void;
-  onCopySummary: () => void;
 };
 
 export function ScenarioToolsActions(props: Props) {
@@ -20,18 +19,6 @@ export function ScenarioToolsActions(props: Props) {
         onClick={props.onCopyShareLink}
       >
         Copy share link
-      </button>
-      <button
-        type="button"
-        class={buttonClass}
-        style={{
-          background: "var(--surface-alt)",
-          color: "var(--text)",
-          border: "1px solid var(--border)",
-        }}
-        onClick={props.onCopySummary}
-      >
-        Copy summary
       </button>
     </div>
   );

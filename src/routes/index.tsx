@@ -18,7 +18,6 @@ export default function HomeContent() {
   const defaultYear = availableYears[0] ?? new Date().getFullYear();
   const presets = getScenarioPresets();
   const [taxInput, setTaxInput] = createSignal<TaxFormData>(starterScenario(defaultYear));
-  const [baselineInput, setBaselineInput] = createSignal<TaxFormData | null>(null);
 
   const taxResult = createMemo(() => calculateTaxes(taxInput()));
   const isPlanningYear = createMemo(() => isPlanningTaxYear(getTaxYearFromRows(taxInput().rows)));
@@ -27,8 +26,7 @@ export default function HomeContent() {
 
   const { syncScenarioToUrl } = wireTaxHomePersistence({
     taxInput,
-    setTaxInput,
-    setBaselineInput,
+    setTaxInput
   });
 
 
@@ -47,9 +45,6 @@ export default function HomeContent() {
         defaultYear={defaultYear}
         taxInput={taxInput}
         setTaxInput={setTaxInput}
-        baselineInput={baselineInput}
-        setBaselineInput={setBaselineInput}
-        taxResult={taxResult}
         syncScenarioToUrl={syncScenarioToUrl}
       />
 

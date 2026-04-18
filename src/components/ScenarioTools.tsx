@@ -30,9 +30,6 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
     defaultYear: props.defaultYear,
     taxInput: props.taxInput,
     setTaxInput: wrappedSetTaxInput,
-    baselineInput: props.baselineInput,
-    setBaselineInput: props.setBaselineInput,
-    taxResult: props.taxResult,
     showStatus,
     syncScenarioToUrl: props.syncScenarioToUrl,
   });
@@ -78,7 +75,6 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
         />
         <ScenarioToolsActions
           onCopyShareLink={() => void handlers.copyShareLink()}
-          onCopySummary={() => void handlers.copySummary()}
         />
       </CollapsibleBlock>
     </section>

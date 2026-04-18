@@ -4,7 +4,6 @@ import type { TaxFormData } from "~/lib/taxForm.types";
 import type { ScenarioPreset } from "~/lib/taxScenario.types";
 import {
   BASELINE_SCENARIO_STORAGE_KEY,
-  buildScenarioSummaryText,
   serializeScenarioInput,
 } from "~/lib/taxScenario";
 import { cloneScenario, starterScenario } from "~/routes/taxHome/scenarioInit";
@@ -16,9 +15,6 @@ export type TaxHomeHandlersCtx = {
   defaultYear: number;
   taxInput: Accessor<TaxFormData>;
   setTaxInput: Setter<TaxFormData>;
-  baselineInput: Accessor<TaxFormData | null>;
-  setBaselineInput: Setter<TaxFormData | null>;
-  taxResult: Accessor<ReturnType<typeof import("~/lib/taxCalc.calculateTaxes").calculateTaxes>>;
   showStatus: (message: string) => void;
   syncScenarioToUrl: () => void;
 };
@@ -59,35 +55,12 @@ export function createTaxHomeHandlers(ctx: TaxHomeHandlersCtx) {
       const href = buildUrlWithScenario(window.location.href, ctx.taxInput());
       await copyText(href, "Share link copied.");
     },
-    copySummary: async () => {
-      const result = ctx.taxResult();
-      if (!result) {
-        ctx.showStatus("Enter a valid scenario first.");
-        return;
-      }
-      await copyText(buildScenarioSummaryText(result), "Scenario summary copied.");
-    },
     saveBaseline: () => {
       const current = cloneScenario(ctx.taxInput(), ctx.availableYears, ctx.defaultYear);
-      ctx.setBaselineInput(current);
       if (typeof window !== "undefined") {
         window.localStorage.setItem(BASELINE_SCENARIO_STORAGE_KEY, serializeScenarioInput(current));
       }
       ctx.showStatus("Current scenario saved as baseline.");
-    },
-    loadBaseline: () => {
-      const saved = ctx.baselineInput();
-      if (!saved) return;
-      ctx.setTaxInput(cloneScenario(saved, ctx.availableYears, ctx.defaultYear));
-      ctx.syncScenarioToUrl();
-      ctx.showStatus("Loaded saved baseline.");
-    },
-    clearBaseline: () => {
-      ctx.setBaselineInput(null);
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem(BASELINE_SCENARIO_STORAGE_KEY);
-      }
-      ctx.showStatus("Baseline cleared.");
     },
     resetScenario: () => {
       ctx.setTaxInput(starterScenario(ctx.defaultYear));

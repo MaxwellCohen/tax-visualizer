@@ -3,7 +3,6 @@ import type { Accessor, Setter } from "solid-js";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import { getAvailableTaxYears } from "~/lib/taxData";
 import {
-  BASELINE_SCENARIO_STORAGE_KEY,
   SAVED_SCENARIO_STORAGE_KEY,
   SCENARIO_QUERY_PARAM,
   deserializeScenarioInput,
@@ -33,7 +32,6 @@ function syncSessionStorageWithAddressBar(): void {
 type PersistenceArgs = {
   taxInput: Accessor<TaxFormData>;
   setTaxInput: Setter<TaxFormData>;
-  setBaselineInput: Setter<TaxFormData | null>;
 };
 
 /**
@@ -74,17 +72,12 @@ export function wireTaxHomePersistence(args: PersistenceArgs): {
       : null;
 
     let savedInput: ReturnType<typeof deserializeScenarioInput> = null;
-    let savedBaseline: ReturnType<typeof deserializeScenarioInput> = null;
 
     try {
       const storedScenario = window.localStorage.getItem(SAVED_SCENARIO_STORAGE_KEY);
       if (storedScenario) {
         savedInput = deserializeScenarioInput(storedScenario, availableYears, defaultYear);
       }
-      const storedBaseline = window.localStorage.getItem(BASELINE_SCENARIO_STORAGE_KEY);
-      savedBaseline = storedBaseline
-        ? deserializeScenarioInput(storedBaseline, availableYears, defaultYear)
-        : null;
     } catch (e) {
       console.warn("Failed to read scenarios from localStorage:", e);
     }
@@ -102,9 +95,6 @@ export function wireTaxHomePersistence(args: PersistenceArgs): {
       writeSessionLastUrlScenario(null);
     }
 
-    if (savedBaseline) {
-      args.setBaselineInput(savedBaseline);
-    }
 
     setStorageReady(true);
   });
