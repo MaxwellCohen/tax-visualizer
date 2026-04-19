@@ -1,8 +1,6 @@
 import type {
-  TaxFormIncomeRow,
   TaxFormRow,
   TaxFormSettingId,
-  TaxResult,
 } from "~/lib/taxForm.types";
 
 export function settingRowIndex(rows: TaxFormRow[], id: TaxFormSettingId): number {
@@ -54,9 +52,6 @@ export function settingRowFieldMountKey(rows: TaxFormRow[], id: TaxFormSettingId
   return i >= 0 ? `setting:${id}@${i}` : "";
 }
 
-export function incomeRowsFromTaxResult(result: TaxResult): TaxFormIncomeRow[] {
-  return result.rows.filter((r): r is TaxFormIncomeRow => r.type === "income");
-}
 
 
 

@@ -18,11 +18,11 @@ import type { TaxCalculationInputs } from "~/lib/taxConfig.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import { getConfigItems, type configItem } from "./page/Page.config";
 
-export type ChartMetricValueKind = "number";
+type ChartMetricValueKind = "number";
 
-export type ChartMetricSummaryCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary" | "takehome" | "rate";
+type ChartMetricSummaryCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary" | "takehome" | "rate";
 
-export type ChartMetricSummaryHint = {
+type ChartMetricSummaryHint = {
   summaryId: string;
   label: string;
   category: ChartMetricSummaryCategory;
@@ -32,7 +32,7 @@ export type ChartMetricSummaryHint = {
   hideWhenZero?: boolean;
 };
 
-export type ChartMetricDetailedDisplayHint = {
+type ChartMetricDetailedDisplayHint = {
   order: number;
   type: string;
   category: ChartMetricSummaryCategory;
@@ -43,7 +43,7 @@ export type ChartMetricDetailedDisplayHint = {
   highlight?: boolean;
 };
 
-export type ChartRegistryEntry = {
+type ChartRegistryEntry = {
   metricsKey: string;
   valueKind: ChartMetricValueKind;
   visualizationSourceId?: string;
@@ -51,10 +51,6 @@ export type ChartRegistryEntry = {
   detailedDisplay?: ChartMetricDetailedDisplayHint;
   calculate: (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => number;
 };
-
-/** @deprecated Use configItem directly from Page.config.ts */
-export type ChartMetricRegistryEntry = ChartRegistryEntry;
-
 
 /** Convert configItem to ChartRegistryEntry format for compatibility */
 function configItemToRegistryEntry(item: configItem, _index: number): ChartRegistryEntry {
@@ -105,9 +101,6 @@ export function computeTaxMetricLines(
   }));
 }
 
-
-/** @deprecated - segments no longer used */
-export const SEGMENT_METRIC_KEYS_FROM_REGISTRY = new Set<string>();
 
 
 

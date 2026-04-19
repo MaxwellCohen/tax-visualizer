@@ -2,7 +2,7 @@ import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import { getInputItems } from "~/lib/config/page/Page.config";
 import type { InputCategory } from "~/lib/config/page/pageConfig.types";
 
-export type AllowedLineItemKindSets = {
+type AllowedLineItemKindSets = {
   income: Set<string>;
   pretax: Set<string>;
   deduction: Set<string>;

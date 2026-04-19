@@ -1,9 +1,5 @@
 import type { FilingStatus } from "~/lib/taxData.types";
 
-export type ItemCategory = "income" | "pretax" | "deduction" | "credit";
-export type TaxTreatment = "ordinary" | "selfEmployment" | "shortTermCapGains" | "longTermCapGains" | "taxExempt" | "deduction" | "credit";
-export type CalculationType = "aggregate" | "passThrough" | "derived";
-
 
 export type Bracket = {
   upTo: number | null;
@@ -48,15 +44,3 @@ export type ValidationContext = {
   spouse2Value?: number;
 };
 
-export type ValidationResult = {
-  valid: boolean;
-  message?: string;
-  clampedValue?: number;
-};
-
-export type CalculationContext = {
-  yearValues: YearValues;
-  filingStatus: FilingStatus;
-  taxYear: number;
-  isJoint: boolean;
-};

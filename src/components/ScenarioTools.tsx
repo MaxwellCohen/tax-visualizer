@@ -7,7 +7,7 @@ import {
   type TaxHomeHandlersCtx,
 } from "~/routes/taxHome/taxHomeHandlers";
 
-export type ScenarioToolsProps = Omit<TaxHomeHandlersCtx, "showStatus">;
+type ScenarioToolsProps = Omit<TaxHomeHandlersCtx, "showStatus">;
 
 export default function ScenarioTools(props: ScenarioToolsProps) {
   const [statusMessage, setStatusMessage] = createSignal<string | null>(null);

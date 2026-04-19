@@ -82,36 +82,6 @@ export type TaxResultDisplay = {
 };
 
 
-/** Detailed tax breakdown list (driven by chart metrics registry `detailedDisplay` metadata). */
-export type DisplayCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary";
-
-export type DisplayItemFormat = "currency" | "percent" | "number";
-
-export type DisplayItemConfig = {
-  type: string;
-  label: string;
-  category: DisplayCategory;
-  color?: string;
-  format: DisplayItemFormat;
-  order: number;
-  tooltip?: string;
-  highlight?: boolean;
-  metricsKey: string;
-  defaultAmount?: number;
-};
-
-export type DisplayItem = {
-  type: string;
-  amount: number;
-  label: string;
-  category: DisplayCategory;
-  color?: string;
-  format: DisplayItemFormat;
-  order: number;
-  tooltip?: string;
-  highlight?: boolean;
-};
-
 /** How a single registry metric stores its computed value on a line. */
 export type TaxMetricValueKind = "number" | "deductionKind";
 
@@ -138,8 +108,4 @@ export type TaxResult = {
   notes: string[];
   errors: string[];
 };
-
-export function isComputedRow(row: TaxResultRow): row is TaxComputedRow {
-  return row.type === "computed";
-}
 

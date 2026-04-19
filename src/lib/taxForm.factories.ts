@@ -1,7 +1,5 @@
 import type {
   IncomeSource,
-  ItemizedDeductionSource,
-  FederalTaxCreditSource,
   PretaxBenefitSource,
 } from "~/lib/taxCalc.types";
 import type { FilingStatus } from "~/lib/taxData.types";
@@ -79,13 +77,7 @@ export function incomeSourcesToRows(sources: IncomeSource[]): TaxFormIncomeRow[]
   return sources.map((s) => ({ type: "income" as const, ...s }));
 }
 
-export function itemizedSourcesToRows(sources: ItemizedDeductionSource[]): TaxFormDeductionRow[] {
-  return sources.map((s) => ({ type: "deduction" as const, ...s }));
-}
 
-export function federalCreditsToRows(sources: FederalTaxCreditSource[]): TaxFormCreditRow[] {
-  return sources.map((s) => ({ type: "credit" as const, ...s }));
-}
 
 /** Canonical row order: settings (year, filing), incomes, pretax, itemized toggle, deductions, credits */
 export function taxFormDataFromParts(args: {

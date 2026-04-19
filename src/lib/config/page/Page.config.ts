@@ -17,20 +17,12 @@ import { makePretaxInputsConfig } from "./pretaxInputs";
 import { getBracketItems, getLtcgBracketItems } from "./taxBracketNodes";
 import { makeTaxNodesConfig } from "./taxNodes";
 import type { configItem, InputRowSettings } from "./pageConfig.types";
-import type { TaxTreatment } from "./pageConfig.types";
 
 export type {
-    InputCategory,
-    SubcategoryConfig,
-    InputRowSettings,
     SankeyLink,
-    SankeyNode,
-    SankeyCategory,
-    TaxTreatment,
     configItem,
 } from "./pageConfig.types";
 
-export { findItemById } from "./pageConfig.types";
 
 export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
     return [
@@ -73,7 +65,7 @@ export function buildValidationContext(
 }
 
 /** Resolve `inputRowSettings.validate` for a line-item `kind` (subcategory key). */
-export function findValidateForKind(
+function findValidateForKind(
     taxData: TaxYearConfig | null | undefined,
     filingStatus: FilingStatus,
     kind: string | undefined,
@@ -111,71 +103,5 @@ export function validateLineItemAmount(
     if (value < 0) return "Cannot be negative";
     return undefined;
 }
-
-
-
-export type DeductionKindConfig = {
-    id: string;
-    label: string;
-    aggregationField: string;
-};
-
-
-export type FederalCreditConfig = {
-    id: string;
-    label: string;
-    aggregationField: string;
-};
-
-
-export type PretaxBenefitConfig = {
-    id: string;
-    label: string;
-    limitKey?: keyof TaxYearConfig["pretaxLimits"];
-    limitFn?: (limits: TaxYearConfig["pretaxLimits"], joint: boolean) => number;
-    isSpouseSpecific: boolean;
-    aggregationField: string;
-};
-
-
-export type SelfEmploymentConfig = {
-    id: string;
-    label: string;
-    netEarningsRate: number;
-    ssMultiplier: number;
-};
-
-export const SANKEY_IDS = {
-    ordinaryTaxableIncome: "ordinary-taxable-income",
-    payrollOrdinaryStrip: "payroll-ordinary-strip",
-    longTermTaxableIncome: "long-term-taxable-income",
-    ltcgIncome: "ltcg-income",
-    ltcgDeductionShield: "ltcg-deduction-shield",
-    taxesFederal: "taxes-federal",
-    taxesPayroll: "taxes-payroll",
-    federalCredits: "federal-credits",
-    keep: "keep",
-    deductionBenefitSink: "deduction-benefit-sink",
-} as const;
-
-export type SankeyChartNode = {
-    id: string;
-    label: string;
-    kind: string;
-    amount: number;
-    column?: number;
-    order?: number;
-    fill?: string;
-    stroke?: string;
-    incomeKind?: string;
-};
-
-export type SankeyChartLink = {
-    sourceId: string;
-    targetId: string;
-    value: number;
-    fill?: string;
-    stroke?: string;
-};
 
 

@@ -99,6 +99,3 @@ export type configItem = {
     calculate?: (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => number;
 };
 
-export function findItemById(items: configItem[], id: string): configItem | undefined {
-    return items.find((i) => i.id === id);
-}

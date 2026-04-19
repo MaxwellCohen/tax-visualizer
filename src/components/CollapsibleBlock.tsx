@@ -1,6 +1,6 @@
 import { createSignal, createUniqueId, Show, type JSX } from "solid-js";
 
-export type CollapsibleBlockProps = {
+type CollapsibleBlockProps = {
   title: string;
   defaultOpen?: boolean;
   headerAside?: JSX.Element;

@@ -21,7 +21,7 @@ export function getFilingStatusFromRows(rows: TaxFormRow[]): FilingStatus {
   return "single";
 }
 
-export function getUseItemizedFromRows(rows: TaxFormRow[]): boolean {
+function getUseItemizedFromRows(rows: TaxFormRow[]): boolean {
   for (const row of rows) {
     if (row.type === "setting" && row.id === "useItemizedDeductions") {
       return row.value;

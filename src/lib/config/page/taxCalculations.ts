@@ -47,7 +47,7 @@ export function calculateSelfEmploymentTax(inputs: TaxFormRow[], taxData: TaxYea
     return ssTax + medicareTax;
 };
 
-export function calculateSelfEmploymentTaxFromIncome(seIncome: number, taxData: TaxYearConfig): number {
+function calculateSelfEmploymentTaxFromIncome(seIncome: number, taxData: TaxYearConfig): number {
     const netEarnings = seIncome * 0.9235;
     const ssTaxable = Math.min(netEarnings, taxData.payroll.socialSecurityWageBase);
     const ssTax = ssTaxable * taxData.payroll.socialSecurityRate * 2;
@@ -59,7 +59,7 @@ export function calculateSelfEmploymentDeduction(seIncome: number, taxData: TaxY
     return calculateSelfEmploymentTaxFromIncome(seIncome, taxData) / 2;
 }
 
-export type TaxableIncomeResult = {
+type TaxableIncomeResult = {
     ordinary: number;
     ltcg: number;
     total: number;

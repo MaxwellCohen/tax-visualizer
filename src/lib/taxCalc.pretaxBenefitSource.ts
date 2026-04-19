@@ -96,7 +96,7 @@ export function aggregatePretaxFromSources(sources: PretaxBenefitSource[], joint
   };
 }
 
-export type AggregatedPretax = ReturnType<typeof aggregatePretaxFromSources>;
+type AggregatedPretax = ReturnType<typeof aggregatePretaxFromSources>;
 
 export function emptyAggregatedPretax(): AggregatedPretax {
   return {

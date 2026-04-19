@@ -69,39 +69,5 @@ export type TaxYearConfig = {
   status?: "final" | "planning";
 };
 
-export type IncomeKindConfig = {
-  id: string;
-  label: string;
-  aggregationField: string;
-};
 
-export type IncomeConfig = {
-  kinds: IncomeKindConfig[];
-};
 
-export type DeductionKindConfig = {
-  id: string;
-  label: string;
-  aggregationField: string;
-  hasSpouseSpecific: boolean;
-};
-
-export type DeductionConfig = {
-  standardDeductionField: string;
-  kinds: DeductionKindConfig[];
-};
-
-export type TaxBracketConfig = {
-  rate: number;
-  upTo: number | null;
-};
-
-export type TaxCalculationConfig = {
-  bracketType: "ordinary" | "ltcg";
-  rates: number[];
-  thresholds: FilingStatusRecord<{ zeroRateMax: number; fifteenRateMax: number }>;
-};
-
-export type IncomeKind = "wages" | "ordinary" | "shortTermCapGains" | "longTermCapGains" | "selfEmployment";
-
-export type DeductionKind = "standard" | "itemized";
