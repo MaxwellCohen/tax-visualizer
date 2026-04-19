@@ -4,7 +4,7 @@ import { sankeyLinkPath, type ChartLink, type ChartNode } from "~/components/tax
 import { linkStroke } from "~/components/taxSankey/sankeyColors";
 import { sankeyMoney } from "~/components/taxSankey/sankeyFormat";
 
-type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
+type Props = { graph: SankeyGraph<ChartNode, ChartLink & { stroke: string }> };
 
 function linkLabelPosition(link: ChartLink) {
   const source = link.source as ChartNode;
@@ -31,7 +31,7 @@ export function SankeyLinkPaths(props: Props) {
             <path
               d={sankeyLinkPath(link) ?? ""}
               fill="none"
-              stroke={linkStroke(targetNode)}
+              stroke={link.stroke ?? linkStroke(targetNode)}
               stroke-opacity="1"
               stroke-width={Math.max(1, link.width ?? 1)}
             />

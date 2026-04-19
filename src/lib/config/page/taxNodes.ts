@@ -1,26 +1,17 @@
 /** Tax nodes: federal income tax, payroll tax, self-employment tax. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
-import { getCreditsSankeyRow } from "./pageConfig.helpers";
 import { calculateSelfEmploymentTax, computeFederalTaxCreditsApplied } from "./taxCalculations";
 import {
     totalCredits,
 } from "./pageConfig.inputs";
 
 export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
-    const creditsRow = getCreditsSankeyRow(taxData, filingStatus);
-
     const creditsHubNode = {
         fill: "var(--sankey-node-credits)",
         stroke: "var(--sankey-link-credits)",
         col: 3,
         row: 40,
-    } as const;
-    const creditLinkCreditsRow = {
-        fill: "var(--sankey-link-credits)",
-        stroke: "var(--sankey-link-credits)",
-        row: creditsRow,
-        col: 3,
     } as const;
 
     return [
@@ -37,31 +28,12 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
             id: "sankeyOrdinaryToFederalTaxCredits",
             label: "Ordinary income to federal credits",
             shortLabel: "Ordinary → credits",
-            sankeySettings: {
-                link: [
-                    {
-                        source: "ordinaryTaxableIncome",
-                        target: "federalTaxCredits",
-                        ...creditLinkCreditsRow,
-                    },
-                ],
-            },
             calculate: (inputs) => computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
         },
         {
             id: "sankeyFederalTaxCreditsToTakeHome",
             label: "Federal credits to take-home",
             shortLabel: "Credits → take-home",
-            sankeySettings: {
-                link: [
-                    {
-                        source: "federalTaxCredits",
-                        target: "takeHomePay",
-                        ...creditLinkCreditsRow,
-                        row: 40,
-                    },
-                ],
-            },
             calculate: (inputs) => computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
         },
         {
