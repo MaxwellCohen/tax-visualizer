@@ -5,7 +5,7 @@ export function HomeHeader() {
         class="text-3xl font-semibold tracking-tight"
         style={{ "font-family": "var(--font-heading)", color: "var(--text)" }}
       >
-        US Tax Visualizer
+        US Tax Income Visualizer
       </h1>
       <p class="max-w-2xl text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
         Enter your filing details below to see how gross income flows through deductions, pre-tax
