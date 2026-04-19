@@ -20,16 +20,12 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
     statusTimer = window.setTimeout(() => setStatusMessage(null), 2500);
   };
 
-  const wrappedSetTaxInput: typeof props.setTaxInput = (...args: Parameters<typeof props.setTaxInput>) => {
-    props.setTaxInput(...args);
-  };
-
   const handlers = createTaxHomeHandlers({
     presets: props.presets,
     availableYears: props.availableYears,
     defaultYear: props.defaultYear,
     taxInput: props.taxInput,
-    setTaxInput: wrappedSetTaxInput,
+    setTaxInput: props.setTaxInput,
     showStatus,
     syncScenarioToUrl: props.syncScenarioToUrl,
   });

@@ -36,11 +36,9 @@ export function createTaxHomeHandlers(ctx: TaxHomeHandlersCtx) {
       try {
         const year = getTaxYearFromRows(ctx.taxInput().rows);
         const newInput = preset.buildInput(year);
-        console.log("APPLY PRESET - about to call setTaxInput", { presetId, year, newInputRows: newInput.rows.length });
         ctx.setTaxInput(newInput);
         ctx.syncScenarioToUrl();
         ctx.showStatus(`Loaded preset: ${preset.label}.`);
-        console.log("APPLY PRESET - called setTaxInput, status shown");
       } catch (e) {
         console.error("Error building preset input:", e);
         ctx.showStatus("Error loading preset.");

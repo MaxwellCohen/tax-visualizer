@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { Accessor } from "solid-js";
 import { render } from "@solidjs/testing-library";
 import { ScenarioToolsPresets } from "./ScenarioToolsPresets";
 import type { TaxFormData } from "~/lib/taxForm.types";
@@ -13,7 +14,7 @@ const mockPresets: ScenarioPreset[] = [
   },
 ];
 
-const mockTaxInput = (): TaxFormData => ({
+const mockTaxInput: Accessor<TaxFormData> = () => ({
   rows: [{ type: "setting", id: "taxYear", value: 2025 }],
 });
 
