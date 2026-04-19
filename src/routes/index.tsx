@@ -16,7 +16,7 @@ import { SCENARIO_QUERY_PARAM } from "~/lib/taxScenario.keys.constants";
 export default function HomeContent() {
   const [searchParams, setSearchParams] = useSearchParams();
   const availableYears = getAvailableTaxYears();
-  const defaultYear = availableYears[0] ?? new Date().getFullYear();
+  const defaultYear = availableYears[0] ?? 2026;
   const presets = getScenarioPresets();
   const [taxInput, setTaxInput] = createSignal<TaxFormData>( 
     deserializeScenarioInputFromSearchParams(searchParams as Record<string, string>) || starterScenario(defaultYear)
