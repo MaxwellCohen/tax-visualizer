@@ -35,8 +35,6 @@ export default function HomeContent() {
       <HomeHeader />
       <ScenarioTools
         presets={presets}
-        availableYears={availableYears}
-        defaultYear={defaultYear}
         taxInput={taxInput}
         setTaxInput={setTaxInput}
         syncScenarioToUrl={syncScenarioToUrl}

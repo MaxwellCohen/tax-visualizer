@@ -1,13 +1,18 @@
-import { createSignal } from "solid-js";
+import { Accessor, createSignal, Setter } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { ScenarioToolsActions } from "~/components/scenarioTools/ScenarioToolsActions";
 import { ScenarioToolsPresets } from "~/components/scenarioTools/ScenarioToolsPresets";
-import {
-  createTaxHomeHandlers,
-  type TaxHomeHandlersCtx,
-} from "~/routes/taxHome/taxHomeHandlers";
+import { buildUrlWithScenario } from "~/routes/taxHome/taxHomePersistence";
+import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
+import { TaxFormData } from "~/lib/taxForm.types";
+import { ScenarioPreset } from "~/lib/taxScenario.types";
 
-type ScenarioToolsProps = Omit<TaxHomeHandlersCtx, "showStatus">;
+type ScenarioToolsProps = {
+  presets: ScenarioPreset[];
+  taxInput: Accessor<TaxFormData>;
+  setTaxInput: Setter<TaxFormData>;
+  syncScenarioToUrl: () => void;
+};
 
 export default function ScenarioTools(props: ScenarioToolsProps) {
   const [statusMessage, setStatusMessage] = createSignal<string | null>(null);
@@ -20,15 +25,15 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
     statusTimer = window.setTimeout(() => setStatusMessage(null), 2500);
   };
 
-  const handlers = createTaxHomeHandlers({
-    presets: props.presets,
-    availableYears: props.availableYears,
-    defaultYear: props.defaultYear,
-    taxInput: props.taxInput,
-    setTaxInput: props.setTaxInput,
-    showStatus,
-    syncScenarioToUrl: props.syncScenarioToUrl,
-  });
+  const copyText = async (text: string, successMessage: string) => {
+    if (typeof navigator === "undefined" || !navigator.clipboard) {
+      showStatus("Clipboard access is unavailable in this browser.");
+      return;
+    }
+    await navigator.clipboard.writeText(text);
+    showStatus(successMessage);
+  };
+
   return (
     <section
       class="rounded-xl p-5"
@@ -58,19 +63,49 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
           </>
         }
       >
-        <p class="max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          Try a starter scenario or share the current case. Your latest scenario is saved locally in
-          this browser.
+        <p
+          class="max-w-3xl text-sm leading-relaxed"
+          style={{ color: "var(--text-muted)" }}
+        >
+          Try a starter scenario or share the current case. Your latest scenario
+          is saved locally in this browser.
         </p>
         <ScenarioToolsPresets
           presets={props.presets}
           taxInput={props.taxInput}
-          onApplyPreset={(id) => {
-            handlers.applyPreset(id);
+          onApplyPreset={(id: string) => {
+            const preset = props.presets.find((entry) => entry.id === id);
+            if (!preset) {
+              console.error(
+                "Preset not found:",
+                id,
+                "available:",
+                props.presets.map((p) => p.id).join(", "),
+              );
+              showStatus(`Preset not found: ${id}`);
+              return;
+            }
+            try {
+              const year = getTaxYearFromRows(props.taxInput().rows);
+              const newInput = preset.buildInput(year);
+              props.setTaxInput(newInput);
+              props.syncScenarioToUrl();
+              showStatus(`Loaded preset: ${preset.label}.`);
+            } catch (e) {
+              console.error("Error building preset input:", e);
+              showStatus("Error loading preset.");
+            }
           }}
         />
         <ScenarioToolsActions
-          onCopyShareLink={() => void handlers.copyShareLink()}
+          onCopyShareLink={async () => {
+            if (typeof window === "undefined") return;
+            const href = buildUrlWithScenario(
+              window.location.href,
+              props.taxInput(),
+            );
+            await copyText(href, "Share link copied.");
+          }}
         />
       </CollapsibleBlock>
     </section>

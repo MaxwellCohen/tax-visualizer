@@ -4,7 +4,7 @@ import { sankeyLinkPath, type ChartLink, type ChartNode } from "~/components/tax
 import { linkStroke } from "~/components/taxSankey/sankeyColors";
 import { sankeyMoney } from "~/components/taxSankey/sankeyFormat";
 
-type Props = { graph: SankeyGraph<ChartNode, ChartLink & { stroke: string }> };
+type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
 
 function linkLabelPosition(link: ChartLink) {
   const source = link.source as ChartNode;

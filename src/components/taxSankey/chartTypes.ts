@@ -11,6 +11,8 @@ export interface ChartNode extends SankeyNodeMinimal<ChartNode, ChartLink> {
   marginalRate?: number;
   row: number;
   col: number;
+  stroke?: string;
+  fill?: string;
 }
 
 export interface ChartLink extends SankeyLinkMinimal<ChartNode, ChartLink> {
@@ -19,6 +21,8 @@ export interface ChartLink extends SankeyLinkMinimal<ChartNode, ChartLink> {
   row: number;
   col: number;
   value: number;
+  stroke?: string;
+  fill?: string;
 }
 
 /** d3-sankey horizontal tangents; avoids straight segments while keeping a left-to-right S-curve. */
