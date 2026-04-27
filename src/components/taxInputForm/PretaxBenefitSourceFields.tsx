@@ -1,5 +1,5 @@
-import { Show, createMemo, type Accessor } from "solid-js";
-import type { TaxFormData } from "~/lib/taxForm.types";
+import { Show, createMemo, createSignal, type Accessor, type Setter } from "solid-js";
+import type { TaxFormData, TaxFormPretaxRow } from "~/lib/taxForm.types";
 import { indexOfTypedRowById } from "~/lib/taxForm.rows";
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
@@ -13,14 +13,14 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldValidationMessage";
-import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { getInputItems, validateLineItemAmount } from "~/lib/config";
+import { getInputItemsForSection, validateLineItemAmount } from "~/lib/config";
 import type { ValidationContext } from "~/lib/config/types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
+import type { configItem } from "~/lib/config/page/pageConfig.types";
 
 type Props = {
-  form: TaxInputFormApi;
-  values: Accessor<TaxFormData>;
+  taxInput: Accessor<TaxFormData>;
+  setTaxInput: Setter<TaxFormData>;
   rowId: string;
   canRemove: boolean;
   onRemove: () => void;
@@ -33,36 +33,63 @@ type Props = {
 const pretaxDetailRowTdClass =
   "border-t border-(--border-subtle) px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
 
+function patchPretaxRow(
+  rows: TaxFormData["rows"],
+  rowId: string,
+  patch: Partial<Pick<TaxFormPretaxRow, "kind" | "label" | "amount">>,
+): TaxFormData["rows"] {
+  const i = indexOfTypedRowById(rows, "pretax", rowId);
+  if (i < 0) return rows;
+  const r = rows[i];
+  if (r.type !== "pretax") return rows;
+  const next = [...rows];
+  next[i] = { ...r, ...patch };
+  return next;
+}
+
 export function PretaxBenefitSourceRow(props: Props) {
   const commitToUrl = useTaxInputCommitToUrl();
-  const configItems = createMemo(() => {
+  const configItems = createMemo((): configItem[] => {
     const td = props.taxData();
     const fs = props.filingStatus();
     if (!td) return [];
-    return getInputItems(td, fs);
+    return getInputItemsForSection(td, fs, "pretax");
   });
 
-  const kindOptions = createMemo(() => 
-    pretaxBenefitKindSelectOptions(configItems(), props.isMarriedJoint())
-  );
+  const kindOptions = createMemo(() => pretaxBenefitKindSelectOptions(configItems(), props.isMarriedJoint()));
 
-  const rowIndex = props.form.useStore((s: { values: TaxFormData }) =>
-    indexOfTypedRowById(s.values.rows, "pretax", props.rowId),
-  );
+  const rowIndex = createMemo(() => indexOfTypedRowById(props.taxInput().rows, "pretax", props.rowId));
 
-  const kind = props.form.useStore((s: { values: TaxFormData }): string | undefined => {
-    const i = indexOfTypedRowById(s.values.rows, "pretax", props.rowId);
-    const r = i >= 0 ? s.values.rows[i] : undefined;
+  const kind = createMemo(() => {
+    const i = rowIndex();
+    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
     return r?.type === "pretax" ? r.kind : undefined;
   });
+
+  const label = createMemo(() => {
+    const i = rowIndex();
+    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
+    return r?.type === "pretax" ? r.label : "";
+  });
+
+  const amount = createMemo(() => {
+    const i = rowIndex();
+    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
+    return r?.type === "pretax" ? r.amount : 0;
+  });
+
+  const [amountError, setAmountError] = createSignal<string | undefined>();
+  const revalidateAmount = (n: number) => {
+    setAmountError(validateLineItemAmount(kind(), n, props.validationCtx(), props.taxData()));
+  };
 
   const detail = createMemo(() => {
     const currentKind = kind();
     const items = configItems();
-    const item = items.find(item => 
-      item.inputRowSettings?.subcategories?.some(sub => sub.key === currentKind)
-    ) ?? items.find(i => i.id === "input-pretax-otherPretax");
-    
+    const item =
+      items.find((it) => it.inputRowSettings?.subcategories?.some((sub) => sub.key === currentKind)) ??
+      items.find((i) => i.id === "input-pretax-otherPretax");
+
     if (!item) {
       return { description: "Loading...", limitNote: "Loading..." };
     }
@@ -70,11 +97,6 @@ export function PretaxBenefitSourceRow(props: Props) {
       description: item.description ?? "Unknown pretax benefit type",
       limitNote: item.kindDetail?.limitNote ?? "",
     };
-  });
-
-  const fieldPrefix = createMemo(() => {
-    const i = rowIndex();
-    return i >= 0 ? `rows[${i}]` : "";
   });
 
   const showWhenKey = createMemo(() => (rowIndex() >= 0 ? props.rowId : false));
@@ -89,52 +111,52 @@ export function PretaxBenefitSourceRow(props: Props) {
               hideLabel
               value={() => kind() ?? ""}
               onChange={(e) => {
-                const i = rowIndex();
-                if (i < 0) return;
-                void props.form.setFieldValue(`rows[${i}].kind`, e.currentTarget.value);
+                const newKind = e.currentTarget.value;
+                props.setTaxInput((prev) => ({
+                  ...prev,
+                  rows: patchPretaxRow(prev.rows, props.rowId, { kind: newKind }),
+                }));
+                revalidateAmount(amount());
               }}
-              onBlur={() => {
-                commitToUrl?.();
-              }}
+              onBlur={() => {}}
               options={kindOptions()}
             />
           </td>
           <td class={taxInputFormTableTdLabeled} data-label="Label (optional)">
-            <props.form.Field name={`${fieldPrefix()}.label`}>
-              {(field: any) => (
-                <input
-                  type="text"
-                  placeholder="e.g. Employer plan, bank"
-                  class={inputClass}
-                  style={{ background: "var(--input-bg)", color: "var(--text)" }}
-                  aria-label="Label (optional)"
-                  value={field().state.value}
-                  onInput={e => field().handleChange(e.currentTarget.value)}
-                  onBlur={() => {
-                    field().handleBlur();
-                    commitToUrl?.();
-                  }}
-                />
-              )}
-            </props.form.Field>
+            <input
+              type="text"
+              placeholder="e.g. Employer plan, bank"
+              class={inputClass}
+              style={{ background: "var(--input-bg)", color: "var(--text)" }}
+              aria-label="Label (optional)"
+              value={label()}
+              onInput={(e) => {
+                props.setTaxInput((prev) => ({
+                  ...prev,
+                  rows: patchPretaxRow(prev.rows, props.rowId, { label: e.currentTarget.value }),
+                }));
+              }}
+              onBlur={() => {
+                commitToUrl?.();
+              }}
+            />
           </td>
           <td class={taxInputFormTableTdLabeled} data-label="Amount">
-            <props.form.Field
-              name={`${fieldPrefix()}.amount`}
-              validators={{
-                onChange: ({ value }: { value: unknown }) =>
-                  validateLineItemAmount(kind(), value as number, props.validationCtx(), props.taxData()),
-                onBlur: ({ value }: { value: unknown }) =>
-                  validateLineItemAmount(kind(), value as number, props.validationCtx(), props.taxData()),
-              }}
-            >
-              {(field: any) => (
-                <div>
-                  <FormCurrencyInput field={field} ariaLabel="Amount" />
-                  <FormFieldValidationMessage field={field} />
-                </div>
-              )}
-            </props.form.Field>
+            <div>
+              <FormCurrencyInput
+                value={amount()}
+                onChange={(n) => {
+                  props.setTaxInput((prev) => ({
+                    ...prev,
+                    rows: patchPretaxRow(prev.rows, props.rowId, { amount: n }),
+                  }));
+                  revalidateAmount(n);
+                }}
+                onBlur={() => {}}
+                ariaLabel="Amount"
+              />
+              <FormFieldValidationMessage message={amountError} />
+            </div>
           </td>
           <td class={taxInputFormTableTdActions}>
             <button

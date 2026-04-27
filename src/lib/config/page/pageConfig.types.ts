@@ -10,6 +10,13 @@ type ValidationResult = {
 
 export type InputCategory = "income" | "pretax" | "deduction" | "credit";
 
+/** Keys for the tax input UI; `settings` is not backed by `getInputItems` categories. */
+export type TaxInputFormSectionKey = "settings" | InputCategory;
+
+export type TaxInputFormSectionDefinition =
+    | { key: "settings"; kind: "settings" }
+    | { key: InputCategory; kind: "lineItems"; categories: readonly InputCategory[] };
+
 export type SubcategoryConfig = {
     key: string;
     labelSingle: string;
@@ -85,16 +92,6 @@ export type configItem = {
         format?: "currency" | "percent" | "number";
         highlight?: boolean;
         hideWhenZero?: boolean;
-    };
-    detailedDisplay?: {
-        order: number;
-        type: string;
-        category: SankeyCategory;
-        format?: "currency" | "percent" | "number";
-        label?: string;
-        tooltip?: string;
-        color?: string;
-        highlight?: boolean;
     };
     calculate?: (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => number;
 };

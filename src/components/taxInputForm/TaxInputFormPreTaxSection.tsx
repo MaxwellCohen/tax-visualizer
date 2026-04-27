@@ -1,5 +1,4 @@
-import { For, Show, createMemo } from "solid-js";
-import type { Accessor } from "solid-js";
+import { For, Show, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { PretaxBenefitSourceRow } from "~/components/taxInputForm/PretaxBenefitSourceFields";
 import {
@@ -9,12 +8,11 @@ import {
 import type { TaxFormData, TaxFormPretaxRow } from "~/lib/taxForm.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import type { ValidationContext } from "~/lib/config/types";
-import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
 
 type Props = {
-  form: TaxInputFormApi;
-  values: Accessor<TaxFormData>;
+  taxInput: Accessor<TaxFormData>;
+  setTaxInput: Setter<TaxFormData>;
   preTaxBenefitsTotal: Accessor<number>;
   isMarriedJoint: Accessor<boolean>;
   addPretaxBenefit: () => void;
@@ -29,9 +27,9 @@ const addBenefitBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 export function TaxInputFormPreTaxSection(props: Props) {
-  const pretaxRowIds = createMemo(() => rowIdsForTypedRows(props.values().rows, "pretax"));
+  const pretaxRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "pretax"));
   const pretaxRows = createMemo(() =>
-    props.values().rows.filter((r): r is TaxFormPretaxRow => r.type === "pretax"),
+    props.taxInput().rows.filter((r): r is TaxFormPretaxRow => r.type === "pretax"),
   );
 
   return (
@@ -105,12 +103,12 @@ export function TaxInputFormPreTaxSection(props: Props) {
             <For each={pretaxRowIds()}>
               {(rowId) => (
                 <PretaxBenefitSourceRow
-                  form={props.form}
-                  values={props.values}
+                  taxInput={props.taxInput}
+                  setTaxInput={props.setTaxInput}
                   rowId={rowId}
                   canRemove={pretaxRowIds().length > 1}
                   onRemove={() => {
-                    const i = indexOfTypedRowById(props.values().rows, "pretax", rowId);
+                    const i = indexOfTypedRowById(props.taxInput().rows, "pretax", rowId);
                     if (i >= 0) props.removePretaxBenefitAt(i);
                   }}
                   isMarriedJoint={() => props.isMarriedJoint()}

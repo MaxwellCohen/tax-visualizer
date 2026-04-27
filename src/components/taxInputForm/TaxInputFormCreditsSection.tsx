@@ -1,5 +1,4 @@
-import { For, Show, createMemo } from "solid-js";
-import type { Accessor } from "solid-js";
+import { For, Show, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
 import type { TaxFormData, TaxFormCreditRow } from "~/lib/taxForm.types";
@@ -8,15 +7,14 @@ import type { ValidationContext } from "~/lib/config/types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { FederalTaxCreditSourceRow } from "~/components/taxInputForm/FederalTaxCreditSourceFields";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
-import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
 
 const addLineBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 type Props = {
-  form: TaxInputFormApi;
-  values: Accessor<TaxFormData>;
+  taxInput: Accessor<TaxFormData>;
+  setTaxInput: Setter<TaxFormData>;
   addFederalTaxCredit: () => void;
   removeFederalTaxCreditAt: (rowIndex: number) => void;
   clearAll: () => void;
@@ -26,11 +24,11 @@ type Props = {
 };
 
 export function TaxInputFormCreditsSection(props: Props) {
-  const calc = createMemo(() => rowsToTaxCalculationInputs(props.values().rows));
+  const calc = createMemo(() => rowsToTaxCalculationInputs(props.taxInput().rows));
   const creditRows = createMemo(() =>
-    props.values().rows.filter((r): r is TaxFormCreditRow => r.type === "credit"),
+    props.taxInput().rows.filter((r): r is TaxFormCreditRow => r.type === "credit"),
   );
-  const creditRowIds = createMemo(() => rowIdsForTypedRows(props.values().rows, "credit"));
+  const creditRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "credit"));
   const creditsTotal = () => sumLabeledAmountSources(calc().federalTaxCredits);
 
   return (
@@ -93,12 +91,12 @@ export function TaxInputFormCreditsSection(props: Props) {
             <For each={creditRowIds()}>
               {(rowId) => (
                 <FederalTaxCreditSourceRow
-                  form={props.form}
-                  values={props.values}
+                  taxInput={props.taxInput}
+                  setTaxInput={props.setTaxInput}
                   rowId={rowId}
                   canRemove={creditRowIds().length > 1}
                   onRemove={() => {
-                    const i = indexOfTypedRowById(props.values().rows, "credit", rowId);
+                    const i = indexOfTypedRowById(props.taxInput().rows, "credit", rowId);
                     if (i >= 0) props.removeFederalTaxCreditAt(i);
                   }}
                   taxData={props.taxData}

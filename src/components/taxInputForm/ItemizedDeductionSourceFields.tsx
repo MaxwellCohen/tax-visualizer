@@ -1,6 +1,6 @@
-import { Show, createMemo, type Accessor } from "solid-js";
+import { Show, createMemo, createSignal, type Accessor, type Setter } from "solid-js";
 import { getFilingStatusFromRows } from "~/lib/taxCalc.inputs";
-import type { TaxFormData } from "~/lib/taxForm.types";
+import type { TaxFormData, TaxFormDeductionRow } from "~/lib/taxForm.types";
 import { indexOfTypedRowById } from "~/lib/taxForm.rows";
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
@@ -14,14 +14,14 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldValidationMessage";
-import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
-import { getInputItems, validateLineItemAmount } from "~/lib/config";
+import { getInputItemsForSection, validateLineItemAmount } from "~/lib/config";
 import type { ValidationContext } from "~/lib/config/types";
-import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
+import type { TaxYearConfig } from "~/lib/taxData.types";
+import type { configItem } from "~/lib/config/page/pageConfig.types";
 
 type Props = {
-  form: TaxInputFormApi;
-  values: Accessor<TaxFormData>;
+  taxInput: Accessor<TaxFormData>;
+  setTaxInput: Setter<TaxFormData>;
   rowId: string;
   canRemove: boolean;
   onRemove: () => void;
@@ -32,40 +32,63 @@ type Props = {
 const deductionDetailRowTdClass =
   "border-t border-(--border-subtle) px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
 
+function patchDeductionRow(
+  rows: TaxFormData["rows"],
+  rowId: string,
+  patch: Partial<Pick<TaxFormDeductionRow, "kind" | "label" | "amount">>,
+): TaxFormData["rows"] {
+  const i = indexOfTypedRowById(rows, "deduction", rowId);
+  if (i < 0) return rows;
+  const r = rows[i];
+  if (r.type !== "deduction") return rows;
+  const next = [...rows];
+  next[i] = { ...r, ...patch };
+  return next;
+}
+
 export function ItemizedDeductionSourceRow(props: Props) {
   const commitToUrl = useTaxInputCommitToUrl();
-  const filingStatus = props.form.useStore((s: { values: TaxFormData }): FilingStatus =>
-    getFilingStatusFromRows(s.values.rows) ?? "single",
-  );
+  const filingStatus = createMemo(() => getFilingStatusFromRows(props.taxInput().rows) ?? "single");
 
-  const configItems = createMemo(() => {
+  const configItems = createMemo((): configItem[] => {
     const td = props.taxData();
     const fs = filingStatus();
     if (!td) return [];
-    return getInputItems(td, fs);
+    return getInputItemsForSection(td, fs, "deduction");
   });
 
-  const kindOptions = createMemo(() => 
-    itemizedDeductionSelectOptions('deduction', configItems())
-  );
+  const kindOptions = createMemo(() => itemizedDeductionSelectOptions("deduction", configItems()));
 
-  const rowIndex = props.form.useStore((s: { values: TaxFormData }) =>
-    indexOfTypedRowById(s.values.rows, "deduction", props.rowId),
-  );
+  const rowIndex = createMemo(() => indexOfTypedRowById(props.taxInput().rows, "deduction", props.rowId));
 
-  const kind = props.form.useStore((s: { values: TaxFormData }): string | undefined => {
-    const i = indexOfTypedRowById(s.values.rows, "deduction", props.rowId);
-    const r = i >= 0 ? s.values.rows[i] : undefined;
+  const kind = createMemo(() => {
+    const i = rowIndex();
+    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
     return r?.type === "deduction" ? r.kind : undefined;
   });
+
+  const label = createMemo(() => {
+    const i = rowIndex();
+    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
+    return r?.type === "deduction" ? r.label : "";
+  });
+
+  const amount = createMemo(() => {
+    const i = rowIndex();
+    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
+    return r?.type === "deduction" ? r.amount : 0;
+  });
+
+  const [amountError, setAmountError] = createSignal<string | undefined>();
+  const revalidateAmount = (n: number) => {
+    setAmountError(validateLineItemAmount(kind(), n, props.validationCtx(), props.taxData()));
+  };
 
   const detail = createMemo(() => {
     const currentKind = kind();
     const items = configItems();
-    const item = items.find(item => 
-      item.inputRowSettings?.subcategories?.some(sub => sub.key === currentKind)
-    );
-    
+    const item = items.find((it) => it.inputRowSettings?.subcategories?.some((sub) => sub.key === currentKind));
+
     if (!item) {
       return { description: "Loading...", modelingNote: "Loading..." };
     }
@@ -73,11 +96,6 @@ export function ItemizedDeductionSourceRow(props: Props) {
       description: item.description ?? "Unknown deduction type",
       modelingNote: item.kindDetail?.modelingNote ?? "",
     };
-  });
-
-  const fieldPrefix = createMemo(() => {
-    const i = rowIndex();
-    return i >= 0 ? `rows[${i}]` : "";
   });
 
   const showWhenKey = createMemo(() => (rowIndex() >= 0 ? props.rowId : false));
@@ -92,52 +110,52 @@ export function ItemizedDeductionSourceRow(props: Props) {
               hideLabel
               value={() => kind() ?? ""}
               onChange={(e) => {
-                const i = rowIndex();
-                if (i < 0) return;
-                void props.form.setFieldValue(`rows[${i}].kind`, e.currentTarget.value);
+                const newKind = e.currentTarget.value;
+                props.setTaxInput((prev) => ({
+                  ...prev,
+                  rows: patchDeductionRow(prev.rows, props.rowId, { kind: newKind }),
+                }));
+                revalidateAmount(amount());
               }}
-              onBlur={() => {
-                commitToUrl?.();
-              }}
+              onBlur={() => {}}
               options={kindOptions()}
             />
           </td>
           <td class={taxInputFormTableTdLabeled} data-label="Label (optional)">
-            <props.form.Field name={`${fieldPrefix()}.label`}>
-              {(field: any) => (
-                <input
-                  type="text"
-                  placeholder="e.g. details, payee"
-                  class={inputClass}
-                  style={{ background: "var(--input-bg)", color: "var(--text)" }}
-                  aria-label="Label (optional)"
-                  value={field().state.value}
-                  onInput={e => field().handleChange(e.currentTarget.value)}
-                  onBlur={() => {
-                    field().handleBlur();
-                    commitToUrl?.();
-                  }}
-                />
-              )}
-            </props.form.Field>
+            <input
+              type="text"
+              placeholder="e.g. details, payee"
+              class={inputClass}
+              style={{ background: "var(--input-bg)", color: "var(--text)" }}
+              aria-label="Label (optional)"
+              value={label()}
+              onInput={(e) => {
+                props.setTaxInput((prev) => ({
+                  ...prev,
+                  rows: patchDeductionRow(prev.rows, props.rowId, { label: e.currentTarget.value }),
+                }));
+              }}
+              onBlur={() => {
+                commitToUrl?.();
+              }}
+            />
           </td>
           <td class={taxInputFormTableTdLabeled} data-label="Amount">
-            <props.form.Field
-              name={`${fieldPrefix()}.amount`}
-              validators={{
-                onChange: ({ value }: { value: unknown }) =>
-                  validateLineItemAmount(kind(), value as number, props.validationCtx(), props.taxData()),
-                onBlur: ({ value }: { value: unknown }) =>
-                  validateLineItemAmount(kind(), value as number, props.validationCtx(), props.taxData()),
-              }}
-            >
-              {(field: any) => (
-                <div>
-                  <FormCurrencyInput field={field} ariaLabel="Amount" />
-                  <FormFieldValidationMessage field={field} />
-                </div>
-              )}
-            </props.form.Field>
+            <div>
+              <FormCurrencyInput
+                value={amount()}
+                onChange={(n) => {
+                  props.setTaxInput((prev) => ({
+                    ...prev,
+                    rows: patchDeductionRow(prev.rows, props.rowId, { amount: n }),
+                  }));
+                  revalidateAmount(n);
+                }}
+                onBlur={() => {}}
+                ariaLabel="Amount"
+              />
+              <FormFieldValidationMessage message={amountError} />
+            </div>
           </td>
           <td class={taxInputFormTableTdActions}>
             <button

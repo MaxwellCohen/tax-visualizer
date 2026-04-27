@@ -1,18 +1,17 @@
-import { For, createMemo } from "solid-js";
-import type { Accessor } from "solid-js";
+import { For, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { IncomeSourceTableRow } from "~/components/taxInputForm/IncomeSourceFields";
-import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import type { TaxFormData, TaxFormIncomeRow } from "~/lib/taxForm.types";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import type { ValidationContext } from "~/lib/config/types";
-import { getInputItems } from "~/lib/config";
-import { effect } from "solid-js/web";
+import { getInputItemsForSection } from "~/lib/config";
+import type { configItem } from "~/lib/config/page/pageConfig.types";
+
 type Props = {
-  form: TaxInputFormApi;
-  values: Accessor<TaxFormData>;
+  taxInput: Accessor<TaxFormData>;
+  setTaxInput: Setter<TaxFormData>;
   addSource: () => void;
   removeSourceAt: (i: number) => void;
   taxData: Accessor<TaxYearConfig | null>;
@@ -24,11 +23,11 @@ const addSourceBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 export function TaxInputFormIncomeSection(props: Props) {
-  const incomeRowIds = createMemo(() => rowIdsForTypedRows(props.values().rows, "income"));
+  const incomeRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "income"));
 
   const incomeTotal = createMemo(() =>
     props
-      .values()
+      .taxInput()
       .rows.filter((r): r is TaxFormIncomeRow => r.type === "income")
       .reduce((sum, s) => {
         const n = s.amount;
@@ -36,19 +35,15 @@ export function TaxInputFormIncomeSection(props: Props) {
       }, 0),
   );
 
-  const configItems = createMemo(() => {
+  const configItems = createMemo((): configItem[] => {
     const td = props.taxData();
     const fs = props.filingStatus();
     if (!td) return [];
-    return getInputItems(td, fs);
+    return getInputItemsForSection(td, fs, "income");
   });
 
   const isMarriedJoint = createMemo(() => props.filingStatus() === "marriedJoint");
 
-
-  effect(() => {
-    console.log("incomeRowIds", props.values());
-  });
   return (
     <Accordion
       summary={
@@ -96,12 +91,12 @@ export function TaxInputFormIncomeSection(props: Props) {
             <For each={incomeRowIds()}>
               {(rowId) => (
                 <IncomeSourceTableRow
-                  form={props.form}
-                  values={props.values}
+                  taxInput={props.taxInput}
+                  setTaxInput={props.setTaxInput}
                   rowId={rowId}
                   canRemove={incomeRowIds().length > 1}
                   onRemove={() => {
-                    const i = indexOfTypedRowById(props.values().rows, "income", rowId);
+                    const i = indexOfTypedRowById(props.taxInput().rows, "income", rowId);
                     if (i >= 0) props.removeSourceAt(i);
                   }}
                   configItems={configItems()}

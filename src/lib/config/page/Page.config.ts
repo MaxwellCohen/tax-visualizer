@@ -16,12 +16,45 @@ import {
 import { makePretaxInputsConfig } from "./pretaxInputs";
 import { getBracketItems, getLtcgBracketItems } from "./taxBracketNodes";
 import { makeTaxNodesConfig } from "./taxNodes";
-import type { configItem, InputRowSettings } from "./pageConfig.types";
+import type {
+    configItem,
+    InputCategory,
+    InputRowSettings,
+    TaxInputFormSectionDefinition,
+    TaxInputFormSectionKey,
+} from "./pageConfig.types";
 
 export type {
     SankeyLink,
     configItem,
+    TaxInputFormSectionDefinition,
+    TaxInputFormSectionKey,
 } from "./pageConfig.types";
+
+/** Ordered tax input sections: edit this list to reorder or drop line-item groups; `settings` is special-cased in UI. */
+export const TAX_INPUT_FORM_SECTIONS: readonly TaxInputFormSectionDefinition[] = [
+    { key: "settings", kind: "settings" },
+    { key: "income", kind: "lineItems", categories: ["income"] },
+    { key: "pretax", kind: "lineItems", categories: ["pretax"] },
+    { key: "deduction", kind: "lineItems", categories: ["deduction"] },
+    { key: "credit", kind: "lineItems", categories: ["credit"] },
+] as const;
+
+export function getInputItemsForSection(
+    taxData: TaxYearConfig,
+    filingStatus: FilingStatus,
+    sectionKey: Exclude<TaxInputFormSectionKey, "settings">,
+): configItem[] {
+    const def = TAX_INPUT_FORM_SECTIONS.find(
+        (s): s is Extract<TaxInputFormSectionDefinition, { kind: "lineItems" }> =>
+            s.key === sectionKey && s.kind === "lineItems",
+    );
+    if (!def) return [];
+    const catSet = new Set<InputCategory>(def.categories);
+    return getInputItems(taxData, filingStatus).filter(
+        (item) => item.inputRowSettings?.category != null && catSet.has(item.inputRowSettings.category),
+    );
+}
 
 
 export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {

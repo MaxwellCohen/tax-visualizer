@@ -1,15 +1,10 @@
-import type { Accessor } from "solid-js";
 import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import { inputClass, parseCurrencyInput } from "~/components/taxInputForm/shared";
 
-type NumberFieldApi = {
-  state: { value: number };
-  handleChange: (v: number) => void;
-  handleBlur: () => void;
-};
-
 type Props = {
-  field: Accessor<NumberFieldApi>;
+  value: number;
+  onChange: (value: number) => void;
+  onBlur?: () => void;
   min?: string;
   step?: string;
   /** When set, used instead of a wrapping `<label>` (e.g. table cells with column headers). */
@@ -19,7 +14,7 @@ type Props = {
 export function FormCurrencyInput(props: Props) {
   const commitToUrl = useTaxInputCommitToUrl();
   const onBlur = () => {
-    props.field().handleBlur();
+    props.onBlur?.();
     commitToUrl?.();
   };
   return (
@@ -30,8 +25,8 @@ export function FormCurrencyInput(props: Props) {
       class={inputClass}
       style={{ background: "var(--input-bg)", color: "var(--text)" }}
       aria-label={props.ariaLabel}
-      value={props.field().state.value}
-      onInput={e => props.field().handleChange(parseCurrencyInput(e.currentTarget.value))}
+      value={props.value}
+      onInput={(e) => props.onChange(parseCurrencyInput(e.currentTarget.value))}
       onBlur={onBlur}
     />
   );

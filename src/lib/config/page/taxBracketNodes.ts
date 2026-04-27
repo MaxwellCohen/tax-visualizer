@@ -142,9 +142,6 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             },
             calculate: (inputs, td, fs) => {
                 const allocation = getCreditAllocationForBrackets(inputs, td, fs, brackets.length);
-                console.log("allocation", allocation.ordinaryBracketCredits[i]);
-                // const incomes = incomeItem.calculate?.(inputs, td, fs) ?? 0;
-                // const bracketTax = incomes * bracket.rate;
                 return allocation.ordinaryBracketCredits[i];
             },
         });
@@ -204,11 +201,16 @@ export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: Filing
         },
         calculate: (inputs, taxData, filingStatus) => {
             const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
-            return calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
-        }
+            const gross = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
+            const allocation = computeCreditAllocation(
+                inputs,
+                taxData,
+                filingStatus,
+                taxData.federalBrackets[filingStatus].length,
+            );
+            return Math.max(0, gross - allocation.ltcgCredit);
+        },
     });
-
-    const ltcgTaxItem = items[items.length - 1];
 
     items.push({
         id: "ltcg-credits",
@@ -216,13 +218,17 @@ export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: Filing
         shortLabel: "LTCG Credits",
         sankeySettings: {
             link: [
-                { source: "ltcg-tax", target: "takeHomePay", ...getCreditLinkCreditsRow(creditsRow), row: ltcgIncomeRow - 1 },
+                {
+                    source: "ltcg-income",
+                    target: "takeHomePay",
+                    ...getCreditLinkCreditsRow(creditsRow),
+                    row: ltcgIncomeRow + 2,
+                },
             ],
         },
         calculate: (inputs, td, fs) => {
             const allocation = computeCreditAllocation(inputs, td, fs, td.federalBrackets[fs].length);
-            const tax = ltcgTaxItem.calculate?.(inputs, td, fs) ?? 0;
-            return tax - allocation.ltcgCredit;
+            return allocation.ltcgCredit;
         },
     });
 
@@ -237,8 +243,9 @@ export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: Filing
         },
         calculate: (inputs, td, fs) => {
             const incomes = incomeItem.calculate?.(inputs, td, fs) ?? 0;
-            const tax = items.find(i => i.id === "ltcg-tax")?.calculate?.(inputs, td, fs) ?? 0;
-            return incomes - tax;
+            const { ordinary, ltcg } = calculateTaxableIncome(inputs, td, fs);
+            const grossLtcgTax = calculateLtcgTaxTotal(ltcg, td.longTermCapGains, fs, ordinary);
+            return incomes - grossLtcgTax;
         },
     });
 

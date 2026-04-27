@@ -59,7 +59,7 @@ function configItemToRegistryEntry(item: configItem, _index: number): ChartRegis
     valueKind: "number",
     visualizationSourceId: item.id,
     summary: item.summary,
-    detailedDisplay: item.detailedDisplay,
+    // detailedDisplay: item.detailedDisplay,
     calculate: item.calculate ?? (() => 0),
   };
 }

@@ -1,15 +1,13 @@
-import { For, Show, createMemo } from "solid-js";
-import type { Accessor } from "solid-js";
+import { For, Show, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
-import type { TaxFormData, TaxFormDeductionRow } from "~/lib/taxForm.types";
+import type { TaxFormData, TaxFormDeductionRow, TaxFormRow } from "~/lib/taxForm.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
 import type { ValidationContext } from "~/lib/config/types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { ItemizedDeductionSourceRow } from "~/components/taxInputForm/ItemizedDeductionSourceFields";
 import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
-import type { TaxInputFormApi } from "~/components/taxInputForm/taxInputFormTypes";
 import {
   indexOfTypedRowById,
   rowIdsForTypedRows,
@@ -21,8 +19,8 @@ const addLineBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 type Props = {
-  form: TaxInputFormApi;
-  values: Accessor<TaxFormData>;
+  taxInput: Accessor<TaxFormData>;
+  setTaxInput: Setter<TaxFormData>;
   standardDeduction: Accessor<number>;
   itemizedBeatsStandard: Accessor<boolean>;
   addItemizedDeduction: () => void;
@@ -32,19 +30,28 @@ type Props = {
   validationCtx: Accessor<ValidationContext | undefined>;
 };
 
+function patchUseItemized(rows: TaxFormRow[], checked: boolean): TaxFormRow[] {
+  const i = settingRowIndex(rows, "useItemizedDeductions");
+  if (i < 0) return rows;
+  const r = rows[i];
+  if (r.type !== "setting" || r.id !== "useItemizedDeductions") return rows;
+  const next = [...rows];
+  next[i] = { ...r, value: checked };
+  return next;
+}
+
 export function TaxInputFormDeductionSection(props: Props) {
   const commitToUrl = useTaxInputCommitToUrl();
-  const calc = createMemo(() => rowsToTaxCalculationInputs(props.values().rows));
+  const calc = createMemo(() => rowsToTaxCalculationInputs(props.taxInput().rows));
   const itemizedTotal = () => sumLabeledAmountSources(calc().itemizedDeductions);
-  const useItemizedIdx = createMemo(() => settingRowIndex(props.values().rows, "useItemizedDeductions"));
   const useItemizedFieldMountKey = createMemo(() =>
-    settingRowFieldMountKey(props.values().rows, "useItemizedDeductions"),
+    settingRowFieldMountKey(props.taxInput().rows, "useItemizedDeductions"),
   );
   const useItemized = createMemo(() => calc().useItemizedDeductions);
   const deductionRows = createMemo(() =>
-    props.values().rows.filter((r): r is TaxFormDeductionRow => r.type === "deduction"),
+    props.taxInput().rows.filter((r): r is TaxFormDeductionRow => r.type === "deduction"),
   );
-  const deductionRowIds = createMemo(() => rowIdsForTypedRows(props.values().rows, "deduction"));
+  const deductionRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "deduction"));
 
   const summaryAmount = () =>
     useItemized() ? itemizedTotal() : props.standardDeduction();
@@ -62,27 +69,25 @@ export function TaxInputFormDeductionSection(props: Props) {
       bodyClass="space-y-4"
     >
       <Show when={useItemizedFieldMountKey()} keyed>
-        <props.form.Field name={`rows[${useItemizedIdx()}].value`}>
-          {(field: any) => (
-            <label
-              class="flex items-center gap-2.5 text-sm cursor-pointer"
-              style={{ color: "var(--text-muted)" }}
-            >
-              <input
-                type="checkbox"
-                checked={field().state.value as boolean}
-                onChange={e => field().handleChange(e.currentTarget.checked)}
-                onBlur={() => {
-                  field().handleBlur();
-                  commitToUrl?.();
-                }}
-                class="h-4 w-4 rounded"
-                style={{ "accent-color": "var(--accent)" }}
-              />
-              Use itemized deductions
-            </label>
-          )}
-        </props.form.Field>
+        <label
+          class="flex items-center gap-2.5 text-sm cursor-pointer"
+          style={{ color: "var(--text-muted)" }}
+        >
+          <input
+            type="checkbox"
+            checked={useItemized()}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              props.setTaxInput((prev) => ({ ...prev, rows: patchUseItemized(prev.rows, checked) }));
+            }}
+            onBlur={() => {
+              commitToUrl?.();
+            }}
+            class="h-4 w-4 rounded"
+            style={{ "accent-color": "var(--accent)" }}
+          />
+          Use itemized deductions
+        </label>
       </Show>
       <p class="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
         Standard deduction for this year and filing status: {money.format(props.standardDeduction())}.
@@ -137,12 +142,12 @@ export function TaxInputFormDeductionSection(props: Props) {
                 <For each={deductionRowIds()}>
                   {(rowId) => (
                     <ItemizedDeductionSourceRow
-                      form={props.form}
-                      values={props.values}
+                      taxInput={props.taxInput}
+                      setTaxInput={props.setTaxInput}
                       rowId={rowId}
                       canRemove={deductionRowIds().length > 1}
                       onRemove={() => {
-                        const i = indexOfTypedRowById(props.values().rows, "deduction", rowId);
+                        const i = indexOfTypedRowById(props.taxInput().rows, "deduction", rowId);
                         if (i >= 0) props.removeItemizedDeductionAt(i);
                       }}
                       taxData={props.taxData}

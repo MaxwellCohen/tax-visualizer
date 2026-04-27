@@ -16,7 +16,6 @@
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "2.0.0-alpha.2",
     "@solidjs/vite-plugin-nitro-2": "^0.1.0",
-    "@tanstack/solid-form": "^1.28.6",
     "d3-sankey": "^0.12.3",
     "solid-js": "^1.9.5",
     "typescript": "^6.0.2",

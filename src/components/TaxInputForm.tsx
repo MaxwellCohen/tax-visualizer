@@ -1,5 +1,4 @@
-import { createEffect, createMemo, untrack } from "solid-js";
-import { evaluate } from "@tanstack/solid-form";
+import { createMemo, type Accessor, type Setter } from "solid-js";
 import { buildValidationContext } from "~/lib/config";
 import {
   getFilingStatusFromRows,
@@ -8,59 +7,33 @@ import {
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { TaxInputFormCreditsSection } from "~/components/taxInputForm/TaxInputFormCreditsSection";
 import { TaxInputFormDeductionSection } from "~/components/taxInputForm/TaxInputFormDeductionSection";
-import { TaxInputFormFilingSection } from "~/components/taxInputForm/TaxInputFormFilingSection";
+import { TaxInputFormSettingsSection } from "~/components/taxInputForm/TaxInputFormSettingsSection";
 import { TaxInputFormIncomeSection } from "~/components/taxInputForm/TaxInputFormIncomeSection";
 import { TaxInputFormPreTaxSection } from "~/components/taxInputForm/TaxInputFormPreTaxSection";
 import { TaxInputCommitToUrlProvider } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
-import {
-  createTaxInputForm,
-  type TaxInputFormOuterProps,
-} from "~/components/taxInputForm/hooks/formCore";
+import { createTaxInputRowActions } from "~/components/taxInputForm/hooks/taxInputRowActions";
+import { createDeductionMemos } from "~/components/taxInputForm/hooks/deductionMemos";
+import { createLimitMemos } from "~/components/taxInputForm/hooks/limitMemos";
 import { wireTaxYearLimitsEffect } from "~/components/taxInputForm/hooks/taxYearLimitsEffect";
+import type { TaxFormData } from "~/lib/taxForm.types";
 
-type TaxInputFormProps = TaxInputFormOuterProps & {
+export type TaxInputFormProps = {
+  taxInput: Accessor<TaxFormData>;
+  setTaxInput: Setter<TaxFormData>;
   availableYears: number[];
+  /** Called when focus leaves a field inside the form (focusout); use to sync URL without per-keystroke updates. */
+  onCommitToUrl?: () => void;
 };
 
 export default function TaxInputForm(props: TaxInputFormProps) {
-  /** One TanStack FormApi per mount — recreating `createForm` each render re-applies `defaultValues` and blows away row `kind` / controlled selects. */
-  let taxFormBundle: ReturnType<typeof createTaxInputForm> | undefined;
-  if (!taxFormBundle) {
-    taxFormBundle = createTaxInputForm(props);
-  }
-  const {
-    form,
-    values,
-    limits,
-    deduction,
-    addSource,
-    removeSourceAt,
-    addPretaxBenefit,
-    removePretaxBenefitAt,
-    clearAllPretaxBenefits,
-    addItemizedDeduction,
-    removeItemizedDeductionAt,
-    clearAllItemizedDeductions,
-    addFederalTaxCredit,
-    removeFederalTaxCreditAt,
-    clearAllFederalTaxCredits,
-  } = taxFormBundle;
+  const limits = createLimitMemos(() => props.taxInput());
+  const deduction = createDeductionMemos(() => props.taxInput(), limits.selectedTaxConfig);
+  const rowActions = createTaxInputRowActions(props.setTaxInput);
 
-  /** URL / localStorage hydration replaces `props.value` after first paint — reset the form without recreating the API. */
-  createEffect(() => {
-    const incoming = props.value;
-    untrack(() => {
-      const current = values();
-      if (!evaluate(incoming(), current)) {
-        form.reset(incoming());
-      }
-    });
-  });
-
-  wireTaxYearLimitsEffect(form, values);
+  wireTaxYearLimitsEffect(() => props.taxInput(), props.setTaxInput);
 
   const validationCtx = createMemo(() => {
-    const rows = values().rows;
+    const rows = props.taxInput().rows;
     const ty = getTaxYearFromRows(rows);
     const fs = getFilingStatusFromRows(rows) ?? "single";
     return buildValidationContext(ty, fs);
@@ -69,8 +42,8 @@ export default function TaxInputForm(props: TaxInputFormProps) {
   const taxData = () => limits.selectedTaxConfig();
   const filingStatus = () => {
     const inputs = limits.selectedTaxConfig();
-    if (!inputs) return "single";
-    const v = values();
+    if (!inputs) return "single" as const;
+    const v = props.taxInput();
     const calcInputs = v.rows.find(
       (r) => r.type === "setting" && r.id === "filingStatus",
     );
@@ -84,49 +57,49 @@ export default function TaxInputForm(props: TaxInputFormProps) {
           title="Filing details & income"
           bodyClass="mt-4 space-y-4"
         >
-          <TaxInputFormFilingSection
-            form={form}
-            values={values}
+          <TaxInputFormSettingsSection
+            taxInput={props.taxInput}
+            setTaxInput={props.setTaxInput}
             availableYears={props.availableYears}
           />
           <TaxInputFormIncomeSection
-            form={form}
-            values={values}
-            addSource={addSource}
-            removeSourceAt={removeSourceAt}
+            taxInput={props.taxInput}
+            setTaxInput={props.setTaxInput}
+            addSource={rowActions.addSource}
+            removeSourceAt={rowActions.removeSourceAt}
             taxData={taxData}
             filingStatus={filingStatus}
             validationCtx={validationCtx}
           />
           <TaxInputFormPreTaxSection
-            form={form}
-            values={values}
+            taxInput={props.taxInput}
+            setTaxInput={props.setTaxInput}
             preTaxBenefitsTotal={limits.preTaxBenefitsTotal}
             isMarriedJoint={limits.isMarriedJoint}
-            addPretaxBenefit={addPretaxBenefit}
-            removePretaxBenefitAt={removePretaxBenefitAt}
-            clearAll={clearAllPretaxBenefits}
+            addPretaxBenefit={rowActions.addPretaxBenefit}
+            removePretaxBenefitAt={rowActions.removePretaxBenefitAt}
+            clearAll={rowActions.clearAllPretaxBenefits}
             taxData={taxData}
             filingStatus={filingStatus}
             validationCtx={validationCtx}
           />
           <TaxInputFormDeductionSection
-            form={form}
-            values={values}
+            taxInput={props.taxInput}
+            setTaxInput={props.setTaxInput}
             standardDeduction={deduction.standardDeduction}
             itemizedBeatsStandard={deduction.itemizedBeatsStandard}
-            addItemizedDeduction={addItemizedDeduction}
-            removeItemizedDeductionAt={removeItemizedDeductionAt}
-            clearAll={clearAllItemizedDeductions}
+            addItemizedDeduction={rowActions.addItemizedDeduction}
+            removeItemizedDeductionAt={rowActions.removeItemizedDeductionAt}
+            clearAll={rowActions.clearAllItemizedDeductions}
             taxData={taxData}
             validationCtx={validationCtx}
           />
           <TaxInputFormCreditsSection
-            form={form}
-            values={values}
-            addFederalTaxCredit={addFederalTaxCredit}
-            removeFederalTaxCreditAt={removeFederalTaxCreditAt}
-            clearAll={clearAllFederalTaxCredits}
+            taxInput={props.taxInput}
+            setTaxInput={props.setTaxInput}
+            addFederalTaxCredit={rowActions.addFederalTaxCredit}
+            removeFederalTaxCreditAt={rowActions.removeFederalTaxCreditAt}
+            clearAll={rowActions.clearAllFederalTaxCredits}
             taxData={taxData}
             filingStatus={filingStatus}
             validationCtx={validationCtx}
