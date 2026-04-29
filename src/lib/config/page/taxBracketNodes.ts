@@ -3,7 +3,7 @@ import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import type { configItem } from "./pageConfig.types";
 import { calculateLtcgTaxTotal, getCreditsSankeyRow, getOrdinaryBrackets } from "./pageConfig.helpers";
-import { calculateTaxableIncome } from "./taxCalculations";
+import { calculateTaxableIncome, ordinaryIncomeSlicesWithPayrollShadow } from "./taxCalculations";
 import { longTermCapGains, totalCredits } from "./pageConfig.inputs";
 
 interface CreditAllocation {
@@ -28,17 +28,11 @@ function computeCreditAllocation(
     bracketsLength: number,
 ): CreditAllocation {
     const credits = totalCredits(inputs);
-    const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
+    const { ordinary, ltcg, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
     const brackets = getOrdinaryBrackets(taxData, filingStatus);
+    const ordinarySlices = ordinaryIncomeSlicesWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill);
 
-    const bracketTaxes: number[] = [];
-    let priorBound = 0;
-    for (const bracket of brackets) {
-        const upperBound = bracket.upTo ?? Number.POSITIVE_INFINITY;
-        const incomeInBracket = Math.max(0, Math.min(ordinary, upperBound) - priorBound);
-        bracketTaxes.push(incomeInBracket * bracket.rate);
-        priorBound = upperBound;
-    }
+    const bracketTaxes: number[] = ordinarySlices.map((incomeInBracket, i) => incomeInBracket * brackets[i].rate);
 
     const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
 
@@ -86,12 +80,12 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         const rateLabel = (bracket.rate * 100).toFixed(0);
         const bracketId = `bracket-${i}`;
 
-        const priorBound = (i > 0) ? (brackets[i - 1].upTo ?? Number.POSITIVE_INFINITY) : 0;
         const incomeCalculate = (inputs: TaxFormRow[], _td?: TaxYearConfig, _fs?: FilingStatus) => {
             const td = _td ?? taxData;
-            const { ordinary } = calculateTaxableIncome(inputs, td, filingStatus);
-            const upperBound = bracket.upTo ?? Number.POSITIVE_INFINITY;
-            return Math.max(0, Math.min(ordinary, upperBound) - priorBound);
+            const { ordinary, payrollBracketShadowFill } = calculateTaxableIncome(inputs, td, filingStatus);
+            const br = getOrdinaryBrackets(td, filingStatus);
+            const slices = ordinaryIncomeSlicesWithPayrollShadow(ordinary, br, payrollBracketShadowFill);
+            return slices[i];
         };
 
 

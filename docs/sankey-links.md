@@ -35,9 +35,8 @@ flowchart LR
     item["itemizedDeductions"]
   end
 
-  subgraph payrollSe["Payroll / SE"]
+  subgraph payrollSe["Payroll / SE hub"]
     pt["payrollTax"]
-    setx["selfEmploymentTax"]
   end
 
   subgraph creditsBand["Credits col 3, below brackets"]
@@ -56,7 +55,6 @@ flowchart LR
     thp["takeHomePay"]
     fit["federalIncomeTax"]
     fpt["federalPayrollTaxes"]
-    fset["federalSelfEmploymentTaxes"]
   end
 
   iw --> pd
@@ -87,9 +85,6 @@ flowchart LR
   otiN --> pt
   pt --> fpt
 
-  otiN --> setx
-  setx --> fset
-
   otiN --> std
   std --> thp
 
@@ -102,7 +97,7 @@ flowchart LR
 ## Implementation notes
 
 - Pretax inputs each register `wages` → `pretaxDeductions` (same edge, multiple config rows).
-- Payroll: `ordinaryTaxableIncome` → `payrollTax` → `federalPayrollTaxes` (via `payrollTaxWages` and `payrollTax` items).
+- Payroll and SE: a single ribbon **`ordinaryTaxableIncome` → `payrollTax`** uses `sankeyOrdinaryToPayrollTax` (payroll + SE). **`payrollTax` → `federalPayrollTaxes`** splits into wage FICA (`payrollTax`) and SE (`selfEmploymentTax`) rows so link values still balance at the hub.
 - Each federal ordinary bracket adds nodes `bracket-i-income`, `bracket-i-keep`, `bracket-i-tax`; Sankey links use `bracket-i-income` as the hub for flows to `takeHomePay` (keep) and `federalIncomeTax` (tax). LTCG tax flows `ltcg-income` → `federalIncomeTax`; LTCG keep flows to `takeHomePay`.
 - **Federal income tax node:** Bracket and LTCG tax ribbons terminate at `federalIncomeTax` (gross tax per slice); the node’s summary value is still net federal income tax after credits (link sums may not match that number). [`taxNodes.ts`](../src/lib/config/page/taxNodes.ts) bridges `sankeyOrdinaryToFederalTaxCredits` and `sankeyFederalTaxCreditsToTakeHome` add **`ordinaryTaxableIncome` → `federalTaxCredits` → `takeHomePay`** using `computeFederalTaxCreditsApplied` in [`taxCalculations.ts`](../src/lib/config/page/taxCalculations.ts).
 - Credit **input** rows in [`creditInputs.ts`](../src/lib/config/page/creditInputs.ts) keep a Sankey **node** for styling but do **not** emit Sankey **links** into `federalTaxCredits` (avoids double-counting the hub; amounts still drive totals via `federalTaxCredits`’s `calculate: totalCredits`).

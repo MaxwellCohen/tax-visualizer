@@ -93,6 +93,8 @@ export type configItem = {
         highlight?: boolean;
         hideWhenZero?: boolean;
     };
-    calculate?: (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => number;
+    calculate?: CalculateFn;
 };
+
+export type CalculateFn = (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => number;
 

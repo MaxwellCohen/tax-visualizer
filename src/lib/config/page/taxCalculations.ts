@@ -1,9 +1,7 @@
-import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
+import type { FilingStatus, FederalTaxBracket, TaxYearConfig } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import {
     calculateLtcgTaxTotal,
-    calculateOrdinaryTaxTotal,
-    findInputById,
     getOrdinaryBrackets,
 } from "./pageConfig.helpers";
 import {
@@ -26,6 +24,8 @@ import {
     otherCredit,
     allPretax,
     totalCredits,
+    totalItemized,
+    useItemizedDeductions,
 } from "./pageConfig.inputs";
 
 export * from "./pageConfig.inputs";
@@ -59,13 +59,63 @@ export function calculateSelfEmploymentDeduction(seIncome: number, taxData: TaxY
     return calculateSelfEmploymentTaxFromIncome(seIncome, taxData) / 2;
 }
 
-type TaxableIncomeResult = {
+export type TaxableIncomeResult = {
     ordinary: number;
     ltcg: number;
     total: number;
     afterPretax: number;
     deduction: number;
+    /**
+     * Payroll + SE beyond the deduction-shield cap, modeled as consuming federal ordinary bracket
+     * width from the bottom up before ordinary taxable fills each rate band (teaching flow).
+     */
+    payrollBracketShadowFill: number;
 };
+
+/**
+ * Per-bracket ordinary dollars after `payrollBracketShadowFill` consumes width from the lowest
+ * brackets first. The top (open-ended) bracket does not absorb shadow width.
+ */
+export function ordinaryIncomeSlicesWithPayrollShadow(
+    ordinaryTaxable: number,
+    brackets: readonly FederalTaxBracket[],
+    payrollBracketShadowFill: number,
+): number[] {
+    let remainingShadow = Math.max(0, payrollBracketShadowFill);
+    let remainingOrd = Math.max(0, ordinaryTaxable);
+    const slices: number[] = [];
+    let lowerBound = 0;
+    for (const bracket of brackets) {
+        const upperBound = bracket.upTo ?? Number.POSITIVE_INFINITY;
+        const isOpenEnded = bracket.upTo == null;
+        const width = isOpenEnded ? Number.POSITIVE_INFINITY : upperBound - lowerBound;
+        const shadowHere = isOpenEnded ? 0 : Math.min(width, remainingShadow);
+        remainingShadow -= shadowHere;
+        const roomForOrdinary = width - shadowHere;
+        const ordHere = Math.min(remainingOrd, roomForOrdinary);
+        remainingOrd -= ordHere;
+        slices.push(ordHere);
+        lowerBound = upperBound;
+    }
+    return slices;
+}
+
+export function calculateOrdinaryTaxWithPayrollShadow(
+    ordinaryTaxable: number,
+    brackets: readonly FederalTaxBracket[],
+    payrollBracketShadowFill: number,
+): { tax: number; marginalRate: number; slices: number[] } {
+    const slices = ordinaryIncomeSlicesWithPayrollShadow(ordinaryTaxable, brackets, payrollBracketShadowFill);
+    let tax = 0;
+    let marginalRate = 0;
+    for (let i = 0; i < brackets.length; i++) {
+        tax += slices[i] * brackets[i].rate;
+        if (slices[i] > 0) {
+            marginalRate = brackets[i].rate;
+        }
+    }
+    return { tax, marginalRate, slices };
+}
 
 export function calculateTaxableIncome(
     inputs: TaxFormRow[],
@@ -77,12 +127,28 @@ export function calculateTaxableIncome(
     const seDeduction = seTax / 2;
     const pretax = allPretax(inputs);
     const afterPretax = ordinaryIncome(inputs) - pretax - seDeduction;
-    const itemized =  findInputById( inputs, 'deduction-');
-    const standard = Math.min(afterPretax, taxData.standardDeduction[filingStatus]);
-    const deduction = Math.max(itemized, standard);
+    /** Wage FICA + SE tax: modeled as carving out of the deduction shield before ordinary bracket income (matches Sankey / getStandardDeduction). */
+    const payrollTaxTotal = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
+    let deduction: number;
+    let shieldCapBeforePayroll: number;
+    if (useItemizedDeductions(inputs)) {
+        shieldCapBeforePayroll = Math.min(totalItemized(inputs), afterPretax);
+        deduction = Math.max(0, shieldCapBeforePayroll - payrollTaxTotal);
+    } else {
+        shieldCapBeforePayroll = Math.min(afterPretax, taxData.standardDeduction[filingStatus]);
+        deduction = Math.max(0, shieldCapBeforePayroll - payrollTaxTotal);
+    }
     const ordinary = Math.max(0, afterPretax - deduction);
+    const payrollBracketShadowFill = Math.max(0, payrollTaxTotal - shieldCapBeforePayroll);
     const ltcg = longTermCapGains(inputs);
-    return { ordinary, ltcg, total: ordinary + ltcg, afterPretax, deduction };
+    return {
+        ordinary,
+        ltcg,
+        total: ordinary + ltcg,
+        afterPretax,
+        deduction,
+        payrollBracketShadowFill,
+    };
 }
 
 /** Nonrefundable credits absorbed against federal income tax before credits (capped at gross federal tax). */
@@ -92,9 +158,9 @@ export function computeFederalTaxCreditsApplied(
     filingStatus: FilingStatus,
 ): number {
     const credits = totalCredits(inputs);
-    const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
+    const { ordinary, ltcg, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
     const brackets = getOrdinaryBrackets(taxData, filingStatus);
-    const ordinaryTax = calculateOrdinaryTaxTotal(ordinary, brackets).tax;
+    const ordinaryTax = calculateOrdinaryTaxWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill).tax;
     const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
     const totalTax = ordinaryTax + ltcgTax;
     return Math.min(credits, totalTax);
@@ -115,9 +181,9 @@ export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: Filin
     };
 
     const calculateFederalIncomeTaxAfterCredits = (inputs: TaxFormRow[]): number => {
-        const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
+        const { ordinary, ltcg, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
         const brackets = getOrdinaryBrackets(taxData, filingStatus);
-        const ordinaryTax = calculateOrdinaryTaxTotal(ordinary, brackets).tax;
+        const ordinaryTax = calculateOrdinaryTaxWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill).tax;
         const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
         const totalTax = ordinaryTax + ltcgTax;
         const credits = childTaxCredit(inputs) + educationCredits(inputs) + retirementSavingsContributions(inputs) + otherCredit(inputs);

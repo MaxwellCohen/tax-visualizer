@@ -2,6 +2,7 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import { _401k, _hsa, otherPretax, traditionalIra } from "./pageConfig.inputs";
+import { nonNegativeValidator, makeYearValuesCappedValidator, makeFilingStatusCappedValidator, makeHsaCappedValidator } from "./pageConfig.helpers";
 
 export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
@@ -26,12 +27,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                     { key: "input-pretax-401K-preTax457bSpouse2", labelSingle: "457(b) deferrals (2)", labelJoint: "457(b) deferrals (2)" },
                 ],
                 getLimit: (yearValues) => yearValues.limits.electiveDeferral401k ?? 23000,
-                validate: (value, ctx) => {
-                    const limit = ctx.yearValues.limits.electiveDeferral401k ?? 23000;
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
-                    return { valid: true };
-                },
+                validate: makeYearValuesCappedValidator("electiveDeferral401k", 23000),
             },
             calculate: _401k, 
             sankeySettings: {
@@ -61,13 +57,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                     const isJoint = filingStatus === "marriedJoint";
                     return isJoint ? (yearValues.limits.hsaFamily ?? 8550) : (yearValues.limits.hsaSelfOnly ?? 4300);
                 },
-                validate: (value, ctx) => {
-                    const isJoint = ctx.filingStatus === "marriedJoint";
-                    const limit = isJoint ? (ctx.yearValues.limits.hsaFamily ?? 8550) : (ctx.yearValues.limits.hsaSelfOnly ?? 4300);
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
-                    return { valid: true };
-                },
+                validate: makeHsaCappedValidator,
                 showWhen: (ctx) => ctx.isJoint !== undefined,
             },
             calculate: _hsa,
@@ -99,10 +89,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                     { key: "input-pretax-otherPretax-preTaxCommuterSpouse1", labelSingle: "Commuter / parking (payroll)", labelJoint: "Commuter / parking (payroll)" },
                     { key: "input-pretax-otherPretax-preTaxCommuterSpouse2", labelSingle: "Commuter / parking (payroll) (2)", labelJoint: "Commuter / parking (payroll) (2)" },
                 ],
-                validate: (value) => {
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    return { valid: true };
-                },
+                validate: nonNegativeValidator,
             },
             calculate: otherPretax,
             sankeySettings: {
@@ -129,12 +116,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                     { key: "input-pretax-traditionalIra-traditionalIraSpouse2", labelSingle: "Traditional IRA (deductible) (2)", labelJoint: "Traditional IRA (deductible) (2)" },
                 ],
                 getLimit: (yearValues) => yearValues.limits["traditionalIra"] ?? 7000,
-                validate: (value, ctx) => {
-                    const limit = ctx.yearValues.limits["traditionalIra"] ?? 7000;
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
-                    return { valid: true };
-                },
+                validate: makeYearValuesCappedValidator("traditionalIra", 7000),
                 showWhen: (ctx) => ctx.isJoint !== undefined,
             },
             calculate: traditionalIra,

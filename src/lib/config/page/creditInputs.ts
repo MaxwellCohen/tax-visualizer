@@ -7,7 +7,7 @@ import {
     retirementSavingsContributions,
     otherCredit,
 } from "./pageConfig.inputs";
-import { getCreditsSankeyRow } from "./pageConfig.helpers";
+import { getCreditsSankeyRow, nonNegativeValidator, makeYearValuesCappedValidator } from "./pageConfig.helpers";
 
 export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
     const row = getCreditsSankeyRow(taxData, filingStatus);
@@ -32,10 +32,7 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
                     { key: "input-credit-childTax-childTax", labelSingle: "Child tax credit", labelJoint: "Child tax credit" },
                     { key: "input-credit-childTax-otherDependents", labelSingle: "Credit for other dependents", labelJoint: "Credit for other dependents" },
                 ],
-                validate: (value) => {
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    return { valid: true };
-                },
+                validate: nonNegativeValidator,
             },
             calculate: childTaxCredit,
             sankeySettings: {
@@ -55,10 +52,7 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
                 displayOrder: 2,
                 inputType: "currency",
                 subcategories: [{ key: "input-credit-education-education", labelSingle: "Education credits (AOTC / LLC)", labelJoint: "Education credits (AOTC / LLC)" }],
-                validate: (value) => {
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    return { valid: true };
-                },
+                validate: nonNegativeValidator,
             },
             calculate: educationCredits,
             sankeySettings: {
@@ -79,12 +73,7 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
                 inputType: "currency",
                 subcategories: [{ key: "retirementSavingsContributions-retirementSavingsContributions", labelSingle: "Retirement savings contributions (saver's) credit", labelJoint: "Retirement savings contributions (saver's) credit" }],
                 getLimit: (yearValues) => yearValues.caps.credits["retirementSavingsContributions"] ?? 2000,
-                validate: (value, ctx) => {
-                    const limit = ctx.yearValues.caps.credits["retirementSavingsContributions"] ?? 2000;
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
-                    return { valid: true };
-                },
+                validate: makeYearValuesCappedValidator("retirementSavingsContributions", 2000),
             },
             calculate: retirementSavingsContributions,
             sankeySettings: {
@@ -111,10 +100,7 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
                     { key: "input-credit-other-electricVehicleCredit", labelSingle: "Clean vehicle / EV credit", labelJoint: "Clean vehicle / EV credit" },
                     { key: "input-credit-other-generalBusinessCredit", labelSingle: "General business credit", labelJoint: "General business credit" },
                 ],
-                validate: (value) => {
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    return { valid: true };
-                },
+                validate: nonNegativeValidator,
             },
             calculate: otherCredit,
             sankeySettings: {

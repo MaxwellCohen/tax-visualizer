@@ -5,14 +5,9 @@ import { makeCreditInputsConfig } from "./creditInputs";
 import { makeDeductionInputsConfig, makePayrollFromWagesInputConfig, makePayrollTaxInputConfig } from "./deductionInputs";
 import { makeEndingNodesConfig } from "./endingNodes";
 import { makeIncomeInputsConfig } from "./incomeInputs";
-import {
-    makeDeductionAmountNodesConfig,
-    makeIncomeNodesConfig,
-    makePretaxIncomeNodesConfig,
-    makePretaxDeductionsNodesConfig,
-    make0taxIncomeNodesConfig,
-    makeMekkoSliceNodesConfig,
-} from "./incomeNodes";
+import { makeIncomeNodesConfig } from "./incomeNodes";
+import { makePretaxIncomeNodesConfig, makePretaxDeductionsNodesConfig } from "./pretaxNodes";
+import { makeDeductionAmountNodesConfig, make0taxIncomeNodesConfig, makeMekkoSliceNodesConfig } from "./deductionNodes";
 import { makePretaxInputsConfig } from "./pretaxInputs";
 import { getBracketItems, getLtcgBracketItems } from "./taxBracketNodes";
 import { makeTaxNodesConfig } from "./taxNodes";

@@ -1,7 +1,81 @@
 import type { FilingStatus, TaxYearConfig, LongTermCapGainsThresholds, FederalTaxBracket } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
+import type { ValidationContext } from "../types";
 import { allPretax, useItemizedDeductions, wageIncome } from "./pageConfig.inputs";
 import { calculatePayrollTax, calculateSelfEmploymentTax, totalItemized } from "./taxCalculations";
+
+type ValidationResult = {
+    valid: boolean;
+    message?: string;
+    clampedValue?: number;
+};
+
+export type ValidationFn = (value: number, ctx: ValidationContext) => ValidationResult;
+
+export const nonNegativeValidator: ValidationFn = (value: number, _ctx: ValidationContext) => {
+    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
+    return { valid: true };
+};
+
+export const makeCappedValidator = (getLimit: (ctx: ValidationContext) => number): ValidationFn => {
+    return (value: number, ctx: ValidationContext) => {
+        if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
+        const limit = getLimit(ctx);
+        if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+        return { valid: true };
+    };
+};
+
+export const standardCappedValidator: ValidationFn = (value: number, ctx: ValidationContext) => {
+    const limit = ctx.yearValues.limits["401k"] ?? 23000;
+    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
+    if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+    return { valid: true };
+};
+
+export const makeYearValuesCappedValidator = (
+    key: string,
+    fallback: number
+): ValidationFn => {
+    return (value: number, ctx: ValidationContext) => {
+        const limit = ctx.yearValues.limits[key] ?? fallback;
+        if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
+        if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+        return { valid: true };
+    };
+};
+
+export const makeFilingStatusCappedValidator = (
+    key: string,
+    fallbackSelf: number,
+    fallbackJoint: number
+): ValidationFn => {
+    return (value: number, ctx: ValidationContext) => {
+        const limit = ctx.isJoint
+            ? (ctx.yearValues.limits[key] ?? fallbackJoint)
+            : (ctx.yearValues.limits[key] ?? fallbackSelf);
+        if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
+        if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+        return { valid: true };
+    };
+};
+
+export const makeSaltCappedValidator: ValidationFn = (value: number, ctx: ValidationContext) => {
+    const limit = ctx.yearValues.caps.salt[ctx.filingStatus] ?? 10000;
+    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
+    if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+    return { valid: true };
+};
+
+export const makeHsaCappedValidator: ValidationFn = (value: number, ctx: ValidationContext) => {
+    const isJoint = ctx.filingStatus === "marriedJoint";
+    const limit = isJoint
+        ? (ctx.yearValues.limits.hsaFamily ?? 8300)
+        : (ctx.yearValues.limits.hsaSelfOnly ?? 4150);
+    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
+    if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+    return { valid: true };
+};
 
 export function findInputById(inputs: TaxFormRow[], id: string): number {
     let sum = 0;

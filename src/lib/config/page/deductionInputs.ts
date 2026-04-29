@@ -2,7 +2,7 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import { calculatePayrollTax } from "~/lib/config/page/taxCalculations";
-import { getItemizedDeductions, getStandardDeduction } from "./pageConfig.helpers";
+import { getItemizedDeductions, getStandardDeduction, nonNegativeValidator, makeSaltCappedValidator } from "./pageConfig.helpers";
 
 
 export function makePayrollFromWagesInputConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
@@ -11,12 +11,6 @@ export function makePayrollFromWagesInputConfig(_taxData: TaxYearConfig, _filing
             id: "payrollTaxWages",
             label: "Payroll Taxes",
             shortLabel: "Payroll Taxes",
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
-                link: [
-                    { source: "ordinaryTaxableIncome", target: "payrollTax", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: 0, col: 2 },
-                ],
-            },
             calculate: calculatePayrollTax,
             summary: {
                 summaryId: "payroll-tax",
@@ -91,7 +85,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
         {
             id: "deduction-salt",
             label: "State & Local Taxes (SALT)",
-            shortLabel: "deduction-salt",
+            shortLabel: "SALT",
             description: "State and local taxes you elect to deduct",
             kindDetail: {
                 limitNote:
@@ -103,12 +97,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 inputType: "currency",
                 subcategories: [{ key: "deduction-salt-salt", labelSingle: "State & local taxes (SALT)", labelJoint: "State & local taxes (SALT)" }],
                 getFilingStatusLimit: (yearValues, filingStatus) => yearValues.caps.salt[filingStatus] ?? 10000,
-                validate: (value, ctx) => {
-                    const limit = ctx.yearValues.caps.salt[ctx.filingStatus] ?? 10000;
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
-                    return { valid: true };
-                },
+                validate: makeSaltCappedValidator,
             },
         },
         {
@@ -124,10 +113,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 displayOrder: 3,
                 inputType: "currency",
                 subcategories: [{ key: "deduction-medicalDental-medicalDental", labelSingle: "Medical & dental", labelJoint: "Medical & dental" }],
-                validate: (value) => {
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    return { valid: true };
-                },
+                validate: nonNegativeValidator,
             },
         },
         {
@@ -143,10 +129,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 displayOrder: 4,
                 inputType: "currency",
                 subcategories: [{ key: "deduction-mortgageInterest-mortgageInterest", labelSingle: "Home mortgage interest", labelJoint: "Home mortgage interest" }],
-                validate: (value) => {
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    return { valid: true };
-                },
+                validate: nonNegativeValidator,
             },
         },
         {
@@ -162,10 +145,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 displayOrder: 5,
                 inputType: "currency",
                 subcategories: [{ key: "deduction-charitable-charitable", labelSingle: "Charitable contributions", labelJoint: "Charitable contributions" }],
-                validate: (value) => {
-                    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-                    return { valid: true };
-                },
+                validate: nonNegativeValidator,
             },
             // sankeySettings: {
             //     // node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
