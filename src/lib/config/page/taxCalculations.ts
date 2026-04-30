@@ -151,6 +151,29 @@ export function calculateTaxableIncome(
     };
 }
 
+/**
+ * Dollars that flow into the `ordinaryTaxableIncome` Sankey hub so ribbons conserve: matches
+ * {@link calculatePayrollTax}+SE + standard/itemized ribbon + ordinary bracket slices (same caps as
+ * {@link getStandardDeduction} / {@link getItemizedDeductions} for the deduction link, which use
+ * `ordinaryIncome - pretax` rather than `afterPretax` when those differ).
+ */
+export function sankeyOrdinaryTaxableIncomeHubInflow(
+    inputs: TaxFormRow[],
+    taxData: TaxYearConfig,
+    filingStatus: FilingStatus,
+): number {
+    const { ordinary } = calculateTaxableIncome(inputs, taxData, filingStatus);
+    const payrollTaxTotal = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
+    const incomeBeforeSeAdjustment = ordinaryIncome(inputs) - allPretax(inputs);
+    const deductionRibbon = useItemizedDeductions(inputs)
+        ? Math.max(0, Math.min(totalItemized(inputs), incomeBeforeSeAdjustment) - payrollTaxTotal)
+        : Math.max(
+              0,
+              Math.min(incomeBeforeSeAdjustment, taxData.standardDeduction[filingStatus]) - payrollTaxTotal,
+          );
+    return payrollTaxTotal + deductionRibbon + ordinary;
+}
+
 /** Nonrefundable credits absorbed against federal income tax before credits (capped at gross federal tax). */
 export function computeFederalTaxCreditsApplied(
     inputs: TaxFormRow[],

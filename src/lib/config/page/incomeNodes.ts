@@ -2,7 +2,6 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import {
-    wageIncome,
     selfEmploymentIncome,
     shortTermCapGains,
     longTermCapGains,
@@ -10,6 +9,7 @@ import {
     allPretax,
     totalIncome,
 } from "./pageConfig.inputs";
+import { sankeyOrdinaryTaxableIncomeHubInflow } from "./taxCalculations";
 
 export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
@@ -35,8 +35,8 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
                     { source: "wages", target: "ordinaryTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 1 },
                 ],
             },
-            calculate: (inputs) => {
-                return wageIncome(inputs) - allPretax(inputs);
+            calculate: (inputs, taxData, filingStatus) => {
+                return sankeyOrdinaryTaxableIncomeHubInflow(inputs, taxData, filingStatus);
             },
         },
         {
