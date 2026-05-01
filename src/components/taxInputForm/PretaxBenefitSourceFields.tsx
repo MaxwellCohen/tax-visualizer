@@ -110,7 +110,7 @@ export function PretaxBenefitSourceRow(props: Props) {
               label="Benefit type"
               hideLabel
               value={() => kind() ?? ""}
-              onChange={(e) => {
+              onInput={(e) => {
                 const newKind = e.currentTarget.value;
                 props.setTaxInput((prev) => ({
                   ...prev,
@@ -145,7 +145,7 @@ export function PretaxBenefitSourceRow(props: Props) {
             <div>
               <FormCurrencyInput
                 value={amount()}
-                onChange={(n) => {
+                onInput={(n) => {
                   props.setTaxInput((prev) => ({
                     ...prev,
                     rows: patchPretaxRow(prev.rows, props.rowId, { amount: n }),

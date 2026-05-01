@@ -80,7 +80,7 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
             label="Income type"
             hideLabel
             value={() => kind() ?? ""}
-            onChange={(e) => {
+            onInput={(e) => {
               const newKind = e.currentTarget.value;
               props.setTaxInput((prev) => ({ ...prev, rows: patchIncomeRow(prev.rows, props.rowId, { kind: newKind }) }));
               const n = amount();
@@ -113,7 +113,7 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
           <div>
             <FormCurrencyInput
               value={amount()}
-              onChange={(n) => {
+              onInput={(n) => {
                 props.setTaxInput((prev) => ({ ...prev, rows: patchIncomeRow(prev.rows, props.rowId, { amount: n }) }));
                 revalidateAmount(n);
               }}

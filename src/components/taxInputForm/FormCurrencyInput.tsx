@@ -3,7 +3,7 @@ import { inputClass, parseCurrencyInput } from "~/components/taxInputForm/shared
 
 type Props = {
   value: number;
-  onChange: (value: number) => void;
+  onInput: (value: number) => void;
   onBlur?: () => void;
   min?: string;
   step?: string;
@@ -26,7 +26,7 @@ export function FormCurrencyInput(props: Props) {
       style={{ background: "var(--input-bg)", color: "var(--text)" }}
       aria-label={props.ariaLabel}
       value={props.value}
-      onInput={(e) => props.onChange(parseCurrencyInput(e.currentTarget.value))}
+      onInput={(e) => props.onInput(parseCurrencyInput(e.currentTarget.value))}
       onBlur={onBlur}
     />
   );

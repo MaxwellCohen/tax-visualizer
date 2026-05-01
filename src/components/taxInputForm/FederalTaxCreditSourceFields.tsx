@@ -109,7 +109,7 @@ export function FederalTaxCreditSourceRow(props: Props) {
               label="Credit type"
               hideLabel
               value={() => kind() ?? ""}
-              onChange={(e) => {
+              onInput={(e) => {
                 const newKind = e.currentTarget.value;
                 props.setTaxInput((prev) => ({
                   ...prev,
@@ -144,7 +144,7 @@ export function FederalTaxCreditSourceRow(props: Props) {
             <div>
               <FormCurrencyInput
                 value={amount()}
-                onChange={(n) => {
+                onInput={(n) => {
                   props.setTaxInput((prev) => ({
                     ...prev,
                     rows: patchCreditRow(prev.rows, props.rowId, { amount: n }),

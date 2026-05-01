@@ -76,7 +76,7 @@ export function TaxInputFormDeductionSection(props: Props) {
           <input
             type="checkbox"
             checked={useItemized()}
-            onChange={(e) => {
+            onInput={(e) => {
               const checked = e.currentTarget.checked;
               props.setTaxInput((prev) => ({ ...prev, rows: patchUseItemized(prev.rows, checked) }));
             }}

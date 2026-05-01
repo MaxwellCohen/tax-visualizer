@@ -8,7 +8,7 @@ type Option = { value: string | number; label: string };
 type Props = {
   label: string;
   value: Accessor<string | number>;
-  onChange: (e: Event & { currentTarget: HTMLSelectElement }) => void;
+  onInput: (e: Event & { currentTarget: HTMLSelectElement }) => void;
   onBlur: () => void;
   options?: Option[];
   children?: JSX.Element;
@@ -48,7 +48,7 @@ export function FormStyledSelect(props: Props) {
       style={{ background: "var(--input-bg)", color: "var(--text)" }}
       value={String(props.value())}
       aria-label={props.hideLabel ? props.label : undefined}
-      onChange={props.onChange}
+      onInput={props.onInput}
       onBlur={onBlur}
     >
       {props.options ? (

@@ -57,7 +57,7 @@ export function TaxInputFormSettingsSection(props: Props) {
         <FormStyledSelect
           label="Tax Year"
           value={() => taxYearValue()}
-          onChange={(e) => {
+          onInput={(e) => {
             const y = Number(e.currentTarget.value);
             props.setTaxInput((prev) => ({ ...prev, rows: patchSettingRow(prev.rows, "taxYear", y) }));
           }}
@@ -68,7 +68,7 @@ export function TaxInputFormSettingsSection(props: Props) {
         <FormStyledSelect
           label="Filing Status"
           value={() => filingValue() as FilingStatus}
-          onChange={(e) => {
+          onInput={(e) => {
             const fs = e.currentTarget.value as FilingStatus;
             props.setTaxInput((prev) => ({ ...prev, rows: patchSettingRow(prev.rows, "filingStatus", fs) }));
           }}
