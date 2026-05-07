@@ -24,7 +24,7 @@ export type MetricDisplay = {
   value: string;
   highlight?: boolean;
   category: MetricConfig["category"];
-  // displayOrder: number;
+  format: "currency" | "percent" | "number";
 };
 
 

@@ -41,6 +41,7 @@ export default function TaxSummary(props: TaxSummaryProps) {
         category: m.summary?.category ?? "income",
         label: m.label,
         value: m.computedValue.toString(),
+        format: m.summary?.format ?? "number",
       }
     })) ?? [];
   });

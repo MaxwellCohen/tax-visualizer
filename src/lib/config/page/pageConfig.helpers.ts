@@ -1,8 +1,8 @@
 import type { FilingStatus, TaxYearConfig, LongTermCapGainsThresholds, FederalTaxBracket } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import type { ValidationContext } from "../types";
-import { allPretax, useItemizedDeductions, wageIncome } from "./pageConfig.inputs";
-import { calculatePayrollTax, calculateSelfEmploymentTax, totalItemized } from "./taxCalculations";
+import { useItemizedDeductions } from "./pageConfig.inputs";
+import { computeDeductionShieldSlice } from "./taxCalculations";
 
 type ValidationResult = {
     valid: boolean;
@@ -101,20 +101,12 @@ export function findInputById(inputs: TaxFormRow[], id: string): number {
 }
 
 export function getStandardDeduction(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
-    const useItemized = useItemizedDeductions(inputs);
-    if (useItemized) return 0;
-    const income = wageIncome(inputs) - allPretax(inputs)
-    const standard = Math.min(income, taxData.standardDeduction[filingStatus]);
-    const payrollTax = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
-    return Math.max(0, standard - payrollTax);
+    if (useItemizedDeductions(inputs)) return 0;
+    return computeDeductionShieldSlice(inputs, taxData, filingStatus).deduction;
 }
-export function getItemizedDeductions(inputs: TaxFormRow[], taxData: TaxYearConfig, _filingStatus: FilingStatus): number {
-    const useItemized = useItemizedDeductions(inputs);
-    if (!useItemized) return 0;
-    const income = wageIncome(inputs) - allPretax(inputs)
-    const itemized = Math.min(totalItemized(inputs), income);
-    const payrollTax = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
-    return Math.max(0, itemized - payrollTax);
+export function getItemizedDeductions(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
+    if (!useItemizedDeductions(inputs)) return 0;
+    return computeDeductionShieldSlice(inputs, taxData, filingStatus).deduction;
 }
 
 export function getOrdinaryBrackets(taxData: TaxYearConfig, filingStatus: FilingStatus): FederalTaxBracket[] {

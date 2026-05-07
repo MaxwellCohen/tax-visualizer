@@ -72,6 +72,43 @@ export type TaxableIncomeResult = {
     payrollBracketShadowFill: number;
 };
 
+/** Single source for deduction shield cap, deduction dollars after payroll, ordinary taxable, and bracket shadow. */
+export type DeductionShieldSlice = {
+    afterPretax: number;
+    shieldCapBeforePayroll: number;
+    payrollTaxTotal: number;
+    deduction: number;
+    ordinary: number;
+    payrollBracketShadowFill: number;
+};
+
+export function computeDeductionShieldSlice(
+    inputs: TaxFormRow[],
+    taxData: TaxYearConfig,
+    filingStatus: FilingStatus,
+): DeductionShieldSlice {
+    const seIncome = selfEmploymentIncome(inputs);
+    const seTax = calculateSelfEmploymentTaxFromIncome(seIncome, taxData);
+    const seDeduction = seTax / 2;
+    const pretax = allPretax(inputs);
+    const afterPretax = ordinaryIncome(inputs) - pretax - seDeduction;
+    const payrollTaxTotal = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
+    const shieldCapBeforePayroll = useItemizedDeductions(inputs)
+        ? Math.min(totalItemized(inputs), afterPretax)
+        : Math.min(afterPretax, taxData.standardDeduction[filingStatus]);
+    const deduction = Math.max(0, shieldCapBeforePayroll - payrollTaxTotal);
+    const ordinary = Math.max(0, afterPretax - deduction);
+    const payrollBracketShadowFill = Math.max(0, payrollTaxTotal - shieldCapBeforePayroll);
+    return {
+        afterPretax,
+        shieldCapBeforePayroll,
+        payrollTaxTotal,
+        deduction,
+        ordinary,
+        payrollBracketShadowFill,
+    };
+}
+
 /**
  * Per-bracket ordinary dollars after `payrollBracketShadowFill` consumes width from the lowest
  * brackets first. The top (open-ended) bracket does not absorb shadow width.
@@ -122,56 +159,30 @@ export function calculateTaxableIncome(
     taxData: TaxYearConfig,
     filingStatus: FilingStatus
 ): TaxableIncomeResult {
-    const seIncome = selfEmploymentIncome(inputs);
-    const seTax = calculateSelfEmploymentTaxFromIncome(seIncome, taxData);
-    const seDeduction = seTax / 2;
-    const pretax = allPretax(inputs);
-    const afterPretax = ordinaryIncome(inputs) - pretax - seDeduction;
-    /** Wage FICA + SE tax: modeled as carving out of the deduction shield before ordinary bracket income (matches Sankey / getStandardDeduction). */
-    const payrollTaxTotal = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
-    let deduction: number;
-    let shieldCapBeforePayroll: number;
-    if (useItemizedDeductions(inputs)) {
-        shieldCapBeforePayroll = Math.min(totalItemized(inputs), afterPretax);
-        deduction = Math.max(0, shieldCapBeforePayroll - payrollTaxTotal);
-    } else {
-        shieldCapBeforePayroll = Math.min(afterPretax, taxData.standardDeduction[filingStatus]);
-        deduction = Math.max(0, shieldCapBeforePayroll - payrollTaxTotal);
-    }
-    const ordinary = Math.max(0, afterPretax - deduction);
-    const payrollBracketShadowFill = Math.max(0, payrollTaxTotal - shieldCapBeforePayroll);
+    const slice = computeDeductionShieldSlice(inputs, taxData, filingStatus);
     const ltcg = longTermCapGains(inputs);
     return {
-        ordinary,
+        ordinary: slice.ordinary,
         ltcg,
-        total: ordinary + ltcg,
-        afterPretax,
-        deduction,
-        payrollBracketShadowFill,
+        total: slice.ordinary + ltcg,
+        afterPretax: slice.afterPretax,
+        deduction: slice.deduction,
+        payrollBracketShadowFill: slice.payrollBracketShadowFill,
     };
 }
 
 /**
- * Dollars that flow into the `ordinaryTaxableIncome` Sankey hub so ribbons conserve: matches
- * {@link calculatePayrollTax}+SE + standard/itemized ribbon + ordinary bracket slices (same caps as
- * {@link getStandardDeduction} / {@link getItemizedDeductions} for the deduction link, which use
- * `ordinaryIncome - pretax` rather than `afterPretax` when those differ).
+ * Dollars that flow into the `ordinaryTaxableIncome` Sankey hub so ribbons conserve: payroll + SE,
+ * plus deduction ribbon (same {@link computeDeductionShieldSlice} as taxable income), plus ordinary
+ * bracket slices.
  */
 export function sankeyOrdinaryTaxableIncomeHubInflow(
     inputs: TaxFormRow[],
     taxData: TaxYearConfig,
     filingStatus: FilingStatus,
 ): number {
-    const { ordinary } = calculateTaxableIncome(inputs, taxData, filingStatus);
-    const payrollTaxTotal = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
-    const incomeBeforeSeAdjustment = ordinaryIncome(inputs) - allPretax(inputs);
-    const deductionRibbon = useItemizedDeductions(inputs)
-        ? Math.max(0, Math.min(totalItemized(inputs), incomeBeforeSeAdjustment) - payrollTaxTotal)
-        : Math.max(
-              0,
-              Math.min(incomeBeforeSeAdjustment, taxData.standardDeduction[filingStatus]) - payrollTaxTotal,
-          );
-    return payrollTaxTotal + deductionRibbon + ordinary;
+    const slice = computeDeductionShieldSlice(inputs, taxData, filingStatus);
+    return slice.payrollTaxTotal + slice.deduction + slice.ordinary;
 }
 
 /** Nonrefundable credits absorbed against federal income tax before credits (capped at gross federal tax). */
