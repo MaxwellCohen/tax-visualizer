@@ -15,7 +15,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
     return [
         {
             id: "standardDeduction",
-            label: "0% tax (standard deduction)",
+            label: "0% tax",
             shortLabel: "Standard Ded.",
             sankeySettings: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 3, col: 3 },
@@ -23,9 +23,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "standardDeduction", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
                 ],
             },
-            calculate: (inputs, taxData, filingStatus) => {
-                return getStandardDeduction(inputs, taxData, filingStatus);
-            },
+            calculate: getStandardDeduction,
         },
         {
             id: "itemizedDeductions",

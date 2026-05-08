@@ -38,6 +38,9 @@ export function yearValuesToTaxYearConfig(yv: YearValues, status: "final" | "pla
       medicareRate: yv.payroll.medicareRate,
       additionalMedicareRate: yv.payroll.additionalMedicareRate,
       additionalMedicareThreshold: { ...yv.payroll.additionalMedicareThreshold },
+      selfEmploymentNetEarningsFactor: yv.payroll.selfEmploymentNetEarningsFactor,
+      selfEmploymentSocialSecurityRate: yv.payroll.selfEmploymentSocialSecurityRate,
+      selfEmploymentMedicareRate: yv.payroll.selfEmploymentMedicareRate,
     },
     pretaxLimits: {
       electiveDeferral401k: yv.limits.electiveDeferral401k,

@@ -9,7 +9,7 @@ import { makeIncomeNodesConfig } from "./incomeNodes";
 import { makePretaxIncomeNodesConfig, makePretaxDeductionsNodesConfig } from "./pretaxNodes";
 import { makeDeductionAmountNodesConfig, make0taxIncomeNodesConfig, makeMekkoSliceNodesConfig } from "./deductionNodes";
 import { makePretaxInputsConfig } from "./pretaxInputs";
-import { getBracketItems, getLtcgBracketItems } from "./taxBracketNodes";
+import { getBracketItems } from "./taxBracketNodes";
 import { makeTaxNodesConfig } from "./taxNodes";
 import type {
     configItem,
@@ -68,7 +68,6 @@ export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatu
         ...makeTaxNodesConfig(taxData, filingStatus),
         ...makeMekkoSliceNodesConfig(taxData, filingStatus),
         ...getBracketItems(taxData, filingStatus),
-        ...getLtcgBracketItems(taxData, filingStatus),
         ...makeEndingNodesConfig(taxData, filingStatus),
     ];
 }

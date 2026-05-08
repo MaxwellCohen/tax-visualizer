@@ -30,6 +30,10 @@ export type YearValues = {
     medicareRate: number;
     additionalMedicareRate: number;
     additionalMedicareThreshold: Record<FilingStatus, number>;
+    /** Schedule SE net earnings factor (typically 0.9235). */
+    selfEmploymentNetEarningsFactor: number;
+    selfEmploymentSocialSecurityRate: number;
+    selfEmploymentMedicareRate: number;
   };
   niitRate: number;
   niitThreshold: Record<FilingStatus, number>;

@@ -2,7 +2,7 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import { _401k, _hsa, otherPretax, traditionalIra } from "./pageConfig.inputs";
-import { nonNegativeValidator, makeYearValuesCappedValidator, makeFilingStatusCappedValidator, makeHsaCappedValidator } from "./pageConfig.helpers";
+import { nonNegativeValidator, makeYearValuesCappedValidator, makeHsaCappedValidator } from "./pageConfig.helpers";
 
 export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [

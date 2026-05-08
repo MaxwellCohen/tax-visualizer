@@ -3,7 +3,7 @@ import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import type { configItem } from "./pageConfig.types";
 import { calculateLtcgTaxTotal, getCreditsSankeyRow, getOrdinaryBrackets } from "./pageConfig.helpers";
-import { calculateTaxableIncome, ordinaryIncomeSlicesWithPayrollShadow } from "./taxCalculations";
+import { allPretax, calculatePayrollTax, calculateSelfEmploymentTax, calculateTaxableIncome, ordinaryIncome, ordinaryIncomeSlicesWithPayrollShadow, totalDeductions } from "./taxCalculations";
 import { longTermCapGains, totalCredits } from "./pageConfig.inputs";
 
 interface CreditAllocation {
@@ -61,32 +61,75 @@ function computeCreditAllocation(
     };
 }
 
-function getCreditAllocationForBrackets(
-    inputs: TaxFormRow[],
-    taxData: TaxYearConfig,
-    filingStatus: FilingStatus,
-    bracketsLength: number,
-): CreditAllocation {
-    return computeCreditAllocation(inputs, taxData, filingStatus, bracketsLength);
+// function getCreditAllocationForBrackets(
+//     inputs: TaxFormRow[],
+//     taxData: TaxYearConfig,
+//     filingStatus: FilingStatus,
+//     bracketsLength: number,
+// ): CreditAllocation {
+//     return computeCreditAllocation(inputs, taxData, filingStatus, bracketsLength);
+// }
+
+
+
+
+function calculateTaxBracket(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus, bracketIndex: number) {
+    const result = [];
+    const brackets = taxData.federalBrackets[filingStatus];
+    const income = ordinaryIncome(inputs) - allPretax(inputs);
+    const payrollTaxTotal = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
+    const deductions = totalDeductions(inputs, taxData, filingStatus); 
+
+    // const { afterPretax, payrollTaxTotal, deduction } = calculateTaxableIncome(inputs, taxData, filingStatus);
+    let remainingIncome = income - deductions;
+    let remainingPayrollTax = Math.max(payrollTaxTotal - deductions, 0);
+    let remainingCredits = totalCredits(inputs);
+    console.log("result", {payrollTaxTotal, deductions, 
+        remainingIncome,
+remainingPayrollTax,
+remainingCredits,
+    });
+    // loop through all brackets to calculate the tax and keep
+    for (let i = 0; i < brackets.length; i++) {
+        const bracket = brackets[i];
+        const bracketMax = bracket?.upTo ?? Infinity;
+        const taxableBracketIncome = Math.min(remainingIncome, bracketMax);
+        remainingIncome = Math.max(0, remainingIncome - taxableBracketIncome)
+        const tax = taxableBracketIncome * bracket.rate;
+        const keep = Math.max(taxableBracketIncome - tax - remainingPayrollTax, 0);
+        remainingPayrollTax = Math.max(0, remainingPayrollTax - (taxableBracketIncome - tax));
+        
+        result.push({ taxBracket: bracket, tax, keep, credits: 0,  payrollTax: remainingPayrollTax, remainingIncome: remainingIncome });
+    };
+    console.log("result", result, );  
+    // loop thorough backwards and add in the credit calculations using result from the forward pass
+    for (let i = result.length - 1; i >= 0; i--) {
+        const bracket = result[i];
+        const credits = Math.min(remainingCredits, bracket.tax - bracket.credits);
+        bracket.credits = Math.max(0, credits);
+        bracket.tax  = Math.max(0, bracket.tax - credits);
+        remainingCredits -= credits;
+    }
+    return result[bracketIndex];
 }
 
 export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
     const brackets = taxData.federalBrackets[filingStatus];
     const items: configItem[] = [];
     const creditsRow = getCreditsSankeyRow(taxData, filingStatus);
-
+    const ltcgIncomeRow = 50;
     for (let i = 0; i < brackets.length; i++) {
         const bracket = brackets[i];
         const rateLabel = (bracket.rate * 100).toFixed(0);
         const bracketId = `bracket-${i}`;
 
-        const incomeCalculate = (inputs: TaxFormRow[], _td?: TaxYearConfig, _fs?: FilingStatus) => {
-            const td = _td ?? taxData;
-            const { ordinary, payrollBracketShadowFill } = calculateTaxableIncome(inputs, td, filingStatus);
-            const br = getOrdinaryBrackets(td, filingStatus);
-            const slices = ordinaryIncomeSlicesWithPayrollShadow(ordinary, br, payrollBracketShadowFill);
-            return slices[i];
-        };
+        // const incomeCalculate = (inputs: TaxFormRow[], _td?: TaxYearConfig, _fs?: FilingStatus) => {
+        //     const td = _td ?? taxData;
+        //     const { ordinary, payrollBracketShadowFill } = calculateTaxableIncome(inputs, td, filingStatus);
+        //     const br = getOrdinaryBrackets(td, filingStatus);
+        //     const slices = ordinaryIncomeSlicesWithPayrollShadow(ordinary, br, payrollBracketShadowFill);
+        //     return slices[i];
+        // };
 
 
         const bracketRow = 5 + i * 4;
@@ -103,10 +146,14 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             mekkoSettings: {
                 column: { row: bracketRow, col: 3, fill: "var(--mekko-keep)", stroke: "var(--mekko-keep)", kind: "ordinaryBracket" },
             },
-            calculate: incomeCalculate,
+            calculate: (inputs) => {
+                const bracketData = calculateTaxBracket(inputs, taxData, filingStatus, i);
+                console.log("bracketData", i, bracketData);
+                return bracketData.tax + bracketData.credits + bracketData.keep;
+            },
         });
 
-        const incomeItem = items[items.length - 1];
+        // const incomeItem = items[items.length - 1];
 
 
 
@@ -120,8 +167,8 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 ],
             },
             calculate: (inputs) => {
-                const incomes = incomeItem.calculate?.(inputs, taxData, filingStatus) ?? 0;
-                return incomes * (1 - bracket.rate);
+                const bracketData = calculateTaxBracket(inputs, taxData, filingStatus, i);
+                return bracketData.keep;
             },
         });
 
@@ -134,9 +181,9 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                     { source: `${bracketId}-income`, target: "takeHomePay", ...getCreditLinkCreditsRow(creditsRow), row: bracketRow + 2 },
                 ],
             },
-            calculate: (inputs, td, fs) => {
-                const allocation = getCreditAllocationForBrackets(inputs, td, fs, brackets.length);
-                return allocation.ordinaryBracketCredits[i];
+            calculate: (inputs) => {
+                const bracketData = calculateTaxBracket(inputs, taxData, filingStatus, i);
+                return bracketData.credits;
             },
         });
 
@@ -149,23 +196,13 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                     { source: `${bracketId}-income`, target: "federalIncomeTax", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: bracketRow + 3, col: 3 },
                 ],
             },
-            calculate: (inputs, td, fs) => {
-                const incomes = incomeItem.calculate?.(inputs, td, fs) ?? 0;
-                const allocation = getCreditAllocationForBrackets(inputs, td, fs, brackets.length);
-
-                return Math.max(0, incomes * bracket.rate - allocation.ordinaryBracketCredits[i]);
+            calculate: (inputs) => {
+                const bracketData = calculateTaxBracket(inputs, taxData, filingStatus, i);
+                return bracketData.tax;
             },
         });
     }
 
-    return items;
-}
-
-export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
-    const items: configItem[] = [];
-    const creditsRow = getCreditsSankeyRow(taxData, filingStatus);
-
-    const ltcgIncomeRow = 50;
     items.push({
         id: "ltcg-income",
         label: "LTCG Income",
@@ -242,6 +279,5 @@ export function getLtcgBracketItems(taxData: TaxYearConfig, filingStatus: Filing
             return incomes - grossLtcgTax;
         },
     });
-
     return items;
 }

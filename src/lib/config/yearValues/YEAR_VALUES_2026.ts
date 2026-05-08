@@ -35,7 +35,7 @@ export const YEAR_VALUES_2026: YearValues = {
   defaults: {
     credits: { childTaxCredit: 2200, creditForOtherDependents: 500, childAndDependentCare: 1500, educationCredits: 2000, retirementSavingsContributions: 1000, electricVehicleCredit: 7500 },
   },
-  payroll: { ssRate: 0.062, ssWageBase: 181200, medicareRate: 0.0145, additionalMedicareRate: 0.009, additionalMedicareThreshold: THRESHOLDS_200K_250K_125K_200K },
+  payroll: { ssRate: 0.062, ssWageBase: 181200, medicareRate: 0.0145, additionalMedicareRate: 0.009, additionalMedicareThreshold: THRESHOLDS_200K_250K_125K_200K, selfEmploymentNetEarningsFactor: 0.9235, selfEmploymentSocialSecurityRate: 0.124, selfEmploymentMedicareRate: 0.029 },
   niitRate: 0.038,
   niitThreshold: THRESHOLDS_200K_250K_125K_200K,
 };

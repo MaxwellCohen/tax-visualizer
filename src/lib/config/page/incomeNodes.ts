@@ -61,10 +61,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
                     { source: "pretaxIncome", target: "pretaxTakehome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
                 ],
             },
-            calculate: (inputs) => {
-                const pretax = allPretax(inputs);
-                return pretax;
-            },
+            calculate: allPretax,
             summary: {
                 summaryId: "pretax-deductions",
                 label: "Pre-tax Deductions",

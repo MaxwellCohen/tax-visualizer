@@ -31,7 +31,7 @@ import {
 export * from "./pageConfig.inputs";
 
 export function calculatePayrollTax(inputs: TaxFormRow[], taxData: TaxYearConfig): number {
-    const wages = wageIncome(inputs);
+    const wages = wageIncome(inputs) - selfEmploymentIncome(inputs);
     const ssTaxable = Math.min(wages, taxData.payroll.socialSecurityWageBase);
     const ssTax = ssTaxable * taxData.payroll.socialSecurityRate;
     const medicareTax = wages * taxData.payroll.medicareRate;
@@ -40,18 +40,18 @@ export function calculatePayrollTax(inputs: TaxFormRow[], taxData: TaxYearConfig
 
 export function calculateSelfEmploymentTax(inputs: TaxFormRow[], taxData: TaxYearConfig): number {
     const seIncome = selfEmploymentIncome(inputs);
-    const netEarnings = seIncome * 0.9235;
+    const netEarnings = seIncome * taxData.payroll.selfEmploymentNetEarningsFactor;
     const ssTaxable = Math.min(netEarnings, taxData.payroll.socialSecurityWageBase);
-    const ssTax = ssTaxable * taxData.payroll.socialSecurityRate * 2;
-    const medicareTax = netEarnings * taxData.payroll.medicareRate * 2;
+    const ssTax = ssTaxable * taxData.payroll.selfEmploymentSocialSecurityRate;
+    const medicareTax = netEarnings * taxData.payroll.selfEmploymentMedicareRate;
     return ssTax + medicareTax;
 };
 
 function calculateSelfEmploymentTaxFromIncome(seIncome: number, taxData: TaxYearConfig): number {
-    const netEarnings = seIncome * 0.9235;
+    const netEarnings = seIncome * taxData.payroll.selfEmploymentNetEarningsFactor;
     const ssTaxable = Math.min(netEarnings, taxData.payroll.socialSecurityWageBase);
-    const ssTax = ssTaxable * taxData.payroll.socialSecurityRate * 2;
-    const medicareTax = netEarnings * taxData.payroll.medicareRate * 2;
+    const ssTax = ssTaxable * taxData.payroll.selfEmploymentSocialSecurityRate;
+    const medicareTax = netEarnings * taxData.payroll.selfEmploymentMedicareRate;
     return ssTax + medicareTax;
 }
 
@@ -70,6 +70,8 @@ export type TaxableIncomeResult = {
      * width from the bottom up before ordinary taxable fills each rate band (teaching flow).
      */
     payrollBracketShadowFill: number;
+    payrollTaxTotal: number;
+    shieldCapBeforePayroll: number;
 };
 
 /** Single source for deduction shield cap, deduction dollars after payroll, ordinary taxable, and bracket shadow. */
@@ -87,17 +89,31 @@ export function computeDeductionShieldSlice(
     taxData: TaxYearConfig,
     filingStatus: FilingStatus,
 ): DeductionShieldSlice {
+    // Self-employment: full SE tax, then half is treated as deductible “employer share” when sizing the deduction shield base.
     const seIncome = selfEmploymentIncome(inputs);
     const seTax = calculateSelfEmploymentTaxFromIncome(seIncome, taxData);
     const seDeduction = seTax / 2;
+
+    console.log("seIncome", seIncome);
+    console.log("seTax", seTax);
+    console.log("seDeduction", seDeduction);
+    // Ordinary bucket (wages + SE + STCG, etc.) minus payroll pre-tax deferrals and the ½ SE adjustment → income the shield is measured against.
     const pretax = allPretax(inputs);
+    console.log("pretax", pretax);
     const afterPretax = ordinaryIncome(inputs) - pretax - seDeduction;
+    console.log("afterPretax", afterPretax);
+    // Wage FICA plus full SE tax: both draw from the same deduction-shield capacity before ordinary taxable is left.
     const payrollTaxTotal = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
+    console.log("payrollTaxTotal", payrollTaxTotal);
+    // Maximum dollars standard or itemized could shield from ordinary tax, capped by actual income after pretax/SE adjustment.
     const shieldCapBeforePayroll = useItemizedDeductions(inputs)
         ? Math.min(totalItemized(inputs), afterPretax)
         : Math.min(afterPretax, taxData.standardDeduction[filingStatus]);
+    // Shield room left after payroll is allocated first (payroll “eats” the shield); remainder counts as deduction dollars in the Sankey.
     const deduction = Math.max(0, shieldCapBeforePayroll - payrollTaxTotal);
-    const ordinary = Math.max(0, afterPretax - deduction);
+    // Income still exposed as ordinary taxable after the (post-payroll) deduction amount is applied.
+    const ordinary = Math.max(0, afterPretax - deduction - payrollTaxTotal);
+    // Payroll that exceeded the shield cap is modeled as consuming federal ordinary bracket width from the bottom (teaching visualization).
     const payrollBracketShadowFill = Math.max(0, payrollTaxTotal - shieldCapBeforePayroll);
     return {
         afterPretax,
@@ -167,6 +183,8 @@ export function calculateTaxableIncome(
         total: slice.ordinary + ltcg,
         afterPretax: slice.afterPretax,
         deduction: slice.deduction,
+        shieldCapBeforePayroll: slice.shieldCapBeforePayroll,
+        payrollTaxTotal: slice.payrollTaxTotal,
         payrollBracketShadowFill: slice.payrollBracketShadowFill,
     };
 }
@@ -181,6 +199,8 @@ export function sankeyOrdinaryTaxableIncomeHubInflow(
     taxData: TaxYearConfig,
     filingStatus: FilingStatus,
 ): number {
+
+    // return inputs.filter((row): row is TaxFormIncomeRow => row.type === "income" && row.type.startsWith("income-ordinary-")).reduce((acc, row) => acc + (row?.amount ?? 0), 0);
     const slice = computeDeductionShieldSlice(inputs, taxData, filingStatus);
     return slice.payrollTaxTotal + slice.deduction + slice.ordinary;
 }
@@ -207,10 +227,10 @@ export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: Filin
 
     const calculateSelfEmploymentTax = (inputs: TaxFormRow[]): number => {
         const seIncome = selfEmploymentIncome(inputs);
-        const netEarnings = seIncome * 0.9235;
+        const netEarnings = seIncome * taxData.payroll.selfEmploymentNetEarningsFactor;
         const ssTaxable = Math.min(netEarnings, taxData.payroll.socialSecurityWageBase);
-        const ssTax = ssTaxable * taxData.payroll.socialSecurityRate * 2;
-        const medicareTax = netEarnings * taxData.payroll.medicareRate * 2;
+        const ssTax = ssTaxable * taxData.payroll.selfEmploymentSocialSecurityRate;
+        const medicareTax = netEarnings * taxData.payroll.selfEmploymentMedicareRate;
         return ssTax + medicareTax;
     };
 

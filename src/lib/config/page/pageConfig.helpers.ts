@@ -1,7 +1,7 @@
 import type { FilingStatus, TaxYearConfig, LongTermCapGainsThresholds, FederalTaxBracket } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import type { ValidationContext } from "../types";
-import { useItemizedDeductions } from "./pageConfig.inputs";
+import { standardDeduction as standardDeductionInput, useItemizedDeductions } from "./pageConfig.inputs";
 import { computeDeductionShieldSlice } from "./taxCalculations";
 
 type ValidationResult = {
@@ -102,11 +102,14 @@ export function findInputById(inputs: TaxFormRow[], id: string): number {
 
 export function getStandardDeduction(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
     if (useItemizedDeductions(inputs)) return 0;
-    return computeDeductionShieldSlice(inputs, taxData, filingStatus).deduction;
+    const standardDeductionValue = standardDeductionInput(inputs, taxData, filingStatus);
+    const { payrollTaxTotal } = computeDeductionShieldSlice(inputs, taxData, filingStatus);
+    return Math.max(0, standardDeductionValue - payrollTaxTotal);
 }
 export function getItemizedDeductions(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
     if (!useItemizedDeductions(inputs)) return 0;
-    return computeDeductionShieldSlice(inputs, taxData, filingStatus).deduction;
+    const { deduction, payrollTaxTotal } = computeDeductionShieldSlice(inputs, taxData, filingStatus);
+    return Math.max(0, deduction - payrollTaxTotal);
 }
 
 export function getOrdinaryBrackets(taxData: TaxYearConfig, filingStatus: FilingStatus): FederalTaxBracket[] {

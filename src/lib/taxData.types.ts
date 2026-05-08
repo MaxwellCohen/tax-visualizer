@@ -14,6 +14,12 @@ type PayrollRules = {
   medicareRate: number;
   additionalMedicareRate: number;
   additionalMedicareThreshold: FilingStatusRecord<number>;
+  /** Schedule SE: net earnings from self-employment as a fraction of gross SE income (e.g. 0.9235). */
+  selfEmploymentNetEarningsFactor: number;
+  /** Schedule SE Social Security portion on net SE earnings (e.g. 0.124). */
+  selfEmploymentSocialSecurityRate: number;
+  /** Schedule SE Medicare portion on net SE earnings (base 2.9%; excludes additional Medicare). */
+  selfEmploymentMedicareRate: number;
 };
 
 /** Top of 0% and 15% LTCG bands (taxable income); above fifteenRateMax is 20%. IRS-style stacking on ordinary taxable income. */
