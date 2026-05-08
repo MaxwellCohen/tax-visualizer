@@ -11,6 +11,7 @@ import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { useSearchParams } from "@solidjs/router";
 import { deserializeScenarioInputFromSearchParams, serializeScenarioInput } from "~/lib/taxScenario.serialize";
 import { SCENARIO_QUERY_PARAM } from "~/lib/taxScenario.keys.constants";
+import { effect } from "solid-js/web";
 
 export default function HomeContent() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,6 +24,10 @@ export default function HomeContent() {
   const  syncScenarioToUrl  = () => {
     setSearchParams({[SCENARIO_QUERY_PARAM]: serializeScenarioInput(taxInput())});
   }
+
+  effect(() => {
+    console.log("taxInput", taxInput());
+  });
 
   return (
     <main class="mx-auto max-w-6xl space-y-8 px-4 py-8">

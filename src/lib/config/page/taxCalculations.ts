@@ -84,6 +84,11 @@ export type DeductionShieldSlice = {
     payrollBracketShadowFill: number;
 };
 
+export function payrollTaxTotal(inputs: TaxFormRow[], taxData: TaxYearConfig): number {
+    return calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
+}
+
+
 export function computeDeductionShieldSlice(
     inputs: TaxFormRow[],
     taxData: TaxYearConfig,
@@ -103,22 +108,22 @@ export function computeDeductionShieldSlice(
     const afterPretax = ordinaryIncome(inputs) - pretax - seDeduction;
     console.log("afterPretax", afterPretax);
     // Wage FICA plus full SE tax: both draw from the same deduction-shield capacity before ordinary taxable is left.
-    const payrollTaxTotal = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
+    const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData);
     console.log("payrollTaxTotal", payrollTaxTotal);
     // Maximum dollars standard or itemized could shield from ordinary tax, capped by actual income after pretax/SE adjustment.
     const shieldCapBeforePayroll = useItemizedDeductions(inputs)
         ? Math.min(totalItemized(inputs), afterPretax)
         : Math.min(afterPretax, taxData.standardDeduction[filingStatus]);
     // Shield room left after payroll is allocated first (payroll “eats” the shield); remainder counts as deduction dollars in the Sankey.
-    const deduction = Math.max(0, shieldCapBeforePayroll - payrollTaxTotal);
+    const deduction = Math.max(0, shieldCapBeforePayroll - payrollTaxTotalValue);
     // Income still exposed as ordinary taxable after the (post-payroll) deduction amount is applied.
-    const ordinary = Math.max(0, afterPretax - deduction - payrollTaxTotal);
+    const ordinary = Math.max(0, afterPretax - deduction - payrollTaxTotalValue);
     // Payroll that exceeded the shield cap is modeled as consuming federal ordinary bracket width from the bottom (teaching visualization).
-    const payrollBracketShadowFill = Math.max(0, payrollTaxTotal - shieldCapBeforePayroll);
+    const payrollBracketShadowFill = Math.max(0, payrollTaxTotalValue - shieldCapBeforePayroll);
     return {
         afterPretax,
         shieldCapBeforePayroll,
-        payrollTaxTotal,
+        payrollTaxTotal: payrollTaxTotalValue,
         deduction,
         ordinary,
         payrollBracketShadowFill,

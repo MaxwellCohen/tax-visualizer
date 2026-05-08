@@ -1,7 +1,7 @@
 /** Deduction-related config nodes: 0% tax brackets (standard/itemized), deduction amounts, mekko slices. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
-import { getItemizedDeductions, getStandardDeduction, getCreditsSankeyRow, getOrdinaryBrackets, calculateLtcgTaxTotal } from "./pageConfig.helpers";
+import { getItemizedDeductionsWithoutPayrollTax, getStandardDeductionWithoutPayrollTax, getCreditsSankeyRow, getOrdinaryBrackets, calculateLtcgTaxTotal } from "./pageConfig.helpers";
 import {
     calculateTaxableIncome,
     calculatePayrollTax,
@@ -23,7 +23,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "standardDeduction", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
                 ],
             },
-            calculate: getStandardDeduction,
+            calculate: getStandardDeductionWithoutPayrollTax,
         },
         {
             id: "itemizedDeductions",
@@ -35,7 +35,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "itemizedDeductions", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
                 ],
             },
-            calculate: getItemizedDeductions
+            calculate: getItemizedDeductionsWithoutPayrollTax
         },
     ];
 }

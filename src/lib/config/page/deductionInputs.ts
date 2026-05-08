@@ -2,7 +2,7 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import { calculatePayrollTax } from "~/lib/config/page/taxCalculations";
-import { getItemizedDeductions, getStandardDeduction, nonNegativeValidator, makeSaltCappedValidator } from "./pageConfig.helpers";
+import { getItemizedDeductionsWithoutPayrollTax, getStandardDeductionWithoutPayrollTax, nonNegativeValidator, makeSaltCappedValidator } from "./pageConfig.helpers";
 
 
 export function makePayrollFromWagesInputConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
@@ -64,7 +64,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "ordinaryTaxableIncome", target: "standardDeduction", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
                 ],
             },
-            calculate: getStandardDeduction
+            calculate: getStandardDeductionWithoutPayrollTax
         },
         {
             id: "Itemized Deductions",
@@ -80,7 +80,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
                 ],
             },
-            calculate: getItemizedDeductions
+            calculate: getItemizedDeductionsWithoutPayrollTax
         },
         {
             id: "deduction-salt",

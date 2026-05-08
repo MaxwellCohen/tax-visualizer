@@ -100,13 +100,13 @@ export function findInputById(inputs: TaxFormRow[], id: string): number {
     return sum;
 }
 
-export function getStandardDeduction(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
+export function getStandardDeductionWithoutPayrollTax(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
     if (useItemizedDeductions(inputs)) return 0;
     const standardDeductionValue = standardDeductionInput(inputs, taxData, filingStatus);
     const { payrollTaxTotal } = computeDeductionShieldSlice(inputs, taxData, filingStatus);
     return Math.max(0, standardDeductionValue - payrollTaxTotal);
 }
-export function getItemizedDeductions(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
+export function getItemizedDeductionsWithoutPayrollTax(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
     if (!useItemizedDeductions(inputs)) return 0;
     const { deduction, payrollTaxTotal } = computeDeductionShieldSlice(inputs, taxData, filingStatus);
     return Math.max(0, deduction - payrollTaxTotal);
