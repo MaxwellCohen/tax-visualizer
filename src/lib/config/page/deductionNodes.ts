@@ -5,6 +5,7 @@ import { getItemizedDeductionsWithoutPayrollTax, getStandardDeductionWithoutPayr
 import {
     calculateTaxableIncome,
     calculatePayrollTax,
+    calculatePayrollTaxBreakdown,
     calculateSelfEmploymentDeduction,
     calculateOrdinaryTaxWithPayrollShadow,
     computeFederalTaxCreditsApplied,
@@ -183,10 +184,8 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             sankeySettings: {
                 node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
             },
-            calculate: (inputs, td) => {
-                const wages = wageIncome(inputs);
-                const ssTaxable = Math.min(wages, td.payroll.socialSecurityWageBase);
-                return ssTaxable * td.payroll.socialSecurityRate;
+            calculate: (inputs, td, filingStatus) => {
+                return calculatePayrollTaxBreakdown(inputs, td, filingStatus).socialSecurityTax;
             },
         },
         {
@@ -196,9 +195,8 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             sankeySettings: {
                 node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
             },
-            calculate: (inputs, td) => {
-                const wages = wageIncome(inputs);
-                return wages * td.payroll.medicareRate;
+            calculate: (inputs, td, filingStatus) => {
+                return calculatePayrollTaxBreakdown(inputs, td, filingStatus).medicareTax;
             },
         },
     ];
@@ -256,7 +254,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             calculate: (inputs, td, fs) => {
                 const t = calculateTaxableIncome(inputs, td, fs);
                 const shield = Math.max(0, t.afterPretax - t.ordinary);
-                const payrollTax = calculatePayrollTax(inputs, td);
+                const payrollTax = calculatePayrollTax(inputs, td, fs);
                 const payrollFromShield = Math.min(payrollTax, shield);
                 return Math.max(0, shield - payrollFromShield);
             },
@@ -277,7 +275,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             calculate: (inputs, td, fs) => {
                 const t = calculateTaxableIncome(inputs, td, fs);
                 const shield = Math.max(0, t.afterPretax - t.ordinary);
-                const payrollTax = calculatePayrollTax(inputs, td);
+                const payrollTax = calculatePayrollTax(inputs, td, fs);
                 return Math.min(payrollTax, shield);
             },
         },

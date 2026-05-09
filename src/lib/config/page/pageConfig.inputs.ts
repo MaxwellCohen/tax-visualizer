@@ -2,7 +2,16 @@ import type { TaxFormRow } from "~/lib/taxForm.types";
 import { findInputById } from "./pageConfig.helpers";
 import { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 
-export const wageIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary");
+const sumInputsByExactKind = (inputs: TaxFormRow[], kind: string): number =>
+    inputs.reduce((sum, row) => {
+        if (row.type === "setting" || row.kind?.toLowerCase().includes(kind.toLowerCase())) return sum;
+        return sum + row.amount;
+    }, 0);
+
+export const wageIncomeSpouse1 = (inputs: TaxFormRow[]) =>
+    sumInputsByExactKind(inputs, "spouse1");
+export const wageIncomeSpouse2 = (inputs: TaxFormRow[]) => sumInputsByExactKind(inputs, "spouse2");
+export const wageIncome = (inputs: TaxFormRow[]) => wageIncomeSpouse1(inputs) + wageIncomeSpouse2(inputs);
 export const selfEmploymentIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary-selfEmployment");
 export const ordinaryIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary");
 export const shortTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary-shortTermCapGains");

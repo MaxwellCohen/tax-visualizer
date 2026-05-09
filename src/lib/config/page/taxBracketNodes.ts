@@ -77,7 +77,7 @@ function calculateTaxBracket(inputs: TaxFormRow[], taxData: TaxYearConfig, filin
     const result = [];
     const brackets = taxData.federalBrackets[filingStatus];
     const income = ordinaryIncome(inputs) - allPretax(inputs);
-    const payrollTaxTotal = calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
+    const payrollTaxTotal = calculatePayrollTax(inputs, taxData, filingStatus) + calculateSelfEmploymentTax(inputs, taxData);
     const deductions = totalDeductions(inputs, taxData, filingStatus); 
 
     // const { afterPretax, payrollTaxTotal, deduction } = calculateTaxableIncome(inputs, taxData, filingStatus);

@@ -6,6 +6,8 @@ import {
 } from "./pageConfig.helpers";
 import {
     wageIncome,
+    wageIncomeSpouse1,
+    wageIncomeSpouse2,
     selfEmploymentIncome,
     ordinaryIncome,
     shortTermCapGains,
@@ -30,12 +32,47 @@ import {
 
 export * from "./pageConfig.inputs";
 
-export function calculatePayrollTax(inputs: TaxFormRow[], taxData: TaxYearConfig): number {
-    const wages = wageIncome(inputs) - selfEmploymentIncome(inputs);
-    const ssTaxable = Math.min(wages, taxData.payroll.socialSecurityWageBase);
+export type PayrollTaxBreakdown = {
+    socialSecurityTax: number;
+    medicareTax: number;
+    total: number;
+};
+
+function calculatePayrollTaxForWages(wages: number, taxData: TaxYearConfig): PayrollTaxBreakdown {
+    const taxableWages = Math.max(0, wages);
+    const ssTaxable = Math.min(taxableWages, taxData.payroll.socialSecurityWageBase);
     const ssTax = ssTaxable * taxData.payroll.socialSecurityRate;
-    const medicareTax = wages * taxData.payroll.medicareRate;
-    return ssTax + medicareTax;
+    const medicareTax = taxableWages * taxData.payroll.medicareRate;
+    return { socialSecurityTax: ssTax, medicareTax, total: ssTax + medicareTax };
+}
+
+export function calculatePayrollTaxBreakdown(
+    inputs: TaxFormRow[],
+    taxData: TaxYearConfig,
+    filingStatus: FilingStatus,
+): PayrollTaxBreakdown {
+    const spouseWages =
+        filingStatus === "marriedJoint"
+            ? [wageIncomeSpouse1(inputs), wageIncomeSpouse2(inputs)]
+            : [wageIncome(inputs)];
+    return spouseWages
+        .map((wages) => calculatePayrollTaxForWages(wages, taxData))
+        .reduce(
+            (sum, spouseTax) => ({
+                socialSecurityTax: sum.socialSecurityTax + spouseTax.socialSecurityTax,
+                medicareTax: sum.medicareTax + spouseTax.medicareTax,
+                total: sum.total + spouseTax.total,
+            }),
+            { socialSecurityTax: 0, medicareTax: 0, total: 0 },
+        );
+}
+
+export function calculatePayrollTax(
+    inputs: TaxFormRow[],
+    taxData: TaxYearConfig,
+    filingStatus: FilingStatus,
+): number {
+    return calculatePayrollTaxBreakdown(inputs, taxData, filingStatus).total;
 };
 
 export function calculateSelfEmploymentTax(inputs: TaxFormRow[], taxData: TaxYearConfig): number {
@@ -84,8 +121,8 @@ export type DeductionShieldSlice = {
     payrollBracketShadowFill: number;
 };
 
-export function payrollTaxTotal(inputs: TaxFormRow[], taxData: TaxYearConfig): number {
-    return calculatePayrollTax(inputs, taxData) + calculateSelfEmploymentTax(inputs, taxData);
+export function payrollTaxTotal(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
+    return calculatePayrollTax(inputs, taxData, filingStatus) + calculateSelfEmploymentTax(inputs, taxData);
 }
 
 
@@ -108,7 +145,7 @@ export function computeDeductionShieldSlice(
     const afterPretax = ordinaryIncome(inputs) - pretax - seDeduction;
     console.log("afterPretax", afterPretax);
     // Wage FICA plus full SE tax: both draw from the same deduction-shield capacity before ordinary taxable is left.
-    const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData);
+    const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData, filingStatus);
     console.log("payrollTaxTotal", payrollTaxTotal);
     // Maximum dollars standard or itemized could shield from ordinary tax, capped by actual income after pretax/SE adjustment.
     const shieldCapBeforePayroll = useItemizedDeductions(inputs)
@@ -227,7 +264,7 @@ export function computeFederalTaxCreditsApplied(
 
 export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: FilingStatus) {
     
-    const calculatePayrollTaxFn = (inputs: TaxFormRow[], taxData: TaxYearConfig, ) => calculatePayrollTax(inputs, taxData)
+    const calculatePayrollTaxFn = (inputs: TaxFormRow[], taxData: TaxYearConfig) => calculatePayrollTax(inputs, taxData, filingStatus)
 
 
     const calculateSelfEmploymentTax = (inputs: TaxFormRow[]): number => {

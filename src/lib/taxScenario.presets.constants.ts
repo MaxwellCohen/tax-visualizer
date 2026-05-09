@@ -35,7 +35,7 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         filingStatus: "single",
         incomeRows: incomeSourcesToRows([
           newIncomeSource({ kind: "income-ordinary-wages", amount: 120_000, label: "Salary" }),
-          newIncomeSource({ kind: "income-longTermCapGains-longTermCapGains", amount: 25_000, label: "Brokerage sale" }),
+          newIncomeSource({ kind: "income-longTermCapGains-longTermCapGains-spouse1", amount: 25_000, label: "Brokerage sale" }),
         ]),
         pretaxRows: [{ id: "1", type: 'pretax', kind: "input-pretax-401K-preTax401kSpouse1", label: "401(k)", amount: 10000 }],
         useItemizedDeductions: false,
@@ -52,7 +52,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         taxYear,
         filingStatus: "marriedJoint",
         incomeRows: incomeSourcesToRows([
-          newIncomeSource({ kind: "income-ordinary-wages", amount: 180_000, label: "Household wages" }),
+          newIncomeSource({ kind: "income-ordinary-wages-spouse1", amount: 100_000, label: "Spouse 1 wages" }),
+          newIncomeSource({ kind: "income-ordinary-wages-spouse2", amount: 80_000, label: "Spouse 2 wages" }),
         ]),
         pretaxRows: pretaxSourcesToRows(
           pretaxScalarsToMinimalSources({
@@ -81,7 +82,7 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
         filingStatus: "single",
         incomeRows: incomeSourcesToRows([
           newIncomeSource({ kind: "income-ordinary-wages", amount: 260_000, label: "Compensation" }),
-          newIncomeSource({ kind: "income-ordinary-shortTermCapGains-shortTermCapGains", amount: 15_000, label: "Short-term gains" }),
+          newIncomeSource({ kind: "income-ordinary-shortTermCapGains-shortTermCapGains-spouse1", amount: 15_000, label: "Short-term gains" }),
         ]),
         pretaxRows: pretaxSourcesToRows(
           pretaxScalarsToMinimalSources({

@@ -44,7 +44,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
             id: "sankeyOrdinaryToPayrollTax",
             label: "Ordinary income to payroll / SE hub",
             shortLabel: "Ordinary → payroll",
-            calculate: (inputs, td) => calculatePayrollTax(inputs, td) + calculateSelfEmploymentTax(inputs, td),
+            calculate: (inputs, td, fs) => calculatePayrollTax(inputs, td, fs) + calculateSelfEmploymentTax(inputs, td),
             sankeySettings: {
                 link: [
                     {

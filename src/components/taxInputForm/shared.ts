@@ -1,5 +1,7 @@
 import type { FilingStatus } from "~/lib/taxData";
-import type { configItem } from "~/lib/config/page/pageConfig.types";
+import type { configItem, SubcategoryConfig } from "~/lib/config/page/pageConfig.types";
+
+type SelectOption = { value: string; label: string };
 
 export const filingStatusOptions: Array<{ value: FilingStatus; label: string }> = [
   { value: "single", label: "Single" },
@@ -8,16 +10,11 @@ export const filingStatusOptions: Array<{ value: FilingStatus; label: string }> 
   { value: "headOfHousehold", label: "Head of household" },
 ];
 
-export function incomeKindSelectOptions(items: configItem[], isMarriedJoint: boolean): Array<{ value: string; label: string }> {
-  return items
-    .filter(item => item.inputRowSettings?.category === "income")
-    .flatMap(item => {
-      const subs = item.inputRowSettings?.subcategories ?? [];
-      return subs.map(sub => ({
-        value: sub.key,
-        label: isMarriedJoint ? sub.labelJoint : sub.labelSingle,
-      }));
-    });
+export function incomeKindSelectOptions(items: configItem[], isMarriedJoint: boolean): SelectOption[] {
+  return subcategorySelectOptions(items, "income", {
+    labelForSubcategory: sub => (isMarriedJoint ? sub.labelJoint : sub.labelSingle),
+    includeSubcategory: sub => isMarriedJoint || !isSecondSpouseSubKey(sub.key),
+  });
 }
 
 export function parseCurrencyInput(rawValue: string): number {
@@ -51,41 +48,48 @@ export const pretaxFieldCaptionClass =
 
 export { money } from "~/lib/moneyFormat";
 
-function isPretaxSecondSpouseSubKey(key: string): boolean {
-  return key.includes("Spouse2");
+function isSecondSpouseSubKey(key: string): boolean {
+  return key.toLowerCase().includes("spouse2");
 }
 
-/** Dropdown options for pretax rows; filters out empty labels and MFJ-only spouse (2) lines when not filing jointly. */
-export function pretaxBenefitKindSelectOptions(
+function subcategorySelectOptions(
   items: configItem[],
-  isMarriedJoint: boolean
-): Array<{ value: string; label: string }> {
+  category: string,
+  options: {
+    labelForSubcategory: (subcategory: SubcategoryConfig) => string;
+    includeSubcategory?: (subcategory: SubcategoryConfig) => boolean;
+  }
+): SelectOption[] {
   return items
-    .filter(item => item.inputRowSettings?.category === "pretax")
-    .flatMap(item => {
-      const subs = item.inputRowSettings?.subcategories ?? [];
-      return subs
-        .filter(sub => isMarriedJoint || !isPretaxSecondSpouseSubKey(sub.key))
+    .filter(hasSubcategoriesForCategory(category))
+    .flatMap(item =>
+      item.inputRowSettings.subcategories
+        .filter(options.includeSubcategory ?? (() => true))
         .map(sub => ({
           value: sub.key,
-          label: isMarriedJoint ? sub.labelJoint : sub.labelSingle,
-        }));
-    })
+          label: options.labelForSubcategory(sub),
+        }))
+    )
     .filter(opt => opt.label.length > 0);
 }
 
-export function itemizedDeductionSelectOptions(
-  category: string,
-  items: configItem[]
-): Array<{ value: string; label: string }> {
-  return items
-    .filter(item => item.inputRowSettings?.category === category && item.inputRowSettings?.subcategories)
-    .flatMap(item => {
-      const subs = item.inputRowSettings?.subcategories ?? [];
-      return subs.map(sub => ({
-        value: sub.key,
-        label: sub.labelSingle,
-      }));
-    });
+function hasSubcategoriesForCategory(
+  category: string
+): (item: configItem) => item is configItem & { inputRowSettings: { subcategories: SubcategoryConfig[] } } {
+  return (item): item is configItem & { inputRowSettings: { subcategories: SubcategoryConfig[] } } =>
+    item.inputRowSettings?.category === category && Boolean(item.inputRowSettings.subcategories);
 }
-//"credit"
+
+/** Dropdown options for pretax rows; filters out empty labels and MFJ-only spouse (2) lines when not filing jointly. */
+export function pretaxBenefitKindSelectOptions(items: configItem[], isMarriedJoint: boolean): SelectOption[] {
+  return subcategorySelectOptions(items, "pretax", {
+    labelForSubcategory: sub => (isMarriedJoint ? sub.labelJoint : sub.labelSingle),
+    includeSubcategory: sub => isMarriedJoint || !isSecondSpouseSubKey(sub.key),
+  });
+}
+
+export function itemizedDeductionSelectOptions(category: string, items: configItem[]): SelectOption[] {
+  return subcategorySelectOptions(items, category, {
+    labelForSubcategory: sub => sub.labelSingle,
+  });
+}
