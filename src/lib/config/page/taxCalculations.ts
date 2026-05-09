@@ -32,7 +32,7 @@ import {
 
 export * from "./pageConfig.inputs";
 
-export type PayrollTaxBreakdown = {
+type PayrollTaxBreakdown = {
     socialSecurityTax: number;
     medicareTax: number;
     total: number;
@@ -96,7 +96,7 @@ export function calculateSelfEmploymentDeduction(seIncome: number, taxData: TaxY
     return calculateSelfEmploymentTaxFromIncome(seIncome, taxData) / 2;
 }
 
-export type TaxableIncomeResult = {
+type TaxableIncomeResult = {
     ordinary: number;
     ltcg: number;
     total: number;
@@ -112,7 +112,7 @@ export type TaxableIncomeResult = {
 };
 
 /** Single source for deduction shield cap, deduction dollars after payroll, ordinary taxable, and bracket shadow. */
-export type DeductionShieldSlice = {
+type DeductionShieldSlice = {
     afterPretax: number;
     shieldCapBeforePayroll: number;
     payrollTaxTotal: number;
@@ -121,7 +121,7 @@ export type DeductionShieldSlice = {
     payrollBracketShadowFill: number;
 };
 
-export function payrollTaxTotal(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
+function payrollTaxTotal(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
     return calculatePayrollTax(inputs, taxData, filingStatus) + calculateSelfEmploymentTax(inputs, taxData);
 }
 

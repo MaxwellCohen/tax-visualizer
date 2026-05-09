@@ -17,7 +17,7 @@ import { createLimitMemos } from "~/components/taxInputForm/hooks/limitMemos";
 import { wireTaxYearLimitsEffect } from "~/components/taxInputForm/hooks/taxYearLimitsEffect";
 import type { TaxFormData } from "~/lib/taxForm.types";
 
-export type TaxInputFormProps = {
+type TaxInputFormProps = {
   taxInput: Accessor<TaxFormData>;
   setTaxInput: Setter<TaxFormData>;
   availableYears: number[];

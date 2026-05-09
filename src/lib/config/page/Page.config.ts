@@ -19,15 +19,10 @@ import type {
     TaxInputFormSectionKey,
 } from "./pageConfig.types";
 
-export type {
-    SankeyLink,
-    configItem,
-    TaxInputFormSectionDefinition,
-    TaxInputFormSectionKey,
-} from "./pageConfig.types";
+export type { SankeyLink, configItem } from "./pageConfig.types";
 
 /** Ordered tax input sections: edit this list to reorder or drop line-item groups; `settings` is special-cased in UI. */
-export const TAX_INPUT_FORM_SECTIONS: readonly TaxInputFormSectionDefinition[] = [
+const TAX_INPUT_FORM_SECTIONS: readonly TaxInputFormSectionDefinition[] = [
     { key: "settings", kind: "settings" },
     { key: "income", kind: "lineItems", categories: ["income"] },
     { key: "pretax", kind: "lineItems", categories: ["pretax"] },

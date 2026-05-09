@@ -12,7 +12,7 @@ interface CreditAllocation {
     creditsRow: number;
 }
 
-export function getCreditLinkCreditsRow(creditsRow: number) {
+function getCreditLinkCreditsRow(creditsRow: number) {
     return {
         fill: "var(--sankey-link-credits)",
         stroke: "var(--sankey-link-credits)",

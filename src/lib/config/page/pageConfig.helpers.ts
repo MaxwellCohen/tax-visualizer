@@ -10,26 +10,10 @@ type ValidationResult = {
     clampedValue?: number;
 };
 
-export type ValidationFn = (value: number, ctx: ValidationContext) => ValidationResult;
+type ValidationFn = (value: number, ctx: ValidationContext) => ValidationResult;
 
 export const nonNegativeValidator: ValidationFn = (value: number, _ctx: ValidationContext) => {
     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-    return { valid: true };
-};
-
-export const makeCappedValidator = (getLimit: (ctx: ValidationContext) => number): ValidationFn => {
-    return (value: number, ctx: ValidationContext) => {
-        if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-        const limit = getLimit(ctx);
-        if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
-        return { valid: true };
-    };
-};
-
-export const standardCappedValidator: ValidationFn = (value: number, ctx: ValidationContext) => {
-    const limit = ctx.yearValues.limits["401k"] ?? 23000;
-    if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-    if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
     return { valid: true };
 };
 
@@ -39,21 +23,6 @@ export const makeYearValuesCappedValidator = (
 ): ValidationFn => {
     return (value: number, ctx: ValidationContext) => {
         const limit = ctx.yearValues.limits[key] ?? fallback;
-        if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-        if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
-        return { valid: true };
-    };
-};
-
-export const makeFilingStatusCappedValidator = (
-    key: string,
-    fallbackSelf: number,
-    fallbackJoint: number
-): ValidationFn => {
-    return (value: number, ctx: ValidationContext) => {
-        const limit = ctx.isJoint
-            ? (ctx.yearValues.limits[key] ?? fallbackJoint)
-            : (ctx.yearValues.limits[key] ?? fallbackSelf);
         if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
         if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
         return { valid: true };
@@ -124,28 +93,6 @@ export function getCreditsSankeyRow(taxData: TaxYearConfig, filingStatus: Filing
     const n = taxData.federalBrackets[filingStatus].length;
     const belowOrdinaryBrackets = 5 + n * 4 + CREDITS_SANKEY_PADDING;
     return Math.max(belowOrdinaryBrackets, LTCG_SANKEY_INCOME_ROW + CREDITS_SANKEY_PADDING);
-}
-
-
-export function calculateOrdinaryTaxTotal(taxableIncome: number, brackets: FederalTaxBracket[]): { tax: number; marginalRate: number } {
-    let remaining = taxableIncome;
-    let lowerBound = 0;
-    let totalTax = 0;
-    let lastRate = 0;
-
-    for (const bracket of brackets) {
-        if (remaining <= 0) break;
-        const upperBound = bracket.upTo ?? Number.POSITIVE_INFINITY;
-        const amountInBracket = Math.min(remaining, upperBound - lowerBound);
-        if (amountInBracket > 0) {
-            const taxAmount = amountInBracket * bracket.rate;
-            totalTax += taxAmount;
-            remaining -= amountInBracket;
-            lastRate = bracket.rate;
-        }
-        lowerBound = upperBound;
-    }
-    return { tax: totalTax, marginalRate: lastRate };
 }
 
 export function calculateLtcgTaxTotal(
