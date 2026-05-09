@@ -91,14 +91,15 @@ export function calculateSelfEmploymentDeduction(seIncome: number, taxData: TaxY
 export function getStandardDeductionWithoutPayrollTax(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
     if (useItemizedDeductions(inputs)) return 0;
     const standardDeductionValue = standardDeductionInput(inputs, taxData, filingStatus);
-    const { payrollTaxTotal } = computeDeductionShieldSlice(inputs, taxData, filingStatus);
-    return Math.max(0, standardDeductionValue - payrollTaxTotal);
+    const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData, filingStatus);
+    return Math.max(0, standardDeductionValue - payrollTaxTotalValue);
 }
 
 export function getItemizedDeductionsWithoutPayrollTax(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
     if (!useItemizedDeductions(inputs)) return 0;
-    const { deduction, payrollTaxTotal } = computeDeductionShieldSlice(inputs, taxData, filingStatus);
-    return Math.max(0, deduction - payrollTaxTotal);
+    const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData, filingStatus);
+    const totalItemizedValue = totalItemized(inputs)
+    return Math.max(0, totalItemizedValue - payrollTaxTotalValue);
 }
 
 export function getOrdinaryBrackets(taxData: TaxYearConfig, filingStatus: FilingStatus): FederalTaxBracket[] {
@@ -165,41 +166,30 @@ function payrollTaxTotal(inputs: TaxFormRow[], taxData: TaxYearConfig, filingSta
     return calculatePayrollTax(inputs, taxData, filingStatus) + calculateSelfEmploymentTax(inputs, taxData);
 }
 
-
-export function computeDeductionShieldSlice(
+function computeDeductionShieldSlice(
     inputs: TaxFormRow[],
     taxData: TaxYearConfig,
     filingStatus: FilingStatus,
 ): DeductionShieldSlice {
-    // Self-employment: full SE tax, then half is treated as deductible “employer share” when sizing the deduction shield base.
-    const seIncome = selfEmploymentIncome(inputs);
-    const seTax = calculateSelfEmploymentTaxFromIncome(seIncome, taxData);
-    const seDeduction = seTax / 2;
-
-    // Ordinary bucket (wages + SE + STCG, etc.) minus payroll pre-tax deferrals and the ½ SE adjustment → income the shield is measured against.
-    const pretax = allPretax(inputs);
-    const afterPretax = ordinaryIncome(inputs) - pretax - seDeduction;
-    // Wage FICA plus full SE tax: both draw from the same deduction-shield capacity before ordinary taxable is left.
-    const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData, filingStatus);
-    // Maximum dollars standard or itemized could shield from ordinary tax, capped by actual income after pretax/SE adjustment.
+    const afterPretax = Math.max(0, ordinaryIncome(inputs) - allPretax(inputs));
     const shieldCapBeforePayroll = useItemizedDeductions(inputs)
-        ? Math.min(totalItemized(inputs), afterPretax)
-        : Math.min(afterPretax, taxData.standardDeduction[filingStatus]);
-    // Shield room left after payroll is allocated first (payroll “eats” the shield); remainder counts as deduction dollars in the Sankey.
-    const deduction = Math.max(0, shieldCapBeforePayroll - payrollTaxTotalValue);
-    // Income still exposed as ordinary taxable after the (post-payroll) deduction amount is applied.
-    const ordinary = Math.max(0, afterPretax - deduction - payrollTaxTotalValue);
-    // Payroll that exceeded the shield cap is modeled as consuming federal ordinary bracket width from the bottom (teaching visualization).
-    const payrollBracketShadowFill = Math.max(0, payrollTaxTotalValue - shieldCapBeforePayroll);
+        ? totalItemized(inputs)
+        : standardDeductionInput(inputs, taxData, filingStatus);
+    const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData, filingStatus);
+    const deduction = useItemizedDeductions(inputs)
+        ? getItemizedDeductionsWithoutPayrollTax(inputs, taxData, filingStatus)
+        : getStandardDeductionWithoutPayrollTax(inputs, taxData, filingStatus);
+
     return {
         afterPretax,
         shieldCapBeforePayroll,
         payrollTaxTotal: payrollTaxTotalValue,
         deduction,
-        ordinary,
-        payrollBracketShadowFill,
+        ordinary: Math.max(0, afterPretax - payrollTaxTotalValue - deduction),
+        payrollBracketShadowFill: Math.max(0, payrollTaxTotalValue - shieldCapBeforePayroll),
     };
 }
+
 
 /**
  * Per-bracket ordinary dollars after `payrollBracketShadowFill` consumes width from the lowest
@@ -297,7 +287,7 @@ export function computeFederalTaxCreditsApplied(
 }
 
 export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: FilingStatus) {
-    
+
     const calculatePayrollTaxFn = (inputs: TaxFormRow[], taxData: TaxYearConfig) => calculatePayrollTax(inputs, taxData, filingStatus)
 
 

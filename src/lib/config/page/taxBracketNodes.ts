@@ -61,18 +61,6 @@ function computeCreditAllocation(
     };
 }
 
-// function getCreditAllocationForBrackets(
-//     inputs: TaxFormRow[],
-//     taxData: TaxYearConfig,
-//     filingStatus: FilingStatus,
-//     bracketsLength: number,
-// ): CreditAllocation {
-//     return computeCreditAllocation(inputs, taxData, filingStatus, bracketsLength);
-// }
-
-
-
-
 function calculateTaxBracket(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus, bracketIndex: number) {
     const result = [];
     const brackets = taxData.federalBrackets[filingStatus];
@@ -122,16 +110,6 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         const bracket = brackets[i];
         const rateLabel = (bracket.rate * 100).toFixed(0);
         const bracketId = `bracket-${i}`;
-
-        // const incomeCalculate = (inputs: TaxFormRow[], _td?: TaxYearConfig, _fs?: FilingStatus) => {
-        //     const td = _td ?? taxData;
-        //     const { ordinary, payrollBracketShadowFill } = calculateTaxableIncome(inputs, td, filingStatus);
-        //     const br = getOrdinaryBrackets(td, filingStatus);
-        //     const slices = ordinaryIncomeSlicesWithPayrollShadow(ordinary, br, payrollBracketShadowFill);
-        //     return slices[i];
-        // };
-
-
         const bracketRow = 5 + i * 4;
         items.push({
             id: `${bracketId}-income`,
@@ -148,7 +126,6 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             },
             calculate: (inputs) => {
                 const bracketData = calculateTaxBracket(inputs, taxData, filingStatus, i);
-                console.log("bracketData", i, bracketData);
                 return bracketData.tax + bracketData.credits + bracketData.keep;
             },
         });
