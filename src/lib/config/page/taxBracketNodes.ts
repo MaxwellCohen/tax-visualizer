@@ -1,7 +1,7 @@
 // fallow-ignore-file code-duplication
 /** Federal ordinary brackets and LTCG bracket slices (income / tax / keep per band). */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
-import type { configItem } from "./pageConfig.types";
+import type { ConfigItem } from "./pageConfig.types";
 import { getCreditsSankeyRow } from "./sankeyLayout.helpers";
 import { calculateTaxBrackets } from "./taxCalculations";
 
@@ -14,9 +14,9 @@ function getCreditLinkCreditsRow(creditsRow: number) {
     } as const;
 }
 
-export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
     const brackets = taxData.federalBrackets[filingStatus];
-    let items: configItem[] = [];
+    let items: ConfigItem[] = [];
     const creditsRow = getCreditsSankeyRow(taxData, filingStatus);
     const ltcgIncomeRow = 50;
     for (let i = 0; i < brackets.length; i++) {
@@ -26,15 +26,14 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         const bracketRow = 5 + i * 4;
         items.push({
             id: `${bracketId}-income`,
-            label: `${rateLabel} % Income`,
-            shortLabel: `${rateLabel}% Income`,
-            sankeySettings: {
+            labels: { default: `${rateLabel} % Income`, compact: `${rateLabel}% Income` },
+            sankey: {
                 node: { fill: "var(--sankey-node-4)", stroke: "var(--sankey-link)", row: bracketRow, col: 3 },
-                link: [
+                links: [
                     { source: "ordinaryTaxableIncome", target: `${bracketId}-income`, fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: bracketRow, col: 2 },
                 ],
             },
-            mekkoSettings: {
+            mekko: {
                 row: {
                     row: bracketRow,
                     col: 3,
@@ -50,10 +49,9 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             },
         }, {
             id: `${bracketId}-keep`,
-            label: `${rateLabel} % Keep`,
-            shortLabel: `${rateLabel}% Income`,
-            sankeySettings: {
-                link: [
+            labels: { default: `${rateLabel} % Keep`, compact: `${rateLabel}% Income` },
+            sankey: {
+                links: [
                     { source: `${bracketId}-income`, target: "takeHomePay", fill: "var(--sankey-link-keep)", stroke: "var(--sankey-link-keep)", row: bracketRow + 1, col: 3 },
                 ],
             },
@@ -63,10 +61,9 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             },
         }, {
             id: `${bracketId}-credits`,
-            label: `${rateLabel} % Credits`,
-            shortLabel: `${rateLabel}% Credits`,
-            sankeySettings: {
-                link: [
+            labels: { default: `${rateLabel} % Credits`, compact: `${rateLabel}% Credits` },
+            sankey: {
+                links: [
                     { source: `${bracketId}-income`, target: "takeHomePay", ...getCreditLinkCreditsRow(creditsRow), row: bracketRow + 2 },
                 ],
             },
@@ -76,10 +73,9 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             },
         }, {
             id: `${bracketId}-tax`,
-            label: `${rateLabel} % Tax`,
-            shortLabel: `${rateLabel}% Tax`,
-            sankeySettings: {
-                link: [
+            labels: { default: `${rateLabel} % Tax`, compact: `${rateLabel}% Tax` },
+            sankey: {
+                links: [
                     { source: `${bracketId}-income`, target: "federalIncomeTax", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: bracketRow + 3, col: 3 },
                 ],
             },
@@ -92,15 +88,14 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
     const i = brackets.length;
     items.push({
         id: "ltcg-income",
-        label: "LTCG Income",
-        shortLabel: "LTCG Income",
-        sankeySettings: {
+        labels: { default: "LTCG Income", compact: "LTCG Income" },
+        sankey: {
             node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: ltcgIncomeRow, col: 3 },
-            link: [
+            links: [
                 { source: "longTermTaxableIncome", target: "ltcg-income", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: ltcgIncomeRow, col: 2 },
             ],
         },
-        mekkoSettings: {
+        mekko: {
             row: {
                 row: ltcgIncomeRow,
                 col: 3,
@@ -116,10 +111,9 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         },
     },{
         id: "ltcg-tax",
-        label: "LTCG Tax",
-        shortLabel: "LTCG Tax",
-        sankeySettings: {
-            link: [
+        labels: { default: "LTCG Tax", compact: "LTCG Tax" },
+        sankey: {
+            links: [
                 { source: "ltcg-income", target: "federalIncomeTax", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: ltcgIncomeRow + 2, col: 3 },
             ],
         },
@@ -129,10 +123,9 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         },
     },{
         id: "ltcg-credits",
-        label: "LTCG Credits",
-        shortLabel: "LTCG Credits",
-        sankeySettings: {
-            link: [
+        labels: { default: "LTCG Credits", compact: "LTCG Credits" },
+        sankey: {
+            links: [
                 {   
                     source: "ltcg-income",
                     target: "takeHomePay",
@@ -147,10 +140,9 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         },
     },{
         id: "ltcg-keep",
-        label: "LTCG Keep",
-        shortLabel: "LTCG Keep",
-        sankeySettings: {
-            link: [
+        labels: { default: "LTCG Keep", compact: "LTCG Keep" },
+        sankey: {
+            links: [
                 { source: "ltcg-income", target: "takeHomePay", fill: "var(--sankey-link-keep)", stroke: "var(--sankey-link-keep)", row: 49, col: 3 },
             ],
         },

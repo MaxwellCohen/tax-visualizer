@@ -18,7 +18,7 @@ import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldV
 import { getInputItemsForSection } from "~/lib/config";
 import type { ValidationContext } from "~/lib/config/types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
-import type { configItem } from "~/lib/config/page/pageConfig.types";
+import type { ConfigItem } from "~/lib/config/page/pageConfig.types";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;
@@ -37,7 +37,7 @@ export function ItemizedDeductionSourceRow(props: Props) {
   const commitToUrl = useTaxInputCommitToUrl();
   const filingStatus = createMemo(() => getFilingStatusFromRows(props.taxInput().rows) ?? "single");
 
-  const configItems = createMemo((): configItem[] => {
+  const configItems = createMemo((): ConfigItem[] => {
     const td = props.taxData();
     const fs = filingStatus();
     if (!td) return [];
@@ -57,7 +57,7 @@ export function ItemizedDeductionSourceRow(props: Props) {
   const detail = createMemo(() => {
     const currentKind = kind();
     const items = configItems();
-    const item = items.find((it) => it.inputRowSettings?.subcategories?.some((sub) => sub.key === currentKind));
+    const item = items.find((it) => it.input?.subcategories?.some((sub) => sub.key === currentKind));
 
     if (!item) {
       return { description: "Loading...", modelingNote: "Loading..." };

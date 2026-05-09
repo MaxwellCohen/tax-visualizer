@@ -1,6 +1,6 @@
 // fallow-ignore-file code-duplication
 import { Show, createMemo, type Accessor, type Setter } from "solid-js";
-import type { configItem } from "~/lib/config/page/pageConfig.types";
+import type { ConfigItem } from "~/lib/config/page/pageConfig.types";
 import {
   incomeKindSelectOptions,
   inputClass,
@@ -23,7 +23,7 @@ type IncomeSourceFieldsProps = {
   rowId: string;
   canRemove: boolean;
   onRemove: () => void;
-  configItems: configItem[];
+  configItems: ConfigItem[];
   isMarriedJoint: boolean;
   taxData: Accessor<TaxYearConfig | null>;
   validationCtx: Accessor<ValidationContext | undefined>;

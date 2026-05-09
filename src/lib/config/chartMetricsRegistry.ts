@@ -5,9 +5,9 @@
  * **Evaluation contract:** Tax math for chart metrics runs only through {@link computeTaxMetricLines}. Each 
  * config item's `calculate` function computes the metric value directly from form rows, tax config, and filing status.
  *
- * **Detailed display list:** Rows with `detailedDisplay` in configItem drive buildDisplayItemsConfig.
+ * **Detailed display list:** Rows with `detailedDisplay` in ConfigItem drive buildDisplayItemsConfig.
  *
- * **Sankey:** Config items with `sankeySettings` provide node/link metadata. Filter to positive values for display.
+ * **Sankey:** Config items with `sankey` provide node/link metadata. Filter to positive values for display.
  */
 import type {
   TaxFormRow,
@@ -16,7 +16,7 @@ import type {
 } from "~/lib/taxForm.types";
 import type { TaxCalculationInputs } from "~/lib/taxConfig.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
-import { getConfigItems, type configItem } from "./page/Page.config";
+import { getConfigItems, type ConfigItem } from "./page/Page.config";
 
 type ChartMetricValueKind = "number";
 
@@ -52,13 +52,21 @@ type ChartRegistryEntry = {
   calculate: (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => number;
 };
 
-/** Convert configItem to ChartRegistryEntry format for compatibility */
-function configItemToRegistryEntry(item: configItem, _index: number): ChartRegistryEntry {
+/** Convert ConfigItem to ChartRegistryEntry format for compatibility */
+function summaryWithDerivedLabel(item: ConfigItem): ChartMetricSummaryHint | undefined {
+  if (!item.summary) return undefined;
+  return {
+    ...item.summary,
+    label: item.labels.summary ?? item.labels.default,
+  };
+}
+
+function configToRegistryEntry(item: ConfigItem, _index: number): ChartRegistryEntry {
   return {
     metricsKey: item.id,
     valueKind: "number",
     visualizationSourceId: item.id,
-    summary: item.summary,
+    summary: summaryWithDerivedLabel(item),
     // detailedDisplay: item.detailedDisplay,
     calculate: item.calculate ?? (() => 0),
   };
@@ -67,7 +75,7 @@ function configItemToRegistryEntry(item: configItem, _index: number): ChartRegis
 /** Get registry entries for a given tax year and filing status */
 function getTaxCalcRegistry(taxData: TaxYearConfig, filingStatus: FilingStatus): readonly ChartRegistryEntry[] {
   const items = getConfigItems(taxData, filingStatus);
-  return items.map(configItemToRegistryEntry);
+  return items.map(configToRegistryEntry);
 }
 
 const registryCache = new Map<string, readonly ChartRegistryEntry[]>();

@@ -13,9 +13,9 @@
  */
 import type { TaxFormData } from "~/lib/taxForm.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
-import { getConfigItems, type configItem } from "~/lib/config/page/Page.config";
+import { getConfigItems, type ConfigItem } from "~/lib/config/page/Page.config";
 
-export type CalculatedConfigItem = configItem & { computedValue: number };
+export type CalculatedConfigItem = ConfigItem & { computedValue: number };
 
 export function calculateAllConfigValues(
   formData: TaxFormData,

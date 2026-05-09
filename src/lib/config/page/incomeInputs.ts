@@ -1,17 +1,16 @@
 /** Income inputs: W-2, 1099, STCG, LTCG, other ordinary. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
-import type { configItem } from "./pageConfig.types";
+import type { ConfigItem } from "./pageConfig.types";
 import { nonNegativeValidator } from "./inputValidators";
 
-export function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
+export function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
         {
             id: "income-ordinary-wages",
-            label: "W-2 Wages",
-            shortLabel: "Wages",
+            labels: { default: "W-2 Wages", compact: "Wages" },
             description: "Wages reported on Form W-2",
             taxTreatment: "ordinary",
-            inputRowSettings: { 
+            input: { 
                 category: "income",
                 displayOrder: 1, 
                 inputType: "currency", 
@@ -24,11 +23,10 @@ export function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
         },
         {
             id: "income-ordinary-selfEmployment",
-            label: "1099 Self-Employment",
-            shortLabel: "1099 Income",
+            labels: { default: "1099 Self-Employment", compact: "1099 Income" },
             description: "Self-employment income (net of expenses)",
             taxTreatment: "selfEmployment",
-            inputRowSettings: { 
+            input: { 
                 category: "income",
                 displayOrder: 2, 
                 inputType: "currency", 
@@ -41,11 +39,10 @@ export function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
         },
         {
             id: "income-ordinary-shortTermCapGains",
-            label: "Short-Term Capital Gains",
-            shortLabel: "STCG",
+            labels: { default: "Short-Term Capital Gains", compact: "STCG" },
             description: "Capital gains held one year or less",
             taxTreatment: "shortTermCapGains",
-            inputRowSettings: { 
+            input: { 
                 category: "income",
                 displayOrder: 3, 
                 inputType: "currency", 
@@ -58,11 +55,10 @@ export function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
         },
         {
             id: "income-ordinary-other",
-            label: "Other Ordinary Income",
-            shortLabel: "Other Income",
+            labels: { default: "Other Ordinary Income", compact: "Other Income" },
             description: "Other ordinary income (rent, royalties, etc.)",
             taxTreatment: "ordinary",
-            inputRowSettings: { 
+            input: { 
                 category: "income",
                 displayOrder: 5, 
                 inputType: "currency", 
@@ -75,11 +71,10 @@ export function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
         },
         {
             id: "income-longTermCapGains",
-            label: "Long-Term Capital Gains",
-            shortLabel: "LTCG",
+            labels: { default: "Long-Term Capital Gains", compact: "LTCG" },
             description: "Capital gains held longer than one year",
             taxTreatment: "longTermCapGains",
-            inputRowSettings: { 
+            input: { 
                 category: "income",
                 displayOrder: 4, 
                 inputType: "currency", 

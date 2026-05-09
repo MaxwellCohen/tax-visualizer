@@ -9,7 +9,7 @@ import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import type { ValidationContext } from "~/lib/config/types";
 import { getInputItemsForSection } from "~/lib/config";
-import type { configItem } from "~/lib/config/page/pageConfig.types";
+import type { ConfigItem } from "~/lib/config/page/pageConfig.types";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;
@@ -34,7 +34,7 @@ export function TaxInputFormIncomeSection(props: Props) {
       }, 0),
   );
 
-  const configItems = createMemo((): configItem[] => {
+  const configItems = createMemo((): ConfigItem[] => {
     const td = props.taxData();
     const fs = props.filingStatus();
     if (!td) return [];

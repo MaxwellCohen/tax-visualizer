@@ -1,6 +1,6 @@
 /** Federal credit inputs: CTC, education, saver's credit, other. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
-import type { configItem } from "./pageConfig.types";
+import type { ConfigItem } from "./pageConfig.types";
 import {
     childTaxCredit,
     educationCredits,
@@ -10,15 +10,14 @@ import {
 import { nonNegativeValidator, makeYearValuesCappedValidator } from "./inputValidators";
 import { getCreditsSankeyRow } from "./sankeyLayout.helpers";
 
-export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
     const row = getCreditsSankeyRow(taxData, filingStatus);
     const creditSankeyNode = { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)", row, col: 3 } as const;
 
     return [
         {
             id: "input-credit-childTax",
-            label: "Child Tax Credit",
-            shortLabel: "CTC",
+            labels: { default: "Child Tax Credit", compact: "CTC" },
             description:
                 "Calculated from qualifying children and other dependents entered in Settings; maximum per dependent depends on tax year.",
             kindDetail: {
@@ -26,19 +25,18 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
                     "Nonrefundable portion offsets income tax; refundable Additional CTC, earned income tests, and phase-outs are not modeled.",
             },
             calculate: childTaxCredit,
-            sankeySettings: {
+            sankey: {
                 node: creditSankeyNode,
             },
         },
         {
             id: "input-credit-education",
-            label: "Education Credits",
-            shortLabel: "Education",
+            labels: { default: "Education Credits", compact: "Education" },
             description: "American opportunity credit and/or lifetime learning credit",
             kindDetail: {
                 modelingNote: "AOC (up to $2500 per student) or LLC (up to $2000 per return)",
             },
-            inputRowSettings: {
+            input: {
                 category: "credit",
                 displayOrder: 2,
                 inputType: "currency",
@@ -46,19 +44,18 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
                 validate: nonNegativeValidator,
             },
             calculate: educationCredits,
-            sankeySettings: {
+            sankey: {
                 node: creditSankeyNode,
             },
         },
         {
             id: "retirementSavingsContributions",
-            label: "Retirement Savings Contributions (Saver's Credit)",
-            shortLabel: "Saver's Credit",
+            labels: { default: "Retirement Savings Contributions (Saver's Credit)", compact: "Saver's Credit" },
             description: "Saver's credit for eligible retirement contributions",
             kindDetail: {
                 limitNote: "Up to $1,000 credit ($2,000 MFJ) at the maximum rate; percentage depends on AGI and filing status",
             },
-            inputRowSettings: {
+            input: {
                 category: "credit",
                 displayOrder: 3,
                 inputType: "currency",
@@ -67,19 +64,18 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
                 validate: makeYearValuesCappedValidator("retirementSavingsContributions", 2000),
             },
             calculate: retirementSavingsContributions,
-            sankeySettings: {
+            sankey: {
                 node: creditSankeyNode,
             },
         },
         {
             id: "input-credit-other",
-            label: "Other Federal Credit",
-            shortLabel: "Other",
+            labels: { default: "Other Federal Credit", compact: "Other" },
             description: "Any other federal income tax credit",
             kindDetail: {
                 modelingNote: "Miscellaneous federal credits",
             },
-            inputRowSettings: {
+            input: {
                 category: "credit",
                 displayOrder: 4,
                 inputType: "currency",
@@ -94,7 +90,7 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
                 validate: nonNegativeValidator,
             },
             calculate: otherCredit,
-            sankeySettings: {
+            sankey: {
                 node: creditSankeyNode,
             },
         },

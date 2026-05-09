@@ -21,9 +21,9 @@ interface SankeyFlowTestCase {
  */
 function extractSankeyLinkFlows(cc: CalculatedConfigItem[]): { link: SankeyLink; flowValue: number }[] {
     return cc
-        .filter((item) => item.computedValue > 0 && "link" in (item.sankeySettings || {}))
+        .filter((item) => item.computedValue > 0 && Boolean(item.sankey?.links?.length))
         .flatMap((item) =>
-            ((item.sankeySettings as { link?: SankeyLink[] }).link || []).map((link) => ({
+            (item.sankey?.links || []).map((link) => ({
                 link,
                 flowValue: item.computedValue,
             })),

@@ -39,18 +39,16 @@ export type InputRowSettings = {
 export type SankeyLink = {
     source: string;
     target: string;
-    fill: string;
-    stroke: string;
+    fill?: string;
+    stroke?: string;
     row: number;
     col: number;
-};
+} & ChartStyle;
 
 export type SankeyNode = {
     row: number;
     col: number;
-    fill: string;
-    stroke: string;
-};
+} & ChartStyle;
 
 export type MekkoRowKind = "deduction" | "pretax" | "seAdjustment" | "payrollTax" | "ordinaryBracket" | "ltcgBracket";
 
@@ -58,50 +56,68 @@ export type MekkoSegmentSplit = {
     keepId: string;
     taxFill?: string;
     taxStroke?: string;
+    taxColorRole?: ChartColorRole;
 };
 
 export type MekkoRowSettings = {
     row: number;
     col: number;
-    fill: string;
-    stroke: string;
     kind: MekkoRowKind;
     split?: MekkoSegmentSplit;
-};
+} & ChartStyle;
 
 export type SankeyCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary" | "takehome" | "rate";
 
 export type TaxTreatment = "ordinary" | "selfEmployment" | "shortTermCapGains" | "longTermCapGains";
 
-export type configItem = {
+export type ConfigLabels = {
+    default: string;
+    compact?: string;
+    summary?: string;
+};
+
+export type KindDetail = {
+    modelingNote?: string;
+    limitNote?: string;
+};
+
+export type ChartColorRole = "income" | "pretax" | "deduction" | "tax" | "credit" | "keep" | "ltcg" | "default";
+
+export type ChartStyle = {
+    colorRole?: ChartColorRole;
+    fill?: string;
+    stroke?: string;
+};
+
+export type SankeySettings = {
+    node?: SankeyNode;
+    links?: SankeyLink[];
+};
+
+export type MekkoSettings = {
+    row?: MekkoRowSettings;
+};
+
+export type SummarySettings = {
+    summaryId: string;
+    category: SankeyCategory;
+    displayOrder: number;
+    format?: "currency" | "percent" | "number";
+    highlight?: boolean;
+    hideWhenZero?: boolean;
+};
+
+export type ConfigItem = {
     id: string;
     category?: InputCategory;
-    label: string;
-    shortLabel?: string;
+    labels: ConfigLabels;
     description?: string;
-    kindDetail?: {
-        modelingNote?: string;
-        limitNote?: string;
-    };
-    inputRowSettings?: InputRowSettings;
+    kindDetail?: KindDetail;
+    input?: InputRowSettings;
     taxTreatment?: TaxTreatment;
-    sankeySettings?: {
-        node?: SankeyNode;
-    } | {
-        link?: SankeyLink[];
-    };
-    mekkoSettings?: {
-        row?: MekkoRowSettings;
-    };
-    summary?: {
-        summaryId: string;
-        label: string;
-        category: SankeyCategory;
-        displayOrder: number;
-        format?: "currency" | "percent" | "number";
-        highlight?: boolean;
-        hideWhenZero?: boolean;
-    };
+    sankey?: SankeySettings;
+    mekko?: MekkoSettings;
+    summary?: SummarySettings;
     calculate?: CalculateFn;
 };
 

@@ -1,5 +1,5 @@
 import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
-import type { MekkoRowKind, MekkoRowSettings } from "~/lib/config/page/pageConfig.types";
+import type { ChartColorRole, MekkoRowKind, MekkoRowSettings } from "~/lib/config/page/pageConfig.types";
 
 export type MekkoRow = {
   id: string;
@@ -15,6 +15,10 @@ export type MekkoRow = {
   taxStroke: string;
 };
 
+function colorVar(role: ChartColorRole): string {
+  return `var(--chart-${role})`;
+}
+
 function findConfigValue(cc: CalculatedConfigItem[], id: string): number {
   return cc.find(i => i.id === id)?.computedValue ?? 0;
 }
@@ -28,7 +32,7 @@ function keepTaxFromSlice(cc: CalculatedConfigItem[], total: number, keepId: str
 }
 
 function rowFromCalculatedItem(item: CalculatedConfigItem, cc: CalculatedConfigItem[]): MekkoRow {
-  const row = item.mekkoSettings!.row!;
+  const row = item.mekko!.row!;
   const total = item.computedValue;
 
   const { keep, tax } = row.split
@@ -37,22 +41,22 @@ function rowFromCalculatedItem(item: CalculatedConfigItem, cc: CalculatedConfigI
 
   return {
     id: item.id,
-    label: item.shortLabel ?? item.label,
+    label: item.labels.compact ?? item.labels.default,
     total,
     keep,
     tax,
     kind: row.kind,
     order: row.row,
-    fill: row.fill,
-    stroke: row.stroke,
-    taxFill: row.split?.taxFill ?? "var(--mekko-tax)",
-    taxStroke: row.split?.taxStroke ?? "var(--mekko-tax)",
+    fill: row.fill ?? (row.colorRole ? colorVar(row.colorRole) : "var(--chart-default)"),
+    stroke: row.stroke ?? (row.colorRole ? colorVar(row.colorRole) : "var(--chart-default)"),
+    taxFill: row.split?.taxFill ?? (row.split?.taxColorRole ? colorVar(row.split.taxColorRole) : "var(--chart-tax)"),
+    taxStroke: row.split?.taxStroke ?? (row.split?.taxColorRole ? colorVar(row.split.taxColorRole) : "var(--chart-tax)"),
   };
 }
 
 function compareMekkoRows(a: CalculatedConfigItem, b: CalculatedConfigItem): number {
-  const aRow = a.mekkoSettings!.row as MekkoRowSettings;
-  const bRow = b.mekkoSettings!.row as MekkoRowSettings;
+  const aRow = a.mekko!.row as MekkoRowSettings;
+  const bRow = b.mekko!.row as MekkoRowSettings;
   return aRow.col - bRow.col || aRow.row - bRow.row || a.id.localeCompare(b.id);
 }
 
@@ -69,7 +73,7 @@ export type MekkoChartData = {
 
 export function buildMekkoFromConfig(cc: CalculatedConfigItem[]): MekkoChartData | undefined {
   const rows = cc
-    .filter(i => i.computedValue > 0 && i.mekkoSettings?.row)
+    .filter(i => i.computedValue > 0 && i.mekko?.row)
     .sort(compareMekkoRows)
     .map(item => rowFromCalculatedItem(item, cc));
 

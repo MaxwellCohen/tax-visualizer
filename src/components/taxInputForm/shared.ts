@@ -1,5 +1,5 @@
 import type { FilingStatus } from "~/lib/taxData";
-import type { configItem, SubcategoryConfig } from "~/lib/config/page/pageConfig.types";
+import type { ConfigItem, SubcategoryConfig } from "~/lib/config/page/pageConfig.types";
 
 type SelectOption = { value: string; label: string };
 
@@ -10,7 +10,7 @@ export const filingStatusOptions: Array<{ value: FilingStatus; label: string }> 
   { value: "headOfHousehold", label: "Head of household" },
 ];
 
-export function incomeKindSelectOptions(items: configItem[], isMarriedJoint: boolean): SelectOption[] {
+export function incomeKindSelectOptions(items: ConfigItem[], isMarriedJoint: boolean): SelectOption[] {
   return subcategorySelectOptions(items, "income", {
     labelForSubcategory: sub => (isMarriedJoint ? sub.labelJoint : sub.labelSingle),
     includeSubcategory: sub => isMarriedJoint || !isSecondSpouseSubKey(sub.key),
@@ -59,7 +59,7 @@ function isSecondSpouseSubKey(key: string): boolean {
 }
 
 function subcategorySelectOptions(
-  items: configItem[],
+  items: ConfigItem[],
   category: string,
   options: {
     labelForSubcategory: (subcategory: SubcategoryConfig) => string;
@@ -69,7 +69,7 @@ function subcategorySelectOptions(
   return items
     .filter(hasSubcategoriesForCategory(category))
     .flatMap(item =>
-      item.inputRowSettings.subcategories
+      item.input.subcategories
         .filter(options.includeSubcategory ?? (() => true))
         .map(sub => ({
           value: sub.key,
@@ -81,20 +81,20 @@ function subcategorySelectOptions(
 
 function hasSubcategoriesForCategory(
   category: string
-): (item: configItem) => item is configItem & { inputRowSettings: { subcategories: SubcategoryConfig[] } } {
-  return (item): item is configItem & { inputRowSettings: { subcategories: SubcategoryConfig[] } } =>
-    item.inputRowSettings?.category === category && Boolean(item.inputRowSettings.subcategories);
+): (item: ConfigItem) => item is ConfigItem & { input: { subcategories: SubcategoryConfig[] } } {
+  return (item): item is ConfigItem & { input: { subcategories: SubcategoryConfig[] } } =>
+    item.input?.category === category && Boolean(item.input.subcategories);
 }
 
 /** Dropdown options for pretax rows; filters out empty labels and MFJ-only spouse (2) lines when not filing jointly. */
-export function pretaxBenefitKindSelectOptions(items: configItem[], isMarriedJoint: boolean): SelectOption[] {
+export function pretaxBenefitKindSelectOptions(items: ConfigItem[], isMarriedJoint: boolean): SelectOption[] {
   return subcategorySelectOptions(items, "pretax", {
     labelForSubcategory: sub => (isMarriedJoint ? sub.labelJoint : sub.labelSingle),
     includeSubcategory: sub => isMarriedJoint || !isSecondSpouseSubKey(sub.key),
   });
 }
 
-export function itemizedDeductionSelectOptions(category: string, items: configItem[]): SelectOption[] {
+export function itemizedDeductionSelectOptions(category: string, items: ConfigItem[]): SelectOption[] {
   return subcategorySelectOptions(items, category, {
     labelForSubcategory: sub => sub.labelSingle,
   });

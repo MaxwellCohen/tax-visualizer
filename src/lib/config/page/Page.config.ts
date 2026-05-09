@@ -12,14 +12,14 @@ import { makePretaxInputsConfig } from "./pretaxInputs";
 import { getBracketItems } from "./taxBracketNodes";
 import { makeTaxNodesConfig } from "./taxNodes";
 import type {
-    configItem,
+    ConfigItem,
     InputCategory,
     InputRowSettings,
     TaxInputFormSectionDefinition,
     TaxInputFormSectionKey,
 } from "./pageConfig.types";
 
-export type { SankeyLink, configItem } from "./pageConfig.types";
+export type { SankeyLink, ConfigItem } from "./pageConfig.types";
 
 /** Ordered tax input sections: edit this list to reorder or drop line-item groups; `settings` is special-cased in UI. */
 const TAX_INPUT_FORM_SECTIONS: readonly TaxInputFormSectionDefinition[] = [
@@ -34,7 +34,7 @@ export function getInputItemsForSection(
     taxData: TaxYearConfig,
     filingStatus: FilingStatus,
     sectionKey: Exclude<TaxInputFormSectionKey, "settings">,
-): configItem[] {
+): ConfigItem[] {
     const def = TAX_INPUT_FORM_SECTIONS.find(
         (s): s is Extract<TaxInputFormSectionDefinition, { kind: "lineItems" }> =>
             s.key === sectionKey && s.kind === "lineItems",
@@ -42,12 +42,12 @@ export function getInputItemsForSection(
     if (!def) return [];
     const catSet = new Set<InputCategory>(def.categories);
     return getInputItems(taxData, filingStatus).filter(
-        (item) => item.inputRowSettings?.category != null && catSet.has(item.inputRowSettings.category),
+        (item) => item.input?.category != null && catSet.has(item.input.category),
     );
 }
 
 
-export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
     return [
         ...makeIncomeInputsConfig(taxData, filingStatus),
         ...makePretaxInputsConfig(taxData, filingStatus),
@@ -67,11 +67,11 @@ export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatu
     ];
 }
 
-export function getInputItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
-    return getConfigItems(taxData, filingStatus).filter((item) => 'inputRowSettings' in item)
+export function getInputItems(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
+    return getConfigItems(taxData, filingStatus).filter((item) => "input" in item)
 }
 
-/** Build {@link ValidationContext} for `inputRowSettings.validate` on config items (limits from `YearValues`). */
+/** Build {@link ValidationContext} for `input.validate` on config items (limits from `YearValues`). */
 export function buildValidationContext(
     taxYear: number,
     filingStatus: FilingStatus,
@@ -86,7 +86,7 @@ export function buildValidationContext(
     };
 }
 
-/** Resolve `inputRowSettings.validate` for a line-item `kind` (subcategory key). */
+/** Resolve `input.validate` for a line-item `kind` (subcategory key). */
 function findValidateForKind(
     taxData: TaxYearConfig | null | undefined,
     filingStatus: FilingStatus,
@@ -94,7 +94,7 @@ function findValidateForKind(
 ): NonNullable<InputRowSettings["validate"]> | undefined {
     if (!taxData || kind == null) return undefined;
     for (const item of getInputItems(taxData, filingStatus)) {
-        const s = item.inputRowSettings;
+        const s = item.input;
         if (!s?.validate) continue;
         const subs = s.subcategories;
         if (subs?.some((sub) => sub.key === kind)) {
@@ -105,7 +105,7 @@ function findValidateForKind(
 }
 
 /**
- * Runs the config object's `validate` for this kind. Rules live on {@link configItem} `inputRowSettings` only
+ * Runs the config object's `validate` for this kind. Rules live on {@link ConfigItem} `input` only
  * (see `incomeInputs`, `pretaxInputs`, `deductionInputs`, `creditInputs`).
  */
 export function validateLineItemAmount(

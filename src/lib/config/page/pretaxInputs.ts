@@ -1,20 +1,19 @@
 /** Pre-tax inputs: 401(k), HSA, traditional IRA, other payroll pre-tax. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
-import type { configItem } from "./pageConfig.types";
+import type { ConfigItem } from "./pageConfig.types";
 import { _401k, _hsa, otherPretax, traditionalIra } from "./pageConfig.inputs";
 import { nonNegativeValidator, makeYearValuesCappedValidator, makeHsaCappedValidator } from "./inputValidators";
 
-export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
+export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
         {
             id: "input-pretax-401K",
-            label: "401(k) Deferrals",
-            shortLabel: "401(k)",
+            labels: { default: "401(k) Deferrals", compact: "401(k)" },
             description: "Elective deferrals from W-2 pay",
             kindDetail: {
                 limitNote: "elective deferral per employee (catch-up not modeled)",
             },
-            inputRowSettings: {
+            input: {
                 category: "pretax",
                 displayOrder: 1,
                 inputType: "currency",
@@ -30,22 +29,21 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 validate: makeYearValuesCappedValidator("electiveDeferral401k", 23000),
             },
             calculate: _401k, 
-            sankeySettings: {
+            sankey: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
-                link: [
+                links: [
                     { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],
             },
         },
         {
             id: "input-pretax-hsa",
-            label: "HSA (payroll)",
-            shortLabel: "HSA",
+            labels: { default: "HSA (payroll)", compact: "HSA" },
             description: "Payroll HSA contributions",
             kindDetail: {
                 limitNote: "payroll HSA contributions toward HDHP limits",
             },
-            inputRowSettings: {
+            input: {
                 category: "pretax",
                 displayOrder: 2,
                 inputType: "currency",
@@ -61,22 +59,21 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 showWhen: (ctx) => ctx.isJoint !== undefined,
             },
             calculate: _hsa,
-            sankeySettings: {
+            sankey: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 2, col: 3 },
-                link: [
+                links: [
                     { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],
             },
         },
         {
             id: "input-pretax-otherPretax",
-            label: "Other Pre-tax (payroll)",
-            shortLabel: "Other Pre-tax",
+            labels: { default: "Other Pre-tax (payroll)", compact: "Other Pre-tax" },
             description: "Miscellaneous payroll amounts taken pre-tax",
             kindDetail: {
                 limitNote: "miscellaneous payroll amounts taken pre-tax",
             },
-            inputRowSettings: {
+            input: {
                 category: "pretax",
                 displayOrder: 3,
                 inputType: "currency",
@@ -92,22 +89,21 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 validate: nonNegativeValidator,
             },
             calculate: otherPretax,
-            sankeySettings: {
+            sankey: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 2 },
-                link: [
+                links: [
                     { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],
             },
         },
         {
             id: "input-pretax-traditionalIra",
-            label: "Traditional IRA (deductible)",
-            shortLabel: "Traditional IRA",
+            labels: { default: "Traditional IRA (deductible)", compact: "Traditional IRA" },
             description: "Traditional IRA (deductible)",
             kindDetail: {
                 limitNote: "Traditional IRA (deductible in this flow)",
             },
-            inputRowSettings: {
+            input: {
                 category: "pretax",
                 displayOrder: 4,
                 inputType: "currency",
@@ -120,9 +116,9 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 showWhen: (ctx) => ctx.isJoint !== undefined,
             },
             calculate: traditionalIra,
-            sankeySettings: {
+            sankey: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 4, col: 2 },
-                link: [
+                links: [
                     { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],
             },

@@ -1,6 +1,6 @@
 /** Income pipeline: wages, pretax, shielded income, taxable ordinary/LTCG, and related calculated nodes. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
-import type { configItem } from "./pageConfig.types";
+import type { ConfigItem } from "./pageConfig.types";
 import {
     selfEmploymentIncome,
     shortTermCapGains,
@@ -11,16 +11,14 @@ import {
 } from "./pageConfig.inputs";
 import { ordinaryIncomeAfterPretax } from "./taxCalculations";
 
-export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
+export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
         {
             id: "totalIncome",
-            label: "Total Income",
-            shortLabel: "Total Income",
+            labels: { default: "Total Income", compact: "Total Income", summary: "Gross Income" },
             calculate: totalIncome,
             summary: {
                 summaryId: "total-income",
-                label: "Gross Income",
                 category: "income",
                 displayOrder: 1,
                 format: "currency",
@@ -28,10 +26,10 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         },
         {
             id: "wages",
-            label: "Wages",
-            sankeySettings: {
+            labels: { default: "Wages" },
+            sankey: {
                 node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 1, col: 1 },
-                link: [
+                links: [
                     { source: "wages", target: "ordinaryTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 1 },
                 ],
             },
@@ -39,10 +37,10 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         },
         {
             id: "longTermCapGains",
-            label: "Long-Term Capital Gains",
-            sankeySettings: {
+            labels: { default: "Long-Term Capital Gains" },
+            sankey: {
                 node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: 2, col: 1 },
-                link: [
+                links: [
                     { source: "longTermCapGains", target: "longTermTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 1 },
                 ],
             },
@@ -50,11 +48,10 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         },
         {
             id: "pretaxDeductions",
-            label: "Pretax Deductions",
-            shortLabel: "Pretax Deductions",
-            sankeySettings: {
+            labels: { default: "Pretax Deductions", compact: "Pretax Deductions", summary: "Pre-tax Deductions" },
+            sankey: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
-                link: [
+                links: [
                     { source: "pretaxDeductions", target: "pretaxIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
                     { source: "pretaxIncome", target: "pretaxTakehome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
                 ],
@@ -62,7 +59,6 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             calculate: allPretax,
             summary: {
                 summaryId: "pretax-deductions",
-                label: "Pre-tax Deductions",
                 category: "pretax",
                 displayOrder: 2,
                 format: "currency",
@@ -70,30 +66,28 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         },
         {
             id: "selfEmployment",
-            label: "Self-Employment Income",
+            labels: { default: "Self-Employment Income" },
             calculate: selfEmploymentIncome,
         },
         {
             id: "ordinaryIncome",
-            label: "Other Ordinary Income",
+            labels: { default: "Other Ordinary Income" },
             calculate: ordinaryIncome,
         },
         {
             id: "shortTermCapGains",
-            label: "Short-Term Capital Gains",
+            labels: { default: "Short-Term Capital Gains" },
             calculate: shortTermCapGains,
         },
         {
             id: "shortTermCapGainsGrossIncome",
-            label: "Short-Term Cap Gains (Gross)",
-            shortLabel: "STCG (Gross)",
+            labels: { default: "Short-Term Cap Gains (Gross)", compact: "STCG (Gross)" },
             calculate: shortTermCapGains,
         },
         {
             id: "longTermCapitalGainsGrossIncome",
-            label: "Long-Term Cap Gains (Gross)",
-            shortLabel: "LTCG (Gross)",
-            sankeySettings: {
+            labels: { default: "Long-Term Cap Gains (Gross)", compact: "LTCG (Gross)" },
+            sankey: {
                 node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: 1, col: 2 },
             },
             calculate: longTermCapGains,

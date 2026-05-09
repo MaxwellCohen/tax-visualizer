@@ -7,7 +7,7 @@ import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
 import { compareSankeyLinks } from "~/components/taxSankey/compareSankeyLinks";
 import { compareSankeySiblings } from "~/components/taxSankey/compareSankeySiblings.logic";
 import { SANKEY_HEIGHT, SANKEY_WIDTH } from "~/components/taxSankey/layout";
-import { SankeyLink } from "~/lib/config/page/Page.config";
+import type { SankeyLink } from "~/lib/config/page/Page.config";
 import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 
 type TaxSankeyProps = {
@@ -21,11 +21,11 @@ function makeSankeyData(cc: CalculatedConfigItem[] | null) {
   const clonedLinks = cc
     .filter(
       (item) =>
-        item.computedValue > 0 && "link" in (item?.sankeySettings || {}),
+        item.computedValue > 0 && Boolean(item.sankey?.links?.length),
     )
     .flatMap((item) => {
       return (
-        (item.sankeySettings as { link?: SankeyLink[] })?.link?.map((link) => ({
+        item.sankey?.links?.map((link) => ({
           ...link,
           source: link.source,
           target: link.target,
@@ -35,18 +35,6 @@ function makeSankeyData(cc: CalculatedConfigItem[] | null) {
         })) || []
       );
     });
-
-    const acc =  clonedLinks.reduce((acc, v) => {
-      
-      const [to, from] = acc[v.source] || [0, 0];
-      
-      acc[v.source] = [to, from + v.value];
-      const [to2, from2] = acc[v.target] || [0, 0];
-      acc[v.target] = [to2 + v.value, from2];
-      return acc;
-    }, {} as Record<string, [number, number]>)
-
-  console.log("to", acc);
 
   if (!clonedLinks.length) {
     return undefined;
@@ -62,8 +50,8 @@ function makeSankeyData(cc: CalculatedConfigItem[] | null) {
     .filter((item) => nodeIdSet.has(item.id))
     .map((item) => ({
       id: item.id,
-      label: item.label,
-      ...(item.sankeySettings as { node?: any })?.node,
+      label: item.labels.default,
+      ...item.sankey?.node,
     }));
 
   if (!clonedNodes.length) {

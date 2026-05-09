@@ -31,8 +31,8 @@ export function getAllowedLineItemKindSets(
   const credit = new Set<string>();
 
   for (const item of items) {
-    const cat = item.inputRowSettings?.category as InputCategory | undefined;
-    const subs = item.inputRowSettings?.subcategories;
+    const cat = item.input?.category as InputCategory | undefined;
+    const subs = item.input?.subcategories;
     if (!cat || !subs) continue;
 
     for (const sub of subs) {

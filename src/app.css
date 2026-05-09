@@ -21,20 +21,29 @@ html[data-theme="light"] {
   --warning-text: #92400e;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 
+  --chart-income: #0f766e;
+  --chart-pretax: #0e7490;
+  --chart-deduction: #6b9e7a;
+  --chart-tax: #9f4a45;
+  --chart-credit: #ca8a04;
+  --chart-keep: #2f7d4b;
+  --chart-ltcg: #0369a1;
+  --chart-default: #475569;
+
   --sankey-node-1: #0d9488;
   --sankey-node-2: #64748b;
   --sankey-node-3: #d97706;
   --sankey-node-4: #7c3aed;
   --sankey-node-5: #0284c7;
-  --sankey-node-6: #dc2626;
-  --sankey-node-credits: #ca8a04;
-  --sankey-node-7: #475569;
-  --sankey-node-income: #0f766e;
-  --sankey-node-ltcg: #0369a1;
-  --sankey-node-keep: #16a34a;
-  --sankey-node-deferred: #0e7490;
+  --sankey-node-6: var(--chart-tax);
+  --sankey-node-credits: var(--chart-credit);
+  --sankey-node-7: var(--chart-default);
+  --sankey-node-income: var(--chart-income);
+  --sankey-node-ltcg: var(--chart-ltcg);
+  --sankey-node-keep: var(--chart-keep);
+  --sankey-node-deferred: var(--chart-pretax);
   --sankey-link: rgba(13, 148, 136, 0.22);
-  --sankey-link-tax: rgba(220, 38, 38, 0.45);
+  --sankey-link-tax: rgba(159, 74, 69, 0.45);
   --sankey-link-credits: rgba(202, 138, 4, 0.5);
   --sankey-link-keep: rgba(22, 163, 74, 0.45);
   --sankey-link-deferred: rgba(14, 116, 144, 0.45);
@@ -42,11 +51,11 @@ html[data-theme="light"] {
   --sankey-link-ltcg: rgba(3, 105, 161, 0.45);
   --sankey-label: #1a1a19;
 
-  --mekko-keep: #5a9a6a;
-  --mekko-pretax: #3d7a9e;
-  --mekko-deduction: #6b9e7a;
-  --mekko-ltcg: #4a8a9e;
-  --mekko-tax: #b54542;
+  --mekko-keep: var(--chart-keep);
+  --mekko-pretax: var(--chart-pretax);
+  --mekko-deduction: var(--chart-deduction);
+  --mekko-ltcg: var(--chart-ltcg);
+  --mekko-tax: var(--chart-tax);
   --mekko-segment-label: rgba(255, 255, 255, 0.95);
 
   --font-heading: "Outfit", sans-serif;
@@ -73,31 +82,40 @@ html[data-theme="dark"] {
   --warning-text: #fde68a;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 
+  --chart-income: #14b8a6;
+  --chart-pretax: #22d3ee;
+  --chart-deduction: #6b9e7a;
+  --chart-tax: #9f4a45;
+  --chart-credit: #eab308;
+  --chart-keep: #2f7d4b;
+  --chart-ltcg: #0ea5e9;
+  --chart-default: #94a3b8;
+
   --sankey-node-1: #2dd4bf;
   --sankey-node-2: #94a3b8;
   --sankey-node-3: #fbbf24;
   --sankey-node-4: #a78bfa;
   --sankey-node-5: #38bdf8;
-  --sankey-node-6: #f87171;
-  --sankey-node-credits: #eab308;
-  --sankey-node-7: #94a3b8;
-  --sankey-node-income: #14b8a6;
-  --sankey-node-ltcg: #0ea5e9;
-  --sankey-node-keep: #4ade80;
-  --sankey-node-deferred: #22d3ee;
+  --sankey-node-6: var(--chart-tax);
+  --sankey-node-credits: var(--chart-credit);
+  --sankey-node-7: var(--chart-default);
+  --sankey-node-income: var(--chart-income);
+  --sankey-node-ltcg: var(--chart-ltcg);
+  --sankey-node-keep: var(--chart-keep);
+  --sankey-node-deferred: var(--chart-pretax);
   --sankey-link: rgba(45, 212, 191, 0.28);
-  --sankey-link-tax: rgba(248, 113, 113, 0.5);
+  --sankey-link-tax: rgba(159, 74, 69, 0.5);
   --sankey-link-credits: rgba(234, 179, 8, 0.55);
   --sankey-link-keep: rgba(74, 222, 128, 0.5);
   --sankey-link-deferred: rgba(34, 211, 238, 0.5);
   --sankey-link-label: #c8c8c0;
   --sankey-label: #e8e6e3;
 
-  --mekko-keep: #5a9a6a;
-  --mekko-pretax: #3d7a9e;
-  --mekko-deduction: #6b9e7a;
-  --mekko-ltcg: #4a8a9e;
-  --mekko-tax: #b54542;
+  --mekko-keep: var(--chart-keep);
+  --mekko-pretax: var(--chart-pretax);
+  --mekko-deduction: var(--chart-deduction);
+  --mekko-ltcg: var(--chart-ltcg);
+  --mekko-tax: var(--chart-tax);
   --mekko-segment-label: rgba(255, 255, 255, 0.95);
 }
 

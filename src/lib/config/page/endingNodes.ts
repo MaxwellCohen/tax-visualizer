@@ -1,6 +1,6 @@
 /** Ending metrics: take-home pay, effective tax rate, marginal federal rate. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
-import type { configItem } from "./pageConfig.types";
+import type { ConfigItem } from "./pageConfig.types";
 import {
     totalIncome,
     calculateTaxBrackets,
@@ -8,23 +8,21 @@ import {
     getItemizedDeductionsWithoutPayrollTax,
 } from "./taxCalculations";
 
-export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
+export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
 
 
     return [
         {
             id: "federalPayrollTaxes",
-            label: "Federal Payroll & Self-Employment Taxes",
-            shortLabel: "Federal Payroll / SE Tax",
-            sankeySettings: {
+            labels: { default: "Federal Payroll & Self-Employment Taxes", compact: "Federal Payroll / SE Tax" },
+            sankey: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 2, col: 4 },
             },
         },
         {
             id: "takeHomePay",
-            label: "Take-Home Pay",
-            shortLabel: "Take-Home Pay",
-            sankeySettings: {
+            labels: { default: "Take-Home Pay", compact: "Take-Home Pay" },
+            sankey: {
                 node: { fill: "var(--sankey-node-keep)", stroke: "var(--sankey-link-keep)", row: 3, col: 4 },
             },
             calculate: (inputs, taxData, filingStatus) => {
@@ -34,7 +32,6 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             },
             summary: {
                 summaryId: "take-home-pay",
-                label: "Take-Home Pay",
                 category: "takehome",
                 displayOrder: 6,
                 format: "currency",
@@ -43,9 +40,8 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
         },
         {
             id: "federalIncomeTax",
-            label: "Federal Income Tax",
-            shortLabel: "Federal Income Tax",
-            sankeySettings: {
+            labels: { default: "Federal Income Tax", compact: "Federal Income Tax" },
+            sankey: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 4, col: 4 },
             },
             calculate: (inputs, taxData, filingStatus) => {
@@ -55,7 +51,6 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             },
             summary: {
                 summaryId: "federal-income-tax",
-                label: "Federal Income Tax",
                 category: "tax",
                 displayOrder: 4,
                 format: "currency",
@@ -65,8 +60,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
 
         {
             id: "effectiveTaxRate",
-            label: "Effective Tax Rate",
-            shortLabel: "Effective Rate",
+            labels: { default: "Effective Tax Rate", compact: "Effective Rate" },
             calculate: (inputs) => {
                 const gross = totalIncome(inputs);
                 if (gross <= 0) return 0;
@@ -76,7 +70,6 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             },
             summary: {
                 summaryId: "effective-tax-rate",
-                label: "Effective Tax Rate",
                 category: "rate",
                 displayOrder: 7,
                 format: "percent",

@@ -49,7 +49,7 @@ function metricFromCalculatedItem(item: CalculatedConfigItem): SummaryMetric {
   return {
     id: item.id,
     summaryId: summary.summaryId,
-    label: summary.label,
+    label: item.labels.summary ?? item.labels.default,
     category: summary.category,
     value: item.computedValue,
     format: summary.format ?? "number",

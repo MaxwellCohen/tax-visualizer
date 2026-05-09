@@ -17,7 +17,7 @@ import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldV
 import { getInputItemsForSection } from "~/lib/config";
 import type { ValidationContext } from "~/lib/config/types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
-import type { configItem } from "~/lib/config/page/pageConfig.types";
+import type { ConfigItem } from "~/lib/config/page/pageConfig.types";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;
@@ -36,7 +36,7 @@ const pretaxDetailRowTdClass =
 
 export function PretaxBenefitSourceRow(props: Props) {
   const commitToUrl = useTaxInputCommitToUrl();
-  const configItems = createMemo((): configItem[] => {
+  const configItems = createMemo((): ConfigItem[] => {
     const td = props.taxData();
     const fs = props.filingStatus();
     if (!td) return [];
@@ -57,7 +57,7 @@ export function PretaxBenefitSourceRow(props: Props) {
     const currentKind = kind();
     const items = configItems();
     const item =
-      items.find((it) => it.inputRowSettings?.subcategories?.some((sub) => sub.key === currentKind)) ??
+      items.find((it) => it.input?.subcategories?.some((sub) => sub.key === currentKind)) ??
       items.find((i) => i.id === "input-pretax-otherPretax");
 
     if (!item) {
