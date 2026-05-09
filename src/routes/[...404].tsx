@@ -1,4 +1,3 @@
-// fallow-ignore-file
 // fallow-ignore-file unused-file
 import { A } from "@solidjs/router";
 import { NotFoundSeo } from "~/components/Seo";

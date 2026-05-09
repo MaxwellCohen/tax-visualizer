@@ -1,49 +1,32 @@
-import { Show } from "solid-js";
+import { Accessor, For, Show, createMemo } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
-import { type MetricDisplay } from "~/lib/taxVisualization.config";
 import { TaxSummaryMetric } from "~/components/taxSummary/TaxSummaryMetric";
-import { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
-import { Accessor, createMemo } from "solid-js";
+import {
+  buildSummaryFromConfig,
+  type SummaryMetric,
+} from "~/lib/taxCharts.buildSummary";
+import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 
 type TaxSummaryProps = {
   calculatedConfig: Accessor<CalculatedConfigItem[] | null>;
 };
 
-function MetricItem(props: { metric: MetricDisplay }) {
-  const displayValue = () => {
-    if (props.metric.category === "credits") {
-      const numValue = parseFloat(props.metric.value.replace(/[^0-9.-]/g, ""));
-      if (numValue > 0) {
-        return "-" + props.metric.value;
-      }
-    }
-    return props.metric.value;
-  };
-
-  const parsedValue = parseFloat(props.metric.value.replace(/[^0-9.-]/g, ""));
-  
+function MetricItem(props: { metric: SummaryMetric }) {
   return (
-    <Show when={parsedValue > 0}>
-      <TaxSummaryMetric
-        label={props.metric.label}
-        value={displayValue()}
-        highlight={props.metric.highlight}
-      />
-    </Show>
+    <TaxSummaryMetric
+      label={props.metric.label}
+      value={props.metric.value}
+      format={props.metric.format}
+      highlight={props.metric.highlight}
+    />
   );
 }
 
 export default function TaxSummary(props: TaxSummaryProps) {
-  const metrics = createMemo(() => {
-    return props.calculatedConfig()?.map((m) => ({
-      metric: {
-        id: m.id,
-        category: m.summary?.category ?? "income",
-        label: m.label,
-        value: m.computedValue.toString(),
-        format: m.summary?.format ?? "number",
-      }
-    })) ?? [];
+  const summaryData = createMemo(() => {
+    const calculatedConfig = props.calculatedConfig();
+    if (!calculatedConfig) return undefined;
+    return buildSummaryFromConfig(calculatedConfig);
   });
 
   return (
@@ -56,17 +39,46 @@ export default function TaxSummary(props: TaxSummaryProps) {
       }}
     >
       <CollapsibleBlock title="Tax Summary" bodyClass="mt-4 space-y-4">
-        <div class="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
-          <Show 
-            when={() => metrics().length > 0}
-            fallback={<div class="col-span-full text-center py-4">No tax data available</div>}
-          >
-            {metrics().map((item) => (
-              <MetricItem metric={item.metric} />
-            ))}
-          </Show>
-        </div>
-        {/* <FootnotesDisplay footnotes={footnotes()} /> */}
+        <p
+          class="max-w-3xl text-xs leading-relaxed"
+          style={{ color: "var(--text-muted)" }}
+        >
+          These cards follow the same configured tax pipeline as the flow and
+          Mekko charts: income is reduced by pre-tax and deduction rules, then
+          taxes, credits, take-home pay, and rates are surfaced from the page
+          config.
+        </p>
+        <Show
+          keyed
+          when={summaryData()}
+          fallback={
+            <div class="rounded-lg p-4 text-center text-sm" style={{ color: "var(--text-faint)" }}>
+              Enter income to see the summary.
+            </div>
+          }
+        >
+          {(data) => (
+            <div class="space-y-4">
+              <For each={data.sections}>
+                {(section) => (
+                  <div>
+                    <h3
+                      class="mb-2 text-[0.65rem] font-semibold uppercase tracking-[0.14em]"
+                      style={{ color: "var(--text-faint)" }}
+                    >
+                      {section.label}
+                    </h3>
+                    <div class="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
+                      <For each={section.metrics}>
+                        {(metric) => <MetricItem metric={metric} />}
+                      </For>
+                    </div>
+                  </div>
+                )}
+              </For>
+            </div>
+          )}
+        </Show>
       </CollapsibleBlock>
     </section>
   );

@@ -3,7 +3,6 @@ import type {
   DeductionKind,
   TaxSegment,
 } from "~/lib/taxCalc.types";
-import type { MekkoRow } from "~/lib/taxCharts.buildMekko";
 
 /** Single setting key in the form row list */
 export type TaxFormSettingId =
@@ -64,31 +63,6 @@ export type TaxFormData = {
   rows: TaxFormRow[];
 };
 
-/** Numeric pipeline output line */
-export type TaxComputedNumericRow = {
-  type: "computed";
-  id: string;
-  value: number;
-  label?: string;
-};
-
-
-
-export type TaxComputedRow = TaxComputedNumericRow;
-
-export type TaxResultRow = TaxFormRow | TaxComputedRow ;
-
-/** Pre-built Mekko band rows (aligned with Sankey federal credit split). */
-export type TaxResultMekkoDisplay = {
-  rows: MekkoRow[];
-};
-
-/** Pre-built Mekko rows; produced with {@link TaxResult.metricLines} in the pipeline. */
-export type TaxResultDisplay = {
-  mekko: TaxResultMekkoDisplay;
-};
-
-
 /** How a single registry metric stores its computed value on a line. */
 export type TaxMetricValueKind = "number" | "deductionKind";
 
@@ -102,17 +76,4 @@ export type TaxMetricLine = {
   value: TaxMetricComputedValue;
 };
 
-/**
- * Echo of input rows + appended computed rows. Successful runs include {@link TaxMetricLine} and
- * {@link TaxResultDisplay} so charts do not recompute tax or duplicate allocation helpers.
- */
-export type TaxResult = {
-  rows: TaxResultRow[];
-  /** Present when the tax pipeline completed; ordered per the chart metrics registry. */
-  metricLines?: TaxMetricLine[];
-  /** Present with `metricLines` when charts were built in the pipeline. */
-  display?: TaxResultDisplay;
-  notes: string[];
-  errors: string[];
-};
 

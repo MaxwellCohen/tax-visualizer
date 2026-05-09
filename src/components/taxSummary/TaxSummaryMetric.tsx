@@ -1,17 +1,21 @@
-type MetricProps = { label: string; value: string; highlight?: boolean; format?: "currency" | "percent" | "number" };
+import type { SummaryMetricFormat } from "~/lib/taxCharts.buildSummary";
 
-function formatValue(value: string, format?: "currency" | "percent" | "number"): string {
-  const num = parseFloat(value.replace(/[^0-9.-]/g, ""));
-  if (isNaN(num)) return value;
+type MetricProps = {
+  label: string;
+  value: number;
+  highlight?: boolean;
+  format?: SummaryMetricFormat;
+};
 
+function formatValue(value: number, format?: SummaryMetricFormat): string {
   switch (format) {
     case "currency":
-      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num);
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
     case "percent":
-      return new Intl.NumberFormat("en-US", { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(num / 100);
+      return new Intl.NumberFormat("en-US", { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
     case "number":
     default:
-      return new Intl.NumberFormat("en-US").format(num);
+      return new Intl.NumberFormat("en-US").format(value);
   }
 }
 

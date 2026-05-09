@@ -174,6 +174,14 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
                 })(),
             },
             calculate: (inputs, taxData, filingStatus) => computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
+            summary: {
+                summaryId: "federal-tax-credits-applied",
+                label: "Federal Credits Applied",
+                category: "credit",
+                displayOrder: 5.5,
+                format: "currency",
+                hideWhenZero: true,
+            },
         },
         {
             id: "socialSecurityTax",

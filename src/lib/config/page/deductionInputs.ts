@@ -12,13 +12,6 @@ export function makePayrollFromWagesInputConfig(_taxData: TaxYearConfig, _filing
             label: "Payroll Taxes",
             shortLabel: "Payroll Taxes",
             calculate: calculatePayrollTax,
-            summary: {
-                summaryId: "payroll-tax",
-                label: "Payroll Tax",
-                category: "tax",
-                displayOrder: 5,
-                format: "currency",
-            },
         },
     ];
 }
@@ -64,7 +57,15 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "ordinaryTaxableIncome", target: "standardDeduction", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
                 ],
             },
-            calculate: getStandardDeductionWithoutPayrollTax
+            calculate: getStandardDeductionWithoutPayrollTax,
+            summary: {
+                summaryId: "standard-deduction",
+                label: "Standard Deduction",
+                category: "deduction",
+                displayOrder: 2.5,
+                format: "currency",
+                hideWhenZero: true,
+            },
         },
         {
             id: "Itemized Deductions",
@@ -80,7 +81,15 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
                 ],
             },
-            calculate: getItemizedDeductionsWithoutPayrollTax
+            calculate: getItemizedDeductionsWithoutPayrollTax,
+            summary: {
+                summaryId: "itemized-deductions",
+                label: "Itemized Deductions",
+                category: "deduction",
+                displayOrder: 2.5,
+                format: "currency",
+                hideWhenZero: true,
+            },
         },
         {
             id: "deduction-salt",
