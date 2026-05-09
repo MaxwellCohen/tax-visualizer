@@ -1,16 +1,18 @@
 import type { TaxFormRow } from "~/lib/taxForm.types";
-import { findInputById } from "./pageConfig.helpers";
+import { findInputById } from "./inputAccessors";
 import { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 
-const sumInputsByExactKind = (inputs: TaxFormRow[], kind: string): number =>
+const sumInputsByKinds = (inputs: TaxFormRow[], ...kinds: string[]): number =>
     inputs.reduce((sum, row) => {
-        if (row.type === "setting" || row.kind?.toLowerCase().includes(kind.toLowerCase())) return sum;
+        if (row.type === "setting") return sum;
+        const rowKind = row.kind?.toLowerCase();
+        if (!rowKind || !kinds.every((kind) => rowKind.includes(kind.toLowerCase()))) return sum;
         return sum + row.amount;
     }, 0);
 
 export const wageIncomeSpouse1 = (inputs: TaxFormRow[]) =>
-    sumInputsByExactKind(inputs, "spouse1");
-export const wageIncomeSpouse2 = (inputs: TaxFormRow[]) => sumInputsByExactKind(inputs, "spouse2");
+    sumInputsByKinds(inputs, "income-ordinary-wages") - sumInputsByKinds(inputs, "income-ordinary-wages", "spouse2");
+export const wageIncomeSpouse2 = (inputs: TaxFormRow[]) => sumInputsByKinds(inputs, "income-ordinary-wages", "spouse2");
 export const wageIncome = (inputs: TaxFormRow[]) => wageIncomeSpouse1(inputs) + wageIncomeSpouse2(inputs);
 export const selfEmploymentIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary-selfEmployment");
 export const ordinaryIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary");

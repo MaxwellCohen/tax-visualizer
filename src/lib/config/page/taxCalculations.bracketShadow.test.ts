@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getOrdinaryBrackets } from "~/lib/config/page/pageConfig.helpers";
 import {
     calculatePayrollTaxBreakdown,
     calculateOrdinaryTaxWithPayrollShadow,
     calculateTaxableIncome,
     computeDeductionShieldSlice,
+    getOrdinaryBrackets,
     ordinaryIncomeSlicesWithPayrollShadow,
     sankeyOrdinaryTaxableIncomeHubInflow,
 } from "~/lib/config/page/taxCalculations";

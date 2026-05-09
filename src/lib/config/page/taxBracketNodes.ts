@@ -2,8 +2,8 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import type { configItem } from "./pageConfig.types";
-import { calculateLtcgTaxTotal, getCreditsSankeyRow, getOrdinaryBrackets } from "./pageConfig.helpers";
-import { allPretax, calculatePayrollTax, calculateSelfEmploymentTax, calculateTaxableIncome, ordinaryIncome, ordinaryIncomeSlicesWithPayrollShadow, totalDeductions } from "./taxCalculations";
+import { getCreditsSankeyRow } from "./sankeyLayout.helpers";
+import { allPretax, calculateLtcgTaxTotal, calculatePayrollTax, calculateSelfEmploymentTax, calculateTaxableIncome, getOrdinaryBrackets, ordinaryIncome, ordinaryIncomeSlicesWithPayrollShadow, totalDeductions } from "./taxCalculations";
 import { longTermCapGains, totalCredits } from "./pageConfig.inputs";
 
 interface CreditAllocation {

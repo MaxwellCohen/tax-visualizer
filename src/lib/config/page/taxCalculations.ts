@@ -1,9 +1,5 @@
-import type { FilingStatus, FederalTaxBracket, TaxYearConfig } from "~/lib/taxData.types";
+import type { FilingStatus, FederalTaxBracket, LongTermCapGainsThresholds, TaxYearConfig } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
-import {
-    calculateLtcgTaxTotal,
-    getOrdinaryBrackets,
-} from "./pageConfig.helpers";
 import {
     wageIncome,
     wageIncomeSpouse1,
@@ -28,6 +24,7 @@ import {
     totalCredits,
     totalItemized,
     useItemizedDeductions,
+    standardDeduction as standardDeductionInput,
 } from "./pageConfig.inputs";
 
 export * from "./pageConfig.inputs";
@@ -76,12 +73,7 @@ export function calculatePayrollTax(
 };
 
 export function calculateSelfEmploymentTax(inputs: TaxFormRow[], taxData: TaxYearConfig): number {
-    const seIncome = selfEmploymentIncome(inputs);
-    const netEarnings = seIncome * taxData.payroll.selfEmploymentNetEarningsFactor;
-    const ssTaxable = Math.min(netEarnings, taxData.payroll.socialSecurityWageBase);
-    const ssTax = ssTaxable * taxData.payroll.selfEmploymentSocialSecurityRate;
-    const medicareTax = netEarnings * taxData.payroll.selfEmploymentMedicareRate;
-    return ssTax + medicareTax;
+    return calculateSelfEmploymentTaxFromIncome(selfEmploymentIncome(inputs), taxData);
 };
 
 function calculateSelfEmploymentTaxFromIncome(seIncome: number, taxData: TaxYearConfig): number {
@@ -94,6 +86,54 @@ function calculateSelfEmploymentTaxFromIncome(seIncome: number, taxData: TaxYear
 
 export function calculateSelfEmploymentDeduction(seIncome: number, taxData: TaxYearConfig): number {
     return calculateSelfEmploymentTaxFromIncome(seIncome, taxData) / 2;
+}
+
+export function getStandardDeductionWithoutPayrollTax(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
+    if (useItemizedDeductions(inputs)) return 0;
+    const standardDeductionValue = standardDeductionInput(inputs, taxData, filingStatus);
+    const { payrollTaxTotal } = computeDeductionShieldSlice(inputs, taxData, filingStatus);
+    return Math.max(0, standardDeductionValue - payrollTaxTotal);
+}
+
+export function getItemizedDeductionsWithoutPayrollTax(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
+    if (!useItemizedDeductions(inputs)) return 0;
+    const { deduction, payrollTaxTotal } = computeDeductionShieldSlice(inputs, taxData, filingStatus);
+    return Math.max(0, deduction - payrollTaxTotal);
+}
+
+export function getOrdinaryBrackets(taxData: TaxYearConfig, filingStatus: FilingStatus): FederalTaxBracket[] {
+    return taxData.federalBrackets[filingStatus];
+}
+
+export function calculateLtcgTaxTotal(
+    taxableLtcg: number,
+    thresholds: LongTermCapGainsThresholds,
+    filingStatus: FilingStatus,
+    baseIncome: number
+): number {
+    let totalTax = 0;
+    let remaining = taxableLtcg;
+    let lowerBound = baseIncome;
+
+    const thresholdValues = thresholds[filingStatus];
+    const bracketConfigs: Array<{ rate: number; thresholdKey: "zeroRateMax" | "fifteenRateMax" | null }> = [
+        { rate: 0, thresholdKey: "zeroRateMax" },
+        { rate: 0.15, thresholdKey: "fifteenRateMax" },
+        { rate: 0.20, thresholdKey: null },
+    ];
+
+    for (const cfg of bracketConfigs) {
+        if (remaining <= 0) break;
+        const upperBound = cfg.thresholdKey ? thresholdValues[cfg.thresholdKey] : Number.POSITIVE_INFINITY;
+        const amountInBracket = Math.max(0, Math.min(remaining, Math.max(0, upperBound - lowerBound)));
+        if (amountInBracket > 0) {
+            const taxAmount = amountInBracket * cfg.rate;
+            totalTax += taxAmount;
+            remaining -= amountInBracket;
+        }
+        lowerBound = upperBound;
+    }
+    return totalTax;
 }
 
 type TaxableIncomeResult = {
@@ -136,17 +176,11 @@ export function computeDeductionShieldSlice(
     const seTax = calculateSelfEmploymentTaxFromIncome(seIncome, taxData);
     const seDeduction = seTax / 2;
 
-    console.log("seIncome", seIncome);
-    console.log("seTax", seTax);
-    console.log("seDeduction", seDeduction);
     // Ordinary bucket (wages + SE + STCG, etc.) minus payroll pre-tax deferrals and the ½ SE adjustment → income the shield is measured against.
     const pretax = allPretax(inputs);
-    console.log("pretax", pretax);
     const afterPretax = ordinaryIncome(inputs) - pretax - seDeduction;
-    console.log("afterPretax", afterPretax);
     // Wage FICA plus full SE tax: both draw from the same deduction-shield capacity before ordinary taxable is left.
     const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData, filingStatus);
-    console.log("payrollTaxTotal", payrollTaxTotal);
     // Maximum dollars standard or itemized could shield from ordinary tax, capped by actual income after pretax/SE adjustment.
     const shieldCapBeforePayroll = useItemizedDeductions(inputs)
         ? Math.min(totalItemized(inputs), afterPretax)
@@ -267,14 +301,7 @@ export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: Filin
     const calculatePayrollTaxFn = (inputs: TaxFormRow[], taxData: TaxYearConfig) => calculatePayrollTax(inputs, taxData, filingStatus)
 
 
-    const calculateSelfEmploymentTax = (inputs: TaxFormRow[]): number => {
-        const seIncome = selfEmploymentIncome(inputs);
-        const netEarnings = seIncome * taxData.payroll.selfEmploymentNetEarningsFactor;
-        const ssTaxable = Math.min(netEarnings, taxData.payroll.socialSecurityWageBase);
-        const ssTax = ssTaxable * taxData.payroll.selfEmploymentSocialSecurityRate;
-        const medicareTax = netEarnings * taxData.payroll.selfEmploymentMedicareRate;
-        return ssTax + medicareTax;
-    };
+    const calculateSelfEmploymentTaxFn = (inputs: TaxFormRow[]): number => calculateSelfEmploymentTax(inputs, taxData);
 
     const calculateFederalIncomeTaxAfterCredits = (inputs: TaxFormRow[]): number => {
         const { ordinary, ltcg, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
@@ -305,7 +332,7 @@ export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: Filin
         retirementSavingsContributions,
         otherCredit,
         calculatePayrollTax: calculatePayrollTaxFn,
-        calculateSelfEmploymentTax,
+        calculateSelfEmploymentTax: calculateSelfEmploymentTaxFn,
         calculateFederalIncomeTaxAfterCredits,
     };
 }

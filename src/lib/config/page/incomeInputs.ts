@@ -1,7 +1,7 @@
 /** Income inputs: W-2, 1099, STCG, LTCG, other ordinary. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
-import { nonNegativeValidator } from "./pageConfig.helpers";
+import { nonNegativeValidator } from "./inputValidators";
 
 export function makeIncomeInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [

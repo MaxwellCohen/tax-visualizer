@@ -1,14 +1,18 @@
 /** Deduction-related config nodes: 0% tax brackets (standard/itemized), deduction amounts, mekko slices. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
-import { getItemizedDeductionsWithoutPayrollTax, getStandardDeductionWithoutPayrollTax, getCreditsSankeyRow, getOrdinaryBrackets, calculateLtcgTaxTotal } from "./pageConfig.helpers";
+import { getCreditsSankeyRow } from "./sankeyLayout.helpers";
 import {
+    calculateLtcgTaxTotal,
     calculateTaxableIncome,
     calculatePayrollTax,
     calculatePayrollTaxBreakdown,
     calculateSelfEmploymentDeduction,
     calculateOrdinaryTaxWithPayrollShadow,
     computeFederalTaxCreditsApplied,
+    getItemizedDeductionsWithoutPayrollTax,
+    getStandardDeductionWithoutPayrollTax,
+    getOrdinaryBrackets,
 } from "./taxCalculations";
 import { longTermCapGains, ordinaryIncome, shortTermCapGains, selfEmploymentIncome, wageIncome, allPretax } from "./pageConfig.inputs";
 

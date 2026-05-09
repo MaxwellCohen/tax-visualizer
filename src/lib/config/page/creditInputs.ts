@@ -7,7 +7,8 @@ import {
     retirementSavingsContributions,
     otherCredit,
 } from "./pageConfig.inputs";
-import { getCreditsSankeyRow, nonNegativeValidator, makeYearValuesCappedValidator } from "./pageConfig.helpers";
+import { nonNegativeValidator, makeYearValuesCappedValidator } from "./inputValidators";
+import { getCreditsSankeyRow } from "./sankeyLayout.helpers";
 
 export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
     const row = getCreditsSankeyRow(taxData, filingStatus);
