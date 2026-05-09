@@ -2,7 +2,7 @@ import type { PretaxBenefitSource } from "~/lib/taxCalc.types";
 import { newPretaxRow } from "~/lib/taxForm.factories";
 import { getTaxYearConfig } from "~/lib/taxData";
 
-function finiteAmount(n: number): number {
+export function finiteAmount(n: number): number {
   return Number.isFinite(n) ? n : 0;
 }
 

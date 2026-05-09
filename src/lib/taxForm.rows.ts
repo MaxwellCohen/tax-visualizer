@@ -3,30 +3,36 @@ import type {
   TaxFormSettingId,
 } from "~/lib/taxForm.types";
 
+type LineItemRowType = "income" | "pretax" | "deduction" | "credit";
+
 export function settingRowIndex(rows: TaxFormRow[], id: TaxFormSettingId): number {
   return rows.findIndex((r) => r.type === "setting" && r.id === id);
 }
 
+function rowIndicesByType(rows: TaxFormRow[], rowType: LineItemRowType): number[] {
+  return rows.map((r, i) => (r.type === rowType ? i : -1)).filter((i): i is number => i >= 0);
+}
+
 export function incomeRowIndices(rows: TaxFormRow[]): number[] {
-  return rows.map((r, i) => (r.type === "income" ? i : -1)).filter((i): i is number => i >= 0);
+  return rowIndicesByType(rows, "income");
 }
 
 export function pretaxRowIndices(rows: TaxFormRow[]): number[] {
-  return rows.map((r, i) => (r.type === "pretax" ? i : -1)).filter((i): i is number => i >= 0);
+  return rowIndicesByType(rows, "pretax");
 }
 
 export function deductionRowIndices(rows: TaxFormRow[]): number[] {
-  return rows.map((r, i) => (r.type === "deduction" ? i : -1)).filter((i): i is number => i >= 0);
+  return rowIndicesByType(rows, "deduction");
 }
 
 export function creditRowIndices(rows: TaxFormRow[]): number[] {
-  return rows.map((r, i) => (r.type === "credit" ? i : -1)).filter((i): i is number => i >= 0);
+  return rowIndicesByType(rows, "credit");
 }
 
 /** Resolve the current array index for a line-item row so form fields can bind by stable `id` instead of a stale numeric index after splices. */
 export function indexOfTypedRowById(
   rows: TaxFormRow[],
-  rowType: "income" | "pretax" | "deduction" | "credit",
+  rowType: LineItemRowType,
   id: string,
 ): number {
   return rows.findIndex((r) => r.type === rowType && r.id === id);
@@ -38,7 +44,7 @@ export function indexOfTypedRowById(
  */
 export function rowIdsForTypedRows(
   rows: TaxFormRow[],
-  rowType: "income" | "pretax" | "deduction" | "credit",
+  rowType: LineItemRowType,
 ): string[] {
   return rows.filter((r) => r.type === rowType).map((r) => r.id);
 }

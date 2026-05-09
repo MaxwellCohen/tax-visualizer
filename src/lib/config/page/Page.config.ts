@@ -92,16 +92,19 @@ function findValidateForKind(
     filingStatus: FilingStatus,
     kind: string | undefined,
 ): NonNullable<InputRowSettings["validate"]> | undefined {
+    return findInputItemForKind(taxData, filingStatus, kind)?.input?.validate;
+}
+
+/** Resolve the config item that owns a form row `kind` subcategory. */
+export function findInputItemForKind(
+    taxData: TaxYearConfig | null | undefined,
+    filingStatus: FilingStatus,
+    kind: string | undefined,
+): ConfigItem | undefined {
     if (!taxData || kind == null) return undefined;
-    for (const item of getInputItems(taxData, filingStatus)) {
-        const s = item.input;
-        if (!s?.validate) continue;
-        const subs = s.subcategories;
-        if (subs?.some((sub) => sub.key === kind)) {
-            return s.validate;
-        }
-    }
-    return undefined;
+    return getInputItems(taxData, filingStatus).find((item) =>
+        item.input?.subcategories?.some((sub) => sub.key === kind),
+    );
 }
 
 /**

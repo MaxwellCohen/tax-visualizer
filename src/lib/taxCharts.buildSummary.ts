@@ -39,13 +39,10 @@ function compareSummaryMetrics(a: SummaryMetric, b: SummaryMetric): number {
   return a.displayOrder - b.displayOrder || a.id.localeCompare(b.id);
 }
 
-function shouldShowSummaryItem(item: CalculatedConfigItem): boolean {
-  if (!item.summary) return false;
-  return !(item.summary.hideWhenZero && item.computedValue === 0);
-}
-
-function metricFromCalculatedItem(item: CalculatedConfigItem): SummaryMetric {
+function metricFromCalculatedItem(item: CalculatedConfigItem): SummaryMetric | undefined {
   const summary = item.summary!;
+  if (!summary || (summary.hideWhenZero && item.computedValue === 0)) return undefined;
+
   return {
     id: item.id,
     summaryId: summary.summaryId,
@@ -60,8 +57,8 @@ function metricFromCalculatedItem(item: CalculatedConfigItem): SummaryMetric {
 
 export function buildSummaryFromConfig(cc: CalculatedConfigItem[]): SummaryChartData | undefined {
   const metrics = cc
-    .filter(shouldShowSummaryItem)
     .map(metricFromCalculatedItem)
+    .filter((metric): metric is SummaryMetric => metric != null)
     .sort(compareSummaryMetrics);
 
   if (!metrics.length || metrics.every((metric) => metric.value === 0)) return undefined;

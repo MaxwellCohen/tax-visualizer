@@ -1,12 +1,9 @@
 import { getFilingStatusFromRows, getTaxYearFromRows } from "~/lib/taxCalc.inputs";
-import { capAmountsTo402gPool } from "~/lib/taxCalc.pretaxBenefitSource";
+import { capAmountsTo402gPool, finiteAmount } from "~/lib/taxCalc.pretaxBenefitSource";
 import type { TaxFormData, TaxFormRow } from "~/lib/taxForm.types";
 import { getTaxYearConfig } from "~/lib/taxData";
-
-/** Form boundary: coerce non-finite amounts so the tax engine only sees real numbers or zero. */
-function finiteAmount(n: number): number {
-  return Number.isFinite(n) ? n : 0;
-}
+import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
+import { buildValidationContext, findInputItemForKind } from "~/lib/config/page/Page.config";
 
 function sanitizeNumericRows(rows: TaxFormRow[]): TaxFormRow[] {
   return rows.map((row) => {
@@ -17,59 +14,42 @@ function sanitizeNumericRows(rows: TaxFormRow[]): TaxFormRow[] {
   });
 }
 
+function clampRowsWithConfigValidation(
+  rows: TaxFormRow[],
+  taxData: TaxYearConfig,
+  taxYear: number,
+  filingStatus: FilingStatus,
+): TaxFormRow[] {
+  const ctx = buildValidationContext(taxYear, filingStatus);
+  if (!ctx) return rows;
+
+  return rows.map((row) => {
+    if (row.type !== "income" && row.type !== "pretax" && row.type !== "deduction" && row.type !== "credit") {
+      return row;
+    }
+    const validate = findInputItemForKind(taxData, filingStatus, row.kind)?.input?.validate;
+    if (!validate) return row;
+
+    const result = validate(row.amount, ctx);
+    return !result.valid && typeof result.clampedValue === "number" && Number.isFinite(result.clampedValue)
+      ? { ...row, amount: result.clampedValue }
+      : row;
+  });
+}
+
 export function clampTaxFormData(data: TaxFormData): TaxFormData {
   const taxYear = getTaxYearFromRows(data.rows);
   const filingStatus = getFilingStatusFromRows(data.rows);
   const config = getTaxYearConfig(taxYear);
+  const finiteRows = sanitizeNumericRows(data.rows);
   if (!config) {
-    return { rows: sanitizeNumericRows(data.rows) };
+    return { rows: finiteRows };
   }
 
   const joint = filingStatus === "marriedJoint";
   const electiveCap = config.pretaxLimits.electiveDeferral401k;
-
-  const rowsAfterFinite: TaxFormRow[] = data.rows.map((row) => {
-    if (row.type === "income" || row.type === "deduction" || row.type === "credit") {
-      return { ...row, amount: finiteAmount(row.amount) };
-    }
-    if (row.type === "pretax") {
-      return { ...row, amount: finiteAmount(row.amount) };
-    }
-    return row;
-  });
-
-  const rows = applyElectiveDeferral402gClampToRows(rowsAfterFinite, electiveCap, joint).map((row) => {
-    if (row.type !== "pretax") {
-      return row;
-    }
-    const kind = (row.kind as string).toLowerCase();
-    if (kind.includes("input-pretax-hsa")) {
-      const limit = joint ? config.pretaxLimits.hsaFamily : config.pretaxLimits.hsaSelfOnly;
-      return { ...row, amount: Math.min(row.amount, limit) };
-    }
-    return row;
-  });
-
-  const rows2 = rows.map((row) => {
-    if (row.type !== "deduction") {
-      return row;
-    }
-    if (row.kind === "deduction-salt") {
-      const saltMax = config.itemizedCaps.saltMax[filingStatus];
-      return { ...row, amount: Math.min(row.amount, saltMax) };
-    }
-    return row;
-  });
-
-  const rows3 = rows2.map((row) => {
-    if (row.type !== "credit") {
-      return row;
-    }
-    const cap = config.federalTaxCreditCaps[row.kind] ?? Infinity;
-    return { ...row, amount: Math.min(row.amount, cap) };
-  });
-
-  return { rows: rows3 };
+  const pooledRows = applyElectiveDeferral402gClampToRows(finiteRows, electiveCap, joint);
+  return { rows: clampRowsWithConfigValidation(pooledRows, config, taxYear, filingStatus) };
 }
 
 /** §402(g): combined cap for all 401(k)+403(b) lines per spouse (not per row). */

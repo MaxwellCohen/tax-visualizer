@@ -1,21 +1,9 @@
-/**
- * Single entry point for federal + payroll modeling. Produces {@link TaxResult} consumed by the
- * summary table, Sankey, and Mekko; charts do not recompute tax—only layout and allocation rules.
- *
- * **Data flow (registry evaluation contract):**
- *
- * 1. Resolve tax rules only: {@link getTaxYearConfig} from the form’s tax year (no tax math).
- * 2. **Form data** + **{@link TaxYearConfig}** feed {@link computeTaxMetricLines}, which loops
- *    {@link TAX_CALC_REGISTRY} in order. Each `compute(ctx)` reads form rows, config, and
- *    {@link ChartMetricComputeContext.accreted} state filled by prior steps in the same pass.
- * 3. Row → {@link TaxCalculationInputs} via {@link rowsToTaxCalculationInputs} is normalization
- *    for the model, not a separate pipeline precompute (see `chartMetricsRegistry` module header).
- */
 import type { TaxFormData } from "~/lib/taxForm.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import { getConfigItems, type ConfigItem } from "~/lib/config/page/Page.config";
 
 export type CalculatedConfigItem = ConfigItem & { computedValue: number };
+export type CalculatedConfigValueMap = Map<string, number>;
 
 export function calculateAllConfigValues(
   formData: TaxFormData,
@@ -29,4 +17,6 @@ export function calculateAllConfigValues(
   }));
 }
 
-
+export function calculatedConfigValuesById(items: CalculatedConfigItem[]): CalculatedConfigValueMap {
+  return new Map(items.map((item) => [item.id, item.computedValue]));
+}

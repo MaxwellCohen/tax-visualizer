@@ -9,9 +9,6 @@ export function serializeScenarioInput(input: TaxFormData): string {
 
 export function deserializeScenarioInputFromSearchParams(searchParams: Record<string, string>): TaxFormData | null {
   const scenarioData = searchParams[SCENARIO_QUERY_PARAM] || '';
-  if (typeof scenarioData !== 'string') {
-    return null;
-  }
   try {
     const data = JSON.parse(decodeURIComponent(scenarioData));
     if (!Array.isArray(data)) {
@@ -27,6 +24,5 @@ export function deserializeScenarioInputFromSearchParams(searchParams: Record<st
 
 
 export function getScenarioPresets(): ScenarioPreset[] {
-  console.log("getScenarioPresets returning:", SCENARIO_PRESETS.length, "presets");
   return [...SCENARIO_PRESETS];
 }

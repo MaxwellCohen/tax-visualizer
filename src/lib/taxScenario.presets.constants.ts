@@ -102,6 +102,3 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       }),
   },
 ];
-
-
-console.log("SCENARIO_PRESETS", SCENARIO_PRESETS);
