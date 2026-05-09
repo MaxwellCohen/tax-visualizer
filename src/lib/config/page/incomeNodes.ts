@@ -9,7 +9,7 @@ import {
     allPretax,
     totalIncome,
 } from "./pageConfig.inputs";
-import { sankeyOrdinaryTaxableIncomeHubInflow } from "./taxCalculations";
+import { ordinaryIncomeAfterPretax } from "./taxCalculations";
 
 export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
@@ -35,9 +35,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
                     { source: "wages", target: "ordinaryTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 1 },
                 ],
             },
-            calculate: (inputs, taxData, filingStatus) => {
-                return sankeyOrdinaryTaxableIncomeHubInflow(inputs, taxData, filingStatus);
-            },
+            calculate: ordinaryIncomeAfterPretax,
         },
         {
             id: "longTermCapGains",

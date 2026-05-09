@@ -3,18 +3,15 @@ import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import { getCreditsSankeyRow } from "./sankeyLayout.helpers";
 import {
-    calculateLtcgTaxTotal,
     calculateTaxableIncome,
     calculatePayrollTax,
     calculatePayrollTaxBreakdown,
     calculateSelfEmploymentDeduction,
-    calculateOrdinaryTaxWithPayrollShadow,
     computeFederalTaxCreditsApplied,
     getItemizedDeductionsWithoutPayrollTax,
     getStandardDeductionWithoutPayrollTax,
-    getOrdinaryBrackets,
 } from "./taxCalculations";
-import { longTermCapGains, ordinaryIncome, shortTermCapGains, selfEmploymentIncome, wageIncome, allPretax } from "./pageConfig.inputs";
+import { longTermCapGains, selfEmploymentIncome, allPretax } from "./pageConfig.inputs";
 
 export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
@@ -47,18 +44,15 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
 
 export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): configItem[] {
     return [
-        {
-            id: "taxableIncomeAfterDeductions",
-            label: "Taxable Income After Deductions",
-            shortLabel: "Taxable After Ded.",
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)", row: 2, col: 2 },
-            },
-            calculate: (inputs, taxData, filingStatus) => {
-                const { ordinary } = calculateTaxableIncome(inputs, taxData, filingStatus);
-                return ordinary;
-            },
-        },
+        // {
+        //     id: "taxableIncomeAfterDeductions",
+        //     label: "Taxable Income After Deductions",
+        //     shortLabel: "Taxable After Ded.",
+        //     sankeySettings: {
+        //         node: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)", row: 2, col: 2 },
+        //     },
+        //     calculate: taxableIncomeAfterDeductions,
+        // },
         {
             id: "ordinaryTaxableIncome",
             label: "Ordinary Income",
@@ -106,69 +100,69 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
                 format: "currency",
             },
         },
-        {
-            id: "federalOrdinaryIncomeTax",
-            label: "Federal Ordinary Tax",
-            shortLabel: "Federal Ord. Tax",
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 3, col: 1 },
-            },
-            calculate: (inputs, taxData, filingStatus) => {
-                const { ordinary, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
-                const brackets = getOrdinaryBrackets(taxData, filingStatus);
-                return calculateOrdinaryTaxWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill).tax;
-            },
-            summary: {
-                summaryId: "federal-ordinary-income-tax",
-                label: "Ordinary Income Tax",
-                category: "tax",
-                displayOrder: 4.5,
-                format: "currency",
-            },
-        },
-        {
-            id: "federalLongTermCapGainsTax",
-            label: "Federal LTCG Tax",
-            shortLabel: "Federal LTCG Tax",
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: 3, col: 1 },
-            },
-            calculate: (inputs, taxData, filingStatus) => {
-                const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
-                return calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
-            },
-            summary: {
-                summaryId: "federal-ltcg-tax",
-                label: "Capital Gains Tax",
-                category: "tax",
-                displayOrder: 4.7,
-                format: "currency",
-            },
-        },
-        {
-            id: "federalNetInvestmentIncomeTax",
-            label: "Net Investment Income Tax",
-            shortLabel: "NIIT",
-            sankeySettings: {
-                node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 3, col: 1 },
-            },
-            calculate: (inputs, taxData, filingStatus) => {
-                const investmentIncome = ordinaryIncome(inputs) + shortTermCapGains(inputs) + longTermCapGains(inputs);
-                const modifiedAGI = wageIncome(inputs) + selfEmploymentIncome(inputs) + investmentIncome;
-                const threshold = taxData.niit.magiThreshold[filingStatus];
-                if (modifiedAGI <= threshold) return 0;
-                const niitBase = Math.max(0, investmentIncome - (modifiedAGI - threshold));
-                return niitBase * taxData.niit.rate;
-            },
-        },
-        {
-            id: "netInvestmentIncome",
-            label: "Net Investment Income",
-            shortLabel: "Investment Income",
-            calculate: (inputs) => {
-                return ordinaryIncome(inputs) + shortTermCapGains(inputs) + longTermCapGains(inputs);
-            },
-        },
+        // {
+        //     id: "federalOrdinaryIncomeTax",
+        //     label: "Federal Ordinary Tax",
+        //     shortLabel: "Federal Ord. Tax",
+        //     sankeySettings: {
+        //         node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 3, col: 1 },
+        //     },
+        //     calculate: (inputs, taxData, filingStatus) => {
+        //         const { ordinary, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
+        //         const brackets = getOrdinaryBrackets(taxData, filingStatus);
+        //         return calculateOrdinaryTaxWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill).tax;
+        //     },
+        //     summary: {
+        //         summaryId: "federal-ordinary-income-tax",
+        //         label: "Ordinary Income Tax",
+        //         category: "tax",
+        //         displayOrder: 4.5,
+        //         format: "currency",
+        //     },
+        // },
+        // {
+        //     id: "federalLongTermCapGainsTax",
+        //     label: "Federal LTCG Tax",
+        //     shortLabel: "Federal LTCG Tax",
+        //     sankeySettings: {
+        //         node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: 3, col: 1 },
+        //     },
+        //     calculate: (inputs, taxData, filingStatus) => {
+        //         const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
+        //         return calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
+        //     },
+        //     summary: {
+        //         summaryId: "federal-ltcg-tax",
+        //         label: "Capital Gains Tax",
+        //         category: "tax",
+        //         displayOrder: 4.7,
+        //         format: "currency",
+        //     },
+        // },
+        // {
+        //     id: "federalNetInvestmentIncomeTax",
+        //     label: "Net Investment Income Tax",
+        //     shortLabel: "NIIT",
+        //     sankeySettings: {
+        //         node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 3, col: 1 },
+        //     },
+        //     calculate: (inputs, taxData, filingStatus) => {
+        //         const investmentIncome = ordinaryIncome(inputs) + shortTermCapGains(inputs) + longTermCapGains(inputs);
+        //         const modifiedAGI = wageIncome(inputs) + selfEmploymentIncome(inputs) + investmentIncome;
+        //         const threshold = taxData.niit.magiThreshold[filingStatus];
+        //         if (modifiedAGI <= threshold) return 0;
+        //         const niitBase = Math.max(0, investmentIncome - (modifiedAGI - threshold));
+        //         return niitBase * taxData.niit.rate;
+        //     },
+        // },
+        // {
+        //     id: "netInvestmentIncome",
+        //     label: "Net Investment Income",
+        //     shortLabel: "Investment Income",
+        //     calculate: (inputs) => {
+        //         return ordinaryIncome(inputs) + shortTermCapGains(inputs) + longTermCapGains(inputs);
+        //     },
+        // },
         {
             id: "federalTaxCreditsApplied",
             label: "Federal Credits Applied",

@@ -92,11 +92,16 @@ export function getItemizedDeductionsWithoutPayrollTax(inputs: TaxFormRow[], tax
     return Math.max(0, totalItemizedValue - payrollTaxTotalValue);
 }
 
+const getDeductionsWithoutPayrollTax = (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number => {
+    if (useItemizedDeductions(inputs)) return getItemizedDeductionsWithoutPayrollTax(inputs, taxData, filingStatus);
+    return getStandardDeductionWithoutPayrollTax(inputs, taxData, filingStatus);
+}
+
 export function getOrdinaryBrackets(taxData: TaxYearConfig, filingStatus: FilingStatus): FederalTaxBracket[] {
     return taxData.federalBrackets[filingStatus];
 }
 
-export function calculateLtcgTaxTotal(
+ function calculateLtcgTaxTotal(
     taxableLtcg: number,
     thresholds: LongTermCapGainsThresholds,
     filingStatus: FilingStatus,
@@ -125,58 +130,23 @@ export function calculateLtcgTaxTotal(
     return totalTax;
 }
 
-type TaxableIncomeResult = {
-    ordinary: number;
-    ltcg: number;
-    total: number;
-    afterPretax: number;
-    deduction: number;
-    /**
-     * Payroll + SE beyond the deduction-shield cap, modeled as consuming federal ordinary bracket
-     * width from the bottom up before ordinary taxable fills each rate band (teaching flow).
-     */
-    payrollBracketShadowFill: number;
-    payrollTaxTotal: number;
-    shieldCapBeforePayroll: number;
-};
-
-/** Single source for deduction shield cap, deduction dollars after payroll, ordinary taxable, and bracket shadow. */
-type DeductionShieldSlice = {
-    afterPretax: number;
-    shieldCapBeforePayroll: number;
-    payrollTaxTotal: number;
-    deduction: number;
-    ordinary: number;
-    payrollBracketShadowFill: number;
-};
 
 function payrollTaxTotal(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number {
     return calculatePayrollTax(inputs, taxData, filingStatus) + calculateSelfEmploymentTax(inputs, taxData);
 }
 
-function computeDeductionShieldSlice(
-    inputs: TaxFormRow[],
-    taxData: TaxYearConfig,
-    filingStatus: FilingStatus,
-): DeductionShieldSlice {
-    const afterPretax = Math.max(0, ordinaryIncome(inputs) - allPretax(inputs));
-    const shieldCapBeforePayroll = useItemizedDeductions(inputs)
-        ? totalItemized(inputs)
-        : standardDeductionInput(inputs, taxData, filingStatus);
-    const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData, filingStatus);
-    const deduction = useItemizedDeductions(inputs)
-        ? getItemizedDeductionsWithoutPayrollTax(inputs, taxData, filingStatus)
-        : getStandardDeductionWithoutPayrollTax(inputs, taxData, filingStatus);
-
-    return {
-        afterPretax,
-        shieldCapBeforePayroll,
-        payrollTaxTotal: payrollTaxTotalValue,
-        deduction,
-        ordinary: Math.max(0, afterPretax - payrollTaxTotalValue - deduction),
-        payrollBracketShadowFill: Math.max(0, payrollTaxTotalValue - shieldCapBeforePayroll),
-    };
+export const ordinaryIncomeAfterPretax = (inputs: TaxFormRow[]): number => {
+    return Math.max(0, ordinaryIncome(inputs) - allPretax(inputs));
 }
+
+const taxableIncomeAfterDeductions = (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number => {
+    const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData, filingStatus);
+    const deduction = getDeductionsWithoutPayrollTax(inputs, taxData, filingStatus);
+
+    return Math.max(0, ordinaryIncomeAfterPretax(inputs) - payrollTaxTotalValue - deduction);
+}
+
+
 
 
 /**
@@ -207,7 +177,7 @@ export function ordinaryIncomeSlicesWithPayrollShadow(
     return slices;
 }
 
-export function calculateOrdinaryTaxWithPayrollShadow(
+function calculateOrdinaryTaxWithPayrollShadow(
     ordinaryTaxable: number,
     brackets: readonly FederalTaxBracket[],
     payrollBracketShadowFill: number,
@@ -228,36 +198,26 @@ export function calculateTaxableIncome(
     inputs: TaxFormRow[],
     taxData: TaxYearConfig,
     filingStatus: FilingStatus
-): TaxableIncomeResult {
-    const slice = computeDeductionShieldSlice(inputs, taxData, filingStatus);
+) {
+    const shieldCapBeforePayroll = useItemizedDeductions(inputs)
+        ? totalItemized(inputs)
+        : standardDeductionInput(inputs, taxData, filingStatus);
+    const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData, filingStatus);
+    const deduction = getDeductionsWithoutPayrollTax(inputs, taxData, filingStatus);
+    const ordinary = taxableIncomeAfterDeductions(inputs, taxData, filingStatus);
+    const payrollBracketShadowFill = Math.max(0, payrollTaxTotalValue - shieldCapBeforePayroll);
     const ltcg = longTermCapGains(inputs);
     return {
-        ordinary: slice.ordinary,
+        ordinary,
         ltcg,
-        total: slice.ordinary + ltcg,
-        afterPretax: slice.afterPretax,
-        deduction: slice.deduction,
-        shieldCapBeforePayroll: slice.shieldCapBeforePayroll,
-        payrollTaxTotal: slice.payrollTaxTotal,
-        payrollBracketShadowFill: slice.payrollBracketShadowFill,
+        total: ordinary + ltcg,
+        afterPretax: ordinaryIncomeAfterPretax(inputs),
+        deduction: deduction,
+        payrollTaxTotal: payrollTaxTotal(inputs, taxData, filingStatus),
+        payrollBracketShadowFill,
     };
 }
 
-/**
- * Dollars that flow into the `ordinaryTaxableIncome` Sankey hub so ribbons conserve: payroll + SE,
- * plus deduction ribbon (same {@link computeDeductionShieldSlice} as taxable income), plus ordinary
- * bracket slices.
- */
-export function sankeyOrdinaryTaxableIncomeHubInflow(
-    inputs: TaxFormRow[],
-    taxData: TaxYearConfig,
-    filingStatus: FilingStatus,
-): number {
-
-    // return inputs.filter((row): row is TaxFormIncomeRow => row.type === "income" && row.type.startsWith("income-ordinary-")).reduce((acc, row) => acc + (row?.amount ?? 0), 0);
-    const slice = computeDeductionShieldSlice(inputs, taxData, filingStatus);
-    return slice.payrollTaxTotal + slice.deduction + slice.ordinary;
-}
 
 /** Nonrefundable credits absorbed against federal income tax before credits (capped at gross federal tax). */
 export function computeFederalTaxCreditsApplied(
@@ -302,10 +262,10 @@ export function calculateTaxBrackets(inputs: TaxFormRow[], taxData: TaxYearConfi
         remainingPayrollTax = Math.max(0, remainingPayrollTax - (taxableBracketIncome - tax));
         result.push({ taxBracket: bracket, tax, keep, credits: 0, payrollTax: remainingPayrollTax, remainingIncome: remainingIncome });
     };
-     // adding in the LTCG tax path
-     const ltcg = longTermCapGains(inputs);
-     const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, income);
-     result.push({  tax: ltcgTax, keep: ltcg - ltcgTax, credits: 0, payrollTax: 0, remainingIncome: 0 });
+    // adding in the LTCG tax path
+    const ltcg = longTermCapGains(inputs);
+    const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, income);
+    result.push({ tax: ltcgTax, keep: ltcg - ltcgTax, credits: 0, payrollTax: 0, remainingIncome: 0 });
 
     // loop thorough backwards and add in the credit calculations using result from the forward pass
     for (let i = result.length - 1; i >= 0; i--) {
