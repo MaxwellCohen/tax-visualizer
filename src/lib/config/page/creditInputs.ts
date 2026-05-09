@@ -20,20 +20,10 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
             label: "Child Tax Credit",
             shortLabel: "CTC",
             description:
-                "Credit for qualifying children; maximum per child depends on tax year. Refundable amount may apply as Additional CTC (Schedule 8812).",
+                "Calculated from qualifying children and other dependents entered in Settings; maximum per dependent depends on tax year.",
             kindDetail: {
                 modelingNote:
-                    "Nonrefundable portion offsets income tax; refundable Additional CTC has separate rules (earned income, etc.). Credit for other dependents uses a different maximum.",
-            },
-            inputRowSettings: {
-                category: "credit",
-                displayOrder: 1,
-                inputType: "currency",
-                subcategories: [
-                    { key: "input-credit-childTax-childTax", labelSingle: "Child tax credit", labelJoint: "Child tax credit" },
-                    { key: "input-credit-childTax-otherDependents", labelSingle: "Credit for other dependents", labelJoint: "Credit for other dependents" },
-                ],
-                validate: nonNegativeValidator,
+                    "Nonrefundable portion offsets income tax; refundable Additional CTC, earned income tests, and phase-outs are not modeled.",
             },
             calculate: childTaxCredit,
             sankeySettings: {

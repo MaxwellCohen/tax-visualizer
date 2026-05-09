@@ -30,10 +30,21 @@ function getUseItemizedFromRows(rows: TaxFormRow[]): boolean {
   return false;
 }
 
+function getNumericSettingFromRows(rows: TaxFormRow[], id: "qualifyingChildren" | "otherDependents"): number {
+  for (const row of rows) {
+    if (row.type === "setting" && row.id === id) {
+      return Number.isFinite(row.value) ? row.value : 0;
+    }
+  }
+  return 0;
+}
+
 export function rowsToTaxCalculationInputs(rows: TaxFormRow[]): TaxCalculationInputs {
   const taxYear = getTaxYearFromRows(rows);
   const filingStatus = getFilingStatusFromRows(rows);
   const useItemizedDeductions = getUseItemizedFromRows(rows);
+  const qualifyingChildren = getNumericSettingFromRows(rows, "qualifyingChildren");
+  const otherDependents = getNumericSettingFromRows(rows, "otherDependents");
 
   const incomeSources = rows
     .filter((r): r is TaxFormIncomeRow => r.type === "income")
@@ -74,6 +85,8 @@ export function rowsToTaxCalculationInputs(rows: TaxFormRow[]): TaxCalculationIn
   return {
     taxYear,
     filingStatus,
+    qualifyingChildren,
+    otherDependents,
     incomeSources,
     pretaxBenefitSources,
     useItemizedDeductions,

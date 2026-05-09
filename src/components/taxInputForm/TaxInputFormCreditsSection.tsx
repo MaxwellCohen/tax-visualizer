@@ -8,6 +8,7 @@ import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { FederalTaxCreditSourceRow } from "~/components/taxInputForm/FederalTaxCreditSourceFields";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
+import { childTaxCredit } from "~/lib/config/page/pageConfig.inputs";
 
 const addLineBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
@@ -29,7 +30,11 @@ export function TaxInputFormCreditsSection(props: Props) {
     props.taxInput().rows.filter((r): r is TaxFormCreditRow => r.type === "credit"),
   );
   const creditRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "credit"));
-  const creditsTotal = () => sumLabeledAmountSources(calc().federalTaxCredits);
+  const creditsTotal = () => {
+    const taxData = props.taxData();
+    const dependentCredits = taxData ? childTaxCredit(props.taxInput().rows, taxData) : 0;
+    return dependentCredits + sumLabeledAmountSources(calc().federalTaxCredits);
+  };
 
   return (
     <Accordion
@@ -44,9 +49,8 @@ export function TaxInputFormCreditsSection(props: Props) {
       bodyClass="space-y-4"
     >
       <p class="text-xs leading-relaxed text-(--text-muted)">
-        Choose a credit category per line; optional label for your notes. Amounts sum before applying against
-        federal ordinary + long-term + NIIT liability; excess is not refunded. Refundability and phase-outs are
-        not modeled per line. Payroll taxes are unchanged.
+        Dependent credits are calculated from the counts in Settings. Add other federal credits here by category;
+        excess is not refunded, and payroll taxes are unchanged.
       </p>
       <div class="flex justify-end md:hidden">
         <button type="button" class={addLineBtnClass} onClick={props.addFederalTaxCredit}>

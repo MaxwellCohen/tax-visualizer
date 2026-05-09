@@ -10,6 +10,8 @@ import type { FilingStatus } from "~/lib/taxData.types";
 export type TaxCalculationInputs = {
   taxYear: number;
   filingStatus: FilingStatus;
+  qualifyingChildren: number;
+  otherDependents: number;
   incomeSources: IncomeSource[];
   pretaxBenefitSources: PretaxBenefitSource[];
   useItemizedDeductions: boolean;

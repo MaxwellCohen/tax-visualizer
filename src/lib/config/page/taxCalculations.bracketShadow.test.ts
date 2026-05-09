@@ -3,11 +3,13 @@ import {
     calculatePayrollTaxBreakdown,
     calculateOrdinaryTaxWithPayrollShadow,
     calculateTaxableIncome,
+    computeFederalTaxCreditsApplied,
     computeDeductionShieldSlice,
     getOrdinaryBrackets,
     ordinaryIncomeSlicesWithPayrollShadow,
     sankeyOrdinaryTaxableIncomeHubInflow,
 } from "~/lib/config/page/taxCalculations";
+import { childTaxCredit } from "~/lib/config/page/pageConfig.inputs";
 import { getTaxYearConfig } from "~/lib/taxData";
 import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import { incomeSourcesToRows, newDeductionRow } from "~/lib/taxForm.factories";
@@ -145,5 +147,41 @@ describe("payroll bracket shadow", () => {
         const hub = sankeyOrdinaryTaxableIncomeHubInflow(data.rows, config!, "single");
         const shieldSlice = computeDeductionShieldSlice(data.rows, config!, "single");
         expect(hub).toBeCloseTo(shieldSlice.payrollTaxTotal + shieldSlice.deduction + shieldSlice.ordinary, 5);
+    });
+});
+
+describe("dependent credits", () => {
+    it("calculates child tax credit from dependent settings and tax-year defaults", () => {
+        const config = getTaxYearConfig(2026);
+        expect(config).toBeDefined();
+        const data = baseInput({
+            taxYear: 2026,
+            qualifyingChildren: 2,
+            otherDependents: 1,
+        });
+
+        expect(childTaxCredit(data.rows, config!)).toBe(
+            (2 * config!.federalTaxCreditDefaults.childTaxCredit) +
+            config!.federalTaxCreditDefaults.creditForOtherDependents,
+        );
+    });
+
+    it("applies dependent credits against federal income tax", () => {
+        const config = getTaxYearConfig(2025);
+        expect(config).toBeDefined();
+        const withoutDependents = baseInput({ taxYear: 2025 });
+        const withDependents = baseInput({
+            taxYear: 2025,
+            qualifyingChildren: 1,
+            otherDependents: 1,
+        });
+
+        const appliedWithoutDependents = computeFederalTaxCreditsApplied(withoutDependents.rows, config!, "single");
+        const appliedWithDependents = computeFederalTaxCreditsApplied(withDependents.rows, config!, "single");
+
+        expect(appliedWithDependents - appliedWithoutDependents).toBe(
+            config!.federalTaxCreditDefaults.childTaxCredit +
+            config!.federalTaxCreditDefaults.creditForOtherDependents,
+        );
     });
 });

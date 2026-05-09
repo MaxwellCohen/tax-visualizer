@@ -10,6 +10,8 @@ import {
 type BaseInputOverrides = Partial<{
   taxYear: number;
   filingStatus: FilingStatus;
+  qualifyingChildren: number;
+  otherDependents: number;
   incomeRows: TaxFormIncomeRow[];
   pretaxRows: TaxFormPretaxRow[];
   useItemizedDeductions: boolean;
@@ -21,6 +23,8 @@ export function baseInput(overrides?: BaseInputOverrides): TaxFormData {
   return taxFormDataFromParts({
     taxYear: overrides?.taxYear ?? 2025,
     filingStatus: overrides?.filingStatus ?? "single",
+    qualifyingChildren: overrides?.qualifyingChildren ?? 0,
+    otherDependents: overrides?.otherDependents ?? 0,
     incomeRows:
       overrides?.incomeRows ??
       incomeSourcesToRows([{ id: "1", kind: "income-ordinary-wages", label: "Wages", amount: 100_000 }]),

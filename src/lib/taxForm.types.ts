@@ -6,11 +6,18 @@ import type {
 import type { MekkoRow } from "~/lib/taxCharts.buildMekko";
 
 /** Single setting key in the form row list */
-export type TaxFormSettingId = "taxYear" | "filingStatus" | "useItemizedDeductions";
+export type TaxFormSettingId =
+  | "taxYear"
+  | "filingStatus"
+  | "qualifyingChildren"
+  | "otherDependents"
+  | "useItemizedDeductions";
 
 export type TaxFormSettingRow =
   | { type: "setting"; id: "taxYear"; value: number }
   | { type: "setting"; id: "filingStatus"; value: FilingStatus }
+  | { type: "setting"; id: "qualifyingChildren"; value: number }
+  | { type: "setting"; id: "otherDependents"; value: number }
   | { type: "setting"; id: "useItemizedDeductions"; value: boolean };
 
 export type TaxFormIncomeRow = {

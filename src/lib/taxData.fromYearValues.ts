@@ -52,6 +52,7 @@ export function yearValuesToTaxYearConfig(yv: YearValues, status: "final" | "pla
       saltMax: { ...yv.caps.salt },
     },
     federalTaxCreditCaps,
+    federalTaxCreditDefaults: { ...yv.defaults.credits },
     niit: {
       rate: yv.niitRate,
       magiThreshold: { ...yv.niitThreshold },

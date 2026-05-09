@@ -6,6 +6,7 @@ import type { FilingStatus } from "~/lib/taxData";
 import { isPlanningTaxYear } from "~/lib/taxData";
 import { filingStatusOptions } from "~/components/taxInputForm/shared";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
+import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;
@@ -15,10 +16,18 @@ type Props = {
 
 function patchSettingRow<V extends number | FilingStatus>(
   rows: TaxFormRow[],
-  id: "taxYear" | "filingStatus",
+  id: "taxYear" | "filingStatus" | "qualifyingChildren" | "otherDependents",
   value: V,
 ): TaxFormRow[] {
   const i = settingRowIndex(rows, id);
+  if (i < 0 && (id === "qualifyingChildren" || id === "otherDependents")) {
+    const insertAfterId = id === "qualifyingChildren" ? "filingStatus" : "qualifyingChildren";
+    const insertAfterIndex = settingRowIndex(rows, insertAfterId);
+    const insertAt = insertAfterIndex >= 0 ? insertAfterIndex + 1 : 2;
+    const next = [...rows];
+    next.splice(insertAt, 0, { type: "setting", id, value: value as number });
+    return next;
+  }
   if (i < 0) return rows;
   const r = rows[i];
   if (r.type !== "setting" || r.id !== id) return rows;
@@ -30,6 +39,8 @@ function patchSettingRow<V extends number | FilingStatus>(
 export function TaxInputFormSettingsSection(props: Props) {
   const taxYearIdx = createMemo(() => settingRowIndex(props.taxInput().rows, "taxYear"));
   const filingIdx = createMemo(() => settingRowIndex(props.taxInput().rows, "filingStatus"));
+  const qualifyingChildrenIdx = createMemo(() => settingRowIndex(props.taxInput().rows, "qualifyingChildren"));
+  const otherDependentsIdx = createMemo(() => settingRowIndex(props.taxInput().rows, "otherDependents"));
   const taxYear = createMemo(() => getTaxYearFromRows(props.taxInput().rows));
   const taxYearOptions = createMemo(() =>
     props.availableYears.map((year) => ({ value: year, label: String(year) })),
@@ -43,6 +54,16 @@ export function TaxInputFormSettingsSection(props: Props) {
   const filingValue = () => {
     const r = props.taxInput().rows[filingIdx()];
     return r?.type === "setting" && r.id === "filingStatus" ? r.value : "single";
+  };
+
+  const qualifyingChildrenValue = () => {
+    const r = props.taxInput().rows[qualifyingChildrenIdx()];
+    return r?.type === "setting" && r.id === "qualifyingChildren" ? r.value : 0;
+  };
+
+  const otherDependentsValue = () => {
+    const r = props.taxInput().rows[otherDependentsIdx()];
+    return r?.type === "setting" && r.id === "otherDependents" ? r.value : 0;
   };
 
   return (
@@ -75,6 +96,36 @@ export function TaxInputFormSettingsSection(props: Props) {
           onBlur={() => {}}
           options={filingStatusOptions}
         />
+
+        <label class="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide">
+          Qualifying children
+          <FormCurrencyInput
+            value={qualifyingChildrenValue()}
+            onInput={(value) => {
+              props.setTaxInput((prev) => ({
+                ...prev,
+                rows: patchSettingRow(prev.rows, "qualifyingChildren", Math.floor(value)),
+              }));
+            }}
+            onBlur={() => {}}
+            ariaLabel="Qualifying children"
+          />
+        </label>
+
+        <label class="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide">
+          Other dependents
+          <FormCurrencyInput
+            value={otherDependentsValue()}
+            onInput={(value) => {
+              props.setTaxInput((prev) => ({
+                ...prev,
+                rows: patchSettingRow(prev.rows, "otherDependents", Math.floor(value)),
+              }));
+            }}
+            onBlur={() => {}}
+            ariaLabel="Other dependents"
+          />
+        </label>
       </div>
       <p class="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
         {isPlanningTaxYear(taxYear())

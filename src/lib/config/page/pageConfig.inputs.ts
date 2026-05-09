@@ -31,17 +31,21 @@ export const salt = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-s
 export const medicalDental = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-medicalDental");
 export const mortgageInterest = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-mortgageInterest");
 export const charitable = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-charitable");
-export const childTaxCredit = (inputs: TaxFormRow[]) => findInputById(inputs, "input-credit-childTax");
+export const qualifyingChildren = (inputs: TaxFormRow[]) => Math.max(0, findInputById(inputs, "qualifyingChildren"));
+export const otherDependents = (inputs: TaxFormRow[]) => Math.max(0, findInputById(inputs, "otherDependents"));
+export const childTaxCredit = (inputs: TaxFormRow[], taxData: TaxYearConfig) => {
+    const childCredit = taxData.federalTaxCreditDefaults.childTaxCredit ?? 0;
+    const otherDependentCredit = taxData.federalTaxCreditDefaults.creditForOtherDependents ?? 0;
+    return (qualifyingChildren(inputs) * childCredit) + (otherDependents(inputs) * otherDependentCredit);
+};
 export const educationCredits = (inputs: TaxFormRow[]) => findInputById(inputs, "input-credit-education");
 export const retirementSavingsContributions = (inputs: TaxFormRow[]) => findInputById(inputs, "retirementSavingsContributions");
 export const otherCredit = (inputs: TaxFormRow[]) => findInputById(inputs, "input-credit-other");
 export const useItemizedDeductions = (inputs: TaxFormRow[]) => findInputById(inputs, "useItemizedDeductions");
 
-export const totalCredits = (inputs: TaxFormRow[]) =>
-    childTaxCredit(inputs) + educationCredits(inputs) + retirementSavingsContributions(inputs) + otherCredit(inputs);
+export const totalCredits = (inputs: TaxFormRow[], taxData: TaxYearConfig) =>
+    childTaxCredit(inputs, taxData) + educationCredits(inputs) + retirementSavingsContributions(inputs) + otherCredit(inputs);
 
-const _totalPretax = (inputs: TaxFormRow[]) =>
-    _401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs);
 
 export const totalItemized = (inputs: TaxFormRow[]) => {
     const deductions = findInputById(inputs, 'deduction-');
@@ -59,5 +63,3 @@ export const totalDeductions = (inputs: TaxFormRow[], taxData: TaxYearConfig, fi
 
 export const totalIncome = (inputs: TaxFormRow[]) => longTermCapGains(inputs) + ordinaryIncome(inputs);
 
-const _afterPretaxIncome = (inputs: TaxFormRow[], seDeduction: number) =>
-    totalIncome(inputs) - allPretax(inputs) - seDeduction;

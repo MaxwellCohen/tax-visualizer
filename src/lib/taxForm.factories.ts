@@ -83,6 +83,8 @@ export function incomeSourcesToRows(sources: IncomeSource[]): TaxFormIncomeRow[]
 export function taxFormDataFromParts(args: {
   taxYear: number;
   filingStatus: FilingStatus;
+  qualifyingChildren?: number;
+  otherDependents?: number;
   incomeRows: TaxFormIncomeRow[];
   pretaxRows: TaxFormPretaxRow[];
   useItemizedDeductions: boolean;
@@ -93,6 +95,8 @@ export function taxFormDataFromParts(args: {
     rows: [
       { type: "setting", id: "taxYear", value: args.taxYear },
       { type: "setting", id: "filingStatus", value: args.filingStatus },
+      { type: "setting", id: "qualifyingChildren", value: args.qualifyingChildren ?? 0 },
+      { type: "setting", id: "otherDependents", value: args.otherDependents ?? 0 },
       ...args.incomeRows,
       ...args.pretaxRows,
       { type: "setting", id: "useItemizedDeductions", value: args.useItemizedDeductions },

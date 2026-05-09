@@ -70,6 +70,7 @@ export type TaxYearConfig = {
   pretaxLimits: PretaxBenefitLimits;
   itemizedCaps: ItemizedDeductionCaps;
   federalTaxCreditCaps: Record<string, number>;
+  federalTaxCreditDefaults: Record<string, number>;
   /** Form 8960-style NIIT rate and MAGI thresholds (from year config / `YearValues`). */
   niit: NiitRules;
   status?: "final" | "planning";

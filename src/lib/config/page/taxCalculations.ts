@@ -287,7 +287,7 @@ export function computeFederalTaxCreditsApplied(
     taxData: TaxYearConfig,
     filingStatus: FilingStatus,
 ): number {
-    const credits = totalCredits(inputs);
+    const credits = totalCredits(inputs, taxData);
     const { ordinary, ltcg, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
     const brackets = getOrdinaryBrackets(taxData, filingStatus);
     const ordinaryTax = calculateOrdinaryTaxWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill).tax;
@@ -302,6 +302,7 @@ export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: Filin
 
 
     const calculateSelfEmploymentTaxFn = (inputs: TaxFormRow[]): number => calculateSelfEmploymentTax(inputs, taxData);
+    const childTaxCreditFn = (inputs: TaxFormRow[]): number => childTaxCredit(inputs, taxData);
 
     const calculateFederalIncomeTaxAfterCredits = (inputs: TaxFormRow[]): number => {
         const { ordinary, ltcg, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
@@ -309,7 +310,7 @@ export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: Filin
         const ordinaryTax = calculateOrdinaryTaxWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill).tax;
         const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
         const totalTax = ordinaryTax + ltcgTax;
-        const credits = childTaxCredit(inputs) + educationCredits(inputs) + retirementSavingsContributions(inputs) + otherCredit(inputs);
+        const credits = totalCredits(inputs, taxData);
         return Math.max(0, totalTax - credits);
     };
 
@@ -327,7 +328,7 @@ export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: Filin
         medicalDental,
         mortgageInterest,
         charitable,
-        childTaxCredit,
+        childTaxCredit: childTaxCreditFn,
         educationCredits,
         retirementSavingsContributions,
         otherCredit,

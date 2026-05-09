@@ -27,7 +27,7 @@ function computeCreditAllocation(
     filingStatus: FilingStatus,
     bracketsLength: number,
 ): CreditAllocation {
-    const credits = totalCredits(inputs);
+    const credits = totalCredits(inputs, taxData);
     const { ordinary, ltcg, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
     const brackets = getOrdinaryBrackets(taxData, filingStatus);
     const ordinarySlices = ordinaryIncomeSlicesWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill);
@@ -83,7 +83,7 @@ function calculateTaxBracket(inputs: TaxFormRow[], taxData: TaxYearConfig, filin
     // const { afterPretax, payrollTaxTotal, deduction } = calculateTaxableIncome(inputs, taxData, filingStatus);
     let remainingIncome = income - deductions;
     let remainingPayrollTax = Math.max(payrollTaxTotal - deductions, 0);
-    let remainingCredits = totalCredits(inputs);
+    let remainingCredits = totalCredits(inputs, taxData);
     console.log("result", {payrollTaxTotal, deductions, 
         remainingIncome,
 remainingPayrollTax,
