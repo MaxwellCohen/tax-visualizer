@@ -15,6 +15,20 @@ function buildBrackets(
   };
 }
 
+function buildLtcgBrackets(
+  single: [number, number],
+  marriedJoint: [number, number],
+  marriedSeparate: [number, number],
+  headOfHousehold: [number, number]
+) {
+  return [
+    { filingStatus: "single" as const, brackets: [{ upTo: single[0], rate: 0 }, { upTo: single[1], rate: 0.15 }, { upTo: null, rate: 0.20 }] },
+    { filingStatus: "marriedJoint" as const, brackets: [{ upTo: marriedJoint[0], rate: 0 }, { upTo: marriedJoint[1], rate: 0.15 }, { upTo: null, rate: 0.20 }] },
+    { filingStatus: "marriedSeparate" as const, brackets: [{ upTo: marriedSeparate[0], rate: 0 }, { upTo: marriedSeparate[1], rate: 0.15 }, { upTo: null, rate: 0.20 }] },
+    { filingStatus: "headOfHousehold" as const, brackets: [{ upTo: headOfHousehold[0], rate: 0 }, { upTo: headOfHousehold[1], rate: 0.15 }, { upTo: null, rate: 0.20 }] },
+  ];
+}
+
 const THRESHOLDS_200K_250K_125K_200K: Record<FilingStatus, number> = {
   single: 200000,
   marriedJoint: 250000,
@@ -26,7 +40,7 @@ export const YEAR_VALUES_2023: YearValues = {
   year: 2023,
   standardDeduction: { single: 13850, marriedJoint: 27700, marriedSeparate: 13850, headOfHousehold: 20800 },
   brackets: buildBrackets([11000, 44725, 95375, 182100, 231250, 578125], [22000, 89450, 190750, 364200, 462500, 693750], [11000, 44725, 95375, 182100, 231250, 346875], [15700, 59850, 95350, 182100, 231250, 578100]),
-  ltcgThresholds: { single: { zeroRateMax: 44625, fifteenRateMax: 492300 }, marriedJoint: { zeroRateMax: 89250, fifteenRateMax: 553850 }, marriedSeparate: { zeroRateMax: 44625, fifteenRateMax: 276900 }, headOfHousehold: { zeroRateMax: 59750, fifteenRateMax: 523050 } },
+  ltcgThresholds: buildLtcgBrackets([44625, 492300], [89250, 553850], [44625, 276900], [59750, 523050]),
   limits: { electiveDeferral401k: 22500, hsaSelfOnly: 3850, hsaFamily: 7750, traditionalIra: 6500 },
   caps: {
     salt: { single: 10000, marriedJoint: 10000, marriedSeparate: 5000, headOfHousehold: 10000 },

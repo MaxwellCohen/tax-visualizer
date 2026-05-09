@@ -105,7 +105,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         shortLabel: "LTCG Tax",
         sankeySettings: {
             link: [
-                { source: "ltcg-income", target: "federalIncomeTax", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: ltcgIncomeRow, col: 3 },
+                { source: "ltcg-income", target: "federalIncomeTax", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: ltcgIncomeRow + 2, col: 3 },
             ],
         },
         calculate: (inputs) => {
@@ -122,7 +122,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                     source: "ltcg-income",
                     target: "takeHomePay",
                     ...getCreditLinkCreditsRow(creditsRow),
-                    row: ltcgIncomeRow + 2,
+                    row: ltcgIncomeRow + 1,
                 },
             ],
         },

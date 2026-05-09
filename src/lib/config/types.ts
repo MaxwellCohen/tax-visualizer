@@ -6,16 +6,16 @@ export type Bracket = {
   rate: number;
 };
 
-export type LtcgThreshold = {
-  zeroRateMax: number;
-  fifteenRateMax: number;
+export type LtcgBracketSet = {
+  filingStatus: FilingStatus;
+  brackets: Bracket[];
 };
 
 export type YearValues = {
   year: number;
   standardDeduction: Record<FilingStatus, number>;
   brackets: Record<FilingStatus, Bracket[]>;
-  ltcgThresholds: Record<FilingStatus, LtcgThreshold>;
+  ltcgThresholds: LtcgBracketSet[];
   limits: Record<string, number>;
   caps: {
     salt: Record<FilingStatus, number>;

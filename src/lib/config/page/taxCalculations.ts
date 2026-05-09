@@ -106,19 +106,17 @@ export function calculateLtcgTaxTotal(
     let remaining = taxableLtcg;
     let lowerBound = baseIncome;
 
-    const thresholdValues = thresholds[filingStatus];
-    const bracketConfigs: Array<{ rate: number; thresholdKey: "zeroRateMax" | "fifteenRateMax" | null }> = [
-        { rate: 0, thresholdKey: "zeroRateMax" },
-        { rate: 0.15, thresholdKey: "fifteenRateMax" },
-        { rate: 0.20, thresholdKey: null },
-    ];
+    const bracketSet = thresholds.find((threshold) => threshold.filingStatus === filingStatus);
+    if (!bracketSet) {
+        throw new Error(`Missing long-term capital gains brackets for filing status: ${filingStatus}`);
+    }
 
-    for (const cfg of bracketConfigs) {
+    for (const bracket of bracketSet.brackets) {
         if (remaining <= 0) break;
-        const upperBound = cfg.thresholdKey ? thresholdValues[cfg.thresholdKey] : Number.POSITIVE_INFINITY;
+        const upperBound = bracket.upTo ?? Number.POSITIVE_INFINITY;
         const amountInBracket = Math.max(0, Math.min(remaining, Math.max(0, upperBound - lowerBound)));
         if (amountInBracket > 0) {
-            const taxAmount = amountInBracket * cfg.rate;
+            const taxAmount = amountInBracket * bracket.rate;
             totalTax += taxAmount;
             remaining -= amountInBracket;
         }

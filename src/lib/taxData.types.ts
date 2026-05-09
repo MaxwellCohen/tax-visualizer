@@ -22,10 +22,10 @@ type PayrollRules = {
   selfEmploymentMedicareRate: number;
 };
 
-/** Top of 0% and 15% LTCG bands (taxable income); above fifteenRateMax is 20%. IRS-style stacking on ordinary taxable income. */
-export type LongTermCapGainsThresholds = FilingStatusRecord<{
-  zeroRateMax: number;
-  fifteenRateMax: number;
+/** LTCG tax bands by filing status. IRS-style stacking on ordinary taxable income. */
+export type LongTermCapGainsThresholds = Array<{
+  filingStatus: FilingStatus;
+  brackets: FederalTaxBracket[];
 }>;
 
 /** Form 8960-style NIIT (§1411): 3.8% on lesser of NII and MAGI over threshold. Thresholds are not inflation-indexed. */

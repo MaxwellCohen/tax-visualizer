@@ -31,7 +31,10 @@ export function yearValuesToTaxYearConfig(yv: YearValues, status: "final" | "pla
   return {
     standardDeduction: { ...yv.standardDeduction },
     federalBrackets: bracketsToFederal(yv),
-    longTermCapGains: { ...yv.ltcgThresholds },
+    longTermCapGains: yv.ltcgThresholds.map(({ filingStatus, brackets }) => ({
+      filingStatus,
+      brackets: brackets.map((bracket) => ({ upTo: bracket.upTo, rate: bracket.rate })),
+    })),
     payroll: {
       socialSecurityRate: yv.payroll.ssRate,
       socialSecurityWageBase: yv.payroll.ssWageBase,
