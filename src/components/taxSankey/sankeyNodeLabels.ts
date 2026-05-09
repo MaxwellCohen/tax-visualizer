@@ -1,5 +1,5 @@
 import type { ChartNode } from "~/components/taxSankey/chartTypes";
-import { sankeyMoney } from "~/components/taxSankey/sankeyFormat";
+import { money as sankeyMoney } from "~/components/taxInputForm/shared";
 
 type SankeyLabelLines = {
   title: string;
@@ -33,12 +33,11 @@ function compactNodeLabel(node: ChartNode): string {
 }
 
 export function sankeyLabelLines(node: ChartNode): SankeyLabelLines {
-  const money = sankeyMoney;
   const flow = nodeFlowValue(node);
-  const fmt = money.format(flow);
+  const fmt = sankeyMoney.format(flow);
   const h = getNodeHeight(node);
 
-  const labelLines = getLabelLinesForNode(node, money, flow, fmt, h);
+  const labelLines = getLabelLinesForNode(node, sankeyMoney, flow, fmt, h);
   if (labelLines) return labelLines;
 
   return createDefaultLabelLines(node, fmt, h);

@@ -2,7 +2,7 @@ import { For } from "solid-js";
 import type { SankeyGraph } from "d3-sankey";
 import { sankeyLinkPath, type ChartLink, type ChartNode } from "~/components/taxSankey/chartTypes";
 import { linkStroke } from "~/components/taxSankey/sankeyColors";
-import { sankeyMoney } from "~/components/taxSankey/sankeyFormat";
+import { money } from "~/components/taxInputForm/shared";
 
 type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
 
@@ -23,7 +23,7 @@ export function SankeyLinkPaths(props: Props) {
         const sourceNode = link.source as ChartNode;
         const targetNode = link.target as ChartNode;
         const { x, y } = linkLabelPosition(link);
-        const amount = sankeyMoney.format(link.value ?? 0);
+        const amount = money.format(link.value ?? 0);
         console.log(`path: ${sourceNode.id} -> ${targetNode.id} row: ${link.row} col: ${link.col} value: ${link.value}`)
         return (
           <g data-link={`${sourceNode.id} - ${targetNode.id}`} data-row={link.row} data-col={link.col} data-val={link.value}>
