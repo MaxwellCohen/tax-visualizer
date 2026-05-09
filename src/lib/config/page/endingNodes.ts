@@ -2,24 +2,14 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";
 import {
-    buildFinalTaxContext,
-    calculateOrdinaryTaxWithPayrollShadow,
-    calculateTaxableIncome,
-    getOrdinaryBrackets,
     totalIncome,
+    calculateTaxBrackets,
+    getStandardDeductionWithoutPayrollTax,
+    getItemizedDeductionsWithoutPayrollTax,
 } from "./taxCalculations";
 
 export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
-    const ctx = buildFinalTaxContext(taxData, filingStatus);
-    const {
-        _401k,
-        _hsa,
-        otherPretax,
-        traditionalIra,
-        calculatePayrollTax,
-        calculateSelfEmploymentTax,
-        calculateFederalIncomeTaxAfterCredits,
-    } = ctx;
+
 
     return [
         {
@@ -37,13 +27,10 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             sankeySettings: {
                 node: { fill: "var(--sankey-node-keep)", stroke: "var(--sankey-link-keep)", row: 3, col: 4 },
             },
-            calculate: (inputs) => {
-                const gross = totalIncome(inputs);
-                const seTax = calculateSelfEmploymentTax(inputs);
-                const pretax = _401k(inputs) + _hsa(inputs) + otherPretax(inputs) + traditionalIra(inputs);
-                const federalTax = calculateFederalIncomeTaxAfterCredits(inputs);
-                const payrollTax = calculatePayrollTax(inputs, taxData);
-                return Math.max(0, gross - pretax - federalTax - payrollTax - seTax);
+            calculate: (inputs, taxData, filingStatus) => {
+                const brackets = calculateTaxBrackets(inputs, taxData, filingStatus);
+                const keep = brackets.reduce((sum, bracket) => sum + bracket.keep + bracket.credits, 0) + getStandardDeductionWithoutPayrollTax(inputs, taxData, filingStatus) + getItemizedDeductionsWithoutPayrollTax(inputs, taxData, filingStatus);
+                return keep;
             },
             summary: {
                 summaryId: "take-home-pay",
@@ -61,7 +48,11 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             sankeySettings: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 4, col: 4 },
             },
-            calculate: calculateFederalIncomeTaxAfterCredits,
+            calculate: (inputs, taxData, filingStatus) => {
+                const brackets = calculateTaxBrackets(inputs, taxData, filingStatus);
+                const tax = brackets.reduce((sum, bracket) => sum + bracket.tax, 0);
+                return tax;
+            },
             summary: {
                 summaryId: "federal-income-tax",
                 label: "Federal Income Tax",
@@ -79,7 +70,8 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             calculate: (inputs) => {
                 const gross = totalIncome(inputs);
                 if (gross <= 0) return 0;
-                const federalTax = calculateFederalIncomeTaxAfterCredits(inputs);
+                const brackets = calculateTaxBrackets(inputs, taxData, filingStatus);
+                const federalTax = brackets.reduce((sum, bracket) => sum + bracket.tax, 0);
                 return federalTax / gross;
             },
             summary: {
@@ -87,23 +79,6 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 label: "Effective Tax Rate",
                 category: "rate",
                 displayOrder: 7,
-                format: "percent",
-            },
-        },
-        {
-            id: "marginalFederalRate",
-            label: "Marginal Tax Rate",
-            shortLabel: "Marginal Rate",
-            calculate: (inputs) => {
-                const { ordinary, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
-                const brackets = getOrdinaryBrackets(taxData, filingStatus);
-                return calculateOrdinaryTaxWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill).marginalRate;
-            },
-            summary: {
-                summaryId: "marginal-tax-rate",
-                label: "Marginal Tax Rate",
-                category: "rate",
-                displayOrder: 8,
                 format: "percent",
             },
         },

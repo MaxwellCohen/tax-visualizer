@@ -6,25 +6,15 @@ import {
     wageIncomeSpouse2,
     selfEmploymentIncome,
     ordinaryIncome,
-    shortTermCapGains,
     longTermCapGains,
     _401k,
     _hsa,
-    otherPretax,
-    traditionalIra,
-    salt,
-    medicalDental,
-    mortgageInterest,
-    charitable,
-    childTaxCredit,
-    educationCredits,
-    retirementSavingsContributions,
-    otherCredit,
     allPretax,
     totalCredits,
     totalItemized,
     useItemizedDeductions,
     standardDeduction as standardDeductionInput,
+    totalDeductions,
 } from "./pageConfig.inputs";
 
 export * from "./pageConfig.inputs";
@@ -286,44 +276,46 @@ export function computeFederalTaxCreditsApplied(
     return Math.min(credits, totalTax);
 }
 
-export function buildFinalTaxContext(taxData: TaxYearConfig, filingStatus: FilingStatus) {
-
-    const calculatePayrollTaxFn = (inputs: TaxFormRow[], taxData: TaxYearConfig) => calculatePayrollTax(inputs, taxData, filingStatus)
 
 
-    const calculateSelfEmploymentTaxFn = (inputs: TaxFormRow[]): number => calculateSelfEmploymentTax(inputs, taxData);
-    const childTaxCreditFn = (inputs: TaxFormRow[]): number => childTaxCredit(inputs, taxData);
-
-    const calculateFederalIncomeTaxAfterCredits = (inputs: TaxFormRow[]): number => {
-        const { ordinary, ltcg, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
-        const brackets = getOrdinaryBrackets(taxData, filingStatus);
-        const ordinaryTax = calculateOrdinaryTaxWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill).tax;
-        const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
-        const totalTax = ordinaryTax + ltcgTax;
-        const credits = totalCredits(inputs, taxData);
-        return Math.max(0, totalTax - credits);
+export function calculateTaxBrackets(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) {
+    const result = [];
+    const brackets = taxData.federalBrackets[filingStatus];
+    const income = ordinaryIncome(inputs) - allPretax(inputs);
+    const payrollTaxTotal = calculatePayrollTax(inputs, taxData, filingStatus) + calculateSelfEmploymentTax(inputs, taxData);
+    const deductions = totalDeductions(inputs, taxData, filingStatus);
+    let remainingIncome = income - deductions;
+    let remainingPayrollTax = Math.max(payrollTaxTotal - deductions, 0);
+    let remainingCredits = totalCredits(inputs, taxData);
+    console.log("result", {
+        payrollTaxTotal, deductions,
+        remainingIncome,
+        remainingPayrollTax,
+        remainingCredits,
+    });
+    // loop through all brackets to calculate the tax and keep
+    for (let i = 0; i < brackets.length; i++) {
+        const bracket = brackets[i];
+        const bracketMax = bracket?.upTo ?? Infinity;
+        const taxableBracketIncome = Math.min(remainingIncome, bracketMax);
+        remainingIncome = Math.max(0, remainingIncome - taxableBracketIncome)
+        const tax = taxableBracketIncome * bracket.rate;
+        const keep = Math.max(taxableBracketIncome - tax - remainingPayrollTax, 0);
+        remainingPayrollTax = Math.max(0, remainingPayrollTax - (taxableBracketIncome - tax));
+        result.push({ taxBracket: bracket, tax, keep, credits: 0, payrollTax: remainingPayrollTax, remainingIncome: remainingIncome });
     };
+     // adding in the LTCG tax path
+     const ltcg = longTermCapGains(inputs);
+     const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, income);
+     result.push({  tax: ltcgTax, keep: ltcg - ltcgTax, credits: 0, payrollTax: 0, remainingIncome: 0 });
 
-    return {
-        wageIncome,
-        selfEmploymentIncome,
-        ordinaryIncome,
-        shortTermCapGains,
-        longTermCapGains,
-        _401k,
-        _hsa,
-        otherPretax,
-        traditionalIra,
-        salt,
-        medicalDental,
-        mortgageInterest,
-        charitable,
-        childTaxCredit: childTaxCreditFn,
-        educationCredits,
-        retirementSavingsContributions,
-        otherCredit,
-        calculatePayrollTax: calculatePayrollTaxFn,
-        calculateSelfEmploymentTax: calculateSelfEmploymentTaxFn,
-        calculateFederalIncomeTaxAfterCredits,
-    };
+    // loop thorough backwards and add in the credit calculations using result from the forward pass
+    for (let i = result.length - 1; i >= 0; i--) {
+        const bracket = result[i];
+        const credits = Math.min(remainingCredits, bracket.tax);
+        bracket.credits = Math.max(0, credits);
+        bracket.tax = Math.max(0, bracket.tax - credits);
+        remainingCredits -= credits;
+    }
+    return result;
 }

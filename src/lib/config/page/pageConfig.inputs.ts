@@ -27,12 +27,12 @@ export const allPretax = (inputs: TaxFormRow[]) => {
     return Math.min(pretax, wageIncome);
 };
 export const traditionalIra = (inputs: TaxFormRow[]) => findInputById(inputs, "input-pretax-traditionalIra");
-export const salt = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-salt");
-export const medicalDental = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-medicalDental");
-export const mortgageInterest = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-mortgageInterest");
-export const charitable = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-charitable");
-export const qualifyingChildren = (inputs: TaxFormRow[]) => Math.max(0, findInputById(inputs, "qualifyingChildren"));
-export const otherDependents = (inputs: TaxFormRow[]) => Math.max(0, findInputById(inputs, "otherDependents"));
+// const salt = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-salt");
+// const medicalDental = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-medicalDental");
+// const mortgageInterest = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-mortgageInterest");
+// const charitable = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-charitable");
+const qualifyingChildren = (inputs: TaxFormRow[]) => Math.max(0, findInputById(inputs, "qualifyingChildren"));
+const otherDependents = (inputs: TaxFormRow[]) => Math.max(0, findInputById(inputs, "otherDependents"));
 export const childTaxCredit = (inputs: TaxFormRow[], taxData: TaxYearConfig) => {
     const childCredit = taxData.federalTaxCreditDefaults.childTaxCredit ?? 0;
     const otherDependentCredit = taxData.federalTaxCreditDefaults.creditForOtherDependents ?? 0;

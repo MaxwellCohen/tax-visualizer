@@ -1,16 +1,8 @@
 /** Federal ordinary brackets and LTCG bracket slices (income / tax / keep per band). */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
-import type { TaxFormRow } from "~/lib/taxForm.types";
 import type { configItem } from "./pageConfig.types";
 import { getCreditsSankeyRow } from "./sankeyLayout.helpers";
-import { allPretax, calculateLtcgTaxTotal, calculatePayrollTax, calculateSelfEmploymentTax, calculateTaxableIncome, getOrdinaryBrackets, ordinaryIncome, ordinaryIncomeSlicesWithPayrollShadow, totalDeductions } from "./taxCalculations";
-import { longTermCapGains, totalCredits } from "./pageConfig.inputs";
-
-interface CreditAllocation {
-    ordinaryBracketCredits: number[];
-    ltcgCredit: number;
-    creditsRow: number;
-}
+import { calculateTaxBrackets } from "./taxCalculations";
 
 function getCreditLinkCreditsRow(creditsRow: number) {
     return {
@@ -21,89 +13,9 @@ function getCreditLinkCreditsRow(creditsRow: number) {
     } as const;
 }
 
-function computeCreditAllocation(
-    inputs: TaxFormRow[],
-    taxData: TaxYearConfig,
-    filingStatus: FilingStatus,
-    bracketsLength: number,
-): CreditAllocation {
-    const credits = totalCredits(inputs, taxData);
-    const { ordinary, ltcg, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
-    const brackets = getOrdinaryBrackets(taxData, filingStatus);
-    const ordinarySlices = ordinaryIncomeSlicesWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill);
-
-    const bracketTaxes: number[] = ordinarySlices.map((incomeInBracket, i) => incomeInBracket * brackets[i].rate);
-
-    const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
-
-    let remainingCredits = credits;
-    const ordinaryBracketCredits: number[] = [...Array(bracketsLength)].fill(0);
-    let ltcgCredit = 0;
-
-    if (remainingCredits > 0 && ltcgTax > 0) {
-        ltcgCredit = Math.min(remainingCredits, ltcgTax);
-        remainingCredits -= ltcgCredit;
-    }
-
-    for (let i = brackets.length - 1; i >= 0 && remainingCredits > 0; i--) {
-        const taxInBracket = bracketTaxes[i];
-        if (taxInBracket > 0) {
-            const creditApplied = Math.min(remainingCredits, taxInBracket);
-            ordinaryBracketCredits[i] = creditApplied;
-            remainingCredits -= creditApplied;
-        }
-    }
-
-    return {
-        ordinaryBracketCredits,
-        ltcgCredit,
-        creditsRow: getCreditsSankeyRow(taxData, filingStatus),
-    };
-}
-
-function calculateTaxBracket(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus, bracketIndex: number) {
-    const result = [];
-    const brackets = taxData.federalBrackets[filingStatus];
-    const income = ordinaryIncome(inputs) - allPretax(inputs);
-    const payrollTaxTotal = calculatePayrollTax(inputs, taxData, filingStatus) + calculateSelfEmploymentTax(inputs, taxData);
-    const deductions = totalDeductions(inputs, taxData, filingStatus); 
-
-    // const { afterPretax, payrollTaxTotal, deduction } = calculateTaxableIncome(inputs, taxData, filingStatus);
-    let remainingIncome = income - deductions;
-    let remainingPayrollTax = Math.max(payrollTaxTotal - deductions, 0);
-    let remainingCredits = totalCredits(inputs, taxData);
-    console.log("result", {payrollTaxTotal, deductions, 
-        remainingIncome,
-remainingPayrollTax,
-remainingCredits,
-    });
-    // loop through all brackets to calculate the tax and keep
-    for (let i = 0; i < brackets.length; i++) {
-        const bracket = brackets[i];
-        const bracketMax = bracket?.upTo ?? Infinity;
-        const taxableBracketIncome = Math.min(remainingIncome, bracketMax);
-        remainingIncome = Math.max(0, remainingIncome - taxableBracketIncome)
-        const tax = taxableBracketIncome * bracket.rate;
-        const keep = Math.max(taxableBracketIncome - tax - remainingPayrollTax, 0);
-        remainingPayrollTax = Math.max(0, remainingPayrollTax - (taxableBracketIncome - tax));
-        
-        result.push({ taxBracket: bracket, tax, keep, credits: 0,  payrollTax: remainingPayrollTax, remainingIncome: remainingIncome });
-    };
-    console.log("result", result, );  
-    // loop thorough backwards and add in the credit calculations using result from the forward pass
-    for (let i = result.length - 1; i >= 0; i--) {
-        const bracket = result[i];
-        const credits = Math.min(remainingCredits, bracket.tax - bracket.credits);
-        bracket.credits = Math.max(0, credits);
-        bracket.tax  = Math.max(0, bracket.tax - credits);
-        remainingCredits -= credits;
-    }
-    return result[bracketIndex];
-}
-
 export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStatus): configItem[] {
     const brackets = taxData.federalBrackets[filingStatus];
-    const items: configItem[] = [];
+    let items: configItem[] = [];
     const creditsRow = getCreditsSankeyRow(taxData, filingStatus);
     const ltcgIncomeRow = 50;
     for (let i = 0; i < brackets.length; i++) {
@@ -125,16 +37,10 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 column: { row: bracketRow, col: 3, fill: "var(--mekko-keep)", stroke: "var(--mekko-keep)", kind: "ordinaryBracket" },
             },
             calculate: (inputs) => {
-                const bracketData = calculateTaxBracket(inputs, taxData, filingStatus, i);
-                return bracketData.tax + bracketData.credits + bracketData.keep;
+                const { tax, credits, keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0, credits: 0, keep: 0 };
+                return tax + credits + keep;
             },
-        });
-
-        // const incomeItem = items[items.length - 1];
-
-
-
-        items.push({
+        }, {
             id: `${bracketId}-keep`,
             label: `${rateLabel} % Keep`,
             shortLabel: `${rateLabel}% Income`,
@@ -144,12 +50,10 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 ],
             },
             calculate: (inputs) => {
-                const bracketData = calculateTaxBracket(inputs, taxData, filingStatus, i);
-                return bracketData.keep;
+                const { keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? {  keep: 0 };
+                return keep;
             },
-        });
-
-        items.push({
+        }, {
             id: `${bracketId}-credits`,
             label: `${rateLabel} % Credits`,
             shortLabel: `${rateLabel}% Credits`,
@@ -159,12 +63,10 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 ],
             },
             calculate: (inputs) => {
-                const bracketData = calculateTaxBracket(inputs, taxData, filingStatus, i);
-                return bracketData.credits;
+                const { credits } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { credits: 0 };
+                return credits;
             },
-        });
-
-        items.push({
+        }, {
             id: `${bracketId}-tax`,
             label: `${rateLabel} % Tax`,
             shortLabel: `${rateLabel}% Tax`,
@@ -174,12 +76,12 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 ],
             },
             calculate: (inputs) => {
-                const bracketData = calculateTaxBracket(inputs, taxData, filingStatus, i);
-                return bracketData.tax;
+                const { tax } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0 };
+                return tax;
             },
         });
     }
-
+    const i = brackets.length;
     items.push({
         id: "ltcg-income",
         label: "LTCG Income",
@@ -193,12 +95,11 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         mekkoSettings: {
             column: { row: ltcgIncomeRow, col: 3, fill: "var(--mekko-ltcg)", stroke: "var(--mekko-ltcg)", kind: "ltcgBracket" },
         },
-        calculate: longTermCapGains,
-    });
-
-    const incomeItem = items[items.length - 1];
-
-    items.push({
+        calculate: (inputs) => {
+            const { tax, credits, keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0, credits: 0, keep: 0 };
+            return tax + credits + keep;
+        },
+    },{
         id: "ltcg-tax",
         label: "LTCG Tax",
         shortLabel: "LTCG Tax",
@@ -207,26 +108,17 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 { source: "ltcg-income", target: "federalIncomeTax", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: ltcgIncomeRow, col: 3 },
             ],
         },
-        calculate: (inputs, taxData, filingStatus) => {
-            const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
-            const gross = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
-            const allocation = computeCreditAllocation(
-                inputs,
-                taxData,
-                filingStatus,
-                taxData.federalBrackets[filingStatus].length,
-            );
-            return Math.max(0, gross - allocation.ltcgCredit);
+        calculate: (inputs) => {
+            const { tax } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0 };
+            return tax;
         },
-    });
-
-    items.push({
+    },{
         id: "ltcg-credits",
         label: "LTCG Credits",
         shortLabel: "LTCG Credits",
         sankeySettings: {
             link: [
-                {
+                {   
                     source: "ltcg-income",
                     target: "takeHomePay",
                     ...getCreditLinkCreditsRow(creditsRow),
@@ -234,13 +126,11 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 },
             ],
         },
-        calculate: (inputs, td, fs) => {
-            const allocation = computeCreditAllocation(inputs, td, fs, td.federalBrackets[fs].length);
-            return allocation.ltcgCredit;
+        calculate: (inputs) => {
+            const { credits } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { credits: 0 };
+            return credits;
         },
-    });
-
-    items.push({
+    },{
         id: "ltcg-keep",
         label: "LTCG Keep",
         shortLabel: "LTCG Keep",
@@ -249,11 +139,9 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 { source: "ltcg-income", target: "takeHomePay", fill: "var(--sankey-link-keep)", stroke: "var(--sankey-link-keep)", row: 49, col: 3 },
             ],
         },
-        calculate: (inputs, td, fs) => {
-            const incomes = incomeItem.calculate?.(inputs, td, fs) ?? 0;
-            const { ordinary, ltcg } = calculateTaxableIncome(inputs, td, fs);
-            const grossLtcgTax = calculateLtcgTaxTotal(ltcg, td.longTermCapGains, fs, ordinary);
-            return incomes - grossLtcgTax;
+        calculate: (inputs) => {
+            const { keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { keep: 0 };
+            return keep;
         },
     });
     return items;
