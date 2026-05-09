@@ -28,7 +28,6 @@ export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus
             },
             calculate: calculatePayrollTax,
             summary: {
-                summaryId: "payroll-tax",
                 category: "tax",
                 displayOrder: 5,
                 format: "currency",
@@ -55,7 +54,6 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             },
             calculate: getStandardDeductionWithoutPayrollTax,
             summary: {
-                summaryId: "standard-deduction",
                 category: "deduction",
                 displayOrder: 2.5,
                 format: "currency",
@@ -77,7 +75,6 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             },
             calculate: getItemizedDeductionsWithoutPayrollTax,
             summary: {
-                summaryId: "itemized-deductions",
                 category: "deduction",
                 displayOrder: 2.5,
                 format: "currency",

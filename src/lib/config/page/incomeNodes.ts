@@ -18,7 +18,6 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             labels: { default: "Total Income", compact: "Total Income", summary: "Gross Income" },
             calculate: totalIncome,
             summary: {
-                summaryId: "total-income",
                 category: "income",
                 displayOrder: 1,
                 format: "currency",
@@ -58,7 +57,6 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             },
             calculate: allPretax,
             summary: {
-                summaryId: "pretax-deductions",
                 category: "pretax",
                 displayOrder: 2,
                 format: "currency",

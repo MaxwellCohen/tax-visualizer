@@ -2,13 +2,26 @@ import type { TaxFormRow } from "~/lib/taxForm.types";
 import { findInputById } from "./inputAccessors";
 import { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 
-const sumInputsByKinds = (inputs: TaxFormRow[], ...kinds: string[]): number =>
-    inputs.reduce((sum, row) => {
+const _cache = new WeakMap<TaxFormRow[], Map<string, number>>();
+
+const sumInputsByKinds = (inputs: TaxFormRow[], ...kinds: string[]): number => {
+    let cache = _cache.get(inputs);
+    if (!cache) {
+        cache = new Map<string, number>();
+        _cache.set(inputs, cache);
+    }
+    if (cache.has(kinds.join(","))) {
+        return cache.get(kinds.join(","))?? 0; 
+    }
+   const amount =  inputs.reduce((sum, row) => {
         if (row.type === "setting") return sum;
         const rowKind = row.kind?.toLowerCase();
         if (!rowKind || !kinds.every((kind) => rowKind.includes(kind.toLowerCase()))) return sum;
         return sum + row.amount;
     }, 0);
+    cache.set(kinds.join(","), amount);
+    return amount;
+}
 
 export const wageIncomeSpouse1 = (inputs: TaxFormRow[]) =>
     sumInputsByKinds(inputs, "income-ordinary-wages") - sumInputsByKinds(inputs, "income-ordinary-wages", "spouse2");

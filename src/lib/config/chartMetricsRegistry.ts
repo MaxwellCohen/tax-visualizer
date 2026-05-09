@@ -23,7 +23,6 @@ type ChartMetricValueKind = "number";
 type ChartMetricSummaryCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary" | "takehome" | "rate";
 
 type ChartMetricSummaryHint = {
-  summaryId: string;
   label: string;
   category: ChartMetricSummaryCategory;
   displayOrder: number;

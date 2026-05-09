@@ -51,6 +51,8 @@ export type SankeyNode = {
 } & ChartStyle;
 
 export type MekkoRowKind = "deduction" | "pretax" | "seAdjustment" | "payrollTax" | "ordinaryBracket" | "ltcgBracket";
+export type SankeyCategory = "income" | "pretax" | "deduction" | "tax" | "credit" |  "takehome" | "rate";
+export type ChartColorRole = "income" | "pretax" | "deduction" | "tax" | "credit" | "keep" | "ltcg" | "default";
 
 export type MekkoSegmentSplit = {
     keepId: string;
@@ -66,7 +68,6 @@ export type MekkoRowSettings = {
     split?: MekkoSegmentSplit;
 } & ChartStyle;
 
-export type SankeyCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary" | "takehome" | "rate";
 
 export type TaxTreatment = "ordinary" | "selfEmployment" | "shortTermCapGains" | "longTermCapGains";
 
@@ -81,7 +82,6 @@ export type KindDetail = {
     limitNote?: string;
 };
 
-export type ChartColorRole = "income" | "pretax" | "deduction" | "tax" | "credit" | "keep" | "ltcg" | "default";
 
 export type ChartStyle = {
     colorRole?: ChartColorRole;
@@ -99,7 +99,6 @@ export type MekkoSettings = {
 };
 
 export type SummarySettings = {
-    summaryId: string;
     category: SankeyCategory;
     displayOrder: number;
     format?: "currency" | "percent" | "number";

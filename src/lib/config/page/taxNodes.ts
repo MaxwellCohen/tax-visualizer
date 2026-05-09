@@ -64,7 +64,6 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
             },
             calculate: (inputs, taxData) => calculateSelfEmploymentTax(inputs, taxData),
             summary: {
-                summaryId: "self-employment-tax",
                 category: "tax",
                 displayOrder: 6,
                 format: "currency",

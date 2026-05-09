@@ -146,9 +146,6 @@ const taxableIncomeAfterDeductions = (inputs: TaxFormRow[], taxData: TaxYearConf
     return Math.max(0, ordinaryIncomeAfterPretax(inputs) - payrollTaxTotalValue - deduction);
 }
 
-
-
-
 /**
  * Per-bracket ordinary dollars after `payrollBracketShadowFill` consumes width from the lowest
  * brackets first. The top (open-ended) bracket does not absorb shadow width.
@@ -233,7 +230,6 @@ export function computeFederalTaxCreditsApplied(
     const totalTax = ordinaryTax + ltcgTax;
     return Math.min(credits, totalTax);
 }
-
 
 
 export function calculateTaxBrackets(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) {

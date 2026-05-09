@@ -9,12 +9,10 @@ import {
 } from "./taxCalculations";
 
 export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
-
-
     return [
         {
             id: "federalPayrollTaxes",
-            labels: { default: "Federal Payroll & Self-Employment Taxes", compact: "Federal Payroll / SE Tax" },
+            labels: { default: "Federal Payroll", compact: "Federal Payroll" },
             sankey: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 2, col: 4 },
             },
@@ -31,7 +29,6 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 return keep;
             },
             summary: {
-                summaryId: "take-home-pay",
                 category: "takehome",
                 displayOrder: 6,
                 format: "currency",
@@ -50,7 +47,6 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 return tax;
             },
             summary: {
-                summaryId: "federal-income-tax",
                 category: "tax",
                 displayOrder: 4,
                 format: "currency",
@@ -69,7 +65,6 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 return federalTax / gross;
             },
             summary: {
-                summaryId: "effective-tax-rate",
                 category: "rate",
                 displayOrder: 7,
                 format: "percent",

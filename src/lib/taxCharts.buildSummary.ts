@@ -5,7 +5,6 @@ export type SummaryMetricFormat = "currency" | "percent" | "number";
 
 export type SummaryMetric = {
   id: string;
-  summaryId: string;
   label: string;
   category: SankeyCategory;
   value: number;
@@ -30,7 +29,7 @@ const SUMMARY_SECTION_LABELS: Record<SankeyCategory, string> = {
   deduction: "Deductions",
   tax: "Taxes",
   credit: "Credits",
-  summary: "Summary",
+  // summary: "Summary",
   takehome: "Take-home",
   rate: "Rates",
 };
@@ -45,7 +44,6 @@ function metricFromCalculatedItem(item: CalculatedConfigItem): SummaryMetric | u
 
   return {
     id: item.id,
-    summaryId: summary.summaryId,
     label: item.labels.summary ?? item.labels.default,
     category: summary.category,
     value: item.computedValue,

@@ -59,7 +59,6 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
                 node: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)", row: 2, col: 2 },
             },
             summary: {
-                summaryId: "ordinary-taxable-income",
                 category: "income",
                 displayOrder: 1.5,
                 format: "currency",
@@ -73,7 +72,6 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             },
             calculate: longTermCapGains,
             summary: {
-                summaryId: "long-term-taxable-income",
                 category: "income",
                 displayOrder: 1.8,
                 format: "currency",
@@ -87,7 +85,6 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
                 return total;
             },
             summary: {
-                summaryId: "taxable-income",
                 category: "deduction",
                 displayOrder: 3,
                 format: "currency",
@@ -106,7 +103,6 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         //         return calculateOrdinaryTaxWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill).tax;
         //     },
         //     summary: {
-        //         summaryId: "federal-ordinary-income-tax",
         //         label: "Ordinary Income Tax",
         //         category: "tax",
         //         displayOrder: 4.5,
@@ -125,7 +121,6 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         //         return calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
         //     },
         //     summary: {
-        //         summaryId: "federal-ltcg-tax",
         //         label: "Capital Gains Tax",
         //         category: "tax",
         //         displayOrder: 4.7,
@@ -167,7 +162,6 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             },
             calculate: (inputs, taxData, filingStatus) => computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
             summary: {
-                summaryId: "federal-tax-credits-applied",
                 category: "credit",
                 displayOrder: 5.5,
                 format: "currency",
