@@ -19,16 +19,16 @@ const pct = new Intl.NumberFormat("en-US", {
 });
 
 function bandTitle(row: MekkoRow): string {
-  if (row.kind === "pretax") {
+  if (row.chartRole === "pretax") {
     return `${row.label}: ${money.format(row.total)} deferred (payroll pre-tax & deductible IRA).`;
   }
-  if (row.kind === "seAdjustment") {
+  if (row.chartRole === "seAdjustment") {
     return `${row.label}: ${money.format(row.total)} deductible against ordinary income (not cash).`;
   }
-  if (row.kind === "payrollTax") {
+  if (row.chartRole === "payrollTax") {
     return `${row.label}: ${money.format(row.total)} wage Social Security & Medicare.`;
   }
-  if (row.kind === "deduction") {
+  if (row.chartRole === "deduction") {
     return `${row.label}: ${money.format(row.total)} shielded by standard or itemized deduction.`;
   }
   return `${row.label}: federal tax ${money.format(row.tax)}; ${money.format(row.keep)} remains before payroll tax.`;

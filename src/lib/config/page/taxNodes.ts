@@ -56,6 +56,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
         },
         {
             id: "selfEmploymentTax",
+            chartRole: "tax",
             labels: { default: "Self-Employment Tax", compact: "Self-Employment Tax" },
             sankey: {
                 links: [
@@ -64,7 +65,6 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
             },
             calculate: (inputs, taxData) => calculateSelfEmploymentTax(inputs, taxData),
             summary: {
-                category: "tax",
                 displayOrder: 6,
                 format: "currency",
             },

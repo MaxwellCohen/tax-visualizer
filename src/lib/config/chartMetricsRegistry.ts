@@ -17,14 +17,13 @@ import type {
 import type { TaxCalculationInputs } from "~/lib/taxConfig.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import { getConfigItems, type ConfigItem } from "./page/Page.config";
+import { asSummaryChartRole, type SummaryChartRole } from "./page/chartRole";
 
 type ChartMetricValueKind = "number";
 
-type ChartMetricSummaryCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary" | "takehome" | "rate";
-
 type ChartMetricSummaryHint = {
   label: string;
-  category: ChartMetricSummaryCategory;
+  chartRole: SummaryChartRole;
   displayOrder: number;
   format?: "currency" | "percent" | "number";
   highlight?: boolean;
@@ -34,7 +33,7 @@ type ChartMetricSummaryHint = {
 type ChartMetricDetailedDisplayHint = {
   order: number;
   type: string;
-  category: ChartMetricSummaryCategory;
+  chartRole: SummaryChartRole;
   format?: "currency" | "percent" | "number";
   label?: string;
   tooltip?: string;
@@ -53,9 +52,11 @@ type ChartRegistryEntry = {
 
 /** Convert ConfigItem to ChartRegistryEntry format for compatibility */
 function summaryWithDerivedLabel(item: ConfigItem): ChartMetricSummaryHint | undefined {
-  if (!item.summary) return undefined;
+  const chartRole = asSummaryChartRole(item.chartRole);
+  if (!item.summary || !chartRole) return undefined;
   return {
     ...item.summary,
+    chartRole,
     label: item.labels.summary ?? item.labels.default,
   };
 }

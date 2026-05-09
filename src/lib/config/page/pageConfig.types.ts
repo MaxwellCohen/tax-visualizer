@@ -50,21 +50,30 @@ export type SankeyNode = {
     col: number;
 } & ChartStyle;
 
-export type MekkoRowKind = "deduction" | "pretax" | "seAdjustment" | "payrollTax" | "ordinaryBracket" | "ltcgBracket";
-export type SankeyCategory = "income" | "pretax" | "deduction" | "tax" | "credit" |  "takehome" | "rate";
-export type ChartColorRole = "income" | "pretax" | "deduction" | "tax" | "credit" | "keep" | "ltcg" | "default";
+export type ChartRole =
+    | "income"
+    | "pretax"
+    | "deduction"
+    | "tax"
+    | "credit"
+    | "takehome"
+    | "rate"
+    | "keep"
+    | "ltcg"
+    | "seAdjustment"
+    | "payrollTax"
+    | "ordinaryBracket"
+    | "default";
 
 export type MekkoSegmentSplit = {
     keepId: string;
     taxFill?: string;
     taxStroke?: string;
-    taxColorRole?: ChartColorRole;
 };
 
-export type MekkoRowSettings = {
+export type MekkoSettings = {
     row: number;
     col: number;
-    kind: MekkoRowKind;
     split?: MekkoSegmentSplit;
 } & ChartStyle;
 
@@ -82,9 +91,7 @@ export type KindDetail = {
     limitNote?: string;
 };
 
-
 export type ChartStyle = {
-    colorRole?: ChartColorRole;
     fill?: string;
     stroke?: string;
 };
@@ -94,12 +101,7 @@ export type SankeySettings = {
     links?: SankeyLink[];
 };
 
-export type MekkoSettings = {
-    row?: MekkoRowSettings;
-};
-
 export type SummarySettings = {
-    category: SankeyCategory;
     displayOrder: number;
     format?: "currency" | "percent" | "number";
     highlight?: boolean;
@@ -108,6 +110,7 @@ export type SummarySettings = {
 
 export type ConfigItem = {
     id: string;
+    chartRole?: ChartRole;
     category?: InputCategory;
     labels: ConfigLabels;
     description?: string;

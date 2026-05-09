@@ -3,7 +3,8 @@ import {
   type CalculatedConfigItem,
   type CalculatedConfigValueMap,
 } from "~/lib/taxCalc.calculateTaxes";
-import type { ChartColorRole, MekkoRowKind, MekkoRowSettings } from "~/lib/config/page/pageConfig.types";
+import { getChartRoleColorVar } from "~/lib/config/page/chartRole";
+import type { ChartRole } from "~/lib/config/page/pageConfig.types";
 
 export type MekkoRow = {
   id: string;
@@ -11,17 +12,13 @@ export type MekkoRow = {
   total: number;
   keep: number;
   tax: number;
-  kind: MekkoRowKind;
+  chartRole: ChartRole;
   order: number;
   fill: string;
   stroke: string;
   taxFill: string;
   taxStroke: string;
 };
-
-function colorVar(role: ChartColorRole): string {
-  return `var(--chart-${role})`;
-}
 
 const configValue = (values: CalculatedConfigValueMap, id: string): number => values.get(id) ?? 0;
 
@@ -34,8 +31,9 @@ function keepTaxFromSlice(values: CalculatedConfigValueMap, total: number, keepI
 }
 
 function rowFromCalculatedItem(item: CalculatedConfigItem, values: CalculatedConfigValueMap): MekkoRow {
-  const row = item.mekko!.row!;
+  const row = item.mekko!;
   const total = item.computedValue;
+  const chartRole = item.chartRole ?? "default";
 
   const { keep, tax } = row.split
     ? keepTaxFromSlice(values, total, row.split.keepId)
@@ -47,18 +45,18 @@ function rowFromCalculatedItem(item: CalculatedConfigItem, values: CalculatedCon
     total,
     keep,
     tax,
-    kind: row.kind,
+    chartRole,
     order: row.row,
-    fill: row.fill ?? (row.colorRole ? colorVar(row.colorRole) : "var(--chart-default)"),
-    stroke: row.stroke ?? (row.colorRole ? colorVar(row.colorRole) : "var(--chart-default)"),
-    taxFill: row.split?.taxFill ?? (row.split?.taxColorRole ? colorVar(row.split.taxColorRole) : "var(--chart-tax)"),
-    taxStroke: row.split?.taxStroke ?? (row.split?.taxColorRole ? colorVar(row.split.taxColorRole) : "var(--chart-tax)"),
+    fill: row.fill ?? getChartRoleColorVar(chartRole),
+    stroke: row.stroke ?? getChartRoleColorVar(chartRole),
+    taxFill: row.split?.taxFill ?? "var(--chart-tax)",
+    taxStroke: row.split?.taxStroke ?? "var(--chart-tax)",
   };
 }
 
 function compareMekkoRows(a: CalculatedConfigItem, b: CalculatedConfigItem): number {
-  const aRow = a.mekko!.row as MekkoRowSettings;
-  const bRow = b.mekko!.row as MekkoRowSettings;
+  const aRow = a.mekko!;
+  const bRow = b.mekko!;
   return aRow.col - bRow.col || aRow.row - bRow.row || a.id.localeCompare(b.id);
 }
 

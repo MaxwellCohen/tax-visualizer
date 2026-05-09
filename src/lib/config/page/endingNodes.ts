@@ -19,6 +19,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
         },
         {
             id: "takeHomePay",
+            chartRole: "takehome",
             labels: { default: "Take-Home Pay", compact: "Take-Home Pay" },
             sankey: {
                 node: { fill: "var(--sankey-node-keep)", stroke: "var(--sankey-link-keep)", row: 3, col: 4 },
@@ -29,7 +30,6 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 return keep;
             },
             summary: {
-                category: "takehome",
                 displayOrder: 6,
                 format: "currency",
                 highlight: true,
@@ -37,6 +37,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
         },
         {
             id: "federalIncomeTax",
+            chartRole: "tax",
             labels: { default: "Federal Income Tax", compact: "Federal Income Tax" },
             sankey: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 4, col: 4 },
@@ -47,7 +48,6 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 return tax;
             },
             summary: {
-                category: "tax",
                 displayOrder: 4,
                 format: "currency",
                 highlight: true,
@@ -56,6 +56,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
 
         {
             id: "effectiveTaxRate",
+            chartRole: "rate",
             labels: { default: "Effective Tax Rate", compact: "Effective Rate" },
             calculate: (inputs) => {
                 const gross = totalIncome(inputs);
@@ -65,7 +66,6 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 return federalTax / gross;
             },
             summary: {
-                category: "rate",
                 displayOrder: 7,
                 format: "percent",
             },

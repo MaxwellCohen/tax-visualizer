@@ -15,10 +15,10 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
     return [
         {
             id: "totalIncome",
+            chartRole: "income",
             labels: { default: "Total Income", compact: "Total Income", summary: "Gross Income" },
             calculate: totalIncome,
             summary: {
-                category: "income",
                 displayOrder: 1,
                 format: "currency",
             },
@@ -47,6 +47,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         },
         {
             id: "pretaxDeductions",
+            chartRole: "pretax",
             labels: { default: "Pretax Deductions", compact: "Pretax Deductions", summary: "Pre-tax Deductions" },
             sankey: {
                 node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
@@ -57,7 +58,6 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             },
             calculate: allPretax,
             summary: {
-                category: "pretax",
                 displayOrder: 2,
                 format: "currency",
             },

@@ -19,6 +19,7 @@ export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus
     return [
         {
             id: "payrollTax",
+            chartRole: "tax",
             labels: { default: "Payroll Taxes", compact: "Payroll Taxes", summary: "Payroll Tax" },
             sankey: {
                 node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 2, col: 3 },
@@ -28,7 +29,6 @@ export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus
             },
             calculate: calculatePayrollTax,
             summary: {
-                category: "tax",
                 displayOrder: 5,
                 format: "currency",
             },
@@ -41,6 +41,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
 
         {
             id: "standard",
+            chartRole: "deduction",
             labels: { default: "Standard deduction", compact: "Standard", summary: "Standard Deduction" },
             description: "Standard deduction based on filing status",
             kindDetail: {
@@ -54,7 +55,6 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             },
             calculate: getStandardDeductionWithoutPayrollTax,
             summary: {
-                category: "deduction",
                 displayOrder: 2.5,
                 format: "currency",
                 hideWhenZero: true,
@@ -62,6 +62,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
         },
         {
             id: "Itemized Deductions",
+            chartRole: "deduction",
             labels: { default: "Itemized Deductions", compact: "Itemized" },
             description: "Itemized deductions based on filing status",
             kindDetail: {
@@ -75,7 +76,6 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             },
             calculate: getItemizedDeductionsWithoutPayrollTax,
             summary: {
-                category: "deduction",
                 displayOrder: 2.5,
                 format: "currency",
                 hideWhenZero: true,

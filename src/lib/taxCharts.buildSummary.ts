@@ -1,4 +1,4 @@
-import type { SankeyCategory } from "~/lib/config/page/pageConfig.types";
+import { asSummaryChartRole, getSummaryChartRoleLabel, type SummaryChartRole } from "~/lib/config/page/chartRole";
 import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 
 export type SummaryMetricFormat = "currency" | "percent" | "number";
@@ -6,7 +6,7 @@ export type SummaryMetricFormat = "currency" | "percent" | "number";
 export type SummaryMetric = {
   id: string;
   label: string;
-  category: SankeyCategory;
+  chartRole: SummaryChartRole;
   value: number;
   format: SummaryMetricFormat;
   highlight: boolean;
@@ -14,7 +14,7 @@ export type SummaryMetric = {
 };
 
  type SummarySection = {
-  category: SankeyCategory;
+  chartRole: SummaryChartRole;
   label: string;
   metrics: SummaryMetric[];
 };
@@ -23,29 +23,20 @@ export type SummaryMetric = {
   sections: SummarySection[];
 };
 
-const SUMMARY_SECTION_LABELS: Record<SankeyCategory, string> = {
-  income: "Income",
-  pretax: "Pre-tax",
-  deduction: "Deductions",
-  tax: "Taxes",
-  credit: "Credits",
-  // summary: "Summary",
-  takehome: "Take-home",
-  rate: "Rates",
-};
-
 function compareSummaryMetrics(a: SummaryMetric, b: SummaryMetric): number {
   return a.displayOrder - b.displayOrder || a.id.localeCompare(b.id);
 }
 
 function metricFromCalculatedItem(item: CalculatedConfigItem): SummaryMetric | undefined {
-  const summary = item.summary!;
+  const summary = item.summary;
+  const chartRole = asSummaryChartRole(item.chartRole);
   if (!summary || (summary.hideWhenZero && item.computedValue === 0)) return undefined;
+  if (!chartRole) return undefined;
 
   return {
     id: item.id,
     label: item.labels.summary ?? item.labels.default,
-    category: summary.category,
+    chartRole,
     value: item.computedValue,
     format: summary.format ?? "number",
     highlight: summary.highlight ?? false,
@@ -61,17 +52,17 @@ export function buildSummaryFromConfig(cc: CalculatedConfigItem[]): SummaryChart
 
   if (!metrics.length || metrics.every((metric) => metric.value === 0)) return undefined;
 
-  const sectionsByCategory = new Map<SankeyCategory, SummaryMetric[]>();
+  const sectionsByChartRole = new Map<SummaryChartRole, SummaryMetric[]>();
   for (const metric of metrics) {
-    const sectionMetrics = sectionsByCategory.get(metric.category) ?? [];
+    const sectionMetrics = sectionsByChartRole.get(metric.chartRole) ?? [];
     sectionMetrics.push(metric);
-    sectionsByCategory.set(metric.category, sectionMetrics);
+    sectionsByChartRole.set(metric.chartRole, sectionMetrics);
   }
 
   return {
-    sections: Array.from(sectionsByCategory.entries()).map(([category, sectionMetrics]) => ({
-      category,
-      label: SUMMARY_SECTION_LABELS[category],
+    sections: Array.from(sectionsByChartRole.entries()).map(([chartRole, sectionMetrics]) => ({
+      chartRole,
+      label: getSummaryChartRoleLabel(chartRole),
       metrics: sectionMetrics,
     })),
   };

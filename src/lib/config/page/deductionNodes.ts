@@ -54,38 +54,38 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         // },
         {
             id: "ordinaryTaxableIncome",
+            chartRole: "income",
             labels: { default: "Ordinary Income", compact: "Ordinary (Pre-Ded)", summary: "Ordinary Taxable Income" },
             sankey: {
                 node: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)", row: 2, col: 2 },
             },
             summary: {
-                category: "income",
                 displayOrder: 1.5,
                 format: "currency",
             },
         },
         {
             id: "longTermTaxableIncome",
+            chartRole: "income",
             labels: { default: "LTCG Taxable Income", compact: "LTCG Taxable", summary: "Long-Term Capital Gains" },
             sankey: {
                 node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: 3, col: 2 },
             },
             calculate: longTermCapGains,
             summary: {
-                category: "income",
                 displayOrder: 1.8,
                 format: "currency",
             },
         },
         {
             id: "taxableIncome",
+            chartRole: "deduction",
             labels: { default: "Total Taxable Income", compact: "Taxable Income", summary: "Taxable Income" },
             calculate: (inputs, taxData, filingStatus) => {
                 const { total } = calculateTaxableIncome(inputs, taxData, filingStatus);
                 return total;
             },
             summary: {
-                category: "deduction",
                 displayOrder: 3,
                 format: "currency",
             },
@@ -153,6 +153,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         // },
         {
             id: "federalTaxCreditsApplied",
+            chartRole: "credit",
             labels: { default: "Federal Credits Applied", compact: "Credits Applied" },
             sankey: {
                 node: (() => {
@@ -162,7 +163,6 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             },
             calculate: (inputs, taxData, filingStatus) => computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
             summary: {
-                category: "credit",
                 displayOrder: 5.5,
                 format: "currency",
                 hideWhenZero: true,
@@ -196,29 +196,27 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
     return [
         {
             id: "mekkoPretaxDeferrals",
+            chartRole: "pretax",
             labels: { default: "Pre-tax deferrals", compact: "Pre-tax deferrals" },
             mekko: {
-                row: {
                     row: 0,
                     col: 3,
                     fill: "var(--mekko-pretax)",
                     stroke: "var(--mekko-pretax)",
-                    kind: "pretax",
-                },
             },
             calculate: (inputs) => allPretax(inputs),
         },
         {
             id: "mekkoSelfEmploymentTaxDeduction",
+            chartRole: "seAdjustment",
             labels: { default: "½ self-employment tax (deductible)", compact: "½ SE tax" },
             mekko: {
-                row: {
+                
                     row: 1,
                     col: 3,
                     fill: "var(--mekko-pretax)",
                     stroke: "var(--mekko-pretax)",
-                    kind: "seAdjustment",
-                },
+                
             },
             calculate: (inputs) => {
                 const se = selfEmploymentIncome(inputs);
@@ -227,15 +225,14 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
         },
         {
             id: "mekkoDeductionShieldNet",
+            chartRole: "deduction",
             labels: { default: "Standard / itemized (shielded ordinary, net of payroll)", compact: "Deduction shield" },
             mekko: {
-                row: {
                     row: 2,
                     col: 3,
                     fill: "var(--mekko-deduction)",
                     stroke: "var(--mekko-deduction)",
-                    kind: "deduction",
-                },
+            
             },
             calculate: (inputs, td, fs) => {
                 const t = calculateTaxableIncome(inputs, td, fs);
@@ -247,15 +244,13 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
         },
         {
             id: "mekkoPayrollTaxFromShield",
+            chartRole: "payrollTax",
             labels: { default: "Payroll taxes (wage FICA)", compact: "Payroll taxes" },
             mekko: {
-                row: {
                     row: 3,
                     col: 3,
                     fill: "var(--mekko-tax)",
                     stroke: "var(--mekko-tax)",
-                    kind: "payrollTax",
-                },
             },
             calculate: (inputs, td, fs) => {
                 const t = calculateTaxableIncome(inputs, td, fs);
