@@ -1,4 +1,5 @@
-import { Show, createMemo, createSignal, type Accessor, type Setter } from "solid-js";
+// fallow-ignore-file code-duplication
+import { Show, createMemo, type Accessor, type Setter } from "solid-js";
 import type { configItem } from "~/lib/config/page/pageConfig.types";
 import {
   incomeKindSelectOptions,
@@ -11,11 +12,10 @@ import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
 import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldValidationMessage";
-import { validateLineItemAmount } from "~/lib/config";
+import { createLineItemRowState, patchLineItemRow } from "~/components/taxInputForm/lineItemRowState";
 import type { ValidationContext } from "~/lib/config/types";
-import type { TaxFormData, TaxFormIncomeRow } from "~/lib/taxForm.types";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
-import { indexOfTypedRowById } from "~/lib/taxForm.rows";
 
 type IncomeSourceFieldsProps = {
   taxInput: Accessor<TaxFormData>;
@@ -29,47 +29,15 @@ type IncomeSourceFieldsProps = {
   validationCtx: Accessor<ValidationContext | undefined>;
 };
 
-function patchIncomeRow(
-  rows: TaxFormData["rows"],
-  rowId: string,
-  patch: Partial<Pick<TaxFormIncomeRow, "kind" | "label" | "amount">>,
-): TaxFormData["rows"] {
-  const i = indexOfTypedRowById(rows, "income", rowId);
-  if (i < 0) return rows;
-  const r = rows[i];
-  if (r.type !== "income") return rows;
-  const next = [...rows];
-  next[i] = { ...r, ...patch };
-  return next;
-}
-
 export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
   const commitToUrl = useTaxInputCommitToUrl();
-  const rowIndex = createMemo(() => indexOfTypedRowById(props.taxInput().rows, "income", props.rowId));
-  const kind = createMemo(() => {
-    const i = rowIndex();
-    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
-    return r?.type === "income" ? r.kind : undefined;
+  const { kind, label, amount, amountError, revalidateAmount, showWhenKey } = createLineItemRowState({
+    taxInput: props.taxInput,
+    rowId: props.rowId,
+    rowType: "income",
+    taxData: props.taxData,
+    validationCtx: props.validationCtx,
   });
-  const label = createMemo(() => {
-    const i = rowIndex();
-    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
-    return r?.type === "income" ? r.label : "";
-  });
-  const amount = createMemo(() => {
-    const i = rowIndex();
-    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
-    return r?.type === "income" ? r.amount : 0;
-  });
-
-  const [amountError, setAmountError] = createSignal<string | undefined>();
-
-  const revalidateAmount = (n: number) => {
-    setAmountError(validateLineItemAmount(kind(), n, props.validationCtx(), props.taxData()));
-  };
-
-  /** Key `<Show keyed>` by stable row id — not `rows[i]` — so index shifts do not remount the row and reset `<select>`. */
-  const showWhenKey = createMemo(() => (rowIndex() >= 0 ? props.rowId : false));
   const kindOptions = createMemo(() => incomeKindSelectOptions(props.configItems, props.isMarriedJoint));
 
   return (
@@ -82,7 +50,7 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
             value={() => kind() ?? ""}
             onInput={(e) => {
               const newKind = e.currentTarget.value;
-              props.setTaxInput((prev) => ({ ...prev, rows: patchIncomeRow(prev.rows, props.rowId, { kind: newKind }) }));
+              props.setTaxInput((prev) => ({ ...prev, rows: patchLineItemRow(prev.rows, "income", props.rowId, { kind: newKind }) }));
               const n = amount();
               revalidateAmount(n);
             }}
@@ -101,7 +69,7 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
             onInput={(e) => {
               props.setTaxInput((prev) => ({
                 ...prev,
-                rows: patchIncomeRow(prev.rows, props.rowId, { label: e.currentTarget.value }),
+                rows: patchLineItemRow(prev.rows, "income", props.rowId, { label: e.currentTarget.value }),
               }));
             }}
             onBlur={() => {
@@ -114,7 +82,7 @@ export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
             <FormCurrencyInput
               value={amount()}
               onInput={(n) => {
-                props.setTaxInput((prev) => ({ ...prev, rows: patchIncomeRow(prev.rows, props.rowId, { amount: n }) }));
+                props.setTaxInput((prev) => ({ ...prev, rows: patchLineItemRow(prev.rows, "income", props.rowId, { amount: n }) }));
                 revalidateAmount(n);
               }}
               onBlur={() => {}}

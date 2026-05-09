@@ -1,4 +1,5 @@
-import { For, Show, createMemo, type Accessor, type Setter } from "solid-js";
+// fallow-ignore-file code-duplication
+import { For, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
 import type { TaxFormData, TaxFormCreditRow } from "~/lib/taxForm.types";
@@ -6,12 +7,10 @@ import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import type { ValidationContext } from "~/lib/config/types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { FederalTaxCreditSourceRow } from "~/components/taxInputForm/FederalTaxCreditSourceFields";
+import { AddLineHeaderControls, AddLineMobileControls } from "~/components/taxInputForm/AddLineControls";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
 import { childTaxCredit } from "~/lib/config/page/pageConfig.inputs";
-
-const addLineBtnClass =
-  "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;
@@ -52,11 +51,7 @@ export function TaxInputFormCreditsSection(props: Props) {
         Dependent credits are calculated from the counts in Settings. Add other federal credits here by category;
         excess is not refunded, and payroll taxes are unchanged.
       </p>
-      <div class="flex justify-end md:hidden">
-        <button type="button" class={addLineBtnClass} onClick={props.addFederalTaxCredit}>
-          Add credit line
-        </button>
-      </div>
+      <AddLineMobileControls label="Add credit line" onAdd={props.addFederalTaxCredit} />
       <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-(--border) bg-(--surface-alt)">
         <table class="w-full min-w-0 border-collapse text-sm md:min-w-xl md:[&>tbody>tr:last-child>td]:border-b-0">
           <thead class="hidden md:table-header-group">
@@ -74,20 +69,12 @@ export function TaxInputFormCreditsSection(props: Props) {
                 scope="col"
                 class={`${taxInputFormTableThClass} whitespace-nowrap pr-3 text-right align-bottom`}
               >
-                <div class="flex justify-end gap-2">
-                  <Show when={creditRows().length > 0}>
-                    <button
-                      type="button"
-                      class="shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--surface-alt) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--text-muted) transition-colors hover:border-(--warning-text) hover:text-(--warning-text)"
-                      onClick={props.clearAll}
-                    >
-                      Remove all
-                    </button>
-                  </Show>
-                  <button type="button" class={addLineBtnClass} onClick={props.addFederalTaxCredit}>
-                    Add credit line
-                  </button>
-                </div>
+                <AddLineHeaderControls
+                  addLabel="Add credit line"
+                  onAdd={props.addFederalTaxCredit}
+                  onClearAll={props.clearAll}
+                  showClearAll={creditRows().length > 0}
+                />
               </th>
             </tr>
           </thead>

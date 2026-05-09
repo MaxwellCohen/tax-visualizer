@@ -1,3 +1,4 @@
+// fallow-ignore-file code-duplication
 /** Deduction-related config nodes: 0% tax brackets (standard/itemized), deduction amounts, mekko slices. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";

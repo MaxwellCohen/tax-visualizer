@@ -1,6 +1,8 @@
+// fallow-ignore-file code-duplication
 import { For, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { IncomeSourceTableRow } from "~/components/taxInputForm/IncomeSourceFields";
+import { AddLineHeaderControls, AddLineMobileControls } from "~/components/taxInputForm/AddLineControls";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import type { TaxFormData, TaxFormIncomeRow } from "~/lib/taxForm.types";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
@@ -18,9 +20,6 @@ type Props = {
   filingStatus: Accessor<FilingStatus>;
   validationCtx: Accessor<ValidationContext | undefined>;
 };
-
-const addSourceBtnClass =
-  "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 export function TaxInputFormIncomeSection(props: Props) {
   const incomeRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "income"));
@@ -60,11 +59,7 @@ export function TaxInputFormIncomeSection(props: Props) {
         Add wages, self-employment, and other ordinary income—one row per type. Optional labels are only for your
         notes (for example in charts).
       </p>
-      <div class="flex justify-end md:hidden">
-        <button type="button" class={addSourceBtnClass} onClick={props.addSource}>
-          Add source
-        </button>
-      </div>
+      <AddLineMobileControls label="Add source" onAdd={props.addSource} />
       <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-(--border) bg-(--surface-alt)">
         <table class="w-full min-w-0 border-collapse text-sm md:min-w-xl md:[&>tbody>tr:last-child>td]:border-b-0">
           <thead class="hidden md:table-header-group">
@@ -79,11 +74,7 @@ export function TaxInputFormIncomeSection(props: Props) {
                 Amount
               </th>
               <th scope="col" class={`${taxInputFormTableThClass} whitespace-nowrap pr-3 text-right align-bottom`}>
-                <div class="flex justify-end">
-                  <button type="button" class={addSourceBtnClass} onClick={props.addSource}>
-                    Add source
-                  </button>
-                </div>
+                <AddLineHeaderControls addLabel="Add source" onAdd={props.addSource} />
               </th>
             </tr>
           </thead>

@@ -1,9 +1,10 @@
-import { Show, createMemo, createSignal, type Accessor, type Setter } from "solid-js";
-import type { TaxFormData, TaxFormCreditRow } from "~/lib/taxForm.types";
-import { indexOfTypedRowById } from "~/lib/taxForm.rows";
+
+import { Show, createMemo, type Accessor, type Setter } from "solid-js";
+import type { TaxFormData } from "~/lib/taxForm.types";
 import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
 import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
+import { createLineItemRowState, patchLineItemRow } from "~/components/taxInputForm/lineItemRowState";
 import {
   itemizedDeductionSelectOptions,
   inputClass,
@@ -13,7 +14,7 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldValidationMessage";
-import { getInputItemsForSection, validateLineItemAmount } from "~/lib/config";
+import { getInputItemsForSection } from "~/lib/config";
 import type { ValidationContext } from "~/lib/config/types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import type { configItem } from "~/lib/config/page/pageConfig.types";
@@ -32,20 +33,6 @@ type Props = {
 const creditDetailRowTdClass =
   "border-t border-(--border-subtle) px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
 
-function patchCreditRow(
-  rows: TaxFormData["rows"],
-  rowId: string,
-  patch: Partial<Pick<TaxFormCreditRow, "kind" | "label" | "amount">>,
-): TaxFormData["rows"] {
-  const i = indexOfTypedRowById(rows, "credit", rowId);
-  if (i < 0) return rows;
-  const r = rows[i];
-  if (r.type !== "credit") return rows;
-  const next = [...rows];
-  next[i] = { ...r, ...patch };
-  return next;
-}
-
 export function FederalTaxCreditSourceRow(props: Props) {
   const commitToUrl = useTaxInputCommitToUrl();
   const configItems = createMemo((): configItem[] => {
@@ -57,30 +44,13 @@ export function FederalTaxCreditSourceRow(props: Props) {
 
   const kindOptions = createMemo(() => itemizedDeductionSelectOptions("credit", configItems()));
 
-  const rowIndex = createMemo(() => indexOfTypedRowById(props.taxInput().rows, "credit", props.rowId));
-
-  const kind = createMemo(() => {
-    const i = rowIndex();
-    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
-    return r?.type === "credit" ? r.kind : undefined;
+  const { kind, label, amount, amountError, revalidateAmount, showWhenKey } = createLineItemRowState({
+    taxInput: props.taxInput,
+    rowId: props.rowId,
+    rowType: "credit",
+    taxData: props.taxData,
+    validationCtx: props.validationCtx,
   });
-
-  const label = createMemo(() => {
-    const i = rowIndex();
-    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
-    return r?.type === "credit" ? r.label : "";
-  });
-
-  const amount = createMemo(() => {
-    const i = rowIndex();
-    const r = i >= 0 ? props.taxInput().rows[i] : undefined;
-    return r?.type === "credit" ? r.amount : 0;
-  });
-
-  const [amountError, setAmountError] = createSignal<string | undefined>();
-  const revalidateAmount = (n: number) => {
-    setAmountError(validateLineItemAmount(kind(), n, props.validationCtx(), props.taxData()));
-  };
 
   const detail = createMemo(() => {
     const currentKind = kind();
@@ -98,8 +68,6 @@ export function FederalTaxCreditSourceRow(props: Props) {
     };
   });
 
-  const showWhenKey = createMemo(() => (rowIndex() >= 0 ? props.rowId : false));
-
   return (
     <Show when={showWhenKey()} keyed>
       <>
@@ -113,7 +81,7 @@ export function FederalTaxCreditSourceRow(props: Props) {
                 const newKind = e.currentTarget.value;
                 props.setTaxInput((prev) => ({
                   ...prev,
-                  rows: patchCreditRow(prev.rows, props.rowId, { kind: newKind }),
+                  rows: patchLineItemRow(prev.rows, "credit", props.rowId, { kind: newKind }),
                 }));
                 revalidateAmount(amount());
               }}
@@ -132,7 +100,7 @@ export function FederalTaxCreditSourceRow(props: Props) {
               onInput={(e) => {
                 props.setTaxInput((prev) => ({
                   ...prev,
-                  rows: patchCreditRow(prev.rows, props.rowId, { label: e.currentTarget.value }),
+                  rows: patchLineItemRow(prev.rows, "credit", props.rowId, { label: e.currentTarget.value }),
                 }));
               }}
               onBlur={() => {
@@ -147,7 +115,7 @@ export function FederalTaxCreditSourceRow(props: Props) {
                 onInput={(n) => {
                   props.setTaxInput((prev) => ({
                     ...prev,
-                    rows: patchCreditRow(prev.rows, props.rowId, { amount: n }),
+                    rows: patchLineItemRow(prev.rows, "credit", props.rowId, { amount: n }),
                   }));
                   revalidateAmount(n);
                 }}

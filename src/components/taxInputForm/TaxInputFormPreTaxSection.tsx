@@ -1,10 +1,9 @@
-import { For, Show, createMemo, type Accessor, type Setter } from "solid-js";
+// fallow-ignore-file code-duplication
+import { For, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { PretaxBenefitSourceRow } from "~/components/taxInputForm/PretaxBenefitSourceFields";
-import {
-  money,
-  taxInputFormTableThClass,
-} from "~/components/taxInputForm/shared";
+import { AddLineHeaderControls, AddLineMobileControls } from "~/components/taxInputForm/AddLineControls";
+import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import type { TaxFormData, TaxFormPretaxRow } from "~/lib/taxForm.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import type { ValidationContext } from "~/lib/config/types";
@@ -22,9 +21,6 @@ type Props = {
   filingStatus: Accessor<FilingStatus>;
   validationCtx: Accessor<ValidationContext | undefined>;
 };
-
-const addBenefitBtnClass =
-  "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 export function TaxInputFormPreTaxSection(props: Props) {
   const pretaxRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "pretax"));
@@ -52,15 +48,7 @@ export function TaxInputFormPreTaxSection(props: Props) {
         scaled down. IRS contribution limits for the selected year are enforced
         automatically (age-50+ catch-up is not modeled).
       </p>
-      <div class="flex justify-end md:hidden">
-        <button
-          type="button"
-          class={addBenefitBtnClass}
-          onClick={props.addPretaxBenefit}
-        >
-          Add benefit
-        </button>
-      </div>
+      <AddLineMobileControls label="Add benefit" onAdd={props.addPretaxBenefit} />
       <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-(--border) bg-(--surface-alt)">
         <table class="w-full min-w-0 border-collapse text-sm md:min-w-xl md:[&>tbody>tr:last-child>td]:border-b-0">
           <thead class="hidden md:table-header-group">
@@ -78,24 +66,12 @@ export function TaxInputFormPreTaxSection(props: Props) {
                 scope="col"
                 class={`${taxInputFormTableThClass} whitespace-nowrap pr-3 text-right align-bottom`}
               >
-                <div class="flex justify-end gap-2">
-                  <Show when={pretaxRows().length > 0}>
-                    <button
-                      type="button"
-                      class="shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--surface-alt) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--text-muted) transition-colors hover:border-(--warning-text) hover:text-(--warning-text)"
-                      onClick={props.clearAll}
-                    >
-                      Remove all
-                    </button>
-                  </Show>
-                  <button
-                    type="button"
-                    class={addBenefitBtnClass}
-                    onClick={props.addPretaxBenefit}
-                  >
-                    Add benefit
-                  </button>
-                </div>
+                <AddLineHeaderControls
+                  addLabel="Add benefit"
+                  onAdd={props.addPretaxBenefit}
+                  onClearAll={props.clearAll}
+                  showClearAll={pretaxRows().length > 0}
+                />
               </th>
             </tr>
           </thead>

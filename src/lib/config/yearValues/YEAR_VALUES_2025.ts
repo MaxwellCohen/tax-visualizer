@@ -1,40 +1,5 @@
 import type { YearValues } from "../types";
-import type { FilingStatus } from "~/lib/taxData.types";
-
-function buildBrackets(
-  single: number[],
-  marriedJoint: number[],
-  marriedSeparate: number[],
-  headOfHousehold: number[]
-): Record<FilingStatus, { upTo: number | null; rate: number }[]> {
-  return {
-    single: single.map((upTo, i) => ({ upTo, rate: [0.10, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37][i] })).concat([{ upTo: null as unknown as number, rate: 0.37 }]),
-    marriedJoint: marriedJoint.map((upTo, i) => ({ upTo, rate: [0.10, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37][i] })).concat([{ upTo: null as unknown as number, rate: 0.37 }]),
-    marriedSeparate: marriedSeparate.map((upTo, i) => ({ upTo, rate: [0.10, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37][i] })).concat([{ upTo: null as unknown as number, rate: 0.37 }]),
-    headOfHousehold: headOfHousehold.map((upTo, i) => ({ upTo, rate: [0.10, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37][i] })).concat([{ upTo: null as unknown as number, rate: 0.37 }]),
-  };
-}
-
-function buildLtcgBrackets(
-  single: [number, number],
-  marriedJoint: [number, number],
-  marriedSeparate: [number, number],
-  headOfHousehold: [number, number]
-) {
-  return [
-    { filingStatus: "single" as const, brackets: [{ upTo: single[0], rate: 0 }, { upTo: single[1], rate: 0.15 }, { upTo: null, rate: 0.20 }] },
-    { filingStatus: "marriedJoint" as const, brackets: [{ upTo: marriedJoint[0], rate: 0 }, { upTo: marriedJoint[1], rate: 0.15 }, { upTo: null, rate: 0.20 }] },
-    { filingStatus: "marriedSeparate" as const, brackets: [{ upTo: marriedSeparate[0], rate: 0 }, { upTo: marriedSeparate[1], rate: 0.15 }, { upTo: null, rate: 0.20 }] },
-    { filingStatus: "headOfHousehold" as const, brackets: [{ upTo: headOfHousehold[0], rate: 0 }, { upTo: headOfHousehold[1], rate: 0.15 }, { upTo: null, rate: 0.20 }] },
-  ];
-}
-
-const THRESHOLDS_200K_250K_125K_200K: Record<FilingStatus, number> = {
-  single: 200000,
-  marriedJoint: 250000,
-  marriedSeparate: 125000,
-  headOfHousehold: 200000,
-};
+import { buildBrackets, buildLtcgBrackets, THRESHOLDS_200K_250K_125K_200K } from "./shared";
 
 export const YEAR_VALUES_2025: YearValues = {
   year: 2025,

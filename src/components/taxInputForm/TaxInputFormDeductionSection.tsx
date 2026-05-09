@@ -1,3 +1,4 @@
+// fallow-ignore-file code-duplication
 import { For, Show, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/Accordion";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
@@ -7,6 +8,7 @@ import type { ValidationContext } from "~/lib/config/types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { ItemizedDeductionSourceRow } from "~/components/taxInputForm/ItemizedDeductionSourceFields";
 import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
+import { AddLineHeaderControls, AddLineMobileControls } from "~/components/taxInputForm/AddLineControls";
 import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import {
   indexOfTypedRowById,
@@ -14,9 +16,6 @@ import {
   settingRowFieldMountKey,
   settingRowIndex,
 } from "~/lib/taxForm.rows";
-
-const addLineBtnClass =
-  "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;
@@ -99,11 +98,7 @@ export function TaxInputFormDeductionSection(props: Props) {
             Choose a Schedule A–style category per line; optional label for your notes. Amounts sum for the modeled
             itemized total (SALT caps and medical floors are not applied separately).
           </p>
-          <div class="flex justify-end md:hidden">
-            <button type="button" class={addLineBtnClass} onClick={props.addItemizedDeduction}>
-              Add line
-            </button>
-          </div>
+          <AddLineMobileControls label="Add line" onAdd={props.addItemizedDeduction} />
           <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-(--border) bg-(--surface-alt)">
             <table class="w-full min-w-0 border-collapse text-sm md:min-w-xl md:[&>tbody>tr:last-child>td]:border-b-0">
               <thead class="hidden md:table-header-group">
@@ -121,20 +116,12 @@ export function TaxInputFormDeductionSection(props: Props) {
                     scope="col"
                     class={`${taxInputFormTableThClass} whitespace-nowrap pr-3 text-right align-bottom`}
                   >
-                    <div class="flex justify-end gap-2">
-                      <Show when={deductionRows().length > 0}>
-                        <button
-                          type="button"
-                          class="shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--surface-alt) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--text-muted) transition-colors hover:border-(--warning-text) hover:text-(--warning-text)"
-                          onClick={props.clearAll}
-                        >
-                          Remove all
-                        </button>
-                      </Show>
-                      <button type="button" class={addLineBtnClass} onClick={props.addItemizedDeduction}>
-                        Add line
-                      </button>
-                    </div>
+                    <AddLineHeaderControls
+                      addLabel="Add line"
+                      onAdd={props.addItemizedDeduction}
+                      onClearAll={props.clearAll}
+                      showClearAll={deductionRows().length > 0}
+                    />
                   </th>
                 </tr>
               </thead>

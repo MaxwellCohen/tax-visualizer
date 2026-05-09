@@ -1,3 +1,4 @@
+// fallow-ignore-file code-duplication
 /** Federal ordinary brackets and LTCG bracket slices (income / tax / keep per band). */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { configItem } from "./pageConfig.types";

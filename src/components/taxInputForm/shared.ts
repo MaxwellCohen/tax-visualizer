@@ -42,6 +42,12 @@ export const taxInputFormTableTdActions =
 export const taxInputFormTableTrClass =
   "align-top transition-colors max-md:mb-3 max-md:block max-md:rounded-lg max-md:border max-md:border-(--border) max-md:bg-(--surface) max-md:p-3 max-md:last:mb-0 md:border-0";
 
+export const addLineBtnClass =
+  "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--accent-muted) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--accent) transition-colors";
+
+export const removeAllBtnClass =
+  "shrink-0 whitespace-nowrap rounded-md border border-(--border) bg-(--surface-alt) px-3 py-2 text-xs font-medium uppercase tracking-wide text-(--text-muted) transition-colors hover:border-(--warning-text) hover:text-(--warning-text)";
+
 /** Helper text under pre-tax numeric fields (401(k), HSA, IRA). */
 export const pretaxFieldCaptionClass =
   "text-[0.65rem] font-normal normal-case tracking-normal";
