@@ -1,12 +1,5 @@
 import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
-
-export type MekkoRowKind =
-  | "deduction"
-  | "pretax"
-  | "seAdjustment"
-  | "payrollTax"
-  | "ordinaryBracket"
-  | "ltcgBracket";
+import type { MekkoRowKind, MekkoRowSettings } from "~/lib/config/page/pageConfig.types";
 
 export type MekkoRow = {
   id: string;
@@ -15,15 +8,12 @@ export type MekkoRow = {
   keep: number;
   tax: number;
   kind: MekkoRowKind;
-  marginalRate?: number;
+  order: number;
+  fill: string;
+  stroke: string;
+  taxFill: string;
+  taxStroke: string;
 };
-
-const MEKKO_LEADING_SLICES = [
-  "mekkoPretaxDeferrals",
-  "mekkoSelfEmploymentTaxDeduction",
-  "mekkoDeductionShieldNet",
-  "mekkoPayrollTaxFromShield",
-] as const;
 
 function findConfigValue(cc: CalculatedConfigItem[], id: string): number {
   return cc.find(i => i.id === id)?.computedValue ?? 0;
@@ -38,21 +28,12 @@ function keepTaxFromSlice(cc: CalculatedConfigItem[], total: number, keepId: str
 }
 
 function rowFromCalculatedItem(item: CalculatedConfigItem, cc: CalculatedConfigItem[]): MekkoRow {
-  const column = item.mekkoSettings!.column!;
+  const row = item.mekkoSettings!.row!;
   const total = item.computedValue;
 
-  const bracketMatch = /^bracket-(\d+)-income$/.exec(item.id);
-  let keep: number;
-  let tax: number;
-  if (bracketMatch) {
-    const n = bracketMatch[1];
-    ({ keep, tax } = keepTaxFromSlice(cc, total, `bracket-${n}-keep`));
-  } else if (item.id === "ltcg-income") {
-    ({ keep, tax } = keepTaxFromSlice(cc, total, "ltcg-keep"));
-  } else {
-    keep = total;
-    tax = 0;
-  }
+  const { keep, tax } = row.split
+    ? keepTaxFromSlice(cc, total, row.split.keepId)
+    : { keep: total, tax: 0 };
 
   return {
     id: item.id,
@@ -60,37 +41,50 @@ function rowFromCalculatedItem(item: CalculatedConfigItem, cc: CalculatedConfigI
     total,
     keep,
     tax,
-    kind: column.kind as MekkoRowKind,
-    marginalRate: column.row,
+    kind: row.kind,
+    order: row.row,
+    fill: row.fill,
+    stroke: row.stroke,
+    taxFill: row.split?.taxFill ?? "var(--mekko-tax)",
+    taxStroke: row.split?.taxStroke ?? "var(--mekko-tax)",
   };
 }
 
-export function buildMekkoFromConfig(cc: CalculatedConfigItem[]): MekkoRow[] {
-  const byId = new Map(cc.map(i => [i.id, i]));
-  const rows: MekkoRow[] = [];
+function compareMekkoRows(a: CalculatedConfigItem, b: CalculatedConfigItem): number {
+  const aRow = a.mekkoSettings!.row as MekkoRowSettings;
+  const bRow = b.mekkoSettings!.row as MekkoRowSettings;
+  return aRow.col - bRow.col || aRow.row - bRow.row || a.id.localeCompare(b.id);
+}
 
-  for (const id of MEKKO_LEADING_SLICES) {
-    const item = byId.get(id);
-    if (item && item.computedValue > 0 && item.mekkoSettings?.column) {
-      rows.push(rowFromCalculatedItem(item, cc));
-    }
-  }
+export type MekkoChartData = {
+  rows: MekkoRow[];
+  totalIncome: number;
+  takeHomePay: number;
+  preTaxTotal: number;
+  traditionalIra: number;
+  federalIncomeTax: number;
+  payrollTax: number;
+  federalTaxCreditsApplied: number;
+};
 
-  const bracketItems = cc
-    .filter(i => /^bracket-\d+-income$/.test(i.id) && i.computedValue > 0 && i.mekkoSettings?.column)
-    .sort((a, b) => {
-      const na = Number(/^bracket-(\d+)-income$/.exec(a.id)?.[1] ?? 0);
-      const nb = Number(/^bracket-(\d+)-income$/.exec(b.id)?.[1] ?? 0);
-      return na - nb;
-    });
-  for (const item of bracketItems) {
-    rows.push(rowFromCalculatedItem(item, cc));
-  }
+export function buildMekkoFromConfig(cc: CalculatedConfigItem[]): MekkoChartData | undefined {
+  const rows = cc
+    .filter(i => i.computedValue > 0 && i.mekkoSettings?.row)
+    .sort(compareMekkoRows)
+    .map(item => rowFromCalculatedItem(item, cc));
 
-  const ltcg = cc.find(i => i.id === "ltcg-income" && i.computedValue > 0 && i.mekkoSettings?.column);
-  if (ltcg) {
-    rows.push(rowFromCalculatedItem(ltcg, cc));
-  }
+  const stackedTotal = rows.reduce((sum, row) => sum + row.total, 0);
+  const totalIncome = findConfigValue(cc, "totalIncome");
+  if (!rows.length || Math.max(totalIncome, stackedTotal) <= 0) return undefined;
 
-  return rows;
+  return {
+    rows,
+    totalIncome,
+    takeHomePay: findConfigValue(cc, "takeHomePay"),
+    preTaxTotal: findConfigValue(cc, "preTaxTotal"),
+    traditionalIra: findConfigValue(cc, "traditionalIra"),
+    federalIncomeTax: findConfigValue(cc, "federalIncomeTax"),
+    payrollTax: findConfigValue(cc, "payrollTax"),
+    federalTaxCreditsApplied: findConfigValue(cc, "federalTaxCreditsApplied"),
+  };
 }

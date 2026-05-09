@@ -208,7 +208,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             label: "Pre-tax deferrals",
             shortLabel: "Pre-tax deferrals",
             mekkoSettings: {
-                column: {
+                row: {
                     row: 0,
                     col: 3,
                     fill: "var(--mekko-pretax)",
@@ -223,8 +223,8 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             label: "½ self-employment tax (deductible)",
             shortLabel: "½ SE tax",
             mekkoSettings: {
-                column: {
-                    row: 0,
+                row: {
+                    row: 1,
                     col: 3,
                     fill: "var(--mekko-pretax)",
                     stroke: "var(--mekko-pretax)",
@@ -241,8 +241,8 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             label: "Standard / itemized (shielded ordinary, net of payroll)",
             shortLabel: "Deduction shield",
             mekkoSettings: {
-                column: {
-                    row: 0,
+                row: {
+                    row: 2,
                     col: 3,
                     fill: "var(--mekko-deduction)",
                     stroke: "var(--mekko-deduction)",
@@ -262,8 +262,8 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             label: "Payroll taxes (wage FICA)",
             shortLabel: "Payroll taxes",
             mekkoSettings: {
-                column: {
-                    row: 0,
+                row: {
+                    row: 3,
                     col: 3,
                     fill: "var(--mekko-tax)",
                     stroke: "var(--mekko-tax)",

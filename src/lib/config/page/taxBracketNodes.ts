@@ -34,7 +34,14 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 ],
             },
             mekkoSettings: {
-                column: { row: bracketRow, col: 3, fill: "var(--mekko-keep)", stroke: "var(--mekko-keep)", kind: "ordinaryBracket" },
+                row: {
+                    row: bracketRow,
+                    col: 3,
+                    fill: "var(--mekko-keep)",
+                    stroke: "var(--mekko-keep)",
+                    kind: "ordinaryBracket",
+                    split: { keepId: `${bracketId}-keep`, taxFill: "var(--mekko-tax)", taxStroke: "var(--mekko-tax)" },
+                },
             },
             calculate: (inputs) => {
                 const { tax, credits, keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0, credits: 0, keep: 0 };
@@ -93,7 +100,14 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             ],
         },
         mekkoSettings: {
-            column: { row: ltcgIncomeRow, col: 3, fill: "var(--mekko-ltcg)", stroke: "var(--mekko-ltcg)", kind: "ltcgBracket" },
+            row: {
+                row: ltcgIncomeRow,
+                col: 3,
+                fill: "var(--mekko-ltcg)",
+                stroke: "var(--mekko-ltcg)",
+                kind: "ltcgBracket",
+                split: { keepId: "ltcg-keep", taxFill: "var(--mekko-tax)", taxStroke: "var(--mekko-tax)" },
+            },
         },
         calculate: (inputs) => {
             const { tax, credits, keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0, credits: 0, keep: 0 };

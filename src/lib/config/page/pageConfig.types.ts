@@ -52,12 +52,21 @@ export type SankeyNode = {
     stroke: string;
 };
 
-export type MekkoColumn = {
+export type MekkoRowKind = "deduction" | "pretax" | "seAdjustment" | "payrollTax" | "ordinaryBracket" | "ltcgBracket";
+
+export type MekkoSegmentSplit = {
+    keepId: string;
+    taxFill?: string;
+    taxStroke?: string;
+};
+
+export type MekkoRowSettings = {
     row: number;
     col: number;
     fill: string;
     stroke: string;
-    kind: "deduction" | "pretax" | "seAdjustment" | "payrollTax" | "ordinaryBracket" | "ltcgBracket";
+    kind: MekkoRowKind;
+    split?: MekkoSegmentSplit;
 };
 
 export type SankeyCategory = "income" | "pretax" | "deduction" | "tax" | "credit" | "summary" | "takehome" | "rate";
@@ -82,7 +91,7 @@ export type configItem = {
         link?: SankeyLink[];
     };
     mekkoSettings?: {
-        column?: MekkoColumn;
+        row?: MekkoRowSettings;
     };
     summary?: {
         summaryId: string;
