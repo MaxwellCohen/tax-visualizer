@@ -69,7 +69,6 @@ export type MekkoSegmentSplit = {
 
 export type MekkoSettings = {
     row: number;
-    col: number;
     split?: MekkoSegmentSplit;
 };
 

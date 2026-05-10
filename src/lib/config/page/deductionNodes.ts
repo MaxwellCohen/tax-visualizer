@@ -146,7 +146,6 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             labels: { default: "Pre-tax deferrals", compact: "Pre-tax deferrals" },
             mekko: {
                     row: 0,
-                    col: 3,
             },
             calculate: (inputs) => allPretax(inputs),
         },
@@ -157,8 +156,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             labels: { default: "½ self-employment tax (deductible)", compact: "½ SE tax" },
             mekko: {
                 
-                    row: 1,
-                    col: 3,
+                    row: 2,
                 
             },
             calculate: (inputs) => {
@@ -172,8 +170,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             chartStyle: { fill: "var(--sankey-link-keep)", stroke: "var(--sankey-link-keep)" },
             labels: { default: "Standard / itemized (shielded ordinary, net of payroll)", compact: "Deduction shield" },
             mekko: {
-                    row: 2,
-                    col: 3,
+                    row: 3,
             
             },
             calculate: (inputs, td, fs) => {
@@ -190,8 +187,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             chartStyle: { fill: "var(--chart-tax)", stroke: "var(--chart-tax)" },
             labels: { default: "Payroll taxes (wage FICA)", compact: "Payroll taxes" },
             mekko: {
-                    row: 3,
-                    col: 3,
+                    row: 1,
             },
             calculate: (inputs, td, fs) => {
                 const t = calculateTaxableIncome(inputs, td, fs);

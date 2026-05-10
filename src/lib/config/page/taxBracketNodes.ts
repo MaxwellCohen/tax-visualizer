@@ -41,7 +41,6 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             },
             mekko: {
                     row: bracketRow,
-                    col: 3,
                     split: { keepId: `${bracketId}-keep` },
             },
             calculate: (inputs) => {
@@ -103,7 +102,6 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         },
         mekko: {
                 row: ltcgIncomeRow,
-                col: 3,
                 split: { keepId: "ltcg-keep" },
         },
         calculate: (inputs) => {

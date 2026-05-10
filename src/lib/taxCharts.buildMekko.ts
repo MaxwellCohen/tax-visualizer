@@ -58,7 +58,7 @@ function rowFromCalculatedItem(item: CalculatedConfigItem, values: CalculatedCon
 function compareMekkoRows(a: CalculatedConfigItem, b: CalculatedConfigItem): number {
   const aRow = a.mekko!;
   const bRow = b.mekko!;
-  return aRow.col - bRow.col || aRow.row - bRow.row || a.id.localeCompare(b.id);
+  return  aRow.row - bRow.row || a.id.localeCompare(b.id);
 }
 
 export type MekkoChartData = {
