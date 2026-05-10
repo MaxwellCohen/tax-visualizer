@@ -29,7 +29,7 @@ export const inputClass =
   "w-full rounded-md border-0 px-3 py-2.5 text-sm outline-none transition-shadow duration-150 focus:ring-2 focus:ring-accent";
 export const labelClass = "flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide";
 
-/** Income + pre-tax tables (see `IncomeSection`, `PretaxBenefitSourceRow`). */
+/** Income + pre-tax tables (see `IncomeSection`, `PreTaxSection`). */
 export const taxInputFormTableThClass =
   "pb-2 pr-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-faint-foreground md:border-b md:border-border md:bg-surface md:border-r md:border-border-subtle md:last:border-r-0";
 
@@ -41,6 +41,10 @@ export const taxInputFormTableTdActions =
 
 export const taxInputFormTableTrClass =
   "align-top transition-colors max-md:mb-3 max-md:block max-md:rounded-lg max-md:border max-md:border-border max-md:bg-surface max-md:p-3 max-md:last:mb-0 md:border-0";
+
+/** Detail sub-row under kind + label + amount (pre-tax, deductions, credits). */
+export const taxInputFormLineItemDetailRowTdClass =
+  "border-t border-border-subtle px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
 
 export const addLineBtnClass =
   "shrink-0 whitespace-nowrap rounded-md border border-border bg-accent-muted px-3 py-2 text-xs font-medium uppercase tracking-wide text-accent transition-colors";

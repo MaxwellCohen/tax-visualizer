@@ -12,7 +12,7 @@ import type {
 import type { TaxYearConfig } from "~/lib/tax/data/types";
 
 type LineItemRow = TaxFormIncomeRow | TaxFormPretaxRow | TaxFormDeductionRow | TaxFormCreditRow;
-type LineItemRowType = LineItemRow["type"];
+export type LineItemRowType = LineItemRow["type"];
 type LineItemRowByType<T extends LineItemRowType> = Extract<LineItemRow, { type: T }>;
 type LineItemRowPatch<T extends LineItemRowType> = Partial<Pick<LineItemRowByType<T>, "kind" | "label" | "amount">>;
 

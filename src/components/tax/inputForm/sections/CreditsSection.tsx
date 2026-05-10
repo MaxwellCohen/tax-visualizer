@@ -1,4 +1,3 @@
-// fallow-ignore-file code-duplication
 import { For, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/ui/Accordion";
 import { rowsToTaxCalculationInputs } from "~/lib/tax/calc/inputs";
@@ -6,7 +5,9 @@ import type { TaxFormData, TaxFormCreditRow } from "~/lib/tax/form/types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
 import type { ValidationContext } from "~/lib/config/types";
 import { sumLabeledAmountSources } from "~/lib/tax/calc/labeledAmountSource";
-import { FederalTaxCreditSourceRow } from "~/components/tax/inputForm/rows/FederalTaxCreditSourceRow";
+import { LineItemSourceRow } from "~/components/tax/inputForm/rows/LineItemSourceRow";
+import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
+import { itemizedDeductionSelectOptions } from "~/components/tax/inputForm/shared";
 import { AddLineHeaderControls, AddLineMobileControls } from "~/components/tax/inputForm/controls/AddLineControls";
 import { taxInputFormTableThClass } from "~/components/tax/inputForm/shared";
 import { money } from "~/lib/format/moneyFormat";
@@ -30,6 +31,10 @@ export function CreditsSection(props: Props) {
     props.taxInput().rows.filter((r): r is TaxFormCreditRow => r.type === "credit"),
   );
   const creditRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "credit"));
+
+  const creditConfigItems = useConfigItemsForSection(props.taxData, props.filingStatus, "credit");
+  const creditKindOptions = createMemo(() => itemizedDeductionSelectOptions("credit", creditConfigItems()));
+
   const creditsTotal = () => {
     const taxData = props.taxData();
     const dependentCredits = taxData ? childTaxCredit(props.taxInput().rows, taxData) : 0;
@@ -82,7 +87,10 @@ export function CreditsSection(props: Props) {
           <tbody>
             <For each={creditRowIds()}>
               {(rowId) => (
-                <FederalTaxCreditSourceRow
+                <LineItemSourceRow
+                  rowType="credit"
+                  detailVariant="credit"
+                  configItems={creditConfigItems}
                   taxInput={props.taxInput}
                   setTaxInput={props.setTaxInput}
                   rowId={rowId}
@@ -92,8 +100,12 @@ export function CreditsSection(props: Props) {
                     if (i >= 0) props.removeFederalTaxCreditAt(i);
                   }}
                   taxData={props.taxData}
-                  filingStatus={props.filingStatus}
                   validationCtx={props.validationCtx}
+                  kindDataLabel="Credit type"
+                  kindSelectLabel="Credit type"
+                  labelPlaceholder="e.g. dependents, institution"
+                  kindOptions={creditKindOptions}
+                  removeEntity="line"
                 />
               )}
             </For>

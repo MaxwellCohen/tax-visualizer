@@ -1,4 +1,3 @@
-// fallow-ignore-file code-duplication
 import { For, Show, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/ui/Accordion";
 import { rowsToTaxCalculationInputs } from "~/lib/tax/calc/inputs";
@@ -6,7 +5,10 @@ import type { TaxFormData, TaxFormDeductionRow, TaxFormRow } from "~/lib/tax/for
 import type { TaxYearConfig } from "~/lib/tax/data/types";
 import type { ValidationContext } from "~/lib/config/types";
 import { sumLabeledAmountSources } from "~/lib/tax/calc/labeledAmountSource";
-import { ItemizedDeductionSourceRow } from "~/components/tax/inputForm/rows/ItemizedDeductionSourceRow";
+import { LineItemSourceRow } from "~/components/tax/inputForm/rows/LineItemSourceRow";
+import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
+import { itemizedDeductionSelectOptions } from "~/components/tax/inputForm/shared";
+import { getFilingStatusFromRows } from "~/lib/tax/calc/inputs";
 import { useTaxInputCommitToUrl } from "~/components/tax/inputForm/context/TaxInputCommitUrlContext";
 import { AddLineHeaderControls, AddLineMobileControls } from "~/components/tax/inputForm/controls/AddLineControls";
 import { taxInputFormTableThClass } from "~/components/tax/inputForm/shared";
@@ -52,6 +54,10 @@ export function DeductionSection(props: Props) {
     props.taxInput().rows.filter((r): r is TaxFormDeductionRow => r.type === "deduction"),
   );
   const deductionRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "deduction"));
+
+  const filingStatus = createMemo(() => getFilingStatusFromRows(props.taxInput().rows) ?? "single");
+  const deductionConfigItems = useConfigItemsForSection(props.taxData, filingStatus, "deduction");
+  const deductionKindOptions = createMemo(() => itemizedDeductionSelectOptions("deduction", deductionConfigItems()));
 
   const summaryAmount = () =>
     useItemized() ? itemizedTotal() : props.standardDeduction();
@@ -125,7 +131,10 @@ export function DeductionSection(props: Props) {
               <tbody>
                 <For each={deductionRowIds()}>
                   {(rowId) => (
-                    <ItemizedDeductionSourceRow
+                    <LineItemSourceRow
+                      rowType="deduction"
+                      detailVariant="deduction"
+                      configItems={deductionConfigItems}
                       taxInput={props.taxInput}
                       setTaxInput={props.setTaxInput}
                       rowId={rowId}
@@ -136,6 +145,11 @@ export function DeductionSection(props: Props) {
                       }}
                       taxData={props.taxData}
                       validationCtx={props.validationCtx}
+                      kindDataLabel="Category"
+                      kindSelectLabel="Deduction category"
+                      labelPlaceholder="e.g. details, payee"
+                      kindOptions={deductionKindOptions}
+                      removeEntity="line"
                     />
                   )}
                 </For>

@@ -1,7 +1,8 @@
-// fallow-ignore-file code-duplication
 import { For, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/ui/Accordion";
-import { PretaxBenefitSourceRow } from "~/components/tax/inputForm/rows/PretaxBenefitSourceRow";
+import { LineItemSourceRow } from "~/components/tax/inputForm/rows/LineItemSourceRow";
+import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
+import { pretaxBenefitKindSelectOptions } from "~/components/tax/inputForm/shared";
 import { AddLineHeaderControls, AddLineMobileControls } from "~/components/tax/inputForm/controls/AddLineControls";
 import { taxInputFormTableThClass } from "~/components/tax/inputForm/shared";
 import { money } from "~/lib/format/moneyFormat";
@@ -28,6 +29,9 @@ export function PreTaxSection(props: Props) {
   const pretaxRows = createMemo(() =>
     props.taxInput().rows.filter((r): r is TaxFormPretaxRow => r.type === "pretax"),
   );
+
+  const configItems = useConfigItemsForSection(props.taxData, props.filingStatus, "pretax");
+  const kindOptions = createMemo(() => pretaxBenefitKindSelectOptions(configItems(), props.isMarriedJoint()));
 
   return (
     <Accordion
@@ -79,7 +83,10 @@ export function PreTaxSection(props: Props) {
           <tbody>
             <For each={pretaxRowIds()}>
               {(rowId) => (
-                <PretaxBenefitSourceRow
+                <LineItemSourceRow
+                  rowType="pretax"
+                  detailVariant="pretax"
+                  configItems={configItems}
                   taxInput={props.taxInput}
                   setTaxInput={props.setTaxInput}
                   rowId={rowId}
@@ -88,10 +95,13 @@ export function PreTaxSection(props: Props) {
                     const i = indexOfTypedRowById(props.taxInput().rows, "pretax", rowId);
                     if (i >= 0) props.removePretaxBenefitAt(i);
                   }}
-                  isMarriedJoint={() => props.isMarriedJoint()}
                   taxData={props.taxData}
-                  filingStatus={props.filingStatus}
                   validationCtx={props.validationCtx}
+                  kindDataLabel="Type"
+                  kindSelectLabel="Benefit type"
+                  labelPlaceholder="e.g. Employer plan, bank"
+                  kindOptions={kindOptions}
+                  removeEntity="line"
                 />
               )}
             </For>

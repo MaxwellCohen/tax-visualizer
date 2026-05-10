@@ -1,16 +1,17 @@
-// fallow-ignore-file code-duplication
 import { For, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/ui/Accordion";
-import { IncomeSourceTableRow } from "~/components/tax/inputForm/rows/IncomeSourceTableRow";
+import {
+  incomeKindSelectOptions,
+  taxInputFormTableThClass,
+} from "~/components/tax/inputForm/shared";
+import { LineItemSourceRow } from "~/components/tax/inputForm/rows/LineItemSourceRow";
 import { AddLineHeaderControls, AddLineMobileControls } from "~/components/tax/inputForm/controls/AddLineControls";
-import { taxInputFormTableThClass } from "~/components/tax/inputForm/shared";
 import { money } from "~/lib/format/moneyFormat";
 import type { TaxFormData, TaxFormIncomeRow } from "~/lib/tax/form/types";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/tax/form/rows";
 import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
 import type { ValidationContext } from "~/lib/config/types";
-import { getInputItemsForSection } from "~/lib/config/taxPage/taxPage.config";
-import type { ConfigItem } from "~/lib/config/taxPage/types";
+import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;
@@ -35,14 +36,11 @@ export function IncomeSection(props: Props) {
       }, 0),
   );
 
-  const configItems = createMemo((): ConfigItem[] => {
-    const td = props.taxData();
-    const fs = props.filingStatus();
-    if (!td) return [];
-    return getInputItemsForSection(td, fs, "income");
-  });
+  const configItems = useConfigItemsForSection(props.taxData, props.filingStatus, "income");
 
   const isMarriedJoint = createMemo(() => props.filingStatus() === "marriedJoint");
+
+  const kindOptions = createMemo(() => incomeKindSelectOptions(configItems(), isMarriedJoint()));
 
   return (
     <Accordion
@@ -82,7 +80,9 @@ export function IncomeSection(props: Props) {
           <tbody>
             <For each={incomeRowIds()}>
               {(rowId) => (
-                <IncomeSourceTableRow
+                <LineItemSourceRow
+                  rowType="income"
+                  detailVariant="none"
                   taxInput={props.taxInput}
                   setTaxInput={props.setTaxInput}
                   rowId={rowId}
@@ -91,10 +91,13 @@ export function IncomeSection(props: Props) {
                     const i = indexOfTypedRowById(props.taxInput().rows, "income", rowId);
                     if (i >= 0) props.removeSourceAt(i);
                   }}
-                  configItems={configItems()}
-                  isMarriedJoint={isMarriedJoint()}
                   taxData={props.taxData}
                   validationCtx={props.validationCtx}
+                  kindDataLabel="Type"
+                  kindSelectLabel="Income type"
+                  labelPlaceholder="e.g. Employer, Brokerage"
+                  kindOptions={kindOptions}
+                  removeEntity="source"
                 />
               )}
             </For>
