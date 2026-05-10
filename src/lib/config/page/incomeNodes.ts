@@ -27,7 +27,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             id: "wages",
             labels: { default: "Wages" },
             sankey: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 1, col: 1 },
+                node: { fill: "var(--chart-income)", stroke: "var(--sankey-link)", row: 1, col: 1 },
                 links: [
                     { source: "wages", target: "ordinaryTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 1 },
                 ],
@@ -38,7 +38,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             id: "longTermCapGains",
             labels: { default: "Long-Term Capital Gains" },
             sankey: {
-                node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: 2, col: 1 },
+                node: { fill: "var(--chart-ltcg)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 links: [
                     { source: "longTermCapGains", target: "longTermTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 1 },
                 ],
@@ -50,7 +50,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             chartRole: "pretax",
             labels: { default: "Pretax Deductions", compact: "Pretax Deductions", summary: "Pre-tax Deductions" },
             sankey: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
+                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
                 links: [
                     { source: "pretaxDeductions", target: "pretaxIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
                     { source: "pretaxIncome", target: "pretaxTakehome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
@@ -86,7 +86,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             id: "longTermCapitalGainsGrossIncome",
             labels: { default: "Long-Term Cap Gains (Gross)", compact: "LTCG (Gross)" },
             sankey: {
-                node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: 1, col: 2 },
+                node: { fill: "var(--chart-ltcg)", stroke: "var(--sankey-link)", row: 1, col: 2 },
             },
             calculate: longTermCapGains,
         },

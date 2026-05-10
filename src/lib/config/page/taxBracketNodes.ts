@@ -37,9 +37,9 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             mekko: {
                     row: bracketRow,
                     col: 3,
-                    fill: "var(--mekko-keep)",
-                    stroke: "var(--mekko-keep)",
-                    split: { keepId: `${bracketId}-keep`, taxFill: "var(--mekko-tax)", taxStroke: "var(--mekko-tax)" },
+                    fill: "var(--chart-keep)",
+                    stroke: "var(--chart-keep)",
+                    split: { keepId: `${bracketId}-keep`, taxFill: "var(--chart-tax)", taxStroke: "var(--chart-tax)" },
             },
             calculate: (inputs) => {
                 const { tax, credits, keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0, credits: 0, keep: 0 };
@@ -89,7 +89,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         chartRole: "ltcg",
         labels: { default: "LTCG Income", compact: "LTCG Income" },
         sankey: {
-            node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: ltcgIncomeRow, col: 3 },
+            node: { fill: "var(--chart-ltcg)", stroke: "var(--sankey-link)", row: ltcgIncomeRow, col: 3 },
             links: [
                 { source: "longTermTaxableIncome", target: "ltcg-income", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: ltcgIncomeRow, col: 2 },
             ],
@@ -97,9 +97,9 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         mekko: {
                 row: ltcgIncomeRow,
                 col: 3,
-                fill: "var(--mekko-ltcg)",
-                stroke: "var(--mekko-ltcg)",
-                split: { keepId: "ltcg-keep", taxFill: "var(--mekko-tax)", taxStroke: "var(--mekko-tax)" },
+                fill: "var(--chart-ltcg)",
+                stroke: "var(--chart-ltcg)",
+                split: { keepId: "ltcg-keep", taxFill: "var(--chart-tax)", taxStroke: "var(--chart-tax)" },
         },
         calculate: (inputs) => {
             const { tax, credits, keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0, credits: 0, keep: 0 };

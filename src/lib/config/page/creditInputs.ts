@@ -12,7 +12,7 @@ import { getCreditsSankeyRow } from "./sankeyLayout.helpers";
 
 export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
     const row = getCreditsSankeyRow(taxData, filingStatus);
-    const creditSankeyNode = { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)", row, col: 3 } as const;
+    const creditSankeyNode = { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)", row, col: 3 } as const;
 
     return [
         {

@@ -35,13 +35,6 @@ html[data-theme="light"] {
   --sankey-node-3: #d97706;
   --sankey-node-4: #7c3aed;
   --sankey-node-5: #0284c7;
-  --sankey-node-6: var(--chart-tax);
-  --sankey-node-credits: var(--chart-credit);
-  --sankey-node-7: var(--chart-default);
-  --sankey-node-income: var(--chart-income);
-  --sankey-node-ltcg: var(--chart-ltcg);
-  --sankey-node-keep: var(--chart-keep);
-  --sankey-node-deferred: var(--chart-pretax);
   --sankey-link: rgba(13, 148, 136, 0.22);
   --sankey-link-tax: rgba(159, 74, 69, 0.45);
   --sankey-link-credits: rgba(202, 138, 4, 0.5);
@@ -51,11 +44,6 @@ html[data-theme="light"] {
   --sankey-link-ltcg: rgba(3, 105, 161, 0.45);
   --sankey-label: #1a1a19;
 
-  --mekko-keep: var(--chart-keep);
-  --mekko-pretax: var(--chart-pretax);
-  --mekko-deduction: var(--chart-deduction);
-  --mekko-ltcg: var(--chart-ltcg);
-  --mekko-tax: var(--chart-tax);
   --mekko-segment-label: rgba(255, 255, 255, 0.95);
 
   --font-heading: "Outfit", sans-serif;
@@ -96,13 +84,6 @@ html[data-theme="dark"] {
   --sankey-node-3: #fbbf24;
   --sankey-node-4: #a78bfa;
   --sankey-node-5: #38bdf8;
-  --sankey-node-6: var(--chart-tax);
-  --sankey-node-credits: var(--chart-credit);
-  --sankey-node-7: var(--chart-default);
-  --sankey-node-income: var(--chart-income);
-  --sankey-node-ltcg: var(--chart-ltcg);
-  --sankey-node-keep: var(--chart-keep);
-  --sankey-node-deferred: var(--chart-pretax);
   --sankey-link: rgba(45, 212, 191, 0.28);
   --sankey-link-tax: rgba(159, 74, 69, 0.5);
   --sankey-link-credits: rgba(234, 179, 8, 0.55);
@@ -111,11 +92,7 @@ html[data-theme="dark"] {
   --sankey-link-label: #c8c8c0;
   --sankey-label: #e8e6e3;
 
-  --mekko-keep: var(--chart-keep);
-  --mekko-pretax: var(--chart-pretax);
-  --mekko-deduction: var(--chart-deduction);
-  --mekko-ltcg: var(--chart-ltcg);
-  --mekko-tax: var(--chart-tax);
+
   --mekko-segment-label: rgba(255, 255, 255, 0.95);
 }
 

@@ -14,7 +14,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             id: "federalPayrollTaxes",
             labels: { default: "Federal Payroll", compact: "Federal Payroll" },
             sankey: {
-                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 2, col: 4 },
+                node: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)", row: 2, col: 4 },
             },
         },
         {
@@ -22,7 +22,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             chartRole: "takehome",
             labels: { default: "Take-Home Pay", compact: "Take-Home Pay" },
             sankey: {
-                node: { fill: "var(--sankey-node-keep)", stroke: "var(--sankey-link-keep)", row: 3, col: 4 },
+                node: { fill: "var(--chart-keep)", stroke: "var(--sankey-link-keep)", row: 3, col: 4 },
             },
             calculate: (inputs, taxData, filingStatus) => {
                 const brackets = calculateTaxBrackets(inputs, taxData, filingStatus);
@@ -40,7 +40,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             chartRole: "tax",
             labels: { default: "Federal Income Tax", compact: "Federal Income Tax" },
             sankey: {
-                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 4, col: 4 },
+                node: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)", row: 4, col: 4 },
             },
             calculate: (inputs, taxData, filingStatus) => {
                 const brackets = calculateTaxBrackets(inputs, taxData, filingStatus);

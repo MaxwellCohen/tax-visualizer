@@ -20,7 +20,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
             id: "standardDeduction",
             labels: { default: "0% tax", compact: "Standard Ded." },
             sankey: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 3, col: 3 },
+                node: { fill: "var(--chart-income)", stroke: "var(--sankey-link)", row: 3, col: 3 },
                 links: [
                     { source: "standardDeduction", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
                 ],
@@ -31,7 +31,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
             id: "itemizedDeductions",
             labels: { default: "Itemized Deductions", compact: "Itemized Ded." },
             sankey: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 3, col: 3 },
+                node: { fill: "var(--chart-income)", stroke: "var(--sankey-link)", row: 3, col: 3 },
                 links: [
                     { source: "itemizedDeductions", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
                 ],
@@ -69,7 +69,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             chartRole: "income",
             labels: { default: "LTCG Taxable Income", compact: "LTCG Taxable", summary: "Long-Term Capital Gains" },
             sankey: {
-                node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: 3, col: 2 },
+                node: { fill: "var(--chart-ltcg)", stroke: "var(--sankey-link)", row: 3, col: 2 },
             },
             calculate: longTermCapGains,
             summary: {
@@ -158,7 +158,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             sankey: {
                 node: (() => {
                     const row = getCreditsSankeyRow(_taxData, _filingStatus);
-                    return { fill: "var(--sankey-node-credits)", stroke: "var(--sankey-link-credits)", row, col: 3 };
+                    return { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)", row, col: 3 };
                 })(),
             },
             calculate: (inputs, taxData, filingStatus) => computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
@@ -201,8 +201,8 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             mekko: {
                     row: 0,
                     col: 3,
-                    fill: "var(--mekko-pretax)",
-                    stroke: "var(--mekko-pretax)",
+                    fill: "var(--chart-pretax)",
+                    stroke: "var(--chart-pretax)",
             },
             calculate: (inputs) => allPretax(inputs),
         },
@@ -214,8 +214,8 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
                 
                     row: 1,
                     col: 3,
-                    fill: "var(--mekko-pretax)",
-                    stroke: "var(--mekko-pretax)",
+                    fill: "var(--chart-pretax)",
+                    stroke: "var(--chart-pretax)",
                 
             },
             calculate: (inputs) => {
@@ -230,8 +230,8 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             mekko: {
                     row: 2,
                     col: 3,
-                    fill: "var(--mekko-deduction)",
-                    stroke: "var(--mekko-deduction)",
+                    fill: "var(--chart-deduction)",
+                    stroke: "var(--chart-deduction)",
             
             },
             calculate: (inputs, td, fs) => {
@@ -249,8 +249,8 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             mekko: {
                     row: 3,
                     col: 3,
-                    fill: "var(--mekko-tax)",
-                    stroke: "var(--mekko-tax)",
+                    fill: "var(--chart-tax)",
+                    stroke: "var(--chart-tax)",
             },
             calculate: (inputs, td, fs) => {
                 const t = calculateTaxableIncome(inputs, td, fs);

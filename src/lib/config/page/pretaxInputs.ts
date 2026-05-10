@@ -30,7 +30,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             },
             calculate: _401k, 
             sankey: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
+                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
                 links: [
                     { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],
@@ -60,7 +60,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             },
             calculate: _hsa,
             sankey: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 2, col: 3 },
+                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 2, col: 3 },
                 links: [
                     { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],
@@ -90,7 +90,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             },
             calculate: otherPretax,
             sankey: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 2 },
+                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 3, col: 2 },
                 links: [
                     { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],
@@ -117,7 +117,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             },
             calculate: traditionalIra,
             sankey: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 4, col: 2 },
+                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 4, col: 2 },
                 links: [
                     { source: "wages", target: "pretaxDeductions", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 1 },
                 ],

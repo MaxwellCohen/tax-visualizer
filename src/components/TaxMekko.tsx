@@ -66,7 +66,7 @@ function MekkoSummary(props: { data: MekkoChartData }) {
         <div
           style={{
             width: `${takeShare * 100}%`,
-            background: "var(--mekko-keep)",
+            background: "var(--chart-keep)",
           }}
           class="flex items-center justify-center text-[10px]"
           title={`Take-home pay ${money.format(d.takeHomePay)} (${pct.format(takeShare)})`}
@@ -76,7 +76,7 @@ function MekkoSummary(props: { data: MekkoChartData }) {
         <div
           style={{
             width: `${pretaxShare * 100}%`,
-            background: "var(--mekko-pretax)",
+            background: "var(--chart-pretax)",
           }}  
           class="flex items-center justify-center text-[10px]"
           title={`Payroll pre-tax & deductible IRA ${money.format(d.preTaxTotal + d.traditionalIra)} (${pct.format(pretaxShare)})`}
@@ -86,7 +86,7 @@ function MekkoSummary(props: { data: MekkoChartData }) {
         <div
           style={{
             width: `${taxShare * 100}%`,
-            background: "var(--mekko-tax)",
+            background: "var(--chart-tax)",
           }}
           class="flex items-center justify-center text-[10px]" 
           title={`Taxes ${money.format(d.federalIncomeTax + d.payrollTax)} (${pct.format(taxShare)})`}

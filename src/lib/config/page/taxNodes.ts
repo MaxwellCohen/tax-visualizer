@@ -12,7 +12,7 @@ import {
 
 export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
     const creditsHubNode = {
-        fill: "var(--sankey-node-credits)",
+        fill: "var(--chart-credit)",
         stroke: "var(--sankey-link-credits)",
         col: 3,
         row: 40,

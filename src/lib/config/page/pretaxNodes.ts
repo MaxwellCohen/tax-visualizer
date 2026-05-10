@@ -19,7 +19,7 @@ export function makePretaxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStat
             id: "pretaxIncome",
             labels: { default: "Pretax income 0% tax", compact: "Pretax income 0% tax" },
             sankey: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
+                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
                 links: [
                     { source: "pretaxIncome", target: "pretaxTakehome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
                 ],
@@ -29,7 +29,7 @@ export function makePretaxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStat
             id: "pretaxTakehome",
             labels: { default: "Pretax take-home", compact: "Pretax take-home" },
             sankey: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 4 },
+                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 1, col: 4 },
                 links: [
                     { source: "pretaxTakehome", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 4 },
                 ],
@@ -54,7 +54,7 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
             id: "preTax401k",
             labels: { default: "401(k)", compact: "401(k)" },
             sankey: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
+                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
             },
             calculate: _401k,
         },
@@ -62,7 +62,7 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
             id: "preTaxHsa",
             labels: { default: "HSA", compact: "HSA" },
             sankey: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
+                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
             },
             calculate: _hsa,
         },
@@ -70,7 +70,7 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
             id: "preTaxOther",
             labels: { default: "Other Pre-tax", compact: "Other Pre-tax" },
             sankey: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
+                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
             },
             calculate: otherPretax,
         },
@@ -78,7 +78,7 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
             id: "traditionalIra",
             labels: { default: "Traditional IRA", compact: "Traditional IRA" },
             sankey: {
-                node: { fill: "var(--sankey-node-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
+                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
             },
             calculate: traditionalIra,
         },
@@ -86,7 +86,7 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
             id: "wagesAfterPretax",
             labels: { default: "Wages After Pre-tax", compact: "Wages After Pre-tax" },
             sankey: {
-                node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 1, col: 3 },
+                node: { fill: "var(--chart-income)", stroke: "var(--sankey-link)", row: 1, col: 3 },
             },
             calculate: (inputs) => wageIncome(inputs) - allPretax(inputs),
         },

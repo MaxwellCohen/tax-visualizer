@@ -22,7 +22,7 @@ export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus
             chartRole: "tax",
             labels: { default: "Payroll Taxes", compact: "Payroll Taxes", summary: "Payroll Tax" },
             sankey: {
-                node: { fill: "var(--sankey-node-6)", stroke: "var(--sankey-link-tax)", row: 2, col: 3 },
+                node: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)", row: 2, col: 3 },
                 links: [
                     { source: "payrollTax", target: "federalPayrollTaxes", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: 2, col: 3 },
                 ],

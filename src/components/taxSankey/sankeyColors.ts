@@ -1,6 +1,6 @@
 import type { ChartNode } from "~/components/taxSankey/chartTypes";
 
-const DEFAULT_FILL = "var(--sankey-node-7)";
+const DEFAULT_FILL = "var(--chart-default)";
 const DEFAULT_STROKE = "var(--sankey-link)";
 
 
