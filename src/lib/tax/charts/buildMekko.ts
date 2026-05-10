@@ -48,8 +48,7 @@ function rowFromCalculatedItem(item: CalculatedConfigItem, values: CalculatedCon
     tax,
     chartRole,
     order: row.row,
-    fill: chartStyle.fill,
-    stroke: chartStyle.stroke,
+    ...chartStyle,
     taxFill: TAX_CHART_STYLE.fill,
     taxStroke: TAX_CHART_STYLE.stroke,
   };

@@ -1,55 +1,31 @@
-type TaxDisclaimerProps = {
-  /** Larger text and padding for emphasis (e.g. if reused in a dedicated section). */
-  prominent?: boolean;
-};
+type TaxDisclaimerProps = {};
 
-export default function TaxDisclaimer(props: TaxDisclaimerProps) {
-  const prominent = () => !!props.prominent;
-
+export default function TaxDisclaimer(_props: TaxDisclaimerProps) {
   return (
     <aside
       role="note"
       aria-label="Disclaimer"
       class="border-t border-border bg-surface"
     >
-      <div
-        class="mx-auto max-w-6xl px-4"
-        classList={{
-          "py-6": prominent(),
-          "py-4": !prominent(),
-        }}
-      >
-        <div
-          classList={{
-            "space-y-2": !prominent(),
-            "space-y-3": prominent(),
-          }}
-        >
+      <div class="mx-auto max-w-6xl p-4">
+        <div class="space-y-2">
           <p
-            class="leading-relaxed text-faint-foreground"
-            classList={{
-              "text-sm": prominent(),
-              "text-xs": !prominent(),
-            }}
+            class="leading-relaxed text-faint-foreground text-xs"
           >
-            <span class="font-semibold text-muted-foreground">
-              Disclaimer.
-            </span>{" "}
+            <span class="font-semibold text-muted-foreground">Disclaimer.</span>{" "}
             This tool is for{" "}
-            <span class="text-muted-foreground">entertainment and educational illustration only</span>.
-            It is not tax, legal, or financial advice. Figures are simplified estimates and may not match your
-            actual liability.{" "}
+            <span class="text-muted-foreground">
+              entertainment and educational illustration only
+            </span>
+            . It is not tax, legal, or financial advice. Figures are simplified
+            estimates and may not match your actual liability.{" "}
             <span class="text-muted-foreground">
               Consult a qualified tax professional
             </span>{" "}
-            (such as a CPA or enrolled agent) for guidance specific to your situation.
+            (such as a CPA or enrolled agent) for guidance specific to your
+            situation.
           </p>
-          <p
-            class="text-xs text-faint-foreground"
-            classList={{
-              "text-sm": prominent(),
-            }}
-          >
+          <p class="text-xs text-faint-foreground">
             <a
               href="https://github.com/MaxwellCohen/tax-visualizer"
               target="_blank"

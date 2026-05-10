@@ -20,13 +20,12 @@ export function FormCurrencyInput(props: Props) {
   return (
     <input
       type="number"
+      onBlur={onBlur}
+      class={`${inputClass} bg-input text-foreground`}
+      {...props}
+      onInput={(e) => props.onInput(parseCurrencyInput(e.currentTarget.value))}
       min={props.min ?? "0"}
       step={props.step ?? "1"}
-      class={`${inputClass} bg-input text-foreground`}
-      aria-label={props.ariaLabel}
-      value={props.value}
-      onInput={(e) => props.onInput(parseCurrencyInput(e.currentTarget.value))}
-      onBlur={onBlur}
     />
   );
 }

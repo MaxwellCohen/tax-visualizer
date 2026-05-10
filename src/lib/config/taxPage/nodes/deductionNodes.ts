@@ -18,7 +18,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
     return [
         {
             id: "standardDeduction",
-            chartStyle: { fill: "var(--color-chart-deduction-node)", stroke: "var(--color-sankey-link-deferred)" },
+            chartStyle: { fill: "var(--color-chart-deduction-node)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: "0% tax", compact: "Standard Ded." },
             sankey: {
                 node: { row: 3, col: 3 },
@@ -30,7 +30,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
         },
         {
             id: "itemizedDeductions",
-            chartStyle: { fill: "var(--color-chart-deduction-node)", stroke: "var(--color-sankey-link-deferred)" },
+            chartStyle: { fill: "var(--color-chart-deduction-node)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: "Itemized Deductions", compact: "Itemized Ded." },
             sankey: {
                 node: { row: 3, col: 3 },

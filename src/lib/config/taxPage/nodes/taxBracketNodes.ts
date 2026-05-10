@@ -92,7 +92,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
     items.push({
         id: "ltcg-income",
         chartRole: "ltcg",
-        chartStyle: { fill: "var(--color-chart-ltcg)", stroke: "var(--color-chart-ltcg)" },
+        chartStyle: { fill: "var(--color-chart-ltcg)", stroke: "var(--color-sankey-link)" },
         labels: { default: "LTCG Income", compact: "LTCG Income" },
         sankey: {
             node: { row: ltcgIncomeRow, col: 3 },
