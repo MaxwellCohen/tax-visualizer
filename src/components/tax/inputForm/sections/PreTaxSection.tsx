@@ -1,15 +1,14 @@
-import { For, createMemo, type Accessor, type Setter } from "solid-js";
-import Accordion from "~/components/ui/Accordion";
-import { LineItemSourceRow } from "~/components/tax/inputForm/rows/LineItemSourceRow";
-import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
+import { createMemo, type Accessor, type Setter } from "solid-js";
 import { pretaxBenefitKindSelectOptions } from "~/components/tax/inputForm/shared";
-import { AddLineHeaderControls, AddLineMobileControls } from "~/components/tax/inputForm/controls/AddLineControls";
-import { taxInputFormTableThClass } from "~/components/tax/inputForm/shared";
-import { money } from "~/lib/format/moneyFormat";
 import type { TaxFormData, TaxFormPretaxRow } from "~/lib/tax/form/types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
 import type { ValidationContext } from "~/lib/config/types";
-import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/tax/form/rows";
+import { rowIdsForTypedRows } from "~/lib/tax/form/rows";
+import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
+import {
+  LineItemsAccordionFromConfig,
+  preTaxSectionUi,
+} from "~/components/tax/inputForm/sections/LineItemsAccordionFromConfig";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;
@@ -33,82 +32,23 @@ export function PreTaxSection(props: Props) {
   const configItems = useConfigItemsForSection(props.taxData, props.filingStatus, "pretax");
   const kindOptions = createMemo(() => pretaxBenefitKindSelectOptions(configItems(), props.isMarriedJoint()));
 
-  return (
-    <Accordion
-      summary={
-        <>
-          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-faint-foreground font-heading">
-            Pre-tax benefits
-          </h2>
-          <span class="text-sm tabular-nums text-muted-foreground">
-            {money.format(props.preTaxBenefitsTotal())}
-          </span>
-        </>
-      }
-      bodyClass="space-y-4"
-    >
-      <p class="text-xs leading-relaxed text-muted-foreground">
-        Choose a benefit type and amount per row (optional labels are for your
-        notes). Payroll lines apply only to W-2 wages; totals above wages are
-        scaled down. IRS contribution limits for the selected year are enforced
-        automatically (age-50+ catch-up is not modeled).
-      </p>
-      <AddLineMobileControls label="Add benefit" onAdd={props.addPretaxBenefit} />
-      <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-border bg-surface-alt">
-        <table class="w-full min-w-0 border-collapse text-sm md:min-w-xl md:[&>tbody>tr:last-child>td]:border-b-0">
-          <thead class="hidden md:table-header-group">
-            <tr>
-              <th scope="col" class={`${taxInputFormTableThClass} pl-3`}>
-                Type
-              </th>
-              <th scope="col" class={taxInputFormTableThClass}>
-                Label (optional)
-              </th>
-              <th scope="col" class={taxInputFormTableThClass}>
-                Amount
-              </th>
-              <th
-                scope="col"
-                class={`${taxInputFormTableThClass} whitespace-nowrap pr-3 text-right align-bottom`}
-              >
-                <AddLineHeaderControls
-                  addLabel="Add benefit"
-                  onAdd={props.addPretaxBenefit}
-                  onClearAll={props.clearAll}
-                  showClearAll={pretaxRows().length > 0}
-                />
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <For each={pretaxRowIds()}>
-              {(rowId) => (
-                <LineItemSourceRow
-                  rowType="pretax"
-                  detailVariant="pretax"
-                  configItems={configItems}
-                  taxInput={props.taxInput}
-                  setTaxInput={props.setTaxInput}
-                  rowId={rowId}
-                  canRemove={pretaxRowIds().length > 1}
-                  onRemove={() => {
-                    const i = indexOfTypedRowById(props.taxInput().rows, "pretax", rowId);
-                    if (i >= 0) props.removePretaxBenefitAt(i);
-                  }}
-                  taxData={props.taxData}
-                  validationCtx={props.validationCtx}
-                  kindDataLabel="Type"
-                  kindSelectLabel="Benefit type"
-                  labelPlaceholder="e.g. Employer plan, bank"
-                  kindOptions={kindOptions}
-                  removeEntity="line"
-                />
-              )}
-            </For>
-          </tbody>
-        </table>
-      </div>
+  const showClearAll = createMemo(() => pretaxRows().length > 0);
 
-    </Accordion>
+  return (
+    <LineItemsAccordionFromConfig
+      ui={preTaxSectionUi}
+      summaryAmount={props.preTaxBenefitsTotal}
+      taxInput={props.taxInput}
+      setTaxInput={props.setTaxInput}
+      taxData={props.taxData}
+      validationCtx={props.validationCtx}
+      onAdd={props.addPretaxBenefit}
+      onClearAll={props.clearAll}
+      showClearAll={showClearAll}
+      rowIds={pretaxRowIds}
+      removeAt={props.removePretaxBenefitAt}
+      kindOptions={kindOptions}
+      configItems={configItems}
+    />
   );
 }

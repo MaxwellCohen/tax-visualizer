@@ -1,17 +1,14 @@
-import { For, createMemo, type Accessor, type Setter } from "solid-js";
-import Accordion from "~/components/ui/Accordion";
-import {
-  incomeKindSelectOptions,
-  taxInputFormTableThClass,
-} from "~/components/tax/inputForm/shared";
-import { LineItemSourceRow } from "~/components/tax/inputForm/rows/LineItemSourceRow";
-import { AddLineHeaderControls, AddLineMobileControls } from "~/components/tax/inputForm/controls/AddLineControls";
-import { money } from "~/lib/format/moneyFormat";
+import { createMemo, type Accessor, type Setter } from "solid-js";
+import { incomeKindSelectOptions } from "~/components/tax/inputForm/shared";
 import type { TaxFormData, TaxFormIncomeRow } from "~/lib/tax/form/types";
-import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/tax/form/rows";
+import { rowIdsForTypedRows } from "~/lib/tax/form/rows";
 import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
 import type { ValidationContext } from "~/lib/config/types";
 import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
+import {
+  incomeSectionUi,
+  LineItemsAccordionFromConfig,
+} from "~/components/tax/inputForm/sections/LineItemsAccordionFromConfig";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;
@@ -43,67 +40,17 @@ export function IncomeSection(props: Props) {
   const kindOptions = createMemo(() => incomeKindSelectOptions(configItems(), isMarriedJoint()));
 
   return (
-    <Accordion
-      summary={
-        <>
-          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-faint-foreground font-heading">
-            Income sources
-          </h2>
-          <span class="text-sm tabular-nums text-muted-foreground">{money.format(incomeTotal())}</span>
-        </>
-      }
-      bodyClass="space-y-4"
-    >
-      <p class="text-xs leading-relaxed text-muted-foreground">
-        Add wages, self-employment, and other ordinary income—one row per type. Optional labels are only for your
-        notes (for example in charts).
-      </p>
-      <AddLineMobileControls label="Add source" onAdd={props.addSource} />
-      <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-border bg-surface-alt">
-        <table class="w-full min-w-0 border-collapse text-sm md:min-w-xl md:[&>tbody>tr:last-child>td]:border-b-0">
-          <thead class="hidden md:table-header-group">
-            <tr>
-              <th scope="col" class={`${taxInputFormTableThClass} pl-3`}>
-                Type
-              </th>
-              <th scope="col" class={taxInputFormTableThClass}>
-                Label (optional)
-              </th>
-              <th scope="col" class={taxInputFormTableThClass}>
-                Amount
-              </th>
-              <th scope="col" class={`${taxInputFormTableThClass} whitespace-nowrap pr-3 text-right align-bottom`}>
-                <AddLineHeaderControls addLabel="Add source" onAdd={props.addSource} />
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <For each={incomeRowIds()}>
-              {(rowId) => (
-                <LineItemSourceRow
-                  rowType="income"
-                  detailVariant="none"
-                  taxInput={props.taxInput}
-                  setTaxInput={props.setTaxInput}
-                  rowId={rowId}
-                  canRemove={incomeRowIds().length > 1}
-                  onRemove={() => {
-                    const i = indexOfTypedRowById(props.taxInput().rows, "income", rowId);
-                    if (i >= 0) props.removeSourceAt(i);
-                  }}
-                  taxData={props.taxData}
-                  validationCtx={props.validationCtx}
-                  kindDataLabel="Type"
-                  kindSelectLabel="Income type"
-                  labelPlaceholder="e.g. Employer, Brokerage"
-                  kindOptions={kindOptions}
-                  removeEntity="source"
-                />
-              )}
-            </For>
-          </tbody>
-        </table>
-      </div>
-    </Accordion>
+    <LineItemsAccordionFromConfig
+      ui={incomeSectionUi}
+      summaryAmount={incomeTotal}
+      taxInput={props.taxInput}
+      setTaxInput={props.setTaxInput}
+      taxData={props.taxData}
+      validationCtx={props.validationCtx}
+      onAdd={props.addSource}
+      rowIds={incomeRowIds}
+      removeAt={props.removeSourceAt}
+      kindOptions={kindOptions}
+    />
   );
 }

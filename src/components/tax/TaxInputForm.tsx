@@ -28,7 +28,7 @@ type TaxInputFormProps = {
 export default function TaxInputForm(props: TaxInputFormProps) {
   const limits = createLimitMemos(() => props.taxInput());
   const deduction = createDeductionMemos(() => props.taxInput(), limits.selectedTaxConfig);
-  const rowActions = createTaxInputRowActions(props.setTaxInput);
+  const rowActions = createTaxInputRowActions(props.setTaxInput, props.onCommitToUrl);
 
   wireTaxYearLimitsEffect(() => props.taxInput(), props.setTaxInput);
 

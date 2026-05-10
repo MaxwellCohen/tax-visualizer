@@ -52,20 +52,31 @@ function removeRowAt(rows: TaxFormRow[], index: number): TaxFormRow[] {
   return rows.filter((_, i) => i !== index);
 }
 
-export function createTaxInputRowActions(setTaxInput: Setter<TaxFormData>) {
+export function createTaxInputRowActions(
+  setTaxInput: Setter<TaxFormData>,
+  commitToUrl?: () => void,
+) {
+  const syncUrl = () => {
+    commitToUrl?.();
+  };
+
   const addSource = () => {
     setTaxInput((prev) => {
       const idx = insertIndexForNewIncome(prev.rows);
       const newRows = spliceRows(prev.rows, idx, newIncomeRow());
       return { ...prev, rows: newRows };
     });
+    syncUrl();
   };
 
   const removeSourceAt = (rowIndex: number) => {
+    let mutated = false;
     setTaxInput((prev) => {
       if (incomeRowIndices(prev.rows).length <= 1) return prev;
+      mutated = true;
       return { ...prev, rows: removeRowAt(prev.rows, rowIndex) };
     });
+    if (mutated) syncUrl();
   };
 
   const addPretaxBenefit = () => {
@@ -79,13 +90,17 @@ export function createTaxInputRowActions(setTaxInput: Setter<TaxFormData>) {
       );
       return { ...prev, rows: newRows };
     });
+    syncUrl();
   };
 
   const removePretaxBenefitAt = (rowIndex: number) => {
+    let mutated = false;
     setTaxInput((prev) => {
       if (pretaxRowIndices(prev.rows).length <= 1) return prev;
+      mutated = true;
       return { ...prev, rows: removeRowAt(prev.rows, rowIndex) };
     });
+    if (mutated) syncUrl();
   };
 
   const addItemizedDeduction = () => {
@@ -101,13 +116,17 @@ export function createTaxInputRowActions(setTaxInput: Setter<TaxFormData>) {
       });
       return { ...prev, rows: newRows };
     });
+    syncUrl();
   };
 
   const removeItemizedDeductionAt = (rowIndex: number) => {
+    let mutated = false;
     setTaxInput((prev) => {
       if (deductionRowIndices(prev.rows).length <= 1) return prev;
+      mutated = true;
       return { ...prev, rows: removeRowAt(prev.rows, rowIndex) };
     });
+    if (mutated) syncUrl();
   };
 
   const addFederalTaxCredit = () => {
@@ -123,25 +142,32 @@ export function createTaxInputRowActions(setTaxInput: Setter<TaxFormData>) {
       });
       return { ...prev, rows: newRows };
     });
+    syncUrl();
   };
 
   const removeFederalTaxCreditAt = (rowIndex: number) => {
+    let mutated = false;
     setTaxInput((prev) => {
       if (creditRowIndices(prev.rows).length <= 1) return prev;
+      mutated = true;
       return { ...prev, rows: removeRowAt(prev.rows, rowIndex) };
     });
+    if (mutated) syncUrl();
   };
 
   const clearAllPretaxBenefits = () => {
     setTaxInput((prev) => ({ ...prev, rows: prev.rows.filter((r) => r.type !== "pretax") }));
+    syncUrl();
   };
 
   const clearAllItemizedDeductions = () => {
     setTaxInput((prev) => ({ ...prev, rows: prev.rows.filter((r) => r.type !== "deduction") }));
+    syncUrl();
   };
 
   const clearAllFederalTaxCredits = () => {
     setTaxInput((prev) => ({ ...prev, rows: prev.rows.filter((r) => r.type !== "credit") }));
+    syncUrl();
   };
 
   return {
