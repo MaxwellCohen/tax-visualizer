@@ -1,4 +1,4 @@
-import type { FilingStatus } from "~/lib/taxData.types";
+import type { FilingStatus } from "~/lib/tax/data/types";
 
 
 export type Bracket = {

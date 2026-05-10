@@ -4,13 +4,13 @@ import Accordion from "~/components/ui/Accordion";
 import { IncomeSourceTableRow } from "~/components/tax/inputForm/rows/IncomeSourceTableRow";
 import { AddLineHeaderControls, AddLineMobileControls } from "~/components/tax/inputForm/controls/AddLineControls";
 import { taxInputFormTableThClass } from "~/components/tax/inputForm/shared";
-import { money } from "~/lib/moneyFormat";
-import type { TaxFormData, TaxFormIncomeRow } from "~/lib/taxForm.types";
-import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
-import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
+import { money } from "~/lib/format/moneyFormat";
+import type { TaxFormData, TaxFormIncomeRow } from "~/lib/tax/form/types";
+import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/tax/form/rows";
+import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
 import type { ValidationContext } from "~/lib/config/types";
-import { getInputItemsForSection } from "~/lib/config/page/Page.config";
-import type { ConfigItem } from "~/lib/config/page/pageConfig.types";
+import { getInputItemsForSection } from "~/lib/config/taxPage/taxPage.config";
+import type { ConfigItem } from "~/lib/config/taxPage/types";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;

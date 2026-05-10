@@ -1,6 +1,6 @@
 // fallow-ignore-file code-duplication
 import { Show, createMemo, type Accessor, type Setter } from "solid-js";
-import type { ConfigItem } from "~/lib/config/page/pageConfig.types";
+import type { ConfigItem } from "~/lib/config/taxPage/types";
 import {
   incomeKindSelectOptions,
   inputClass,
@@ -14,8 +14,8 @@ import { useTaxInputCommitToUrl } from "~/components/tax/inputForm/context/TaxIn
 import { FormFieldValidationMessage } from "~/components/tax/inputForm/controls/FormFieldValidationMessage";
 import { createLineItemRowState, patchLineItemRow } from "~/components/tax/inputForm/state/lineItemRowState";
 import type { ValidationContext } from "~/lib/config/types";
-import type { TaxFormData } from "~/lib/taxForm.types";
-import type { TaxYearConfig } from "~/lib/taxData.types";
+import type { TaxFormData } from "~/lib/tax/form/types";
+import type { TaxYearConfig } from "~/lib/tax/data/types";
 
 type IncomeSourceTableRowProps = {
   taxInput: Accessor<TaxFormData>;

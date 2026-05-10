@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { computeTaxMetricLines } from "~/lib/config/chartMetricsRegistry";
-import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
-import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
-import { getTaxYearConfig } from "~/lib/taxData.accessors.impl";
+import { computeTaxMetricLines } from "~/lib/config/charts/metricsRegistry";
+import { baseInput, withPretaxTotals } from "~/lib/tax/calc/test.helpers";
+import { rowsToTaxCalculationInputs } from "~/lib/tax/calc/inputs";
+import { getTaxYearConfig } from "~/lib/tax/data/accessors.impl";
 
 describe("chartMetricsRegistry", () => {
   it("aggregates pre-tax rows using full PretaxBenefitKind strings (401(k) and traditional IRA)", () => {

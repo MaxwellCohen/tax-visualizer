@@ -1,5 +1,5 @@
 import type { ChartNode } from "~/components/tax/sankey/types/chartTypes";
-import { DEFAULT_CHART_STYLE } from "~/lib/config/page/chartStyle";
+import { DEFAULT_CHART_STYLE } from "~/lib/config/taxPage/chart/chartStyle";
 
 
 export function linkStroke(targetNode: ChartNode): string {

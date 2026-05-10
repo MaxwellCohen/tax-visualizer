@@ -1,9 +1,9 @@
 import { createMemo, type Accessor, type Setter } from "solid-js";
-import { buildValidationContext } from "~/lib/config/page/Page.config";
+import { buildValidationContext } from "~/lib/config/taxPage/taxPage.config";
 import {
   getFilingStatusFromRows,
   getTaxYearFromRows,
-} from "~/lib/taxCalc.inputs";
+} from "~/lib/tax/calc/inputs";
 import { CollapsibleBlock } from "~/components/ui/CollapsibleBlock";
 import { CreditsSection } from "~/components/tax/inputForm/sections/CreditsSection";
 import { DeductionSection } from "~/components/tax/inputForm/sections/DeductionSection";
@@ -15,7 +15,7 @@ import { createTaxInputRowActions } from "~/components/tax/inputForm/hooks/taxIn
 import { createDeductionMemos } from "~/components/tax/inputForm/hooks/deductionMemos";
 import { createLimitMemos } from "~/components/tax/inputForm/hooks/limitMemos";
 import { wireTaxYearLimitsEffect } from "~/components/tax/inputForm/hooks/taxYearLimitsEffect";
-import type { TaxFormData } from "~/lib/taxForm.types";
+import type { TaxFormData } from "~/lib/tax/form/types";
 
 type TaxInputFormProps = {
   taxInput: Accessor<TaxFormData>;

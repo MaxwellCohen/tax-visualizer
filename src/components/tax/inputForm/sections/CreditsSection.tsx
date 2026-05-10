@@ -1,17 +1,17 @@
 // fallow-ignore-file code-duplication
 import { For, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/ui/Accordion";
-import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
-import type { TaxFormData, TaxFormCreditRow } from "~/lib/taxForm.types";
-import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
+import { rowsToTaxCalculationInputs } from "~/lib/tax/calc/inputs";
+import type { TaxFormData, TaxFormCreditRow } from "~/lib/tax/form/types";
+import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
 import type { ValidationContext } from "~/lib/config/types";
-import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
+import { sumLabeledAmountSources } from "~/lib/tax/calc/labeledAmountSource";
 import { FederalTaxCreditSourceRow } from "~/components/tax/inputForm/rows/FederalTaxCreditSourceRow";
 import { AddLineHeaderControls, AddLineMobileControls } from "~/components/tax/inputForm/controls/AddLineControls";
 import { taxInputFormTableThClass } from "~/components/tax/inputForm/shared";
-import { money } from "~/lib/moneyFormat";
-import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
-import { childTaxCredit } from "~/lib/config/page/pageConfig.inputs";
+import { money } from "~/lib/format/moneyFormat";
+import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/tax/form/rows";
+import { childTaxCredit } from "~/lib/config/taxPage/rowMetrics";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;

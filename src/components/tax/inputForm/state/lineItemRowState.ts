@@ -1,15 +1,15 @@
 import { createMemo, createSignal, type Accessor } from "solid-js";
-import { validateLineItemAmount } from "~/lib/config/page/Page.config";
+import { validateLineItemAmount } from "~/lib/config/taxPage/taxPage.config";
 import type { ValidationContext } from "~/lib/config/types";
-import { indexOfTypedRowById } from "~/lib/taxForm.rows";
+import { indexOfTypedRowById } from "~/lib/tax/form/rows";
 import type {
   TaxFormCreditRow,
   TaxFormData,
   TaxFormDeductionRow,
   TaxFormIncomeRow,
   TaxFormPretaxRow,
-} from "~/lib/taxForm.types";
-import type { TaxYearConfig } from "~/lib/taxData.types";
+} from "~/lib/tax/form/types";
+import type { TaxYearConfig } from "~/lib/tax/data/types";
 
 type LineItemRow = TaxFormIncomeRow | TaxFormPretaxRow | TaxFormDeductionRow | TaxFormCreditRow;
 type LineItemRowType = LineItemRow["type"];

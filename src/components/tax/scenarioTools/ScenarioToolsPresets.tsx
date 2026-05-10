@@ -1,8 +1,8 @@
 
 import type { Accessor } from "solid-js";
-import type { TaxFormData } from "~/lib/taxForm.types";
-import type { ScenarioPreset } from "~/lib/taxScenario.types";
-import { taxInputMatchesPreset } from "~/lib/taxScenario.compare";
+import type { TaxFormData } from "~/lib/tax/form/types";
+import type { ScenarioPreset } from "~/lib/tax/scenario/types";
+import { taxInputMatchesPreset } from "~/lib/tax/scenario/compare";
 
 type Props = {
   presets: ScenarioPreset[];

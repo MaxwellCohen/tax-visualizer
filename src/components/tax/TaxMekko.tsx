@@ -1,12 +1,12 @@
 import { Accessor, For, Show, createMemo } from "solid-js";
 import { CollapsibleBlock } from "~/components/ui/CollapsibleBlock";
-import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
+import type { CalculatedConfigItem } from "~/lib/tax/calc/calculateTaxes";
 import {
   buildMekkoFromConfig,
   type MekkoChartData,
   type MekkoRow,
-} from "~/lib/taxCharts.buildMekko";
-import { money } from "~/lib/moneyFormat";
+} from "~/lib/tax/charts/buildMekko";
+import { money } from "~/lib/format/moneyFormat";
 
 type TaxMekkoProps = {
   calculatedConfig: Accessor<CalculatedConfigItem[] | null>;

@@ -1,4 +1,4 @@
-import type { SummaryMetricFormat } from "~/lib/taxCharts.buildSummary";
+import type { SummaryMetricFormat } from "~/lib/tax/charts/buildSummary";
 
 type MetricProps = {
   label: string;

@@ -1,9 +1,9 @@
 import { createMemo } from "solid-js";
 import type { Accessor } from "solid-js";
-import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
-import type { TaxFormData } from "~/lib/taxForm.types";
-import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
-import type { TaxYearConfig } from "~/lib/taxData.types";
+import { rowsToTaxCalculationInputs } from "~/lib/tax/calc/inputs";
+import type { TaxFormData } from "~/lib/tax/form/types";
+import { sumLabeledAmountSources } from "~/lib/tax/calc/labeledAmountSource";
+import type { TaxYearConfig } from "~/lib/tax/data/types";
 
 export function createDeductionMemos(
   values: Accessor<TaxFormData>,

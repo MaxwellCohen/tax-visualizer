@@ -4,11 +4,11 @@ import Accordion from "~/components/ui/Accordion";
 import { PretaxBenefitSourceRow } from "~/components/tax/inputForm/rows/PretaxBenefitSourceRow";
 import { AddLineHeaderControls, AddLineMobileControls } from "~/components/tax/inputForm/controls/AddLineControls";
 import { taxInputFormTableThClass } from "~/components/tax/inputForm/shared";
-import { money } from "~/lib/moneyFormat";
-import type { TaxFormData, TaxFormPretaxRow } from "~/lib/taxForm.types";
-import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
+import { money } from "~/lib/format/moneyFormat";
+import type { TaxFormData, TaxFormPretaxRow } from "~/lib/tax/form/types";
+import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
 import type { ValidationContext } from "~/lib/config/types";
-import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
+import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/tax/form/rows";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;

@@ -1,7 +1,7 @@
 import { Link, Meta, Title } from "@solidjs/meta";
 import { useLocation } from "@solidjs/router";
 import { Show } from "solid-js";
-import { canonicalUrl, PAGE_META, SITE_NAME } from "~/lib/siteMeta";
+import { canonicalUrl, PAGE_META, SITE_NAME } from "~/lib/site/meta";
 
 type PageKey = keyof typeof PAGE_META;
 

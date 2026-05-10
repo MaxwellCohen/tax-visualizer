@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import type { Accessor } from "solid-js";
 import { render } from "@solidjs/testing-library";
 import { ScenarioToolsPresets } from "./ScenarioToolsPresets";
-import type { TaxFormData } from "~/lib/taxForm.types";
-import type { ScenarioPreset } from "~/lib/taxScenario.types";
+import type { TaxFormData } from "~/lib/tax/form/types";
+import type { ScenarioPreset } from "~/lib/tax/scenario/types";
 
 const mockPresets: ScenarioPreset[] = [
   {

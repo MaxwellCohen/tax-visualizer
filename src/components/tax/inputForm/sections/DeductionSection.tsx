@@ -1,22 +1,22 @@
 // fallow-ignore-file code-duplication
 import { For, Show, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/ui/Accordion";
-import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
-import type { TaxFormData, TaxFormDeductionRow, TaxFormRow } from "~/lib/taxForm.types";
-import type { TaxYearConfig } from "~/lib/taxData.types";
+import { rowsToTaxCalculationInputs } from "~/lib/tax/calc/inputs";
+import type { TaxFormData, TaxFormDeductionRow, TaxFormRow } from "~/lib/tax/form/types";
+import type { TaxYearConfig } from "~/lib/tax/data/types";
 import type { ValidationContext } from "~/lib/config/types";
-import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
+import { sumLabeledAmountSources } from "~/lib/tax/calc/labeledAmountSource";
 import { ItemizedDeductionSourceRow } from "~/components/tax/inputForm/rows/ItemizedDeductionSourceRow";
 import { useTaxInputCommitToUrl } from "~/components/tax/inputForm/context/TaxInputCommitUrlContext";
 import { AddLineHeaderControls, AddLineMobileControls } from "~/components/tax/inputForm/controls/AddLineControls";
 import { taxInputFormTableThClass } from "~/components/tax/inputForm/shared";
-import { money } from "~/lib/moneyFormat";
+import { money } from "~/lib/format/moneyFormat";
 import {
   indexOfTypedRowById,
   rowIdsForTypedRows,
   settingRowFieldMountKey,
   settingRowIndex,
-} from "~/lib/taxForm.rows";
+} from "~/lib/tax/form/rows";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;

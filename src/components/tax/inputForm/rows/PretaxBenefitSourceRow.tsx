@@ -1,6 +1,6 @@
 // fallow-ignore-file code-duplication
 import { Show, createMemo, type Accessor, type Setter } from "solid-js";
-import type { TaxFormData } from "~/lib/taxForm.types";
+import type { TaxFormData } from "~/lib/tax/form/types";
 import { FormCurrencyInput } from "~/components/tax/inputForm/controls/FormCurrencyInput";
 import { FormStyledSelect } from "~/components/tax/inputForm/controls/FormStyledSelect";
 import { useTaxInputCommitToUrl } from "~/components/tax/inputForm/context/TaxInputCommitUrlContext";
@@ -14,10 +14,10 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/tax/inputForm/shared";
 import { FormFieldValidationMessage } from "~/components/tax/inputForm/controls/FormFieldValidationMessage";
-import { getInputItemsForSection } from "~/lib/config/page/Page.config";
+import { getInputItemsForSection } from "~/lib/config/taxPage/taxPage.config";
 import type { ValidationContext } from "~/lib/config/types";
-import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
-import type { ConfigItem } from "~/lib/config/page/pageConfig.types";
+import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
+import type { ConfigItem } from "~/lib/config/taxPage/types";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;

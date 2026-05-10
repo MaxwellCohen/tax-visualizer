@@ -3,11 +3,11 @@ import { createMemo, Show } from "solid-js";
 import TaxMekko from "~/components/tax/TaxMekko";
 import TaxSankey from "~/components/tax/TaxSankey";
 import TaxSummary from "~/components/tax/TaxSummary";
-import type { TaxFormData } from "~/lib/taxForm.types";
+import type { TaxFormData } from "~/lib/tax/form/types";
 import { TaxYearInvalid } from "./TaxYearInvalid";
-import { getFilingStatusFromRows, getTaxYearFromRows } from "~/lib/taxCalc.inputs";
-import { getTaxYearConfig } from "~/lib/taxData.accessors.impl";
-import { calculateAllConfigValues, type CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
+import { getFilingStatusFromRows, getTaxYearFromRows } from "~/lib/tax/calc/inputs";
+import { getTaxYearConfig } from "~/lib/tax/data/accessors.impl";
+import { calculateAllConfigValues, type CalculatedConfigItem } from "~/lib/tax/calc/calculateTaxes";
 type HomeTaxResultsProps = {
   taxInput: Accessor<TaxFormData>;
 };

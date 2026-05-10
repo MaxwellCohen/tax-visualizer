@@ -7,8 +7,8 @@ import type { ChartLink, ChartNode } from "~/components/tax/sankey/types/chartTy
 import { compareSankeyLinks } from "~/components/tax/sankey/compare/compareSankeyLinks";
 import { compareSankeySiblings } from "~/components/tax/sankey/compare/compareSankeySiblings";
 import { SANKEY_HEIGHT, SANKEY_WIDTH } from "~/components/tax/sankey/layout/dimensions";
-import { resolveChartStyle } from "~/lib/config/page/chartStyle";
-import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
+import { resolveChartStyle } from "~/lib/config/taxPage/chart/chartStyle";
+import type { CalculatedConfigItem } from "~/lib/tax/calc/calculateTaxes";
 
 type TaxSankeyProps = {
   calculatedConfig: Accessor<CalculatedConfigItem[] | null>;

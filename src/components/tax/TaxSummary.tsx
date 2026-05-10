@@ -4,8 +4,8 @@ import { TaxSummaryMetric } from "~/components/tax/summary/TaxSummaryMetric";
 import {
   buildSummaryFromConfig,
   type SummaryMetric,
-} from "~/lib/taxCharts.buildSummary";
-import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
+} from "~/lib/tax/charts/buildSummary";
+import type { CalculatedConfigItem } from "~/lib/tax/calc/calculateTaxes";
 
 type TaxSummaryProps = {
   calculatedConfig: Accessor<CalculatedConfigItem[] | null>;

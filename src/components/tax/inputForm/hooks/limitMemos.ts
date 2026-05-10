@@ -1,9 +1,9 @@
 import { createMemo } from "solid-js";
 import type { Accessor } from "solid-js";
-import { getTaxYearFromRows, rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
-import type { TaxFormData } from "~/lib/taxForm.types";
-import { aggregatePretaxFromSources } from "~/lib/taxCalc.pretaxBenefitSource";
-import { getFederalTaxCreditCaps, getItemizedDeductionCaps, getPretaxLimits, getTaxYearConfig } from "~/lib/taxData.accessors.impl";
+import { getTaxYearFromRows, rowsToTaxCalculationInputs } from "~/lib/tax/calc/inputs";
+import type { TaxFormData } from "~/lib/tax/form/types";
+import { aggregatePretaxFromSources } from "~/lib/tax/calc/pretaxBenefitSource";
+import { getFederalTaxCreditCaps, getItemizedDeductionCaps, getPretaxLimits, getTaxYearConfig } from "~/lib/tax/data/accessors.impl";
 
 export function createLimitMemos(values: Accessor<TaxFormData>) {
   const taxYear = createMemo(() => getTaxYearFromRows(values().rows));

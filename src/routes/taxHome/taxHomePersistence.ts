@@ -1,11 +1,6 @@
-import type { TaxFormData } from "~/lib/taxForm.types";
-import {
-  
-  serializeScenarioInput,
-} from "~/lib/taxScenario.serialize";
-import {
-  SCENARIO_QUERY_PARAM,
-} from "~/lib/taxScenario.keys.constants"
+import type { TaxFormData } from "~/lib/tax/form/types";
+import { serializeScenarioInput } from "~/lib/tax/scenario/serialize";
+import { SCENARIO_QUERY_PARAM } from "~/lib/tax/scenario/keys.constants";
 
 
 /** Max total URL length before dropping the scenario query param (browser/practical limits). */

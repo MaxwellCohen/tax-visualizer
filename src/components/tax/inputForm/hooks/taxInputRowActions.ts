@@ -1,16 +1,16 @@
 import type { Setter } from "solid-js";
-import { newFederalTaxCreditSource } from "~/lib/taxCalc.federalTaxCreditSource";
-import { newItemizedDeductionSource } from "~/lib/taxCalc.itemizedDeductionSource";
-import { newPretaxBenefitSource } from "~/lib/taxCalc.pretaxBenefitSource";
-import type { TaxFormData, TaxFormRow } from "~/lib/taxForm.types";
+import { newFederalTaxCreditSource } from "~/lib/tax/calc/federalTaxCreditSource";
+import { newItemizedDeductionSource } from "~/lib/tax/calc/itemizedDeductionSource";
+import { newPretaxBenefitSource } from "~/lib/tax/calc/pretaxBenefitSource";
+import type { TaxFormData, TaxFormRow } from "~/lib/tax/form/types";
 import {
   creditRowIndices,
   deductionRowIndices,
   incomeRowIndices,
   pretaxRowIndices,
   settingRowIndex,
-} from "~/lib/taxForm.rows";
-import { newIncomeRow, newPretaxRow } from "~/lib/taxForm.factories";
+} from "~/lib/tax/form/rows";
+import { newIncomeRow, newPretaxRow } from "~/lib/tax/form/factories";
 
 export function taxFormDataEquals(a: TaxFormData, b: TaxFormData): boolean {
   return JSON.stringify(a.rows) === JSON.stringify(b.rows);

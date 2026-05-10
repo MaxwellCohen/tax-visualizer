@@ -5,7 +5,7 @@ import { Suspense } from "solid-js";
 import Nav from "~/components/layout/Nav";
 import { GlobalSeo } from "~/components/seo/Seo";
 import TaxDisclaimer from "~/components/legal/TaxDisclaimer";
-import { ThemeProvider } from "~/lib/theme";
+import { ThemeProvider } from "~/lib/ui/theme";
 import "./app.css";
 
 export default function App() {

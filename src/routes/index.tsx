@@ -4,13 +4,13 @@ import { HomeHeader } from "~/routes/taxHome/HomeHeader";
 import { HomeTaxResults } from "~/routes/taxHome/HomeTaxResults";
 import ScenarioTools from "~/components/tax/ScenarioTools";
 import TaxInputForm from "~/components/tax/TaxInputForm";
-import type { TaxFormData } from "~/lib/taxForm.types"
-import { getAvailableTaxYears } from "~/lib/taxData.accessors.impl";
-import { getScenarioPresets } from "~/lib/taxScenario.serialize";
+import type { TaxFormData } from "~/lib/tax/form/types"
+import { getAvailableTaxYears } from "~/lib/tax/data/accessors.impl";
+import { getScenarioPresets } from "~/lib/tax/scenario/serialize";
 import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { useSearchParams } from "@solidjs/router";
-import { deserializeScenarioInputFromSearchParams, serializeScenarioInput } from "~/lib/taxScenario.serialize";
-import { SCENARIO_QUERY_PARAM } from "~/lib/taxScenario.keys.constants";
+import { deserializeScenarioInputFromSearchParams, serializeScenarioInput } from "~/lib/tax/scenario/serialize";
+import { SCENARIO_QUERY_PARAM } from "~/lib/tax/scenario/keys.constants";
 import { effect } from "solid-js/web";
 
 export default function HomeContent() {

@@ -1,9 +1,9 @@
 import { createMemo, type Accessor, type Setter } from "solid-js";
-import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
-import { settingRowIndex } from "~/lib/taxForm.rows";
-import type { TaxFormData, TaxFormRow } from "~/lib/taxForm.types";
-import type { FilingStatus } from "~/lib/taxData.types";
-import { isPlanningTaxYear } from "~/lib/taxData.accessors.impl";
+import { getTaxYearFromRows } from "~/lib/tax/calc/inputs";
+import { settingRowIndex } from "~/lib/tax/form/rows";
+import type { TaxFormData, TaxFormRow } from "~/lib/tax/form/types";
+import type { FilingStatus } from "~/lib/tax/data/types";
+import { isPlanningTaxYear } from "~/lib/tax/data/accessors.impl";
 import { filingStatusOptions } from "~/components/tax/inputForm/shared";
 import { FormStyledSelect } from "~/components/tax/inputForm/controls/FormStyledSelect";
 import { FormCurrencyInput } from "~/components/tax/inputForm/controls/FormCurrencyInput";

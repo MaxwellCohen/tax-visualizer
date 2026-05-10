@@ -3,9 +3,9 @@ import { CollapsibleBlock } from "~/components/ui/CollapsibleBlock";
 import { ScenarioToolsActions } from "~/components/tax/scenarioTools/ScenarioToolsActions";
 import { ScenarioToolsPresets } from "~/components/tax/scenarioTools/ScenarioToolsPresets";
 import { buildUrlWithScenario } from "~/routes/taxHome/taxHomePersistence";
-import { getTaxYearFromRows } from "~/lib/taxCalc.inputs";
-import { TaxFormData } from "~/lib/taxForm.types";
-import { ScenarioPreset } from "~/lib/taxScenario.types";
+import { getTaxYearFromRows } from "~/lib/tax/calc/inputs";
+import { TaxFormData } from "~/lib/tax/form/types";
+import { ScenarioPreset } from "~/lib/tax/scenario/types";
 
 type ScenarioToolsProps = {
   presets: ScenarioPreset[];

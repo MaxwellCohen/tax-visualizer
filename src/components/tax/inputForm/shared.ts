@@ -1,5 +1,5 @@
-import type { FilingStatus } from "~/lib/taxData.types";
-import type { ConfigItem, SubcategoryConfig } from "~/lib/config/page/pageConfig.types";
+import type { FilingStatus } from "~/lib/tax/data/types";
+import type { ConfigItem, SubcategoryConfig } from "~/lib/config/taxPage/types";
 
 type SelectOption = { value: string; label: string };
 
