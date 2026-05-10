@@ -1,19 +1,19 @@
-
+// fallow-ignore-file code-duplication
 import { Show, createMemo, type Accessor, type Setter } from "solid-js";
 import type { TaxFormData } from "~/lib/taxForm.types";
-import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
-import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
-import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
-import { createLineItemRowState, patchLineItemRow } from "~/components/taxInputForm/lineItemRowState";
+import { FormCurrencyInput } from "~/components/taxInputForm/controls/FormCurrencyInput";
+import { FormStyledSelect } from "~/components/taxInputForm/controls/FormStyledSelect";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/context/TaxInputCommitUrlContext";
+import { createLineItemRowState, patchLineItemRow } from "~/components/taxInputForm/state/lineItemRowState";
 import {
-  itemizedDeductionSelectOptions,
   inputClass,
+  pretaxBenefitKindSelectOptions,
   pretaxFieldCaptionClass,
   taxInputFormTableTdActions,
   taxInputFormTableTdLabeled,
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
-import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldValidationMessage";
+import { FormFieldValidationMessage } from "~/components/taxInputForm/controls/FormFieldValidationMessage";
 import { getInputItemsForSection } from "~/lib/config/page/Page.config";
 import type { ValidationContext } from "~/lib/config/types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
@@ -25,29 +25,30 @@ type Props = {
   rowId: string;
   canRemove: boolean;
   onRemove: () => void;
+  isMarriedJoint: () => boolean;
   taxData: Accessor<TaxYearConfig | null>;
   filingStatus: Accessor<FilingStatus>;
   validationCtx: Accessor<ValidationContext | undefined>;
 };
 
-const creditDetailRowTdClass =
+const pretaxDetailRowTdClass =
   "border-t border-(--border-subtle) px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
 
-export function FederalTaxCreditSourceRow(props: Props) {
+export function PretaxBenefitSourceRow(props: Props) {
   const commitToUrl = useTaxInputCommitToUrl();
   const configItems = createMemo((): ConfigItem[] => {
     const td = props.taxData();
     const fs = props.filingStatus();
     if (!td) return [];
-    return getInputItemsForSection(td, fs, "credit");
+    return getInputItemsForSection(td, fs, "pretax");
   });
 
-  const kindOptions = createMemo(() => itemizedDeductionSelectOptions("credit", configItems()));
+  const kindOptions = createMemo(() => pretaxBenefitKindSelectOptions(configItems(), props.isMarriedJoint()));
 
   const { kind, label, amount, amountError, revalidateAmount, showWhenKey } = createLineItemRowState({
     taxInput: props.taxInput,
     rowId: props.rowId,
-    rowType: "credit",
+    rowType: "pretax",
     taxData: props.taxData,
     validationCtx: props.validationCtx,
   });
@@ -57,14 +58,14 @@ export function FederalTaxCreditSourceRow(props: Props) {
     const items = configItems();
     const item =
       items.find((it) => it.input?.subcategories?.some((sub) => sub.key === currentKind)) ??
-      items.find((i) => i.input?.category === "credit");
+      items.find((i) => i.id === "input-pretax-otherPretax");
 
     if (!item) {
-      return { description: "Loading...", modelingNote: "Loading..." };
+      return { description: "Loading...", limitNote: "Loading..." };
     }
     return {
-      description: item.description ?? "Unknown credit type",
-      modelingNote: item.kindDetail?.modelingNote ?? "",
+      description: item.description ?? "Unknown pretax benefit type",
+      limitNote: item.kindDetail?.limitNote ?? "",
     };
   });
 
@@ -72,16 +73,16 @@ export function FederalTaxCreditSourceRow(props: Props) {
     <Show when={showWhenKey()} keyed>
       <>
         <tr class={taxInputFormTableTrClass}>
-          <td class={`${taxInputFormTableTdLabeled} pl-3`} data-label="Credit type">
+          <td class={`${taxInputFormTableTdLabeled} pl-3`} data-label="Type">
             <FormStyledSelect
-              label="Credit type"
+              label="Benefit type"
               hideLabel
               value={() => kind() ?? ""}
               onInput={(e) => {
                 const newKind = e.currentTarget.value;
                 props.setTaxInput((prev) => ({
                   ...prev,
-                  rows: patchLineItemRow(prev.rows, "credit", props.rowId, { kind: newKind }),
+                  rows: patchLineItemRow(prev.rows, "pretax", props.rowId, { kind: newKind }),
                 }));
                 revalidateAmount(amount());
               }}
@@ -92,7 +93,7 @@ export function FederalTaxCreditSourceRow(props: Props) {
           <td class={taxInputFormTableTdLabeled} data-label="Label (optional)">
             <input
               type="text"
-              placeholder="e.g. dependents, institution"
+              placeholder="e.g. Employer plan, bank"
               class={inputClass}
               style={{ background: "var(--input-bg)", color: "var(--text)" }}
               aria-label="Label (optional)"
@@ -100,7 +101,7 @@ export function FederalTaxCreditSourceRow(props: Props) {
               onInput={(e) => {
                 props.setTaxInput((prev) => ({
                   ...prev,
-                  rows: patchLineItemRow(prev.rows, "credit", props.rowId, { label: e.currentTarget.value }),
+                  rows: patchLineItemRow(prev.rows, "pretax", props.rowId, { label: e.currentTarget.value }),
                 }));
               }}
               onBlur={() => {
@@ -115,7 +116,7 @@ export function FederalTaxCreditSourceRow(props: Props) {
                 onInput={(n) => {
                   props.setTaxInput((prev) => ({
                     ...prev,
-                    rows: patchLineItemRow(prev.rows, "credit", props.rowId, { amount: n }),
+                    rows: patchLineItemRow(prev.rows, "pretax", props.rowId, { amount: n }),
                   }));
                   revalidateAmount(n);
                 }}
@@ -142,10 +143,10 @@ export function FederalTaxCreditSourceRow(props: Props) {
           </td>
         </tr>
         <tr class="md:table-row max-md:block max-md:w-full max-md:border-0 max-md:bg-transparent max-md:p-0">
-          <td class={creditDetailRowTdClass} colspan={4}>
+          <td class={pretaxDetailRowTdClass} colspan={4}>
             <div class={`${pretaxFieldCaptionClass} space-y-1 text-(--text-muted)`}>
               <p class="leading-snug">{detail().description}</p>
-              <p class="leading-snug">{detail().modelingNote}</p>
+              <p class="leading-snug">{detail().limitNote}</p>
             </div>
           </td>
         </tr>

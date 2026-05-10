@@ -5,12 +5,12 @@ import {
   getTaxYearFromRows,
 } from "~/lib/taxCalc.inputs";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
-import { TaxInputFormCreditsSection } from "~/components/taxInputForm/TaxInputFormCreditsSection";
-import { TaxInputFormDeductionSection } from "~/components/taxInputForm/TaxInputFormDeductionSection";
-import { TaxInputFormSettingsSection } from "~/components/taxInputForm/TaxInputFormSettingsSection";
-import { TaxInputFormIncomeSection } from "~/components/taxInputForm/TaxInputFormIncomeSection";
-import { TaxInputFormPreTaxSection } from "~/components/taxInputForm/TaxInputFormPreTaxSection";
-import { TaxInputCommitToUrlProvider } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
+import { CreditsSection } from "~/components/taxInputForm/sections/CreditsSection";
+import { DeductionSection } from "~/components/taxInputForm/sections/DeductionSection";
+import { SettingsSection } from "~/components/taxInputForm/sections/SettingsSection";
+import { IncomeSection } from "~/components/taxInputForm/sections/IncomeSection";
+import { PreTaxSection } from "~/components/taxInputForm/sections/PreTaxSection";
+import { TaxInputCommitToUrlProvider } from "~/components/taxInputForm/context/TaxInputCommitUrlContext";
 import { createTaxInputRowActions } from "~/components/taxInputForm/hooks/taxInputRowActions";
 import { createDeductionMemos } from "~/components/taxInputForm/hooks/deductionMemos";
 import { createLimitMemos } from "~/components/taxInputForm/hooks/limitMemos";
@@ -57,12 +57,12 @@ export default function TaxInputForm(props: TaxInputFormProps) {
           title="Filing details & income"
           bodyClass="mt-4 space-y-4"
         >
-          <TaxInputFormSettingsSection
+          <SettingsSection
             taxInput={props.taxInput}
             setTaxInput={props.setTaxInput}
             availableYears={props.availableYears}
           />
-          <TaxInputFormIncomeSection
+          <IncomeSection
             taxInput={props.taxInput}
             setTaxInput={props.setTaxInput}
             addSource={rowActions.addSource}
@@ -71,7 +71,7 @@ export default function TaxInputForm(props: TaxInputFormProps) {
             filingStatus={filingStatus}
             validationCtx={validationCtx}
           />
-          <TaxInputFormPreTaxSection
+          <PreTaxSection
             taxInput={props.taxInput}
             setTaxInput={props.setTaxInput}
             preTaxBenefitsTotal={limits.preTaxBenefitsTotal}
@@ -83,7 +83,7 @@ export default function TaxInputForm(props: TaxInputFormProps) {
             filingStatus={filingStatus}
             validationCtx={validationCtx}
           />
-          <TaxInputFormDeductionSection
+          <DeductionSection
             taxInput={props.taxInput}
             setTaxInput={props.setTaxInput}
             standardDeduction={deduction.standardDeduction}
@@ -94,7 +94,7 @@ export default function TaxInputForm(props: TaxInputFormProps) {
             taxData={taxData}
             validationCtx={validationCtx}
           />
-          <TaxInputFormCreditsSection
+          <CreditsSection
             taxInput={props.taxInput}
             setTaxInput={props.setTaxInput}
             addFederalTaxCredit={rowActions.addFederalTaxCredit}

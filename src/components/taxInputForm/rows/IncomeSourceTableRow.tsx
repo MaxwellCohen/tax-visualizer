@@ -8,16 +8,16 @@ import {
   taxInputFormTableTdLabeled,
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
-import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
-import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
-import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
-import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldValidationMessage";
-import { createLineItemRowState, patchLineItemRow } from "~/components/taxInputForm/lineItemRowState";
+import { FormCurrencyInput } from "~/components/taxInputForm/controls/FormCurrencyInput";
+import { FormStyledSelect } from "~/components/taxInputForm/controls/FormStyledSelect";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/context/TaxInputCommitUrlContext";
+import { FormFieldValidationMessage } from "~/components/taxInputForm/controls/FormFieldValidationMessage";
+import { createLineItemRowState, patchLineItemRow } from "~/components/taxInputForm/state/lineItemRowState";
 import type { ValidationContext } from "~/lib/config/types";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import type { TaxYearConfig } from "~/lib/taxData.types";
 
-type IncomeSourceFieldsProps = {
+type IncomeSourceTableRowProps = {
   taxInput: Accessor<TaxFormData>;
   setTaxInput: Setter<TaxFormData>;
   rowId: string;
@@ -29,7 +29,7 @@ type IncomeSourceFieldsProps = {
   validationCtx: Accessor<ValidationContext | undefined>;
 };
 
-export function IncomeSourceTableRow(props: IncomeSourceFieldsProps) {
+export function IncomeSourceTableRow(props: IncomeSourceTableRowProps) {
   const commitToUrl = useTaxInputCommitToUrl();
   const { kind, label, amount, amountError, revalidateAmount, showWhenKey } = createLineItemRowState({
     taxInput: props.taxInput,

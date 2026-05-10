@@ -2,10 +2,10 @@
 import { Show, createMemo, type Accessor, type Setter } from "solid-js";
 import { getFilingStatusFromRows } from "~/lib/taxCalc.inputs";
 import type { TaxFormData } from "~/lib/taxForm.types";
-import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
-import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
-import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
-import { createLineItemRowState, patchLineItemRow } from "~/components/taxInputForm/lineItemRowState";
+import { FormCurrencyInput } from "~/components/taxInputForm/controls/FormCurrencyInput";
+import { FormStyledSelect } from "~/components/taxInputForm/controls/FormStyledSelect";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/context/TaxInputCommitUrlContext";
+import { createLineItemRowState, patchLineItemRow } from "~/components/taxInputForm/state/lineItemRowState";
 import {
   inputClass,
   itemizedDeductionSelectOptions,
@@ -14,7 +14,7 @@ import {
   taxInputFormTableTdLabeled,
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
-import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldValidationMessage";
+import { FormFieldValidationMessage } from "~/components/taxInputForm/controls/FormFieldValidationMessage";
 import { getInputItemsForSection } from "~/lib/config/page/Page.config";
 import type { ValidationContext } from "~/lib/config/types";
 import type { TaxYearConfig } from "~/lib/taxData.types";

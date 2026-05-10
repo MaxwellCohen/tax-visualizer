@@ -5,8 +5,8 @@ import type { TaxFormData, TaxFormRow } from "~/lib/taxForm.types";
 import type { FilingStatus } from "~/lib/taxData.types";
 import { isPlanningTaxYear } from "~/lib/taxData.accessors.impl";
 import { filingStatusOptions } from "~/components/taxInputForm/shared";
-import { FormStyledSelect } from "~/components/taxInputForm/FormStyledSelect";
-import { FormCurrencyInput } from "~/components/taxInputForm/FormCurrencyInput";
+import { FormStyledSelect } from "~/components/taxInputForm/controls/FormStyledSelect";
+import { FormCurrencyInput } from "~/components/taxInputForm/controls/FormCurrencyInput";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;
@@ -36,7 +36,7 @@ function patchSettingRow<V extends number | FilingStatus>(
   return next;
 }
 
-export function TaxInputFormSettingsSection(props: Props) {
+export function SettingsSection(props: Props) {
   const taxYearIdx = createMemo(() => settingRowIndex(props.taxInput().rows, "taxYear"));
   const filingIdx = createMemo(() => settingRowIndex(props.taxInput().rows, "filingStatus"));
   const qualifyingChildrenIdx = createMemo(() => settingRowIndex(props.taxInput().rows, "qualifyingChildren"));

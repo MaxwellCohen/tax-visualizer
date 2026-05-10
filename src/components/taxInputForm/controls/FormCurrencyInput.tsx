@@ -1,4 +1,4 @@
-import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/context/TaxInputCommitUrlContext";
 import { inputClass, parseCurrencyInput } from "~/components/taxInputForm/shared";
 
 type Props = {

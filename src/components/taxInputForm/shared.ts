@@ -29,7 +29,7 @@ export const inputClass =
   "w-full rounded-md border-0 px-3 py-2.5 text-sm outline-none transition-shadow duration-150 focus:ring-2 focus:ring-[var(--accent)]";
 export const labelClass = "flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide";
 
-/** Income + pre-tax tables (see `TaxInputFormIncomeSection`, `PretaxBenefitSourceFields`). */
+/** Income + pre-tax tables (see `IncomeSection`, `PretaxBenefitSourceRow`). */
 export const taxInputFormTableThClass =
   "pb-2 pr-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-(--text-faint) md:border-b md:border-(--border) md:bg-(--surface) md:border-r md:border-(--border-subtle) md:last:border-r-0";
 

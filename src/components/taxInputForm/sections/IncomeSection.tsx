@@ -1,8 +1,8 @@
 // fallow-ignore-file code-duplication
 import { For, createMemo, type Accessor, type Setter } from "solid-js";
 import Accordion from "~/components/Accordion";
-import { IncomeSourceTableRow } from "~/components/taxInputForm/IncomeSourceFields";
-import { AddLineHeaderControls, AddLineMobileControls } from "~/components/taxInputForm/AddLineControls";
+import { IncomeSourceTableRow } from "~/components/taxInputForm/rows/IncomeSourceTableRow";
+import { AddLineHeaderControls, AddLineMobileControls } from "~/components/taxInputForm/controls/AddLineControls";
 import { taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import { money } from "~/lib/moneyFormat";
 import type { TaxFormData, TaxFormIncomeRow } from "~/lib/taxForm.types";
@@ -22,7 +22,7 @@ type Props = {
   validationCtx: Accessor<ValidationContext | undefined>;
 };
 
-export function TaxInputFormIncomeSection(props: Props) {
+export function IncomeSection(props: Props) {
   const incomeRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "income"));
 
   const incomeTotal = createMemo(() =>

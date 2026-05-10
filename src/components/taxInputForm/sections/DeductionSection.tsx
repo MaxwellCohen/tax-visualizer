@@ -6,9 +6,9 @@ import type { TaxFormData, TaxFormDeductionRow, TaxFormRow } from "~/lib/taxForm
 import type { TaxYearConfig } from "~/lib/taxData.types";
 import type { ValidationContext } from "~/lib/config/types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
-import { ItemizedDeductionSourceRow } from "~/components/taxInputForm/ItemizedDeductionSourceFields";
-import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
-import { AddLineHeaderControls, AddLineMobileControls } from "~/components/taxInputForm/AddLineControls";
+import { ItemizedDeductionSourceRow } from "~/components/taxInputForm/rows/ItemizedDeductionSourceRow";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/context/TaxInputCommitUrlContext";
+import { AddLineHeaderControls, AddLineMobileControls } from "~/components/taxInputForm/controls/AddLineControls";
 import { taxInputFormTableThClass } from "~/components/taxInputForm/shared";
 import { money } from "~/lib/moneyFormat";
 import {
@@ -40,7 +40,7 @@ function patchUseItemized(rows: TaxFormRow[], checked: boolean): TaxFormRow[] {
   return next;
 }
 
-export function TaxInputFormDeductionSection(props: Props) {
+export function DeductionSection(props: Props) {
   const commitToUrl = useTaxInputCommitToUrl();
   const calc = createMemo(() => rowsToTaxCalculationInputs(props.taxInput().rows));
   const itemizedTotal = () => sumLabeledAmountSources(calc().itemizedDeductions);

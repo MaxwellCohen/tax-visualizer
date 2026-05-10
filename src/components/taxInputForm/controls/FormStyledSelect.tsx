@@ -1,6 +1,6 @@
 import type { Accessor, JSX } from "solid-js";
 import { For, createEffect } from "solid-js";
-import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
+import { useTaxInputCommitToUrl } from "~/components/taxInputForm/context/TaxInputCommitUrlContext";
 import { inputClass, labelClass } from "~/components/taxInputForm/shared";
 
 type Option = { value: string | number; label: string };
