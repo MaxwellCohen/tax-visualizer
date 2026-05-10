@@ -32,7 +32,7 @@ export default defineConfig({
         "src/**/*.test.helpers.ts",
         "src/vite-env.d.ts",
         "src/global.d.ts",
-        "src/components/taxInputForm/hooks/**",
+        "src/components/tax/inputForm/hooks/**",
         "src/routes/taxHome/taxHomePersistence.ts",
       ],
       thresholds: {

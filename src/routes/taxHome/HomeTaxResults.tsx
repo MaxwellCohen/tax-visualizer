@@ -1,8 +1,8 @@
 import type { Accessor } from "solid-js";
 import { createMemo, Show } from "solid-js";
-import TaxMekko from "~/components/TaxMekko";
-import TaxSankey from "~/components/TaxSankey";
-import TaxSummary from "~/components/TaxSummary";
+import TaxMekko from "~/components/tax/TaxMekko";
+import TaxSankey from "~/components/tax/TaxSankey";
+import TaxSummary from "~/components/tax/TaxSummary";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import { TaxYearInvalid } from "./TaxYearInvalid";
 import { getFilingStatusFromRows, getTaxYearFromRows } from "~/lib/taxCalc.inputs";

@@ -1,4 +1,4 @@
-import { RouteSeo } from "~/components/Seo";
+import { RouteSeo } from "~/components/seo/Seo";
 import { AboutDisclaimer } from "~/routes/about/AboutDisclaimer";
 import { AboutModelSections } from "~/routes/about/AboutModelSections";
 import { AboutProvenanceAndGlossary } from "~/routes/about/AboutProvenanceAndGlossary";

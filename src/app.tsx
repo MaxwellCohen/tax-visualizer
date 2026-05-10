@@ -2,9 +2,9 @@ import { MetaProvider } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
-import Nav from "~/components/Nav";
-import { GlobalSeo } from "~/components/Seo";
-import TaxDisclaimer from "~/components/TaxDisclaimer";
+import Nav from "~/components/layout/Nav";
+import { GlobalSeo } from "~/components/seo/Seo";
+import TaxDisclaimer from "~/components/legal/TaxDisclaimer";
 import { ThemeProvider } from "~/lib/theme";
 import "./app.css";
 

@@ -1,9 +1,9 @@
 import { createSignal } from "solid-js";
-import { RouteSeo } from "~/components/Seo";
+import { RouteSeo } from "~/components/seo/Seo";
 import { HomeHeader } from "~/routes/taxHome/HomeHeader";
 import { HomeTaxResults } from "~/routes/taxHome/HomeTaxResults";
-import ScenarioTools from "~/components/ScenarioTools";
-import TaxInputForm from "~/components/TaxInputForm";
+import ScenarioTools from "~/components/tax/ScenarioTools";
+import TaxInputForm from "~/components/tax/TaxInputForm";
 import type { TaxFormData } from "~/lib/taxForm.types"
 import { getAvailableTaxYears } from "~/lib/taxData.accessors.impl";
 import { getScenarioPresets } from "~/lib/taxScenario.serialize";

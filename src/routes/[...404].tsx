@@ -1,6 +1,6 @@
 // fallow-ignore-file unused-file
 import { A } from "@solidjs/router";
-import { NotFoundSeo } from "~/components/Seo";
+import { NotFoundSeo } from "~/components/seo/Seo";
 
 export default function NotFound() {
   return (
