@@ -68,10 +68,7 @@ export function SettingsSection(props: Props) {
 
   return (
     <section class="space-y-4">
-      <h2
-        class="text-[0.65rem] font-semibold uppercase tracking-[0.15em]"
-        style={{ color: "var(--color-faint-foreground)", "font-family": "var(--font-heading)" }}
-      >
+      <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-faint-foreground font-heading">
         Settings
       </h2>
       <div class="grid gap-4 md:grid-cols-2">
@@ -127,7 +124,7 @@ export function SettingsSection(props: Props) {
           />
         </label>
       </div>
-      <p class="text-xs leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
+      <p class="text-xs leading-relaxed text-muted-foreground">
         {isPlanningTaxYear(taxYear())
           ? `${taxYear()} uses planning figures for inflation-adjusted federal tax data and contribution caps. Treat it as directional until final IRS guidance is published.`
           : `${taxYear()} uses finalized federal bracket, deduction, payroll, and contribution-limit figures in this app.`}

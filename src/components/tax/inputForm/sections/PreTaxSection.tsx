@@ -33,24 +33,24 @@ export function PreTaxSection(props: Props) {
     <Accordion
       summary={
         <>
-          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-(--color-faint-foreground) [font-family:var(--font-heading)]">
+          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-faint-foreground font-heading">
             Pre-tax benefits
           </h2>
-          <span class="text-sm tabular-nums text-(--color-muted-foreground)">
+          <span class="text-sm tabular-nums text-muted-foreground">
             {money.format(props.preTaxBenefitsTotal())}
           </span>
         </>
       }
       bodyClass="space-y-4"
     >
-      <p class="text-xs leading-relaxed text-(--color-muted-foreground)">
+      <p class="text-xs leading-relaxed text-muted-foreground">
         Choose a benefit type and amount per row (optional labels are for your
         notes). Payroll lines apply only to W-2 wages; totals above wages are
         scaled down. IRS contribution limits for the selected year are enforced
         automatically (age-50+ catch-up is not modeled).
       </p>
       <AddLineMobileControls label="Add benefit" onAdd={props.addPretaxBenefit} />
-      <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-(--color-border) bg-(--color-surface-alt)">
+      <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-border bg-surface-alt">
         <table class="w-full min-w-0 border-collapse text-sm md:min-w-xl md:[&>tbody>tr:last-child>td]:border-b-0">
           <thead class="hidden md:table-header-group">
             <tr>

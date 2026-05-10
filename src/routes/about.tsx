@@ -8,20 +8,16 @@ export default function About() {
     <main class="mx-auto max-w-4xl space-y-8 px-4 py-12">
       <RouteSeo page="about" />
       <header class="space-y-3">
-        <h1
-          class="text-4xl font-semibold tracking-tight"
-          style={{ "font-family": "var(--font-heading)", color: "var(--color-foreground)" }}
-        >
+        <h1 class="text-4xl font-semibold tracking-tight text-foreground font-heading">
           About &amp; methodology
         </h1>
-        <p class="max-w-3xl text-sm leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
+        <p class="max-w-3xl text-sm leading-relaxed text-muted-foreground">
           Tax Visualizer is an educational US federal tax explainer built with{" "}
           <a
             href="https://solidjs.com"
             target="_blank"
             rel="noopener noreferrer"
-            class="underline underline-offset-2 transition-colors duration-150"
-            style={{ color: "var(--color-accent)" }}
+            class="text-accent underline underline-offset-2 transition-colors duration-150"
           >
             SolidStart
           </a>

@@ -62,8 +62,7 @@ export function IncomeSourceTableRow(props: IncomeSourceTableRowProps) {
           <input
             type="text"
             placeholder="e.g. Employer, Brokerage"
-            class={inputClass}
-            style={{ background: "var(--color-input)", color: "var(--color-foreground)" }}
+            class={`${inputClass} bg-input text-foreground`}
             aria-label="Label (optional)"
             value={label()}
             onInput={(e) => {
@@ -94,11 +93,7 @@ export function IncomeSourceTableRow(props: IncomeSourceTableRowProps) {
         <td class={taxInputFormTableTdActions}>
           <button
             type="button"
-            class="rounded-md px-2.5 py-2 text-xs font-medium"
-            style={{
-              color: "var(--color-muted-foreground)",
-              border: "1px solid var(--color-border)",
-            }}
+            class="rounded-md border border-border px-2.5 py-2 text-xs font-medium text-muted-foreground"
             disabled={!props.canRemove}
             title={props.canRemove ? "Remove this source" : "Keep at least one row"}
             onClick={() => props.onRemove()}

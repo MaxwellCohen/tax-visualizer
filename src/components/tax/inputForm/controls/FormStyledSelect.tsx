@@ -44,8 +44,7 @@ export function FormStyledSelect(props: Props) {
       ref={(el) => {
         selectEl = el;
       }}
-      class={inputClass}
-      style={{ background: "var(--color-input)", color: "var(--color-foreground)" }}
+      class={`${inputClass} bg-input text-foreground`}
       value={String(props.value())}
       aria-label={props.hideLabel ? props.label : undefined}
       onInput={props.onInput}
@@ -64,7 +63,7 @@ export function FormStyledSelect(props: Props) {
     return select;
   }
   return (
-    <label class={labelClass} style={{ color: "var(--color-muted-foreground)" }}>
+    <label class={`${labelClass} text-muted-foreground`}>
       {props.label}
       {select}
     </label>

@@ -12,12 +12,8 @@ export function SankeyChartSvg(props: Props) {
   return (
     <svg
       viewBox={`0 0 ${SANKEY_WIDTH} ${SANKEY_HEIGHT}`}
-      class="w-full rounded-lg"
+      class="w-full rounded-lg border border-border-subtle bg-surface-alt"
       overflow="visible"
-      style={{
-        background: "var(--color-surface-alt)",
-        border: "1px solid var(--color-border-subtle)",
-      }}
     >
       <SankeyLinkPaths graph={props.graph} />
       <SankeyNodeRects graph={props.graph} />

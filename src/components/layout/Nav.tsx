@@ -6,15 +6,11 @@ export default function Nav() {
   const isActive = (path: string) => path === location.pathname;
 
   return (
-    <nav class="border-b border-(--color-border)" style={{ background: "var(--color-surface)" }}>
+    <nav class="border-b border-border bg-surface">
       <div class="mx-auto flex max-w-6xl items-center px-4 py-3">
         <a
           href="/"
-          class="text-xs font-semibold tracking-[0.2em] uppercase"
-          style={{
-            "font-family": "var(--font-heading)",
-            color: "var(--color-foreground)",
-          }}
+          class="text-xs font-semibold tracking-[0.2em] uppercase text-foreground font-heading"
         >
           Tax Visualizer
         </a>
@@ -22,27 +18,21 @@ export default function Nav() {
         <div class="ml-auto flex items-center gap-6">
           <a
             href="/"
-            class="text-sm transition-colors duration-150"
-            style={{
-              color: isActive("/") ? "var(--color-accent)" : "var(--color-muted-foreground)",
-              "border-bottom": isActive("/") ? "1px solid var(--color-accent)" : "1px solid transparent",
-              "padding-bottom": "2px",
-            }}
+            class={`text-sm border-b pb-0.5 transition-colors duration-150 ${
+              isActive("/") ? "border-accent text-accent" : "border-transparent text-muted-foreground"
+            }`}
           >
             Home
           </a>
           <a
             href="/about"
-            class="text-sm transition-colors duration-150"
-            style={{
-              color: isActive("/about") ? "var(--color-accent)" : "var(--color-muted-foreground)",
-              "border-bottom": isActive("/about") ? "1px solid var(--color-accent)" : "1px solid transparent",
-              "padding-bottom": "2px",
-            }}
+            class={`text-sm border-b pb-0.5 transition-colors duration-150 ${
+              isActive("/about") ? "border-accent text-accent" : "border-transparent text-muted-foreground"
+            }`}
           >
             Methodology
           </a>
-          <div class="ml-2 border-l border-(--color-border) pl-4">
+          <div class="ml-2 border-l border-border pl-4">
             <ThemeToggle />
           </div>
         </div>

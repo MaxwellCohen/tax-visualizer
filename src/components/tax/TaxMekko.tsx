@@ -46,16 +46,10 @@ function MekkoSummary(props: { data: MekkoChartData }) {
 
   return (
     <div class="mb-4">
-      <div
-        class="text-center text-[10px]"
-        style={{ color: "var(--color-muted-foreground)" }}
-      >
+      <div class="text-center text-[10px] text-muted-foreground">
         Cash, pre-tax & taxes (share of gross)
       </div>
-      <div
-        class="mb-2 text-center text-[9px]"
-        style={{ color: "var(--color-faint-foreground)" }}
-      >
+      <div class="mb-2 text-center text-[9px] text-faint-foreground">
         {`Payroll tax ${money.format(d.payrollTax)}${
           d.federalTaxCreditsApplied > 0
             ? ` · Federal credits applied ${money.format(d.federalTaxCreditsApplied)}`
@@ -64,31 +58,22 @@ function MekkoSummary(props: { data: MekkoChartData }) {
       </div>
       <div class="flex h-5 overflow-hidden rounded-sm">
         <div
-          style={{
-            width: `${takeShare * 100}%`,
-            background: "var(--color-sankey-link-keep)",
-          }}
-          class="flex items-center justify-center text-[10px]"
+          class="flex items-center justify-center bg-sankey-link-keep text-[10px]"
+          style={{ width: `${takeShare * 100}%` }}
           title={`Take-home pay ${money.format(d.takeHomePay)} (${pct.format(takeShare)})`}
         >
           {pct.format(takeShare)}
         </div>
         <div
-          style={{
-            width: `${pretaxShare * 100}%`,
-            background: "var(--color-chart-pretax)",
-          }}  
-          class="flex items-center justify-center text-[10px]"
+          class="flex items-center justify-center bg-chart-pretax text-[10px]"
+          style={{ width: `${pretaxShare * 100}%` }}
           title={`Payroll pre-tax & deductible IRA ${money.format(d.preTaxTotal + d.traditionalIra)} (${pct.format(pretaxShare)})`}
         >
           {pct.format(pretaxShare)}
         </div>
         <div
-          style={{
-            width: `${taxShare * 100}%`,
-            background: "var(--color-chart-tax)",
-          }}
-          class="flex items-center justify-center text-[10px]" 
+          class="flex items-center justify-center bg-chart-tax text-[10px]"
+          style={{ width: `${taxShare * 100}%` }} 
           title={`Taxes ${money.format(d.federalIncomeTax + d.payrollTax)} (${pct.format(taxShare)})`}
         >
           {pct.format(taxShare)}
@@ -104,7 +89,7 @@ function MekkoRows(props: { data: MekkoChartData }) {
   const visualTotal = d.totalIncome > 0 ? d.totalIncome : stackedTotal;
 
   return (
-    <div class="flex h-110 flex-col-reverse rounded-lg border border-(--color-border-subtle)">
+    <div class="flex h-110 flex-col-reverse rounded-lg border border-border-subtle">
       <For each={d.rows}>
         {(row) => {
           const keepShare = share(row.keep, row.total);
@@ -117,20 +102,16 @@ function MekkoRows(props: { data: MekkoChartData }) {
               class="flex min-h-4.5 items-stretch"
               style={{ height: `${rowShare * 100}%` }}
             >
-              <div
-                class="flex w-32 shrink-0 items-center justify-end pr-3 text-right text-[11px]"
-                style={{ color: "var(--color-sankey-label)" }}
-              >
+              <div class="flex w-32 shrink-0 items-center justify-end pr-3 text-right text-[11px] text-sankey-label">
                 {row.label}
               </div>
               <div class="flex min-w-0 flex-1">
                 <div
-                  class="flex items-center justify-center text-[10px]"
+                  class="flex items-center justify-center text-[10px] text-mekko-segment-label"
                   style={{
                     width: `${keepShare * 100}%`,
                     background: row.fill,
                     border: `0.5px solid ${row.stroke}`,
-                    color: "var(--color-mekko-segment-label)",
                   }}
                   title={title}
                 >
@@ -138,12 +119,11 @@ function MekkoRows(props: { data: MekkoChartData }) {
                 </div>
                 <Show when={row.tax > 0}>
                   <div
-                    class="flex items-center justify-center text-[10px]"
+                    class="flex items-center justify-center text-[10px] text-mekko-segment-label"
                     style={{
                       width: `${taxShare * 100}%`,
                       background: row.taxFill,
                       border: `0.5px solid ${row.taxStroke}`,
-                      color: "var(--color-mekko-segment-label)",
                     }}
                     title={title}
                   >
@@ -167,22 +147,12 @@ export default function TaxMekko(props: TaxMekkoProps) {
   });
 
   return (
-    <section
-      class="rounded-xl p-5"
-      style={{
-        background: "var(--color-surface)",
-        border: "1px solid var(--color-border)",
-        "box-shadow": "var(--shadow-card)",
-      }}
-    >
+    <section class="rounded-xl border border-border bg-surface p-5 shadow-card">
       <CollapsibleBlock
         title="Income & federal brackets (Mekko)"
         bodyClass="mt-4"
       >
-        <p
-          class="mb-4 max-w-3xl text-xs leading-relaxed"
-          style={{ color: "var(--color-muted-foreground)" }}
-        >
+        <p class="mb-4 max-w-3xl text-xs leading-relaxed text-muted-foreground">
           How to read this: the <strong>left axis is gross income</strong> (same
           as “Total Income”). From bottom to top, bands are{" "}
           <strong>pre-tax deferrals</strong>, the <strong>½ SE tax</strong>{" "}
@@ -199,19 +169,13 @@ export default function TaxMekko(props: TaxMekkoProps) {
           keyed
           when={chartData()}
           fallback={
-            <p class="text-sm" style={{ color: "var(--color-faint-foreground)" }}>
+            <p class="text-sm text-faint-foreground">
               Enter income to see the chart.
             </p>
           }
         >
           {(data) => (
-            <div
-              class="rounded-lg p-4"
-              style={{
-                background: "var(--color-surface-alt)",
-                border: "1px solid var(--color-border-subtle)",
-              }}
-            >
+            <div class="rounded-lg border border-border-subtle bg-surface-alt p-4">
               <MekkoSummary data={data} />
               <MekkoRows data={data} />
             </div>

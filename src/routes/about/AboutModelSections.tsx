@@ -1,27 +1,16 @@
 import type { JSX } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
-const aboutCardStyle = {
-  background: "var(--color-surface)",
-  border: "1px solid var(--color-border)",
-  "box-shadow": "var(--shadow-card)",
-} as const;
-
-const aboutHeadingStyle = {
-  color: "var(--color-faint-foreground)",
-  "font-family": "var(--font-heading)",
-} as const;
-
 function AboutBulletCard(props: { title: string; as?: "section" | "div"; children: JSX.Element }) {
   return (
-    <Dynamic component={props.as ?? "section"} class="rounded-xl p-5" style={aboutCardStyle}>
-      <h2
-        class="mb-3 text-[0.65rem] font-semibold uppercase tracking-[0.15em]"
-        style={aboutHeadingStyle}
-      >
+    <Dynamic
+      component={props.as ?? "section"}
+      class="rounded-xl border border-border bg-surface p-5 shadow-card"
+    >
+      <h2 class="mb-3 text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-faint-foreground font-heading">
         {props.title}
       </h2>
-      <ul class="space-y-2 text-sm leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
+      <ul class="space-y-2 text-sm leading-relaxed text-muted-foreground">
         {props.children}
       </ul>
     </Dynamic>

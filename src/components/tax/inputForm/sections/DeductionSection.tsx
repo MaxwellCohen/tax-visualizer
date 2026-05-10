@@ -60,19 +60,16 @@ export function DeductionSection(props: Props) {
     <Accordion
       summary={
         <>
-          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-(--color-faint-foreground) [font-family:var(--font-heading)]">
+          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-faint-foreground font-heading">
             Deductions
           </h2>
-          <span class="text-sm tabular-nums text-(--color-muted-foreground)">{money.format(summaryAmount())}</span>
+          <span class="text-sm tabular-nums text-muted-foreground">{money.format(summaryAmount())}</span>
         </>
       }
       bodyClass="space-y-4"
     >
       <Show when={useItemizedFieldMountKey()} keyed>
-        <label
-          class="flex items-center gap-2.5 text-sm cursor-pointer"
-          style={{ color: "var(--color-muted-foreground)" }}
-        >
+        <label class="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground">
           <input
             type="checkbox"
             checked={useItemized()}
@@ -83,24 +80,23 @@ export function DeductionSection(props: Props) {
             onBlur={() => {
               commitToUrl?.();
             }}
-            class="h-4 w-4 rounded"
-            style={{ "accent-color": "var(--color-accent)" }}
+            class="h-4 w-4 rounded accent-accent"
           />
           Use itemized deductions
         </label>
       </Show>
-      <p class="text-xs leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
+      <p class="text-xs leading-relaxed text-muted-foreground">
         Standard deduction for this year and filing status: {money.format(props.standardDeduction())}.
       </p>
 
       <Show when={useItemized()}>
         <>
-          <p class="text-xs leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
+          <p class="text-xs leading-relaxed text-muted-foreground">
             Choose a Schedule A–style category per line; optional label for your notes. Amounts sum for the modeled
             itemized total (SALT caps and medical floors are not applied separately).
           </p>
           <AddLineMobileControls label="Add line" onAdd={props.addItemizedDeduction} />
-          <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-(--color-border) bg-(--color-surface-alt)">
+          <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-border bg-surface-alt">
             <table class="w-full min-w-0 border-collapse text-sm md:min-w-xl md:[&>tbody>tr:last-child>td]:border-b-0">
               <thead class="hidden md:table-header-group">
                 <tr>
@@ -147,12 +143,11 @@ export function DeductionSection(props: Props) {
             </table>
           </div>
           <p
-            class="rounded-lg px-3 py-2 text-xs leading-relaxed"
-            style={{
-              background: props.itemizedBeatsStandard() ? "var(--color-accent-muted)" : "var(--color-warning-bg)",
-              color: props.itemizedBeatsStandard() ? "var(--color-accent)" : "var(--color-warning-text)",
-              border: `1px solid ${props.itemizedBeatsStandard() ? "var(--color-border)" : "var(--color-warning-border)"}`,
-            }}
+            class={`rounded-lg border px-3 py-2 text-xs leading-relaxed ${
+              props.itemizedBeatsStandard()
+                ? "border-border bg-accent-muted text-accent"
+                : "border-warning-border bg-warning-bg text-warning-text"
+            }`}
           >
             {props.itemizedBeatsStandard()
               ? `Itemized deductions currently exceed the standard deduction by ${money.format(itemizedTotal() - props.standardDeduction())}.`

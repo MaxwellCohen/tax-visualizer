@@ -22,8 +22,7 @@ export function FormCurrencyInput(props: Props) {
       type="number"
       min={props.min ?? "0"}
       step={props.step ?? "1"}
-      class={inputClass}
-      style={{ background: "var(--color-input)", color: "var(--color-foreground)" }}
+      class={`${inputClass} bg-input text-foreground`}
       aria-label={props.ariaLabel}
       value={props.value}
       onInput={(e) => props.onInput(parseCurrencyInput(e.currentTarget.value))}

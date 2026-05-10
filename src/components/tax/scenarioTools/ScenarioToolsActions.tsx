@@ -10,12 +10,7 @@ export function ScenarioToolsActions(props: Props) {
     <div class="flex flex-wrap gap-2">
       <button
         type="button"
-        class={buttonClass}
-        style={{
-          background: "var(--color-accent-muted)",
-          color: "var(--color-accent)",
-          border: "1px solid var(--color-border)",
-        }}
+        class={`${buttonClass} border border-border bg-accent-muted text-accent`}
         onClick={props.onCopyShareLink}
       >
         Copy share link

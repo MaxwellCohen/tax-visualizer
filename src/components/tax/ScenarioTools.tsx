@@ -35,38 +35,21 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
   };
 
   return (
-    <section
-      class="rounded-xl p-5"
-      style={{
-        background: "var(--color-surface)",
-        border: "1px solid var(--color-border)",
-        "box-shadow": "var(--shadow-card)",
-      }}
-    >
+    <section class="rounded-xl border border-border bg-surface p-5 shadow-card">
       <CollapsibleBlock
         title="Scenario tools"
         bodyClass="mt-4 space-y-5"
         headerAside={
           <>
             {statusMessage() ? (
-              <p
-                class="rounded-lg px-3 py-2 text-xs"
-                style={{
-                  background: "var(--color-accent-muted)",
-                  color: "var(--color-accent)",
-                  border: "1px solid var(--color-border)",
-                }}
-              >
+              <p class="rounded-lg border border-border bg-accent-muted px-3 py-2 text-xs text-accent">
                 {statusMessage()}
               </p>
             ) : undefined}
           </>
         }
       >
-        <p
-          class="max-w-3xl text-sm leading-relaxed"
-          style={{ color: "var(--color-muted-foreground)" }}
-        >
+        <p class="max-w-3xl text-sm leading-relaxed text-muted-foreground">
           Try a starter scenario or share the current case. Your latest scenario
           is saved locally in this browser.
         </p>

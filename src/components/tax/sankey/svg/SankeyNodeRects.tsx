@@ -56,26 +56,24 @@ export function SankeyNodeRects(props: Props) {
             />
             {lines.compact ? (
               <text
+                class="fill-sankey-label font-body"
                 x={labelX}
                 y={midY}
                 dominant-baseline="middle"
                 text-anchor={anchor}
                 font-size="9"
-                font-family="var(--font-body)"
-                fill="var(--color-sankey-label)"
               >
                 <title>{lines.title}</title>
                 {lines.line1}
               </text>
             ) : (
               <text
+                class="fill-sankey-label font-body"
                 x={labelX}
                 y={midY}
                 dominant-baseline="middle"
                 text-anchor={anchor}
                 font-size="10"
-                font-family="var(--font-body)"
-                fill="var(--color-sankey-label)"
               >
                 <title>{lines.title}</title>
                 <tspan x={labelX} dy="-0.55em">
@@ -83,10 +81,10 @@ export function SankeyNodeRects(props: Props) {
                 </tspan>
                 {lines.line2 != null ? (
                   <tspan
+                    class="fill-muted-foreground"
                     x={labelX}
                     dy="1.15em"
                     font-size="9"
-                    fill="var(--color-muted-foreground)"
                   >
                     {lines.line2}
                   </tspan>

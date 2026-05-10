@@ -35,13 +35,12 @@ export function SankeyLinkPaths(props: Props) {
               stroke-width={Math.max(1, link.width ?? 1)}
             />
             <text
+              class="fill-sankey-label font-body"
               x={x}
               y={y}
               dominant-baseline="middle"
               text-anchor="middle"
               font-size="8"
-              font-family="var(--font-body)"
-              fill="var(--color-sankey-label)"
               pointer-events="none"
             >
              {`${amount}`} 

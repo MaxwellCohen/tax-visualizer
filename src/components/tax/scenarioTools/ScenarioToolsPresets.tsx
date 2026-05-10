@@ -23,28 +23,21 @@ export function ScenarioToolsPresets(props: Props) {
         return (
         <button
           type="button"
-          class="rounded-lg p-4 text-left transition-[color,background-color,box-shadow,outline-color]"
+          class="rounded-lg border border-border-subtle bg-surface-alt p-4 text-left transition-[color,background-color,box-shadow,outline-color]"
           classList={{
-            "outline-2 outline-(--color-accent) outline-offset-2": selected(),
-          }}
-          style={{
-            background: "var(--color-surface-alt)",
-            border: "1px solid var(--color-border-subtle)",
+            "outline-2 outline-accent outline-offset-2": selected(),
           }}
           onClick={() => {
             handleClick(preset.id);
           }}
         >
-          <div
-            class="text-[0.65rem] font-semibold uppercase tracking-[0.15em]"
-            style={{ color: "var(--color-faint-foreground)", "font-family": "var(--font-heading)" }}
-          >
+          <div class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-faint-foreground font-heading">
             Preset
           </div>
-          <div class="mt-2 text-sm font-semibold" style={{ color: "var(--color-foreground)" }}>
+          <div class="mt-2 text-sm font-semibold text-foreground">
             {preset.label}
           </div>
-          <p class="mt-1 text-xs leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
+          <p class="mt-1 text-xs leading-relaxed text-muted-foreground">
             {preset.description}
           </p>
         </button>

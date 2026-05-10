@@ -40,20 +40,20 @@ export function CreditsSection(props: Props) {
     <Accordion
       summary={
         <>
-          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-(--color-faint-foreground) [font-family:var(--font-heading)]">
+          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-faint-foreground font-heading">
             Credits
           </h2>
-          <span class="text-sm tabular-nums text-(--color-muted-foreground)">{money.format(creditsTotal())}</span>
+          <span class="text-sm tabular-nums text-muted-foreground">{money.format(creditsTotal())}</span>
         </>
       }
       bodyClass="space-y-4"
     >
-      <p class="text-xs leading-relaxed text-(--color-muted-foreground)">
+      <p class="text-xs leading-relaxed text-muted-foreground">
         Dependent credits are calculated from the counts in Settings. Add other federal credits here by category;
         excess is not refunded, and payroll taxes are unchanged.
       </p>
       <AddLineMobileControls label="Add credit line" onAdd={props.addFederalTaxCredit} />
-      <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-(--color-border) bg-(--color-surface-alt)">
+      <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-border bg-surface-alt">
         <table class="w-full min-w-0 border-collapse text-sm md:min-w-xl md:[&>tbody>tr:last-child>td]:border-b-0">
           <thead class="hidden md:table-header-group">
             <tr>
