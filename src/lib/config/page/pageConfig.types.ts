@@ -39,16 +39,14 @@ export type InputRowSettings = {
 export type SankeyLink = {
     source: string;
     target: string;
-    fill?: string;
-    stroke?: string;
     row: number;
     col: number;
-} & ChartStyle;
+};
 
 export type SankeyNode = {
     row: number;
     col: number;
-} & ChartStyle;
+};
 
 export type ChartRole =
     | "income"
@@ -67,15 +65,13 @@ export type ChartRole =
 
 export type MekkoSegmentSplit = {
     keepId: string;
-    taxFill?: string;
-    taxStroke?: string;
 };
 
 export type MekkoSettings = {
     row: number;
     col: number;
     split?: MekkoSegmentSplit;
-} & ChartStyle;
+};
 
 
 export type TaxTreatment = "ordinary" | "selfEmployment" | "shortTermCapGains" | "longTermCapGains";
@@ -111,6 +107,7 @@ export type SummarySettings = {
 export type ConfigItem = {
     id: string;
     chartRole?: ChartRole;
+    chartStyle?: ChartStyle;
     category?: InputCategory;
     labels: ConfigLabels;
     description?: string;

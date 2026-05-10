@@ -25,22 +25,24 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         },
         {
             id: "wages",
+            chartStyle: { fill: "var(--chart-income)", stroke: "var(--sankey-link)" },
             labels: { default: "Wages" },
             sankey: {
-                node: { fill: "var(--chart-income)", stroke: "var(--sankey-link)", row: 1, col: 1 },
+                node: { row: 1, col: 1 },
                 links: [
-                    { source: "wages", target: "ordinaryTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 1 },
+                    { source: "wages", target: "ordinaryTaxableIncome", row: 1, col: 1 },
                 ],
             },
             calculate: ordinaryIncomeAfterPretax,
         },
         {
             id: "longTermCapGains",
+            chartStyle: { fill: "var(--chart-ltcg)", stroke: "var(--sankey-link)" },
             labels: { default: "Long-Term Capital Gains" },
             sankey: {
-                node: { fill: "var(--chart-ltcg)", stroke: "var(--sankey-link)", row: 2, col: 1 },
+                node: { row: 2, col: 1 },
                 links: [
-                    { source: "longTermCapGains", target: "longTermTaxableIncome", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 1 },
+                    { source: "longTermCapGains", target: "longTermTaxableIncome", row: 1, col: 1 },
                 ],
             },
             calculate: longTermCapGains,
@@ -48,12 +50,13 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         {
             id: "pretaxDeductions",
             chartRole: "pretax",
+            chartStyle: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)" },
             labels: { default: "Pretax Deductions", compact: "Pretax Deductions", summary: "Pre-tax Deductions" },
             sankey: {
-                node: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
+                node: { row: 1, col: 2 },
                 links: [
-                    { source: "pretaxDeductions", target: "pretaxIncome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 2 },
-                    { source: "pretaxIncome", target: "pretaxTakehome", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 1, col: 3 },
+                    { source: "pretaxDeductions", target: "pretaxIncome", row: 1, col: 2 },
+                    { source: "pretaxIncome", target: "pretaxTakehome", row: 1, col: 3 },
                 ],
             },
             calculate: allPretax,
@@ -84,9 +87,10 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         },
         {
             id: "longTermCapitalGainsGrossIncome",
+            chartStyle: { fill: "var(--chart-ltcg)", stroke: "var(--sankey-link)" },
             labels: { default: "Long-Term Cap Gains (Gross)", compact: "LTCG (Gross)" },
             sankey: {
-                node: { fill: "var(--chart-ltcg)", stroke: "var(--sankey-link)", row: 1, col: 2 },
+                node: { row: 1, col: 2 },
             },
             calculate: longTermCapGains,
         },

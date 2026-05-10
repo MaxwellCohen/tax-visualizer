@@ -1,17 +1,15 @@
 import type { ChartNode } from "~/components/taxSankey/chartTypes";
-
-const DEFAULT_FILL = "var(--chart-default)";
-const DEFAULT_STROKE = "var(--sankey-link)";
+import { DEFAULT_CHART_STYLE } from "~/lib/config/page/chartStyle";
 
 
 export function linkStroke(targetNode: ChartNode): string {
-  return (targetNode as any).stroke ??  DEFAULT_STROKE;
+  return targetNode.stroke ?? DEFAULT_CHART_STYLE.stroke;
 }
 
 
 export function nodeFill(node: ChartNode): string {
-  const explicitFill = (node as any).fill;
+  const explicitFill = node.fill;
   if (explicitFill) return explicitFill;
   
-  return DEFAULT_FILL;
+  return DEFAULT_CHART_STYLE.fill;
 }

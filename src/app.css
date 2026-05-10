@@ -24,9 +24,10 @@ html[data-theme="light"] {
   --chart-income: #0f766e;
   --chart-pretax: #0e7490;
   --chart-deduction: #6b9e7a;
+  --chart-deduction-node: #3f6f4a;
   --chart-tax: #9f4a45;
   --chart-credit: #ca8a04;
-  --chart-keep: #2f7d4b;
+  --chart-keep: #166534;
   --chart-ltcg: #0369a1;
   --chart-default: #475569;
 
@@ -73,9 +74,10 @@ html[data-theme="dark"] {
   --chart-income: #14b8a6;
   --chart-pretax: #22d3ee;
   --chart-deduction: #6b9e7a;
+  --chart-deduction-node: #3f6f4a;
   --chart-tax: #9f4a45;
   --chart-credit: #eab308;
-  --chart-keep: #2f7d4b;
+  --chart-keep: #166534;
   --chart-ltcg: #0ea5e9;
   --chart-default: #94a3b8;
 

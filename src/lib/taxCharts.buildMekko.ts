@@ -3,8 +3,8 @@ import {
   type CalculatedConfigItem,
   type CalculatedConfigValueMap,
 } from "~/lib/taxCalc.calculateTaxes";
-import { getChartRoleColorVar } from "~/lib/config/page/chartRole";
 import type { ChartRole } from "~/lib/config/page/pageConfig.types";
+import { resolveChartStyle, TAX_CHART_STYLE } from "~/lib/config/page/chartStyle";
 
 export type MekkoRow = {
   id: string;
@@ -34,6 +34,7 @@ function rowFromCalculatedItem(item: CalculatedConfigItem, values: CalculatedCon
   const row = item.mekko!;
   const total = item.computedValue;
   const chartRole = item.chartRole ?? "default";
+  const chartStyle = resolveChartStyle(item);
 
   const { keep, tax } = row.split
     ? keepTaxFromSlice(values, total, row.split.keepId)
@@ -47,10 +48,10 @@ function rowFromCalculatedItem(item: CalculatedConfigItem, values: CalculatedCon
     tax,
     chartRole,
     order: row.row,
-    fill: row.fill ?? getChartRoleColorVar(chartRole),
-    stroke: row.stroke ?? getChartRoleColorVar(chartRole),
-    taxFill: row.split?.taxFill ?? "var(--chart-tax)",
-    taxStroke: row.split?.taxStroke ?? "var(--chart-tax)",
+    fill: chartStyle.fill,
+    stroke: chartStyle.stroke,
+    taxFill: TAX_CHART_STYLE.fill,
+    taxStroke: TAX_CHART_STYLE.stroke,
   };
 }
 

@@ -66,7 +66,7 @@ function MekkoSummary(props: { data: MekkoChartData }) {
         <div
           style={{
             width: `${takeShare * 100}%`,
-            background: "var(--chart-keep)",
+            background: "var(--sankey-link-keep)",
           }}
           class="flex items-center justify-center text-[10px]"
           title={`Take-home pay ${money.format(d.takeHomePay)} (${pct.format(takeShare)})`}

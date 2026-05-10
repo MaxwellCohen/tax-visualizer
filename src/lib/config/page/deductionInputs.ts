@@ -20,11 +20,12 @@ export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus
         {
             id: "payrollTax",
             chartRole: "tax",
+            chartStyle: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)" },
             labels: { default: "Payroll Taxes", compact: "Payroll Taxes", summary: "Payroll Tax" },
             sankey: {
-                node: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)", row: 2, col: 3 },
+                node: { row: 2, col: 3 },
                 links: [
-                    { source: "payrollTax", target: "federalPayrollTaxes", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: 2, col: 3 },
+                    { source: "payrollTax", target: "federalPayrollTaxes", row: 2, col: 3 },
                 ],
             },
             calculate: calculatePayrollTax,
@@ -48,9 +49,8 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 modelingNote: "Applied automatically if greater than itemized deductions",
             },
             sankey: {
-                // node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 links: [
-                    { source: "ordinaryTaxableIncome", target: "standardDeduction", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
+                    { source: "ordinaryTaxableIncome", target: "standardDeduction", row: 1, col: 2 },
                 ],
             },
             calculate: getStandardDeductionWithoutPayrollTax,
@@ -69,9 +69,8 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 modelingNote: "Applied automatically if greater than standard deduction",
             },
             sankey: {
-                // node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
                 links: [
-                    { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 1, col: 2 },
+                    { source: "ordinaryTaxableIncome", target: "itemizedDeductions", row: 1, col: 2 },
                 ],
             },
             calculate: getItemizedDeductionsWithoutPayrollTax,
@@ -142,12 +141,6 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 subcategories: [{ key: "deduction-charitable-charitable", labelSingle: "Charitable contributions", labelJoint: "Charitable contributions" }],
                 validate: nonNegativeValidator,
             },
-            // sankey: {
-            //     // node: { fill: "var(--sankey-node-income)", stroke: "var(--sankey-link)", row: 2, col: 1 },
-            //     // link: [
-            //     //     { source: "ordinaryTaxableIncome", target: "itemizedDeductions", fill: "var(--sankey-link)", stroke: "var(--sankey-link)", row: 3, col: 2 },
-            //     // ],
-            // },
             // calculate: charitable
         },
     ];

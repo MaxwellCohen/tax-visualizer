@@ -12,8 +12,6 @@ import {
 
 export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
     const creditsHubNode = {
-        fill: "var(--chart-credit)",
-        stroke: "var(--sankey-link-credits)",
         col: 3,
         row: 40,
     } as const;
@@ -21,6 +19,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
     return [
         {
             id: "federalTaxCredits",
+            chartStyle: { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)" },
             labels: { default: "Federal Tax Credits", compact: "Credits" },
             sankey: {
                 node: creditsHubNode,
@@ -39,6 +38,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
         },
         {
             id: "sankeyOrdinaryToPayrollTax",
+            chartStyle: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)" },
             labels: { default: "Ordinary income to payroll / SE hub", compact: "Ordinary → payroll" },
             calculate: (inputs, td, fs) => calculatePayrollTax(inputs, td, fs) + calculateSelfEmploymentTax(inputs, td),
             sankey: {
@@ -46,8 +46,6 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
                     {
                         source: "ordinaryTaxableIncome",
                         target: "payrollTax",
-                        fill: "var(--sankey-link-tax)",
-                        stroke: "var(--sankey-link-tax)",
                         row: 0,
                         col: 2,
                     },
@@ -57,10 +55,11 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
         {
             id: "selfEmploymentTax",
             chartRole: "tax",
+            chartStyle: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)" },
             labels: { default: "Self-Employment Tax", compact: "Self-Employment Tax" },
             sankey: {
                 links: [
-                    { source: "payrollTax", target: "federalPayrollTaxes", fill: "var(--sankey-link-tax)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
+                    { source: "payrollTax", target: "federalPayrollTaxes", row: 4, col: 1 },
                 ],
             },
             calculate: (inputs, taxData) => calculateSelfEmploymentTax(inputs, taxData),

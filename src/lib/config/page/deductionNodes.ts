@@ -18,22 +18,24 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
     return [
         {
             id: "standardDeduction",
+            chartStyle: { fill: "var(--chart-deduction-node)", stroke: "var(--sankey-link-deferred)" },
             labels: { default: "0% tax", compact: "Standard Ded." },
             sankey: {
-                node: { fill: "var(--chart-income)", stroke: "var(--sankey-link)", row: 3, col: 3 },
+                node: { row: 3, col: 3 },
                 links: [
-                    { source: "standardDeduction", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
+                    { source: "standardDeduction", target: "takeHomePay", row: 3, col: 3 },
                 ],
             },
             calculate: getStandardDeductionWithoutPayrollTax,
         },
         {
             id: "itemizedDeductions",
+            chartStyle: { fill: "var(--chart-deduction-node)", stroke: "var(--sankey-link-deferred)" },
             labels: { default: "Itemized Deductions", compact: "Itemized Ded." },
             sankey: {
-                node: { fill: "var(--chart-income)", stroke: "var(--sankey-link)", row: 3, col: 3 },
+                node: { row: 3, col: 3 },
                 links: [
-                    { source: "itemizedDeductions", target: "takeHomePay", fill: "var(--sankey-link-deferred)", stroke: "var(--sankey-link-deferred)", row: 3, col: 3 },
+                    { source: "itemizedDeductions", target: "takeHomePay", row: 3, col: 3 },
                 ],
             },
             calculate: getItemizedDeductionsWithoutPayrollTax
@@ -43,21 +45,13 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
 
 export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
-        // {
-        //     id: "taxableIncomeAfterDeductions",
-        //     label: "Taxable Income After Deductions",
-        //     shortLabel: "Taxable After Ded.",
-        //     sankey: {
-        //         node: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)", row: 2, col: 2 },
-        //     },
-        //     calculate: taxableIncomeAfterDeductions,
-        // },
         {
             id: "ordinaryTaxableIncome",
             chartRole: "income",
+            chartStyle: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)" },
             labels: { default: "Ordinary Income", compact: "Ordinary (Pre-Ded)", summary: "Ordinary Taxable Income" },
             sankey: {
-                node: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)", row: 2, col: 2 },
+                node: { row: 2, col: 2 },
             },
             summary: {
                 displayOrder: 1.5,
@@ -67,9 +61,10 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         {
             id: "longTermTaxableIncome",
             chartRole: "income",
+            chartStyle: { fill: "var(--chart-ltcg)", stroke: "var(--sankey-link)" },
             labels: { default: "LTCG Taxable Income", compact: "LTCG Taxable", summary: "Long-Term Capital Gains" },
             sankey: {
-                node: { fill: "var(--chart-ltcg)", stroke: "var(--sankey-link)", row: 3, col: 2 },
+                node: { row: 3, col: 2 },
             },
             calculate: longTermCapGains,
             summary: {
@@ -91,59 +86,6 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             },
         },
         // {
-        //     id: "federalOrdinaryIncomeTax",
-        //     label: "Federal Ordinary Tax",
-        //     shortLabel: "Federal Ord. Tax",
-        //     sankey: {
-        //         node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 3, col: 1 },
-        //     },
-        //     calculate: (inputs, taxData, filingStatus) => {
-        //         const { ordinary, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
-        //         const brackets = getOrdinaryBrackets(taxData, filingStatus);
-        //         return calculateOrdinaryTaxWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill).tax;
-        //     },
-        //     summary: {
-        //         label: "Ordinary Income Tax",
-        //         category: "tax",
-        //         displayOrder: 4.5,
-        //         format: "currency",
-        //     },
-        // },
-        // {
-        //     id: "federalLongTermCapGainsTax",
-        //     label: "Federal LTCG Tax",
-        //     shortLabel: "Federal LTCG Tax",
-        //     sankey: {
-        //         node: { fill: "var(--sankey-node-ltcg)", stroke: "var(--sankey-link)", row: 3, col: 1 },
-        //     },
-        //     calculate: (inputs, taxData, filingStatus) => {
-        //         const { ordinary, ltcg } = calculateTaxableIncome(inputs, taxData, filingStatus);
-        //         return calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
-        //     },
-        //     summary: {
-        //         label: "Capital Gains Tax",
-        //         category: "tax",
-        //         displayOrder: 4.7,
-        //         format: "currency",
-        //     },
-        // },
-        // {
-        //     id: "federalNetInvestmentIncomeTax",
-        //     label: "Net Investment Income Tax",
-        //     shortLabel: "NIIT",
-        //     sankey: {
-        //         node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 3, col: 1 },
-        //     },
-        //     calculate: (inputs, taxData, filingStatus) => {
-        //         const investmentIncome = ordinaryIncome(inputs) + shortTermCapGains(inputs) + longTermCapGains(inputs);
-        //         const modifiedAGI = wageIncome(inputs) + selfEmploymentIncome(inputs) + investmentIncome;
-        //         const threshold = taxData.niit.magiThreshold[filingStatus];
-        //         if (modifiedAGI <= threshold) return 0;
-        //         const niitBase = Math.max(0, investmentIncome - (modifiedAGI - threshold));
-        //         return niitBase * taxData.niit.rate;
-        //     },
-        // },
-        // {
         //     id: "netInvestmentIncome",
         //     label: "Net Investment Income",
         //     shortLabel: "Investment Income",
@@ -154,11 +96,12 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         {
             id: "federalTaxCreditsApplied",
             chartRole: "credit",
+            chartStyle: { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)" },
             labels: { default: "Federal Credits Applied", compact: "Credits Applied" },
             sankey: {
                 node: (() => {
                     const row = getCreditsSankeyRow(_taxData, _filingStatus);
-                    return { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)", row, col: 3 };
+                    return { row, col: 3 };
                 })(),
             },
             calculate: (inputs, taxData, filingStatus) => computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
@@ -170,9 +113,10 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         },
         {
             id: "socialSecurityTax",
+            chartStyle: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)" },
             labels: { default: "Social Security Tax", compact: "SS Tax" },
             sankey: {
-                node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
+                node: { row: 4, col: 1 },
             },
             calculate: (inputs, td, filingStatus) => {
                 return calculatePayrollTaxBreakdown(inputs, td, filingStatus).socialSecurityTax;
@@ -180,9 +124,10 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         },
         {
             id: "medicareTax",
+            chartStyle: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)" },
             labels: { default: "Medicare Tax", compact: "Medicare Tax" },
             sankey: {
-                node: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)", row: 4, col: 1 },
+                node: { row: 4, col: 1 },
             },
             calculate: (inputs, td, filingStatus) => {
                 return calculatePayrollTaxBreakdown(inputs, td, filingStatus).medicareTax;
@@ -197,25 +142,23 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
         {
             id: "mekkoPretaxDeferrals",
             chartRole: "pretax",
+            chartStyle: { fill: "var(--chart-pretax)", stroke: "var(--chart-pretax)" },
             labels: { default: "Pre-tax deferrals", compact: "Pre-tax deferrals" },
             mekko: {
                     row: 0,
                     col: 3,
-                    fill: "var(--chart-pretax)",
-                    stroke: "var(--chart-pretax)",
             },
             calculate: (inputs) => allPretax(inputs),
         },
         {
             id: "mekkoSelfEmploymentTaxDeduction",
             chartRole: "seAdjustment",
+            chartStyle: { fill: "var(--chart-pretax)", stroke: "var(--chart-pretax)" },
             labels: { default: "½ self-employment tax (deductible)", compact: "½ SE tax" },
             mekko: {
                 
                     row: 1,
                     col: 3,
-                    fill: "var(--chart-pretax)",
-                    stroke: "var(--chart-pretax)",
                 
             },
             calculate: (inputs) => {
@@ -226,12 +169,11 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
         {
             id: "mekkoDeductionShieldNet",
             chartRole: "deduction",
+            chartStyle: { fill: "var(--sankey-link-keep)", stroke: "var(--sankey-link-keep)" },
             labels: { default: "Standard / itemized (shielded ordinary, net of payroll)", compact: "Deduction shield" },
             mekko: {
                     row: 2,
                     col: 3,
-                    fill: "var(--chart-deduction)",
-                    stroke: "var(--chart-deduction)",
             
             },
             calculate: (inputs, td, fs) => {
@@ -245,12 +187,11 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
         {
             id: "mekkoPayrollTaxFromShield",
             chartRole: "payrollTax",
+            chartStyle: { fill: "var(--chart-tax)", stroke: "var(--chart-tax)" },
             labels: { default: "Payroll taxes (wage FICA)", compact: "Payroll taxes" },
             mekko: {
                     row: 3,
                     col: 3,
-                    fill: "var(--chart-tax)",
-                    stroke: "var(--chart-tax)",
             },
             calculate: (inputs, td, fs) => {
                 const t = calculateTaxableIncome(inputs, td, fs);

@@ -33,30 +33,3 @@ export function asSummaryChartRole(role?: ChartRole): SummaryChartRole | undefin
 export function getSummaryChartRoleLabel(role: SummaryChartRole): string {
   return SUMMARY_CHART_ROLE_LABELS[role];
 }
-
-export function getChartRoleColorVar(role?: ChartRole): string {
-  switch (role) {
-    case "income":
-      return "var(--chart-income)";
-    case "pretax":
-    case "seAdjustment":
-      return "var(--chart-pretax)";
-    case "deduction":
-      return "var(--chart-deduction)";
-    case "tax":
-    case "payrollTax":
-      return "var(--chart-tax)";
-    case "credit":
-      return "var(--chart-credit)";
-    case "takehome":
-    case "keep":
-    case "ordinaryBracket":
-      return "var(--chart-keep)";
-    case "ltcg":
-      return "var(--chart-ltcg)";
-    case "rate":
-    case "default":
-    default:
-      return "var(--chart-default)";
-  }
-}

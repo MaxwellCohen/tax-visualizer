@@ -7,7 +7,7 @@ import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
 import { compareSankeyLinks } from "~/components/taxSankey/compareSankeyLinks";
 import { compareSankeySiblings } from "~/components/taxSankey/compareSankeySiblings.logic";
 import { SANKEY_HEIGHT, SANKEY_WIDTH } from "~/components/taxSankey/layout";
-import type { SankeyLink } from "~/lib/config/page/Page.config";
+import { resolveChartStyle } from "~/lib/config/page/chartStyle";
 import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 
 type TaxSankeyProps = {
@@ -24,14 +24,15 @@ function makeSankeyData(cc: CalculatedConfigItem[] | null) {
         item.computedValue > 0 && Boolean(item.sankey?.links?.length),
     )
     .flatMap((item) => {
+      const chartStyle = resolveChartStyle(item);
       return (
         item.sankey?.links?.map((link) => ({
           ...link,
           source: link.source,
           target: link.target,
           value: item.computedValue,
-          fill: link.fill,
-          stroke: link.stroke,
+          fill: chartStyle.fill,
+          stroke: chartStyle.stroke,
         })) || []
       );
     });
@@ -48,11 +49,16 @@ function makeSankeyData(cc: CalculatedConfigItem[] | null) {
 
   const clonedNodes = cc
     .filter((item) => nodeIdSet.has(item.id))
-    .map((item) => ({
-      id: item.id,
-      label: item.labels.default,
-      ...item.sankey?.node,
-    }));
+    .map((item) => {
+      const chartStyle = resolveChartStyle(item);
+      return {
+        id: item.id,
+        label: item.labels.default,
+        fill: chartStyle.fill,
+        stroke: chartStyle.stroke,
+        ...item.sankey?.node,
+      };
+    });
 
   if (!clonedNodes.length) {
     return undefined;
