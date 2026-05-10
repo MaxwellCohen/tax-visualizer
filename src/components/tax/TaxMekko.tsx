@@ -104,10 +104,7 @@ function MekkoRows(props: { data: MekkoChartData }) {
   const visualTotal = d.totalIncome > 0 ? d.totalIncome : stackedTotal;
 
   return (
-    <div
-      class="flex h-110 flex-col-reverse rounded-lg border"
-      style={{ "border-color": "var(--border-subtle)" }}
-    >
+    <div class="flex h-110 flex-col-reverse rounded-lg border border-(--border-subtle)">
       <For each={d.rows}>
         {(row) => {
           const keepShare = share(row.keep, row.total);

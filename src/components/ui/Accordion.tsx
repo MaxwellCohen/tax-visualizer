@@ -51,8 +51,7 @@ export default function Accordion(props: AccordionProps) {
         </Show>
       </summary>
       <div
-        class={`border-t px-3 pb-3 pt-3${props.bodyClass ? ` ${props.bodyClass}` : ""}`}
-        style={{ "border-color": "var(--border-subtle)" }}
+        class={`border-t border-(--border-subtle) px-3 pb-3 pt-3${props.bodyClass ? ` ${props.bodyClass}` : ""}`}
       >
         {props.children}
       </div>
