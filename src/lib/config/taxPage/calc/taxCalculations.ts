@@ -95,9 +95,6 @@ const getDeductionsWithoutPayrollTax = (inputs: TaxFormRow[], taxData: TaxYearCo
     return getStandardDeductionWithoutPayrollTax(inputs, taxData, filingStatus);
 }
 
-function getOrdinaryBrackets(taxData: TaxYearConfig, filingStatus: FilingStatus): FederalTaxBracket[] {
-    return taxData.federalBrackets[filingStatus];
-}
 
  function calculateLtcgTaxTotal(
     taxableLtcg: number,
@@ -140,54 +137,9 @@ export const ordinaryIncomeAfterPretax = (inputs: TaxFormRow[]): number => {
 const taxableIncomeAfterDeductions = (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus): number => {
     const payrollTaxTotalValue = payrollTaxTotal(inputs, taxData, filingStatus);
     const deduction = getDeductionsWithoutPayrollTax(inputs, taxData, filingStatus);
-
     return Math.max(0, ordinaryIncomeAfterPretax(inputs) - payrollTaxTotalValue - deduction);
 }
 
-/**
- * Per-bracket ordinary dollars after `payrollBracketShadowFill` consumes width from the lowest
- * brackets first. The top (open-ended) bracket does not absorb shadow width.
- */
-function ordinaryIncomeSlicesWithPayrollShadow(
-    ordinaryTaxable: number,
-    brackets: readonly FederalTaxBracket[],
-    payrollBracketShadowFill: number,
-): number[] {
-    let remainingShadow = Math.max(0, payrollBracketShadowFill);
-    let remainingOrd = Math.max(0, ordinaryTaxable);
-    const slices: number[] = [];
-    let lowerBound = 0;
-    for (const bracket of brackets) {
-        const upperBound = bracket.upTo ?? Number.POSITIVE_INFINITY;
-        const isOpenEnded = bracket.upTo == null;
-        const width = isOpenEnded ? Number.POSITIVE_INFINITY : upperBound - lowerBound;
-        const shadowHere = isOpenEnded ? 0 : Math.min(width, remainingShadow);
-        remainingShadow -= shadowHere;
-        const roomForOrdinary = width - shadowHere;
-        const ordHere = Math.min(remainingOrd, roomForOrdinary);
-        remainingOrd -= ordHere;
-        slices.push(ordHere);
-        lowerBound = upperBound;
-    }
-    return slices;
-}
-
-function calculateOrdinaryTaxWithPayrollShadow(
-    ordinaryTaxable: number,
-    brackets: readonly FederalTaxBracket[],
-    payrollBracketShadowFill: number,
-): { tax: number; marginalRate: number; slices: number[] } {
-    const slices = ordinaryIncomeSlicesWithPayrollShadow(ordinaryTaxable, brackets, payrollBracketShadowFill);
-    let tax = 0;
-    let marginalRate = 0;
-    for (let i = 0; i < brackets.length; i++) {
-        tax += slices[i] * brackets[i].rate;
-        if (slices[i] > 0) {
-            marginalRate = brackets[i].rate;
-        }
-    }
-    return { tax, marginalRate, slices };
-}
 
 export function calculateTaxableIncome(
     inputs: TaxFormRow[],
@@ -220,18 +172,22 @@ export function computeFederalTaxCreditsApplied(
     taxData: TaxYearConfig,
     filingStatus: FilingStatus,
 ): number {
-    const credits = totalCredits(inputs, taxData);
-    const { ordinary, ltcg, payrollBracketShadowFill } = calculateTaxableIncome(inputs, taxData, filingStatus);
-    const brackets = getOrdinaryBrackets(taxData, filingStatus);
-    const ordinaryTax = calculateOrdinaryTaxWithPayrollShadow(ordinary, brackets, payrollBracketShadowFill).tax;
-    const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinary);
-    const totalTax = ordinaryTax + ltcgTax;
-    return Math.min(credits, totalTax);
+    const buckets = calculateTaxBuckets(inputs, taxData, filingStatus);
+    const credits = buckets.reduce((sum, bucket) => sum + bucket.credits, 0); 
+    return credits;
 }
 
 
-export function calculateTaxBrackets(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) {
-    const result = [];
+export function calculateTaxBuckets(inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) {
+    const result: Array<{
+        taxBracket?: FederalTaxBracket;
+        type: string;
+        tax: number;
+        keep: number;
+        credits: number;
+        payrollTax: number;
+        remainingIncome: number;
+    }> = [];
     const brackets = taxData.federalBrackets[filingStatus];
     const income = ordinaryIncome(inputs) - allPretax(inputs);
     const payrollTaxTotal = calculatePayrollTax(inputs, taxData, filingStatus) + calculateSelfEmploymentTax(inputs, taxData);
@@ -254,12 +210,12 @@ export function calculateTaxBrackets(inputs: TaxFormRow[], taxData: TaxYearConfi
         const tax = taxableBracketIncome * bracket.rate;
         const keep = Math.max(taxableBracketIncome - tax - remainingPayrollTax, 0);
         remainingPayrollTax = Math.max(0, remainingPayrollTax - (taxableBracketIncome - tax));
-        result.push({ taxBracket: bracket, tax, keep, credits: 0, payrollTax: remainingPayrollTax, remainingIncome: remainingIncome });
+        result.push({ type: "ordinary", taxBracket: bracket, tax, keep, credits: 0, payrollTax: remainingPayrollTax, remainingIncome: remainingIncome });
     };
     // adding in the LTCG tax path
     const ltcg = longTermCapGains(inputs);
     const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, income);
-    result.push({ tax: ltcgTax, keep: ltcg - ltcgTax, credits: 0, payrollTax: 0, remainingIncome: 0 });
+    result.push({ type: 'ltcg', tax: ltcgTax, keep: ltcg - ltcgTax, credits: 0, payrollTax: 0, remainingIncome: 0 });
 
     // loop thorough backwards and add in the credit calculations using result from the forward pass
     for (let i = result.length - 1; i >= 0; i--) {

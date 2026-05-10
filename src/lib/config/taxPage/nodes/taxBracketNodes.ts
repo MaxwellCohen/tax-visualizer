@@ -3,7 +3,7 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
 import { getCreditsSankeyRow } from "../sankey/sankeyLayout.helpers";
-import { calculateTaxBrackets } from "../calc/taxCalculations";
+import { calculateTaxBuckets } from "../calc/taxCalculations";
 
 function getCreditLinkCreditsRow(creditsRow: number) {
     return {
@@ -40,11 +40,11 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 ],
             },
             mekko: {
-                    row: bracketRow,
-                    split: { keepId: `${bracketId}-keep` },
+                row: bracketRow,
+                split: { keepId: `${bracketId}-keep` },
             },
             calculate: (inputs) => {
-                const { tax, credits, keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0, credits: 0, keep: 0 };
+                const { tax, credits, keep } = (calculateTaxBuckets(inputs, taxData, filingStatus).find(bucket => bucket.type === 'ordinary' && bucket.taxBracket?.rate === bracket.rate) ?? { tax: 0, credits: 0, keep: 0 })   ;
                 return tax + credits + keep;
             },
         }, {
@@ -56,10 +56,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                     { source: `${bracketId}-node`, target: "takeHomePay", row: bracketRow + 1, col: 3 },
                 ],
             },
-            calculate: (inputs) => {
-                const { keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? {  keep: 0 };
-                return keep;
-            },
+            calculate: (inputs, taxData, filingStatus) => (calculateTaxBuckets(inputs, taxData, filingStatus).find(bucket => bucket.type === 'ordinary' && bucket.taxBracket?.rate === bracket.rate) ?? { keep: 0 })?.keep ?? 0,
         }, {
             id: `${bracketId}-credits`,
             chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
@@ -69,10 +66,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                     { source: `${bracketId}-node`, target: "takeHomePay", ...getCreditLinkCreditsRow(creditsRow), row: bracketRow + 2 },
                 ],
             },
-            calculate: (inputs) => {
-                const { credits } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { credits: 0 };
-                return credits;
-            },
+            calculate: (inputs, taxData, filingStatus) => (calculateTaxBuckets(inputs, taxData, filingStatus).find(bucket => bucket.type === 'ordinary' && bucket.taxBracket?.rate === bracket.rate) ?? { credits: 0 })?.credits ?? 0,
         }, {
             id: `${bracketId}-tax`,
             chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
@@ -82,13 +76,10 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                     { source: `${bracketId}-node`, target: "federalIncomeTax", row: bracketRow + 3, col: 3 },
                 ],
             },
-            calculate: (inputs) => {
-                const { tax } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0 };
-                return tax;
-            },
+            calculate: (inputs, taxData, filingStatus) => (calculateTaxBuckets(inputs, taxData, filingStatus).find(bucket => bucket.type === 'ordinary' && bucket.taxBracket?.rate === bracket.rate) ?? { tax: 0 })?.tax ?? 0,
         });
     }
-    const i = brackets.length;
+    // const i = brackets.length;
     items.push({
         id: "ltcg-income",
         chartRole: "ltcg",
@@ -101,14 +92,11 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             ],
         },
         mekko: {
-                row: ltcgIncomeRow,
-                split: { keepId: "ltcg-keep" },
+            row: ltcgIncomeRow,
+            split: { keepId: "ltcg-keep" },
         },
-        calculate: (inputs) => {
-            const { tax, credits, keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0, credits: 0, keep: 0 };
-            return tax + credits + keep;
-        },
-    },{
+        calculate: (inputs, taxData, filingStatus) => calculateTaxBuckets(inputs, taxData, filingStatus).reduce((sum, bucket) => bucket.type === 'ltcg' ? sum + bucket.tax + bucket.credits + bucket.keep : sum, 0),
+    }, {
         id: "ltcg-tax",
         chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
         labels: { default: "LTCG Tax", compact: "LTCG Tax" },
@@ -117,17 +105,14 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 { source: "ltcg-income", target: "federalIncomeTax", row: ltcgIncomeRow + 2, col: 3 },
             ],
         },
-        calculate: (inputs) => {
-            const { tax } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { tax: 0 };
-            return tax;
-        },
-    },{
+        calculate: (inputs, taxData, filingStatus) => calculateTaxBuckets(inputs, taxData, filingStatus).reduce((sum, bucket) => bucket.type === 'ltcg' ? sum + bucket.tax : sum, 0),
+    }, {
         id: "ltcg-credits",
         chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
         labels: { default: "LTCG Credits", compact: "LTCG Credits" },
         sankey: {
             links: [
-                {   
+                {
                     source: "ltcg-income",
                     target: "takeHomePay",
                     ...getCreditLinkCreditsRow(creditsRow),
@@ -135,11 +120,8 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 },
             ],
         },
-        calculate: (inputs) => {
-            const { credits } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { credits: 0 };
-            return credits;
-        },
-    },{
+        calculate: (inputs, taxData, filingStatus) => calculateTaxBuckets(inputs, taxData, filingStatus).reduce((sum, bucket) => bucket.type === 'ltcg' ? sum + bucket.credits : sum, 0),
+    }, {
         id: "ltcg-keep",
         chartStyle: { fill: "var(--color-sankey-link-keep)", stroke: "var(--color-sankey-link-keep)" },
         labels: { default: "LTCG Keep", compact: "LTCG Keep" },
@@ -148,10 +130,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 { source: "ltcg-income", target: "takeHomePay", row: 49, col: 3 },
             ],
         },
-        calculate: (inputs) => {
-            const { keep } = calculateTaxBrackets(inputs, taxData, filingStatus)[i] ?? { keep: 0 };
-            return keep;
-        },
+        calculate: (inputs, taxData, filingStatus) => calculateTaxBuckets(inputs, taxData, filingStatus).reduce((sum, bucket) => bucket.type === 'ltcg' ? sum + bucket.keep : sum, 0),
     });
     return items;
 }

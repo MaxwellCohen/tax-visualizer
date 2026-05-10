@@ -3,7 +3,7 @@ import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
 import { totalIncome } from "../rowMetrics";
 import {
-    calculateTaxBrackets,
+    calculateTaxBuckets,
     getStandardDeductionWithoutPayrollTax,
     getItemizedDeductionsWithoutPayrollTax,
 } from "../calc/taxCalculations";
@@ -27,7 +27,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 node: { row: 3, col: 4 },
             },
             calculate: (inputs, taxData, filingStatus) => {
-                const brackets = calculateTaxBrackets(inputs, taxData, filingStatus);
+                const brackets = calculateTaxBuckets(inputs, taxData, filingStatus);
                 const keep = brackets.reduce((sum, bracket) => sum + bracket.keep + bracket.credits, 0) + getStandardDeductionWithoutPayrollTax(inputs, taxData, filingStatus) + getItemizedDeductionsWithoutPayrollTax(inputs, taxData, filingStatus);
                 return keep;
             },
@@ -46,7 +46,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
                 node: { row: 4, col: 4 },
             },
             calculate: (inputs, taxData, filingStatus) => {
-                const brackets = calculateTaxBrackets(inputs, taxData, filingStatus);
+                const brackets = calculateTaxBuckets(inputs, taxData, filingStatus);
                 const tax = brackets.reduce((sum, bracket) => sum + bracket.tax, 0);
                 return tax;
             },
@@ -64,7 +64,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             calculate: (inputs) => {
                 const gross = totalIncome(inputs);
                 if (gross <= 0) return 0;
-                const brackets = calculateTaxBrackets(inputs, taxData, filingStatus);
+                const brackets = calculateTaxBuckets(inputs, taxData, filingStatus);
                 const federalTax = brackets.reduce((sum, bracket) => sum + bracket.tax, 0);
                 return federalTax / gross;
             },
