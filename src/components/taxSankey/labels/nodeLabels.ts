@@ -1,4 +1,4 @@
-import type { ChartNode } from "~/components/taxSankey/chartTypes";
+import type { ChartNode } from "~/components/taxSankey/types/chartTypes";
 import { money as sankeyMoney } from "~/lib/moneyFormat";
 
 type SankeyLabelLines = {

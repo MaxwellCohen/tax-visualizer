@@ -1,9 +1,9 @@
 import { For } from "solid-js";
 import type { SankeyGraph } from "d3-sankey";
-import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
-import { LABEL_RIGHT_RESERVE, SANKEY_WIDTH } from "~/components/taxSankey/layout";
-import { nodeFill } from "~/components/taxSankey/sankeyColors";
-import { sankeyLabelLines } from "~/components/taxSankey/sankeyNodeLabels";
+import type { ChartLink, ChartNode } from "~/components/taxSankey/types/chartTypes";
+import { LABEL_RIGHT_RESERVE, SANKEY_WIDTH } from "~/components/taxSankey/layout/dimensions";
+import { nodeFill } from "~/components/taxSankey/style/sankeyColors";
+import { sankeyLabelLines } from "~/components/taxSankey/labels/nodeLabels";
 
 type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
 

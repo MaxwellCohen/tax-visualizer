@@ -1,4 +1,4 @@
-import type { ChartNode } from "~/components/taxSankey/chartTypes";
+import type { ChartNode } from "~/components/taxSankey/types/chartTypes";
 import { DEFAULT_CHART_STYLE } from "~/lib/config/page/chartStyle";
 
 

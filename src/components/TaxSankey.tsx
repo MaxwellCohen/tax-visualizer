@@ -2,11 +2,11 @@ import { Accessor, Show, createMemo } from "solid-js";
 import { CollapsibleBlock } from "~/components/CollapsibleBlock";
 import { sankey } from "d3-sankey";
 import type { SankeyGraph } from "d3-sankey";
-import { SankeyChartSvg } from "~/components/taxSankey/SankeyChartSvg";
-import type { ChartLink, ChartNode } from "~/components/taxSankey/chartTypes";
-import { compareSankeyLinks } from "~/components/taxSankey/compareSankeyLinks";
-import { compareSankeySiblings } from "~/components/taxSankey/compareSankeySiblings.logic";
-import { SANKEY_HEIGHT, SANKEY_WIDTH } from "~/components/taxSankey/layout";
+import { SankeyChartSvg } from "~/components/taxSankey/svg/SankeyChartSvg";
+import type { ChartLink, ChartNode } from "~/components/taxSankey/types/chartTypes";
+import { compareSankeyLinks } from "~/components/taxSankey/compare/compareSankeyLinks";
+import { compareSankeySiblings } from "~/components/taxSankey/compare/compareSankeySiblings";
+import { SANKEY_HEIGHT, SANKEY_WIDTH } from "~/components/taxSankey/layout/dimensions";
 import { resolveChartStyle } from "~/lib/config/page/chartStyle";
 import type { CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 
