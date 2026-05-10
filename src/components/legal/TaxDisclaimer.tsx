@@ -10,8 +10,8 @@ export default function TaxDisclaimer(props: TaxDisclaimerProps) {
     <aside
       role="note"
       aria-label="Disclaimer"
-      class="border-t border-(--border)"
-      style={{ background: "var(--surface)" }}
+      class="border-t border-(--color-border)"
+      style={{ background: "var(--color-surface)" }}
     >
       <div
         class="mx-auto max-w-6xl px-4"
@@ -32,16 +32,16 @@ export default function TaxDisclaimer(props: TaxDisclaimerProps) {
               "text-sm": prominent(),
               "text-xs": !prominent(),
             }}
-            style={{ color: "var(--text-faint)" }}
+            style={{ color: "var(--color-faint-foreground)" }}
           >
-            <span class="font-semibold" style={{ color: "var(--text-muted)" }}>
+            <span class="font-semibold" style={{ color: "var(--color-muted-foreground)" }}>
               Disclaimer.
             </span>{" "}
             This tool is for{" "}
-            <span style={{ color: "var(--text-muted)" }}>entertainment and educational illustration only</span>.
+            <span style={{ color: "var(--color-muted-foreground)" }}>entertainment and educational illustration only</span>.
             It is not tax, legal, or financial advice. Figures are simplified estimates and may not match your
             actual liability.{" "}
-            <span style={{ color: "var(--text-muted)" }}>
+            <span style={{ color: "var(--color-muted-foreground)" }}>
               Consult a qualified tax professional
             </span>{" "}
             (such as a CPA or enrolled agent) for guidance specific to your situation.
@@ -51,14 +51,14 @@ export default function TaxDisclaimer(props: TaxDisclaimerProps) {
             classList={{
               "text-sm": prominent(),
             }}
-            style={{ color: "var(--text-faint)" }}
+            style={{ color: "var(--color-faint-foreground)" }}
           >
             <a
               href="https://github.com/MaxwellCohen/tax-visualizer"
               target="_blank"
               rel="noopener noreferrer"
               class="underline underline-offset-2 transition-colors duration-150"
-              style={{ color: "var(--accent)" }}
+              style={{ color: "var(--color-accent)" }}
             >
               View source on GitHub
             </a>

@@ -17,7 +17,7 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
     return [
         {
             id: "input-credit-childTax",
-            chartStyle: { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)" },
+            chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
             labels: { default: "Child Tax Credit", compact: "CTC" },
             description:
                 "Calculated from qualifying children and other dependents entered in Settings; maximum per dependent depends on tax year.",
@@ -32,7 +32,7 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
         },
         {
             id: "input-credit-education",
-            chartStyle: { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)" },
+            chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
             labels: { default: "Education Credits", compact: "Education" },
             description: "American opportunity credit and/or lifetime learning credit",
             kindDetail: {
@@ -52,7 +52,7 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
         },
         {
             id: "retirementSavingsContributions",
-            chartStyle: { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)" },
+            chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
             labels: { default: "Retirement Savings Contributions (Saver's Credit)", compact: "Saver's Credit" },
             description: "Saver's credit for eligible retirement contributions",
             kindDetail: {
@@ -73,7 +73,7 @@ export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: Fil
         },
         {
             id: "input-credit-other",
-            chartStyle: { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)" },
+            chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
             labels: { default: "Other Federal Credit", compact: "Other" },
             description: "Any other federal income tax credit",
             kindDetail: {

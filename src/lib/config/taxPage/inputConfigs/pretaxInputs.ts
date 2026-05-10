@@ -8,7 +8,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
     return [
         {
             id: "input-pretax-401K",
-            chartStyle: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)" },
+            chartStyle: { fill: "var(--color-chart-pretax)", stroke: "var(--color-sankey-link-deferred)" },
             labels: { default: "401(k) Deferrals", compact: "401(k)" },
             description: "Elective deferrals from W-2 pay",
             kindDetail: {
@@ -39,7 +39,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
         },
         {
             id: "input-pretax-hsa",
-            chartStyle: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)" },
+            chartStyle: { fill: "var(--color-chart-pretax)", stroke: "var(--color-sankey-link-deferred)" },
             labels: { default: "HSA (payroll)", compact: "HSA" },
             description: "Payroll HSA contributions",
             kindDetail: {
@@ -70,7 +70,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
         },
         {
             id: "input-pretax-otherPretax",
-            chartStyle: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)" },
+            chartStyle: { fill: "var(--color-chart-pretax)", stroke: "var(--color-sankey-link-deferred)" },
             labels: { default: "Other Pre-tax (payroll)", compact: "Other Pre-tax" },
             description: "Miscellaneous payroll amounts taken pre-tax",
             kindDetail: {
@@ -101,7 +101,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
         },
         {
             id: "input-pretax-traditionalIra",
-            chartStyle: { fill: "var(--chart-pretax)", stroke: "var(--sankey-link-deferred)" },
+            chartStyle: { fill: "var(--color-chart-pretax)", stroke: "var(--color-sankey-link-deferred)" },
             labels: { default: "Traditional IRA (deductible)", compact: "Traditional IRA" },
             description: "Traditional IRA (deductible)",
             kindDetail: {

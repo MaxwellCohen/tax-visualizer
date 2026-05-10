@@ -19,7 +19,7 @@ export function CollapsibleBlock(props: CollapsibleBlockProps) {
       <div class="flex items-center gap-3">
         <button
           type="button"
-          class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-(--border) bg-(--surface-alt) text-(--text-muted) transition-[color,background-color,transform] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
+          class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-(--color-border) bg-(--color-surface-alt) text-(--color-muted-foreground) transition-[color,background-color,transform] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-accent)"
           aria-expanded={open()}
           aria-controls={panelId}
           aria-label={`${open() ? "Collapse" : "Expand"} ${props.title} section`}
@@ -43,7 +43,7 @@ export function CollapsibleBlock(props: CollapsibleBlockProps) {
           <h2
             id={titleId}
             class="text-sm font-semibold uppercase tracking-[0.12em]"
-            style={{ color: "var(--text-faint)", "font-family": "var(--font-heading)" }}
+            style={{ color: "var(--color-faint-foreground)", "font-family": "var(--font-heading)" }}
           >
             {props.title}
           </h2>

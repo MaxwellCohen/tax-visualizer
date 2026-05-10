@@ -33,15 +33,15 @@ export default function TaxSummary(props: TaxSummaryProps) {
     <section
       class="rounded-xl p-5"
       style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        "box-shadow": "var(--shadow)",
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+        "box-shadow": "var(--shadow-card)",
       }}
     >
       <CollapsibleBlock title="Tax Summary" bodyClass="mt-4 space-y-4">
         <p
           class="max-w-3xl text-xs leading-relaxed"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--color-muted-foreground)" }}
         >
           These cards follow the same configured tax pipeline as the flow and
           Mekko charts: income is reduced by pre-tax and deduction rules, then
@@ -52,7 +52,7 @@ export default function TaxSummary(props: TaxSummaryProps) {
           keyed
           when={summaryData()}
           fallback={
-            <div class="rounded-lg p-4 text-center text-sm" style={{ color: "var(--text-faint)" }}>
+            <div class="rounded-lg p-4 text-center text-sm" style={{ color: "var(--color-faint-foreground)" }}>
               Enter income to see the summary.
             </div>
           }
@@ -64,7 +64,7 @@ export default function TaxSummary(props: TaxSummaryProps) {
                   <div>
                     <h3
                       class="mb-2 text-[0.65rem] font-semibold uppercase tracking-[0.14em]"
-                      style={{ color: "var(--text-faint)" }}
+                      style={{ color: "var(--color-faint-foreground)" }}
                     >
                       {section.label}
                     </h3>

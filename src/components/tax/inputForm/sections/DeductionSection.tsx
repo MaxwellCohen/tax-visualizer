@@ -60,10 +60,10 @@ export function DeductionSection(props: Props) {
     <Accordion
       summary={
         <>
-          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-(--text-faint) [font-family:var(--font-heading)]">
+          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-(--color-faint-foreground) [font-family:var(--font-heading)]">
             Deductions
           </h2>
-          <span class="text-sm tabular-nums text-(--text-muted)">{money.format(summaryAmount())}</span>
+          <span class="text-sm tabular-nums text-(--color-muted-foreground)">{money.format(summaryAmount())}</span>
         </>
       }
       bodyClass="space-y-4"
@@ -71,7 +71,7 @@ export function DeductionSection(props: Props) {
       <Show when={useItemizedFieldMountKey()} keyed>
         <label
           class="flex items-center gap-2.5 text-sm cursor-pointer"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--color-muted-foreground)" }}
         >
           <input
             type="checkbox"
@@ -84,23 +84,23 @@ export function DeductionSection(props: Props) {
               commitToUrl?.();
             }}
             class="h-4 w-4 rounded"
-            style={{ "accent-color": "var(--accent)" }}
+            style={{ "accent-color": "var(--color-accent)" }}
           />
           Use itemized deductions
         </label>
       </Show>
-      <p class="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+      <p class="text-xs leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
         Standard deduction for this year and filing status: {money.format(props.standardDeduction())}.
       </p>
 
       <Show when={useItemized()}>
         <>
-          <p class="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+          <p class="text-xs leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
             Choose a Schedule A–style category per line; optional label for your notes. Amounts sum for the modeled
             itemized total (SALT caps and medical floors are not applied separately).
           </p>
           <AddLineMobileControls label="Add line" onAdd={props.addItemizedDeduction} />
-          <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-(--border) bg-(--surface-alt)">
+          <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-(--color-border) bg-(--color-surface-alt)">
             <table class="w-full min-w-0 border-collapse text-sm md:min-w-xl md:[&>tbody>tr:last-child>td]:border-b-0">
               <thead class="hidden md:table-header-group">
                 <tr>
@@ -149,9 +149,9 @@ export function DeductionSection(props: Props) {
           <p
             class="rounded-lg px-3 py-2 text-xs leading-relaxed"
             style={{
-              background: props.itemizedBeatsStandard() ? "var(--accent-muted)" : "var(--warning-bg)",
-              color: props.itemizedBeatsStandard() ? "var(--accent)" : "var(--warning-text)",
-              border: `1px solid ${props.itemizedBeatsStandard() ? "var(--border)" : "var(--warning-border)"}`,
+              background: props.itemizedBeatsStandard() ? "var(--color-accent-muted)" : "var(--color-warning-bg)",
+              color: props.itemizedBeatsStandard() ? "var(--color-accent)" : "var(--color-warning-text)",
+              border: `1px solid ${props.itemizedBeatsStandard() ? "var(--color-border)" : "var(--color-warning-border)"}`,
             }}
           >
             {props.itemizedBeatsStandard()

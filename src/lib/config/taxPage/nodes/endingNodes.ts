@@ -12,7 +12,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
     return [
         {
             id: "federalPayrollTaxes",
-            chartStyle: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)" },
+            chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: "Federal Payroll", compact: "Federal Payroll" },
             sankey: {
                 node: { row: 2, col: 4 },
@@ -21,7 +21,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
         {
             id: "takeHomePay",
             chartRole: "takehome",
-            chartStyle: { fill: "var(--chart-keep)", stroke: "var(--sankey-link-keep)" },
+            chartStyle: { fill: "var(--color-chart-keep)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: "Take-Home Pay", compact: "Take-Home Pay" },
             sankey: {
                 node: { row: 3, col: 4 },
@@ -40,7 +40,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
         {
             id: "federalIncomeTax",
             chartRole: "tax",
-            chartStyle: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)" },
+            chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: "Federal Income Tax", compact: "Federal Income Tax" },
             sankey: {
                 node: { row: 4, col: 4 },

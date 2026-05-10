@@ -63,7 +63,7 @@ export function IncomeSourceTableRow(props: IncomeSourceTableRowProps) {
             type="text"
             placeholder="e.g. Employer, Brokerage"
             class={inputClass}
-            style={{ background: "var(--input-bg)", color: "var(--text)" }}
+            style={{ background: "var(--color-input)", color: "var(--color-foreground)" }}
             aria-label="Label (optional)"
             value={label()}
             onInput={(e) => {
@@ -96,8 +96,8 @@ export function IncomeSourceTableRow(props: IncomeSourceTableRowProps) {
             type="button"
             class="rounded-md px-2.5 py-2 text-xs font-medium"
             style={{
-              color: "var(--text-muted)",
-              border: "1px solid var(--border)",
+              color: "var(--color-muted-foreground)",
+              border: "1px solid var(--color-border)",
             }}
             disabled={!props.canRemove}
             title={props.canRemove ? "Remove this source" : "Keep at least one row"}

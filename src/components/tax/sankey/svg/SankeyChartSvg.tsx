@@ -15,8 +15,8 @@ export function SankeyChartSvg(props: Props) {
       class="w-full rounded-lg"
       overflow="visible"
       style={{
-        background: "var(--surface-alt)",
-        border: "1px solid var(--border-subtle)",
+        background: "var(--color-surface-alt)",
+        border: "1px solid var(--color-border-subtle)",
       }}
     >
       <SankeyLinkPaths graph={props.graph} />

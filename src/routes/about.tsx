@@ -10,18 +10,18 @@ export default function About() {
       <header class="space-y-3">
         <h1
           class="text-4xl font-semibold tracking-tight"
-          style={{ "font-family": "var(--font-heading)", color: "var(--text)" }}
+          style={{ "font-family": "var(--font-heading)", color: "var(--color-foreground)" }}
         >
           About &amp; methodology
         </h1>
-        <p class="max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+        <p class="max-w-3xl text-sm leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
           Tax Visualizer is an educational US federal tax explainer built with{" "}
           <a
             href="https://solidjs.com"
             target="_blank"
             rel="noopener noreferrer"
             class="underline underline-offset-2 transition-colors duration-150"
-            style={{ color: "var(--accent)" }}
+            style={{ color: "var(--color-accent)" }}
           >
             SolidStart
           </a>

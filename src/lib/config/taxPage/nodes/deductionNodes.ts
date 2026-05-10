@@ -18,7 +18,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
     return [
         {
             id: "standardDeduction",
-            chartStyle: { fill: "var(--chart-deduction-node)", stroke: "var(--sankey-link-deferred)" },
+            chartStyle: { fill: "var(--color-chart-deduction-node)", stroke: "var(--color-sankey-link-deferred)" },
             labels: { default: "0% tax", compact: "Standard Ded." },
             sankey: {
                 node: { row: 3, col: 3 },
@@ -30,7 +30,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
         },
         {
             id: "itemizedDeductions",
-            chartStyle: { fill: "var(--chart-deduction-node)", stroke: "var(--sankey-link-deferred)" },
+            chartStyle: { fill: "var(--color-chart-deduction-node)", stroke: "var(--color-sankey-link-deferred)" },
             labels: { default: "Itemized Deductions", compact: "Itemized Ded." },
             sankey: {
                 node: { row: 3, col: 3 },
@@ -48,7 +48,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         {
             id: "ordinaryTaxableIncome",
             chartRole: "income",
-            chartStyle: { fill: "var(--sankey-node-3)", stroke: "var(--sankey-link)" },
+            chartStyle: { fill: "var(--color-sankey-node-3)", stroke: "var(--color-sankey-link)" },
             labels: { default: "Ordinary Income", compact: "Ordinary (Pre-Ded)", summary: "Ordinary Taxable Income" },
             sankey: {
                 node: { row: 2, col: 2 },
@@ -61,7 +61,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         {
             id: "longTermTaxableIncome",
             chartRole: "income",
-            chartStyle: { fill: "var(--chart-ltcg)", stroke: "var(--sankey-link)" },
+            chartStyle: { fill: "var(--color-chart-ltcg)", stroke: "var(--color-sankey-link)" },
             labels: { default: "LTCG Taxable Income", compact: "LTCG Taxable", summary: "Long-Term Capital Gains" },
             sankey: {
                 node: { row: 3, col: 2 },
@@ -96,7 +96,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         {
             id: "federalTaxCreditsApplied",
             chartRole: "credit",
-            chartStyle: { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)" },
+            chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
             labels: { default: "Federal Credits Applied", compact: "Credits Applied" },
             sankey: {
                 node: (() => {
@@ -113,7 +113,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         },
         {
             id: "socialSecurityTax",
-            chartStyle: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)" },
+            chartStyle: { fill: "var(--color-sankey-node-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: "Social Security Tax", compact: "SS Tax" },
             sankey: {
                 node: { row: 4, col: 1 },
@@ -124,7 +124,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
         },
         {
             id: "medicareTax",
-            chartStyle: { fill: "var(--sankey-node-tax)", stroke: "var(--sankey-link-tax)" },
+            chartStyle: { fill: "var(--color-sankey-node-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: "Medicare Tax", compact: "Medicare Tax" },
             sankey: {
                 node: { row: 4, col: 1 },
@@ -142,7 +142,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
         {
             id: "mekkoPretaxDeferrals",
             chartRole: "pretax",
-            chartStyle: { fill: "var(--chart-pretax)", stroke: "var(--chart-pretax)" },
+            chartStyle: { fill: "var(--color-chart-pretax)", stroke: "var(--color-chart-pretax)" },
             labels: { default: "Pre-tax deferrals", compact: "Pre-tax deferrals" },
             mekko: {
                     row: 0,
@@ -152,7 +152,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
         {
             id: "mekkoSelfEmploymentTaxDeduction",
             chartRole: "seAdjustment",
-            chartStyle: { fill: "var(--chart-pretax)", stroke: "var(--chart-pretax)" },
+            chartStyle: { fill: "var(--color-chart-pretax)", stroke: "var(--color-chart-pretax)" },
             labels: { default: "½ self-employment tax (deductible)", compact: "½ SE tax" },
             mekko: {
                 
@@ -167,7 +167,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
         {
             id: "mekkoDeductionShieldNet",
             chartRole: "deduction",
-            chartStyle: { fill: "var(--sankey-link-keep)", stroke: "var(--sankey-link-keep)" },
+            chartStyle: { fill: "var(--color-sankey-link-keep)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: "Standard / itemized (shielded ordinary, net of payroll)", compact: "Deduction shield" },
             mekko: {
                     row: 3,
@@ -184,7 +184,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
         {
             id: "mekkoPayrollTaxFromShield",
             chartRole: "payrollTax",
-            chartStyle: { fill: "var(--chart-tax)", stroke: "var(--chart-tax)" },
+            chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-chart-tax)" },
             labels: { default: "Payroll taxes (wage FICA)", compact: "Payroll taxes" },
             mekko: {
                     row: 1,

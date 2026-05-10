@@ -24,7 +24,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         const bracketRow = 5 + i * 4;
         items.push({
             id: `${bracketId}-node`,
-            chartStyle: { fill: "var(--chart-keep)", stroke: "var(--chart-keep)" },
+            chartStyle: { fill: "var(--color-chart-keep)", stroke: "var(--color-chart-keep)" },
             labels: { default: `${rateLabel} % Income`, compact: `${rateLabel}% Income` },
             sankey: {
                 node: { row: bracketRow, col: 3 },
@@ -32,7 +32,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         }, {
             id: `${bracketId}-income`,
             chartRole: "ordinaryBracket",
-            chartStyle: { fill: "var(--sankey-link-keep)", stroke: "var(--sankey-link-keep)" },
+            chartStyle: { fill: "var(--color-sankey-link-keep)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: `${rateLabel} % Income`, compact: `${rateLabel}% Income` },
             sankey: {
                 links: [
@@ -49,7 +49,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             },
         }, {
             id: `${bracketId}-keep`,
-            chartStyle: { fill: "var(--sankey-link-keep)", stroke: "var(--sankey-link-keep)" },
+            chartStyle: { fill: "var(--color-sankey-link-keep)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: `${rateLabel} % Keep`, compact: `${rateLabel}% Income` },
             sankey: {
                 links: [
@@ -62,7 +62,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             },
         }, {
             id: `${bracketId}-credits`,
-            chartStyle: { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)" },
+            chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
             labels: { default: `${rateLabel} % Credits`, compact: `${rateLabel}% Credits` },
             sankey: {
                 links: [
@@ -75,7 +75,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             },
         }, {
             id: `${bracketId}-tax`,
-            chartStyle: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)" },
+            chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: `${rateLabel} % Tax`, compact: `${rateLabel}% Tax` },
             sankey: {
                 links: [
@@ -92,7 +92,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
     items.push({
         id: "ltcg-income",
         chartRole: "ltcg",
-        chartStyle: { fill: "var(--chart-ltcg)", stroke: "var(--chart-ltcg)" },
+        chartStyle: { fill: "var(--color-chart-ltcg)", stroke: "var(--color-chart-ltcg)" },
         labels: { default: "LTCG Income", compact: "LTCG Income" },
         sankey: {
             node: { row: ltcgIncomeRow, col: 3 },
@@ -110,7 +110,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         },
     },{
         id: "ltcg-tax",
-        chartStyle: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)" },
+        chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
         labels: { default: "LTCG Tax", compact: "LTCG Tax" },
         sankey: {
             links: [
@@ -123,7 +123,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         },
     },{
         id: "ltcg-credits",
-        chartStyle: { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)" },
+        chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
         labels: { default: "LTCG Credits", compact: "LTCG Credits" },
         sankey: {
             links: [
@@ -141,7 +141,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         },
     },{
         id: "ltcg-keep",
-        chartStyle: { fill: "var(--sankey-link-keep)", stroke: "var(--sankey-link-keep)" },
+        chartStyle: { fill: "var(--color-sankey-link-keep)", stroke: "var(--color-sankey-link-keep)" },
         labels: { default: "LTCG Keep", compact: "LTCG Keep" },
         sankey: {
             links: [

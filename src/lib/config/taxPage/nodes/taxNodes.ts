@@ -19,7 +19,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
     return [
         {
             id: "federalTaxCredits",
-            chartStyle: { fill: "var(--chart-credit)", stroke: "var(--sankey-link-credits)" },
+            chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
             labels: { default: "Federal Tax Credits", compact: "Credits" },
             sankey: {
                 node: creditsHubNode,
@@ -38,7 +38,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
         },
         {
             id: "sankeyOrdinaryToPayrollTax",
-            chartStyle: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)" },
+            chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: "Ordinary income to payroll / SE hub", compact: "Ordinary → payroll" },
             calculate: (inputs, td, fs) => calculatePayrollTax(inputs, td, fs) + calculateSelfEmploymentTax(inputs, td),
             sankey: {
@@ -55,7 +55,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
         {
             id: "selfEmploymentTax",
             chartRole: "tax",
-            chartStyle: { fill: "var(--chart-tax)", stroke: "var(--sankey-link-tax)" },
+            chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: "Self-Employment Tax", compact: "Self-Employment Tax" },
             sankey: {
                 links: [

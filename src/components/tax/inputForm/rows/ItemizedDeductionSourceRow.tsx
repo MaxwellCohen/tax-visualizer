@@ -31,7 +31,7 @@ type Props = {
 };
 
 const deductionDetailRowTdClass =
-  "border-t border-(--border-subtle) px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
+  "border-t border-(--color-border-subtle) px-3 pb-3 pt-2.5 md:border-r-0 md:align-top";
 
 export function ItemizedDeductionSourceRow(props: Props) {
   const commitToUrl = useTaxInputCommitToUrl();
@@ -94,7 +94,7 @@ export function ItemizedDeductionSourceRow(props: Props) {
               type="text"
               placeholder="e.g. details, payee"
               class={inputClass}
-              style={{ background: "var(--input-bg)", color: "var(--text)" }}
+              style={{ background: "var(--color-input)", color: "var(--color-foreground)" }}
               aria-label="Label (optional)"
               value={label()}
               onInput={(e) => {
@@ -130,8 +130,8 @@ export function ItemizedDeductionSourceRow(props: Props) {
               type="button"
               class="rounded-md px-2.5 py-2 text-xs font-medium"
               style={{
-                color: "var(--text-muted)",
-                border: "1px solid var(--border)",
+                color: "var(--color-muted-foreground)",
+                border: "1px solid var(--color-border)",
               }}
               disabled={!props.canRemove}
               title={props.canRemove ? "Remove this line" : "Keep at least one line"}
@@ -143,7 +143,7 @@ export function ItemizedDeductionSourceRow(props: Props) {
         </tr>
         <tr class="md:table-row max-md:block max-md:w-full max-md:border-0 max-md:bg-transparent max-md:p-0">
           <td class={deductionDetailRowTdClass} colspan={4}>
-            <div class={`${pretaxFieldCaptionClass} space-y-1 text-(--text-muted)`}>
+            <div class={`${pretaxFieldCaptionClass} space-y-1 text-(--color-muted-foreground)`}>
               <p class="leading-snug">{detail().description}</p>
               <p class="leading-snug">{detail().modelingNote}</p>
             </div>

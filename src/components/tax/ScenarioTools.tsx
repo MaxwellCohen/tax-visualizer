@@ -38,9 +38,9 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
     <section
       class="rounded-xl p-5"
       style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        "box-shadow": "var(--shadow)",
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+        "box-shadow": "var(--shadow-card)",
       }}
     >
       <CollapsibleBlock
@@ -52,9 +52,9 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
               <p
                 class="rounded-lg px-3 py-2 text-xs"
                 style={{
-                  background: "var(--accent-muted)",
-                  color: "var(--accent)",
-                  border: "1px solid var(--border)",
+                  background: "var(--color-accent-muted)",
+                  color: "var(--color-accent)",
+                  border: "1px solid var(--color-border)",
                 }}
               >
                 {statusMessage()}
@@ -65,7 +65,7 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
       >
         <p
           class="max-w-3xl text-sm leading-relaxed"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--color-muted-foreground)" }}
         >
           Try a starter scenario or share the current case. Your latest scenario
           is saved locally in this browser.

@@ -48,20 +48,20 @@ export function IncomeSection(props: Props) {
     <Accordion
       summary={
         <>
-          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-(--text-faint) [font-family:var(--font-heading)]">
+          <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-(--color-faint-foreground) [font-family:var(--font-heading)]">
             Income sources
           </h2>
-          <span class="text-sm tabular-nums text-(--text-muted)">{money.format(incomeTotal())}</span>
+          <span class="text-sm tabular-nums text-(--color-muted-foreground)">{money.format(incomeTotal())}</span>
         </>
       }
       bodyClass="space-y-4"
     >
-      <p class="text-xs leading-relaxed text-(--text-muted)">
+      <p class="text-xs leading-relaxed text-(--color-muted-foreground)">
         Add wages, self-employment, and other ordinary income—one row per type. Optional labels are only for your
         notes (for example in charts).
       </p>
       <AddLineMobileControls label="Add source" onAdd={props.addSource} />
-      <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-(--border) bg-(--surface-alt)">
+      <div class="overflow-x-auto max-md:overflow-x-visible rounded-lg border border-(--color-border) bg-(--color-surface-alt)">
         <table class="w-full min-w-0 border-collapse text-sm md:min-w-xl md:[&>tbody>tr:last-child>td]:border-b-0">
           <thead class="hidden md:table-header-group">
             <tr>

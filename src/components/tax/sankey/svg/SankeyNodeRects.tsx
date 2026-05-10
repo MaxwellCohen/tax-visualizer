@@ -62,7 +62,7 @@ export function SankeyNodeRects(props: Props) {
                 text-anchor={anchor}
                 font-size="9"
                 font-family="var(--font-body)"
-                fill="var(--sankey-label)"
+                fill="var(--color-sankey-label)"
               >
                 <title>{lines.title}</title>
                 {lines.line1}
@@ -75,7 +75,7 @@ export function SankeyNodeRects(props: Props) {
                 text-anchor={anchor}
                 font-size="10"
                 font-family="var(--font-body)"
-                fill="var(--sankey-label)"
+                fill="var(--color-sankey-label)"
               >
                 <title>{lines.title}</title>
                 <tspan x={labelX} dy="-0.55em">
@@ -86,7 +86,7 @@ export function SankeyNodeRects(props: Props) {
                     x={labelX}
                     dy="1.15em"
                     font-size="9"
-                    fill="var(--text-muted)"
+                    fill="var(--color-muted-foreground)"
                   >
                     {lines.line2}
                   </tspan>

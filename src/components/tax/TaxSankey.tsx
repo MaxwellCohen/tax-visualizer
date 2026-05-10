@@ -99,15 +99,15 @@ export default function TaxSankey(props: TaxSankeyProps) {
     <section
       class="rounded-xl p-5"
       style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        "box-shadow": "var(--shadow)",
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+        "box-shadow": "var(--shadow-card)",
       }}
     >
       <CollapsibleBlock title="Tax Flow" bodyClass="mt-4">
         <p
           class="mb-4 max-w-3xl text-xs leading-relaxed"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--color-muted-foreground)" }}
         >
           How to read this: each income row on the left flows into ordinary or
           long-term taxable income (by source), then follow the flows into
@@ -130,7 +130,7 @@ export default function TaxSankey(props: TaxSankeyProps) {
           keyed
           when={sankeyData()}
           fallback={
-            <p class="text-sm" style={{ color: "var(--text-faint)" }}>
+            <p class="text-sm" style={{ color: "var(--color-faint-foreground)" }}>
               Enter income to see the flow.
             </p>
           }

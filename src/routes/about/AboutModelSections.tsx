@@ -2,13 +2,13 @@ import type { JSX } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
 const aboutCardStyle = {
-  background: "var(--surface)",
-  border: "1px solid var(--border)",
-  "box-shadow": "var(--shadow)",
+  background: "var(--color-surface)",
+  border: "1px solid var(--color-border)",
+  "box-shadow": "var(--shadow-card)",
 } as const;
 
 const aboutHeadingStyle = {
-  color: "var(--text-faint)",
+  color: "var(--color-faint-foreground)",
   "font-family": "var(--font-heading)",
 } as const;
 
@@ -21,7 +21,7 @@ function AboutBulletCard(props: { title: string; as?: "section" | "div"; childre
       >
         {props.title}
       </h2>
-      <ul class="space-y-2 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+      <ul class="space-y-2 text-sm leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
         {props.children}
       </ul>
     </Dynamic>

@@ -12,9 +12,9 @@ export function ScenarioToolsActions(props: Props) {
         type="button"
         class={buttonClass}
         style={{
-          background: "var(--accent-muted)",
-          color: "var(--accent)",
-          border: "1px solid var(--border)",
+          background: "var(--color-accent-muted)",
+          color: "var(--color-accent)",
+          border: "1px solid var(--color-border)",
         }}
         onClick={props.onCopyShareLink}
       >

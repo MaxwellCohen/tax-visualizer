@@ -8,24 +8,24 @@ export default function NotFound() {
       <NotFoundSeo />
       <p
         class="text-sm font-semibold uppercase tracking-[0.15em]"
-        style={{ color: "var(--accent)" }}
+        style={{ color: "var(--color-accent)" }}
       >
         404
       </p>
       <h1
         class="mt-3 text-4xl font-light tracking-tight"
-        style={{ "font-family": "var(--font-heading)", color: "var(--text)" }}
+        style={{ "font-family": "var(--font-heading)", color: "var(--color-foreground)" }}
       >
         Page not found
       </h1>
-      <p class="mt-4 text-sm" style={{ color: "var(--text-muted)" }}>
+      <p class="mt-4 text-sm" style={{ color: "var(--color-muted-foreground)" }}>
         The page you're looking for doesn't exist.
       </p>
-      <div class="mt-10 flex items-center justify-center gap-4 text-sm" style={{ color: "var(--text-faint)" }}>
+      <div class="mt-10 flex items-center justify-center gap-4 text-sm" style={{ color: "var(--color-faint-foreground)" }}>
         <A
           href="/"
           class="underline underline-offset-2 transition-colors duration-150"
-          style={{ color: "var(--accent)" }}
+          style={{ color: "var(--color-accent)" }}
         >
           Home
         </A>
@@ -33,7 +33,7 @@ export default function NotFound() {
         <A
           href="/about"
           class="underline underline-offset-2 transition-colors duration-150"
-          style={{ color: "var(--accent)" }}
+          style={{ color: "var(--color-accent)" }}
         >
           About
         </A>

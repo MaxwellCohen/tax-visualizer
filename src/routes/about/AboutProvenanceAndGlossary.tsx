@@ -3,15 +3,15 @@ export function AboutProvenanceAndGlossary() {
     <>
       <section
         class="rounded-xl p-5"
-        style={{ background: "var(--surface)", border: "1px solid var(--border)", "box-shadow": "var(--shadow)" }}
+        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", "box-shadow": "var(--shadow-card)" }}
       >
         <h2
           class="mb-3 text-[0.65rem] font-semibold uppercase tracking-[0.15em]"
-          style={{ color: "var(--text-faint)", "font-family": "var(--font-heading)" }}
+          style={{ color: "var(--color-faint-foreground)", "font-family": "var(--font-heading)" }}
         >
           Data provenance
         </h2>
-        <p class="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+        <p class="text-sm leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
           The supported tax years in the app are sourced from federal bracket, deduction, long-term
           capital-gain, and payroll-tax tables encoded in the app itself. Final-year values reflect
           published inflation adjustments; planning-year values are labeled in the interface so you
@@ -21,44 +21,44 @@ export function AboutProvenanceAndGlossary() {
 
       <section
         class="rounded-xl p-5"
-        style={{ background: "var(--surface)", border: "1px solid var(--border)", "box-shadow": "var(--shadow)" }}
+        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", "box-shadow": "var(--shadow-card)" }}
       >
         <h2
           class="mb-3 text-[0.65rem] font-semibold uppercase tracking-[0.15em]"
-          style={{ color: "var(--text-faint)", "font-family": "var(--font-heading)" }}
+          style={{ color: "var(--color-faint-foreground)", "font-family": "var(--font-heading)" }}
         >
           Glossary
         </h2>
         <dl class="grid gap-4 md:grid-cols-2">
           <div>
-            <dt class="text-sm font-semibold" style={{ color: "var(--text)" }}>
+            <dt class="text-sm font-semibold" style={{ color: "var(--color-foreground)" }}>
               Effective tax rate
             </dt>
-            <dd class="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            <dd class="text-sm leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
               In this app: federal income tax plus payroll tax, divided by total income.
             </dd>
           </div>
           <div>
-            <dt class="text-sm font-semibold" style={{ color: "var(--text)" }}>
+            <dt class="text-sm font-semibold" style={{ color: "var(--color-foreground)" }}>
               Take-home pay
             </dt>
-            <dd class="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            <dd class="text-sm leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
               Gross income minus modeled pre-tax benefits, federal income tax, and payroll tax.
             </dd>
           </div>
           <div>
-            <dt class="text-sm font-semibold" style={{ color: "var(--text)" }}>
+            <dt class="text-sm font-semibold" style={{ color: "var(--color-foreground)" }}>
               Ordinary taxable income
             </dt>
-            <dd class="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            <dd class="text-sm leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
               Wages, other ordinary income, and short-term gains remaining after modeled deductions.
             </dd>
           </div>
           <div>
-            <dt class="text-sm font-semibold" style={{ color: "var(--text)" }}>
+            <dt class="text-sm font-semibold" style={{ color: "var(--color-foreground)" }}>
               Long-term taxable income
             </dt>
-            <dd class="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            <dd class="text-sm leading-relaxed" style={{ color: "var(--color-muted-foreground)" }}>
               Long-term capital gains remaining after any deduction that is left over after reducing ordinary income.
             </dd>
           </div>

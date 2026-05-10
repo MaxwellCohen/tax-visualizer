@@ -1,13 +1,13 @@
 import type { ChartStyle, ConfigItem } from "../types";
 
 export const DEFAULT_CHART_STYLE: Required<ChartStyle> = {
-  fill: "var(--chart-default)",
-  stroke: "var(--sankey-link)",
+  fill: "var(--color-chart-default)",
+  stroke: "var(--color-sankey-link)",
 };
 
 export const TAX_CHART_STYLE: Required<ChartStyle> = {
-  fill: "var(--chart-tax)",
-  stroke: "var(--chart-tax)",
+  fill: "var(--color-chart-tax)",
+  stroke: "var(--color-chart-tax)",
 };
 
 export function resolveChartStyle(item: Pick<ConfigItem, "chartStyle">): Required<ChartStyle> {

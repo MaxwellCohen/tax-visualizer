@@ -41,7 +41,7 @@ export function SankeyLinkPaths(props: Props) {
               text-anchor="middle"
               font-size="8"
               font-family="var(--font-body)"
-              fill="var(--sankey-label)"
+              fill="var(--color-sankey-label)"
               pointer-events="none"
             >
              {`${amount}`} 

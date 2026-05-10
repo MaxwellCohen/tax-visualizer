@@ -4,7 +4,7 @@ export function FormFieldValidationMessage(props: { message: Accessor<string | u
   const msg = () => props.message();
   return (
     <Show when={msg()}>
-      <p class="mt-1 text-xs text-(--warning-text)">{msg()}</p>
+      <p class="mt-1 text-xs text-(--color-warning-text)">{msg()}</p>
     </Show>
   );
 }
