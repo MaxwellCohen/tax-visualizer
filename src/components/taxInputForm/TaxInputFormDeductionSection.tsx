@@ -9,7 +9,8 @@ import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { ItemizedDeductionSourceRow } from "~/components/taxInputForm/ItemizedDeductionSourceFields";
 import { useTaxInputCommitToUrl } from "~/components/taxInputForm/taxInputFormCommitUrlContext";
 import { AddLineHeaderControls, AddLineMobileControls } from "~/components/taxInputForm/AddLineControls";
-import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
+import { taxInputFormTableThClass } from "~/components/taxInputForm/shared";
+import { money } from "~/lib/moneyFormat";
 import {
   indexOfTypedRowById,
   rowIdsForTypedRows,

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
-import { getTaxYearConfig } from "~/lib/taxData";
+import { getTaxYearConfig } from "~/lib/taxData.accessors.impl";
 import { calculateAllConfigValues, type CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
-import { SankeyLink } from "~/lib/config/page/Page.config";
+import type { SankeyLink } from "~/lib/config/page/pageConfig.types";
 import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import { incomeSourcesToRows } from "~/lib/taxForm.factories";
 import type { TaxFormData } from "~/lib/taxForm.types";

@@ -1,7 +1,7 @@
 import { getFilingStatusFromRows, getTaxYearFromRows } from "~/lib/taxCalc.inputs";
 import { capAmountsTo402gPool, finiteAmount } from "~/lib/taxCalc.pretaxBenefitSource";
 import type { TaxFormData, TaxFormRow } from "~/lib/taxForm.types";
-import { getTaxYearConfig } from "~/lib/taxData";
+import { getTaxYearConfig } from "~/lib/taxData.accessors.impl";
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import { buildValidationContext, findInputItemForKind } from "~/lib/config/page/Page.config";
 

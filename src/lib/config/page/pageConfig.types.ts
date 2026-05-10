@@ -1,6 +1,6 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { TaxFormRow } from "~/lib/taxForm.types";
-import { ValidationContext, YearValues } from "..";
+import type { ValidationContext, YearValues } from "~/lib/config/types";
 
 type ValidationResult = {
     valid: boolean;
@@ -36,17 +36,16 @@ export type InputRowSettings = {
     showWhen?: (ctx: { filingStatus: FilingStatus; taxYear: number; isJoint?: boolean }) => boolean;
 };
 
-export type SankeyLink = {
-    source: string;
-    target: string;
-    row: number;
-    col: number;
-};
-
 export type SankeyNode = {
     row: number;
     col: number;
 };
+
+export type SankeyLink = {
+    source: string;
+    target: string;
+} & SankeyNode;
+
 
 export type ChartRole =
     | "income"

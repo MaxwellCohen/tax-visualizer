@@ -1,8 +1,8 @@
 /** Ending metrics: take-home pay, effective tax rate, marginal federal rate. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import type { ConfigItem } from "./pageConfig.types";
+import { totalIncome } from "./pageConfig.inputs";
 import {
-    totalIncome,
     calculateTaxBrackets,
     getStandardDeductionWithoutPayrollTax,
     getItemizedDeductionsWithoutPayrollTax,

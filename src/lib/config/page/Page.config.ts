@@ -1,5 +1,5 @@
 import type { ValidationContext } from "~/lib/config/types";
-import { getYearValues } from "~/lib/config/yearValues";
+import { getYearValues } from "~/lib/config/yearValues/index";
 import type { FilingStatus, TaxYearConfig } from "~/lib/taxData.types";
 import { makeCreditInputsConfig } from "./creditInputs";
 import { makeDeductionInputsConfig, makePayrollFromWagesInputConfig, makePayrollTaxInputConfig } from "./deductionInputs";
@@ -18,8 +18,6 @@ import type {
     TaxInputFormSectionDefinition,
     TaxInputFormSectionKey,
 } from "./pageConfig.types";
-
-export type { SankeyLink, ConfigItem } from "./pageConfig.types";
 
 /** Ordered tax input sections: edit this list to reorder or drop line-item groups; `settings` is special-cased in UI. */
 const TAX_INPUT_FORM_SECTIONS: readonly TaxInputFormSectionDefinition[] = [

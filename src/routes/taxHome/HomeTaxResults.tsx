@@ -6,7 +6,7 @@ import TaxSummary from "~/components/TaxSummary";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import { TaxYearInvalid } from "./TaxYearInvalid";
 import { getFilingStatusFromRows, getTaxYearFromRows } from "~/lib/taxCalc.inputs";
-import { getTaxYearConfig } from "~/lib/taxData";
+import { getTaxYearConfig } from "~/lib/taxData.accessors.impl";
 import { calculateAllConfigValues, type CalculatedConfigItem } from "~/lib/taxCalc.calculateTaxes";
 type HomeTaxResultsProps = {
   taxInput: Accessor<TaxFormData>;

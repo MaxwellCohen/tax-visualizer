@@ -1,5 +1,5 @@
 import { createMemo, createSignal, type Accessor } from "solid-js";
-import { validateLineItemAmount } from "~/lib/config";
+import { validateLineItemAmount } from "~/lib/config/page/Page.config";
 import type { ValidationContext } from "~/lib/config/types";
 import { indexOfTypedRowById } from "~/lib/taxForm.rows";
 import type {

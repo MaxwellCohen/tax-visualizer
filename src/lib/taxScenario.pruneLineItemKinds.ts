@@ -1,11 +1,5 @@
 import { getAllowedLineItemKindSets } from "~/lib/config/page/allowedInputKinds";
-import {
-  DEFAULT_FEDERAL_CREDIT_KIND,
-  DEFAULT_INCOME_KIND,
-  DEFAULT_ITEMIZED_DEDUCTION_KIND,
-  DEFAULT_PRETAX_BENEFIT_KIND,
-} from "~/lib/config/page/inputKindKeys";
-import { getTaxYearConfig } from "~/lib/taxData";
+import { getTaxYearConfig } from "~/lib/taxData.accessors.impl";
 import { getFilingStatusFromRows, getTaxYearFromRows } from "~/lib/taxCalc.inputs";
 import type { TaxFormRow } from "~/lib/taxForm.types";
 import { incomeRowIndices, settingRowIndex } from "~/lib/taxForm.rows";
@@ -16,35 +10,66 @@ import {
   newPretaxRow,
 } from "~/lib/taxForm.factories";
 
+type LineItemRowType = Exclude<TaxFormRow["type"], "setting">;
+type LineItemRow = Extract<TaxFormRow, { type: LineItemRowType }>;
+type AllowedLineItemKindSets = ReturnType<typeof getAllowedLineItemKindSets>;
+
+const LINE_ITEM_ROW_TYPES = ["income", "pretax", "deduction", "credit"] as const satisfies readonly LineItemRowType[];
+
+const defaultLineItemRows = {
+  income: newIncomeRow,
+  pretax: newPretaxRow,
+  deduction: newDeductionRow,
+  credit: newCreditRow,
+} satisfies Record<LineItemRowType, () => LineItemRow>;
+
+function insertionIndexForMissingRow(rows: TaxFormRow[], rowType: LineItemRowType): number {
+  if (rowType === "income") {
+    const filingStatusIndex = settingRowIndex(rows, "filingStatus");
+    return filingStatusIndex >= 0 ? filingStatusIndex + 1 : 0;
+  }
+
+  if (rowType === "pretax") {
+    const incomeIndices = incomeRowIndices(rows);
+    const filingStatusIndex = settingRowIndex(rows, "filingStatus");
+    return incomeIndices.length > 0 ? incomeIndices[incomeIndices.length - 1]! + 1 : filingStatusIndex + 1;
+  }
+
+  if (rowType === "deduction") {
+    const useItemizedDeductionsIndex = settingRowIndex(rows, "useItemizedDeductions");
+    return useItemizedDeductionsIndex >= 0 ? useItemizedDeductionsIndex + 1 : rows.length;
+  }
+
+  return rows.length;
+}
+
+function ensureLineItemMinimum(rows: TaxFormRow[], rowType: LineItemRowType): void {
+  if (rows.some((row) => row.type === rowType)) return;
+
+  rows.splice(insertionIndexForMissingRow(rows, rowType), 0, defaultLineItemRows[rowType]());
+}
+
 function ensureLineItemMinimums(rows: TaxFormRow[]): TaxFormRow[] {
   const result = [...rows];
 
-  if (!result.some((r) => r.type === "income")) {
-    const i = settingRowIndex(result, "filingStatus");
-    const at = i >= 0 ? i + 1 : 0;
-    result.splice(at, 0, newIncomeRow({ kind: DEFAULT_INCOME_KIND }));
-  }
-  if (!result.some((r) => r.type === "pretax")) {
-    const inc = incomeRowIndices(result);
-    const at =
-      inc.length > 0 ? inc[inc.length - 1]! + 1 : settingRowIndex(result, "filingStatus") + 1;
-    result.splice(at, 0, newPretaxRow({ kind: DEFAULT_PRETAX_BENEFIT_KIND }));
-  }
-  if (!result.some((r) => r.type === "deduction")) {
-    const ui = settingRowIndex(result, "useItemizedDeductions");
-    const at = ui >= 0 ? ui + 1 : result.length;
-    result.splice(at, 0, newDeductionRow({ kind: DEFAULT_ITEMIZED_DEDUCTION_KIND }));
-  }
-  if (!result.some((r) => r.type === "credit")) {
-    result.push(newCreditRow({ kind: DEFAULT_FEDERAL_CREDIT_KIND }));
+  for (const rowType of LINE_ITEM_ROW_TYPES) {
+    ensureLineItemMinimum(result, rowType);
   }
 
   return result;
 }
 
+function isLineItemRow(row: TaxFormRow): row is LineItemRow {
+  return row.type !== "setting";
+}
+
+function isAllowedLineItemRow(row: LineItemRow, allowed: AllowedLineItemKindSets): boolean {
+  return allowed[row.type].has(row.kind);
+}
+
 /**
  * Drops line-item rows whose `kind` is not allowed for the current tax year and filing status.
- * Ensures at least one income, pretax, deduction, and credit row (defaults from `inputKindKeys`).
+ * Ensures at least one income, pretax, deduction, and credit row.
  */
 export function pruneDisallowedLineItemKinds(rows: TaxFormRow[]): TaxFormRow[] {
   const taxYear = getTaxYearFromRows(rows);
@@ -55,30 +80,7 @@ export function pruneDisallowedLineItemKinds(rows: TaxFormRow[]): TaxFormRow[] {
   }
 
   const allowed = getAllowedLineItemKindSets(config, filingStatus);
-  const out: TaxFormRow[] = [];
-
-  for (const row of rows) {
-    if (row.type === "setting") {
-      out.push(row);
-      continue;
-    }
-    if (row.type === "income") {
-      if (allowed.income.has(row.kind)) out.push(row);
-      continue;
-    }
-    if (row.type === "pretax") {
-      if (allowed.pretax.has(row.kind)) out.push(row);
-      continue;
-    }
-    if (row.type === "deduction") {
-      if (allowed.deduction.has(row.kind)) out.push(row);
-      continue;
-    }
-    if (row.type === "credit") {
-      if (allowed.credit.has(row.kind)) out.push(row);
-      continue;
-    }
-  }
+  const out = rows.filter((row) => !isLineItemRow(row) || isAllowedLineItemRow(row, allowed));
 
   return ensureLineItemMinimums(out);
 }

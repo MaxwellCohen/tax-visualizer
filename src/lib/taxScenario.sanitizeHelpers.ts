@@ -1,4 +1,4 @@
-import type { FilingStatus } from "~/lib/taxData";
+import type { FilingStatus } from "~/lib/taxData.types";
 import type { TaxFormData } from "~/lib/taxForm.types";
 import {
   newCreditRow,

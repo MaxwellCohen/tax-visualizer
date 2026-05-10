@@ -1,5 +1,5 @@
 import { createMemo, type Accessor, type Setter } from "solid-js";
-import { buildValidationContext } from "~/lib/config";
+import { buildValidationContext } from "~/lib/config/page/Page.config";
 import {
   getFilingStatusFromRows,
   getTaxYearFromRows,

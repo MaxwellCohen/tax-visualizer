@@ -14,7 +14,7 @@ import {
   taxInputFormTableTrClass,
 } from "~/components/taxInputForm/shared";
 import { FormFieldValidationMessage } from "~/components/taxInputForm/FormFieldValidationMessage";
-import { getInputItemsForSection } from "~/lib/config";
+import { getInputItemsForSection } from "~/lib/config/page/Page.config";
 import type { ValidationContext } from "~/lib/config/types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
 import type { ConfigItem } from "~/lib/config/page/pageConfig.types";

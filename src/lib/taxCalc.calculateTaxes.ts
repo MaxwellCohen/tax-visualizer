@@ -1,6 +1,7 @@
 import type { TaxFormData } from "~/lib/taxForm.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
-import { getConfigItems, type ConfigItem } from "~/lib/config/page/Page.config";
+import { getConfigItems } from "~/lib/config/page/Page.config";
+import type { ConfigItem } from "~/lib/config/page/pageConfig.types";
 
 export type CalculatedConfigItem = ConfigItem & { computedValue: number };
 export type CalculatedConfigValueMap = Map<string, number>;

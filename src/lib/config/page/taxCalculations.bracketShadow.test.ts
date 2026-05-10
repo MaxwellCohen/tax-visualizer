@@ -8,7 +8,7 @@ import {
     
 } from "~/lib/config/page/taxCalculations";
 import { childTaxCredit } from "~/lib/config/page/pageConfig.inputs";
-import { getTaxYearConfig } from "~/lib/taxData";
+import { getTaxYearConfig } from "~/lib/taxData.accessors.impl";
 import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import { incomeSourcesToRows } from "~/lib/taxForm.factories";
 

@@ -2,7 +2,7 @@ import type { TaxFormData } from "~/lib/taxForm.types";
 import {
   
   serializeScenarioInput,
-} from "~/lib/taxScenario";
+} from "~/lib/taxScenario.serialize";
 import {
   SCENARIO_QUERY_PARAM,
 } from "~/lib/taxScenario.keys.constants"

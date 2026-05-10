@@ -17,8 +17,6 @@ import {
     totalDeductions,
 } from "./pageConfig.inputs";
 
-export * from "./pageConfig.inputs";
-
 type PayrollTaxBreakdown = {
     socialSecurityTax: number;
     medicareTax: number;

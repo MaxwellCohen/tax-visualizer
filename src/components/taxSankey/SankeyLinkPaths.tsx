@@ -2,7 +2,7 @@ import { For } from "solid-js";
 import type { SankeyGraph } from "d3-sankey";
 import { sankeyLinkPath, type ChartLink, type ChartNode } from "~/components/taxSankey/chartTypes";
 import { linkStroke } from "~/components/taxSankey/sankeyColors";
-import { money } from "~/components/taxInputForm/shared";
+import { money } from "~/lib/moneyFormat";
 
 type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
 

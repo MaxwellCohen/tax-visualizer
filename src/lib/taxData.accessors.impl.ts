@@ -1,4 +1,4 @@
-import { getYearValues, YEAR_VALUES_BY_YEAR } from "~/lib/config/yearValues";
+import { getYearValues, YEAR_VALUES_BY_YEAR } from "~/lib/config/yearValues/index";
 import { getTaxYearStatus, yearValuesToTaxYearConfig } from "~/lib/taxData.fromYearValues";
 import type {
   FederalTaxCreditCaps,

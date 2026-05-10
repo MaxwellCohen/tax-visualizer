@@ -8,7 +8,8 @@ import type { ValidationContext } from "~/lib/config/types";
 import { sumLabeledAmountSources } from "~/lib/taxCalc.labeledAmountSource";
 import { FederalTaxCreditSourceRow } from "~/components/taxInputForm/FederalTaxCreditSourceFields";
 import { AddLineHeaderControls, AddLineMobileControls } from "~/components/taxInputForm/AddLineControls";
-import { money, taxInputFormTableThClass } from "~/components/taxInputForm/shared";
+import { taxInputFormTableThClass } from "~/components/taxInputForm/shared";
+import { money } from "~/lib/moneyFormat";
 import { indexOfTypedRowById, rowIdsForTypedRows } from "~/lib/taxForm.rows";
 import { childTaxCredit } from "~/lib/config/page/pageConfig.inputs";
 

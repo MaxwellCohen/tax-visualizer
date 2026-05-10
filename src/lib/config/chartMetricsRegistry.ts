@@ -16,7 +16,8 @@ import type {
 } from "~/lib/taxForm.types";
 import type { TaxCalculationInputs } from "~/lib/taxConfig.types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/taxData.types";
-import { getConfigItems, type ConfigItem } from "./page/Page.config";
+import { getConfigItems } from "./page/Page.config";
+import type { ConfigItem } from "./page/pageConfig.types";
 import { asSummaryChartRole, type SummaryChartRole } from "./page/chartRole";
 
 type ChartMetricValueKind = "number";

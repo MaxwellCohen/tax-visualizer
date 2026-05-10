@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { computeTaxMetricLines } from "~/lib/config/chartMetricsRegistry";
 import { baseInput, withPretaxTotals } from "~/lib/taxCalc.test.helpers";
 import { rowsToTaxCalculationInputs } from "~/lib/taxCalc.inputs";
-import { getTaxYearConfig } from "~/lib/taxData";
+import { getTaxYearConfig } from "~/lib/taxData.accessors.impl";
 
 describe("chartMetricsRegistry", () => {
   it("aggregates pre-tax rows using full PretaxBenefitKind strings (401(k) and traditional IRA)", () => {

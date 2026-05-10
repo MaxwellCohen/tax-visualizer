@@ -5,8 +5,8 @@ import { HomeTaxResults } from "~/routes/taxHome/HomeTaxResults";
 import ScenarioTools from "~/components/ScenarioTools";
 import TaxInputForm from "~/components/TaxInputForm";
 import type { TaxFormData } from "~/lib/taxForm.types"
-import { getAvailableTaxYears } from "~/lib/taxData";
-import { getScenarioPresets } from "~/lib/taxScenario";
+import { getAvailableTaxYears } from "~/lib/taxData.accessors.impl";
+import { getScenarioPresets } from "~/lib/taxScenario.serialize";
 import { starterScenario } from "~/routes/taxHome/scenarioInit";
 import { useSearchParams } from "@solidjs/router";
 import { deserializeScenarioInputFromSearchParams, serializeScenarioInput } from "~/lib/taxScenario.serialize";

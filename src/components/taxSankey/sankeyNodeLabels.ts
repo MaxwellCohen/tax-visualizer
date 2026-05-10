@@ -1,5 +1,5 @@
 import type { ChartNode } from "~/components/taxSankey/chartTypes";
-import { money as sankeyMoney } from "~/components/taxInputForm/shared";
+import { money as sankeyMoney } from "~/lib/moneyFormat";
 
 type SankeyLabelLines = {
   title: string;

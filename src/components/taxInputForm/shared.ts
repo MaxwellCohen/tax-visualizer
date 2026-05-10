@@ -1,4 +1,4 @@
-import type { FilingStatus } from "~/lib/taxData";
+import type { FilingStatus } from "~/lib/taxData.types";
 import type { ConfigItem, SubcategoryConfig } from "~/lib/config/page/pageConfig.types";
 
 type SelectOption = { value: string; label: string };
@@ -51,8 +51,6 @@ export const removeAllBtnClass =
 /** Helper text under pre-tax numeric fields (401(k), HSA, IRA). */
 export const pretaxFieldCaptionClass =
   "text-[0.65rem] font-normal normal-case tracking-normal";
-
-export { money } from "~/lib/moneyFormat";
 
 function isSecondSpouseSubKey(key: string): boolean {
   return key.toLowerCase().includes("spouse2");
