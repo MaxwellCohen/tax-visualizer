@@ -95,7 +95,7 @@ const getDeductionsWithoutPayrollTax = (inputs: TaxFormRow[], taxData: TaxYearCo
     return getStandardDeductionWithoutPayrollTax(inputs, taxData, filingStatus);
 }
 
-export function getOrdinaryBrackets(taxData: TaxYearConfig, filingStatus: FilingStatus): FederalTaxBracket[] {
+function getOrdinaryBrackets(taxData: TaxYearConfig, filingStatus: FilingStatus): FederalTaxBracket[] {
     return taxData.federalBrackets[filingStatus];
 }
 
@@ -148,7 +148,7 @@ const taxableIncomeAfterDeductions = (inputs: TaxFormRow[], taxData: TaxYearConf
  * Per-bracket ordinary dollars after `payrollBracketShadowFill` consumes width from the lowest
  * brackets first. The top (open-ended) bracket does not absorb shadow width.
  */
-export function ordinaryIncomeSlicesWithPayrollShadow(
+function ordinaryIncomeSlicesWithPayrollShadow(
     ordinaryTaxable: number,
     brackets: readonly FederalTaxBracket[],
     payrollBracketShadowFill: number,

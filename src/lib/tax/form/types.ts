@@ -1,8 +1,4 @@
 import type { FilingStatus } from "~/lib/tax/data/types";
-import type {
-  DeductionKind,
-  TaxSegment,
-} from "~/lib/tax/calc/types";
 
 /** Single setting key in the form row list */
 export type TaxFormSettingId =
@@ -61,19 +57,6 @@ export type TaxFormRow =
 
 export type TaxFormData = {
   rows: TaxFormRow[];
-};
-
-/** How a single registry metric stores its computed value on a line. */
-export type TaxMetricValueKind = "number" | "deductionKind";
-
-export type TaxMetricComputedValue = number | TaxSegment[] | DeductionKind;
-
-/** One evaluated chart metric line (canonical pipeline output). */
-export type TaxMetricLine = {
-  id: string;
-  metricsKey: string;
-  valueKind: TaxMetricValueKind;
-  value: TaxMetricComputedValue;
 };
 
 

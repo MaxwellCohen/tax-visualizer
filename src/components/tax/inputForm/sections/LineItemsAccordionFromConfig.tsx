@@ -10,7 +10,7 @@ function LineItemsMutedParagraph(props: { text: string }) {
   return <p class="text-xs leading-relaxed text-muted-foreground">{props.text}</p>;
 }
 
-export type LineItemsAccordionUiConfig = {
+type LineItemsAccordionUiConfig = {
   title: string;
   descriptionText: string;
   addLabel: string;
@@ -90,7 +90,7 @@ type LineItemsAccordionFromConfigDynamic = Pick<
   | "configItems"
 >;
 
-export type LineItemsAccordionFromConfigProps = {
+type LineItemsAccordionFromConfigProps = {
   ui: LineItemsAccordionUiConfig;
 } & LineItemsAccordionFromConfigDynamic;
 
