@@ -2,7 +2,6 @@
 /** Deduction-related config nodes: 0% tax brackets (standard/itemized), deduction amounts, mekko slices. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
-import { getCreditsSankeyRow } from "../sankey/sankeyLayout.helpers";
 import {
     calculateTaxableIncome,
     calculatePayrollTax,
@@ -98,12 +97,6 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             chartRole: "credit",
             chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
             labels: { default: "Federal Credits Applied", compact: "Credits Applied" },
-            sankey: {
-                node: (() => {
-                    const row = getCreditsSankeyRow(_taxData, _filingStatus);
-                    return { row, col: 3 };
-                })(),
-            },
             calculate: (inputs, taxData, filingStatus) => computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
             summary: {
                 displayOrder: 5.5,

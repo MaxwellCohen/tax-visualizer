@@ -10,8 +10,8 @@ import {
 import { nonNegativeValidator, makeYearValuesCappedValidator } from "../inputValidators";
 import { getCreditsSankeyRow } from "../sankey/sankeyLayout.helpers";
 
-export function makeCreditInputsConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
-    const row = getCreditsSankeyRow(taxData, filingStatus);
+export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
+    const row = getCreditsSankeyRow(6);
     const creditSankeyNode = { row, col: 3 } as const;
 
     return [

@@ -15,7 +15,7 @@ function getCreditLinkCreditsRow(creditsRow: number) {
 export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
     const brackets = taxData.federalBrackets[filingStatus];
     let items: ConfigItem[] = [];
-    const creditsRow = getCreditsSankeyRow(taxData, filingStatus);
+    const creditsRow = getCreditsSankeyRow(brackets.length);
     const ltcgIncomeRow = 50;
     for (let i = 0; i < brackets.length; i++) {
         const bracket = brackets[i];
@@ -43,7 +43,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
                 row: bracketRow,
                 split: { keepId: `${bracketId}-keep` },
             },
-            calculate: (inputs) => {
+            calculate: (inputs, taxData, filingStatus) => {
                 const { tax, credits, keep } = (calculateTaxBuckets(inputs, taxData, filingStatus).find(bucket => bucket.type === 'ordinary' && bucket.taxBracket?.rate === bracket.rate) ?? { tax: 0, credits: 0, keep: 0 })   ;
                 return tax + credits + keep;
             },
