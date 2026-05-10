@@ -1,6 +1,6 @@
-import type { ChartLink } from "~/components/tax/sankey/types/chartTypes";
+import type { ChartLink, ChartNode } from "~/components/tax/sankey/types/chartTypes";
 
-export function compareSankeyLinks(a: ChartLink, b: ChartLink): number {
+export function compareSankeyItemsByRowAndCol(a: ChartLink | ChartNode, b: ChartLink | ChartNode): number {
   if (!a || !b) {
     return 0;
   }

@@ -3,9 +3,31 @@ import type { SankeyGraph } from "d3-sankey";
 import type { ChartLink, ChartNode } from "~/components/tax/sankey/types/chartTypes";
 import { LABEL_RIGHT_RESERVE, SANKEY_WIDTH } from "~/components/tax/sankey/layout/dimensions";
 import { nodeFill } from "~/components/tax/sankey/style/sankeyColors";
-import { sankeyLabelLines } from "~/components/tax/sankey/labels/nodeLabels";
+import { money as sankeyMoney } from "~/lib/format/moneyFormat";
 
 type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
+
+const COMPACT_BAND_HEIGHT = 28;
+
+function sankeyLabelLines(node: ChartNode): {
+  compact: boolean;
+  title: string;
+  line1: string;
+  line2?: string;
+} {
+  const flow = node.value ?? 0;
+  const fmt = sankeyMoney.format(flow);
+  const h = Math.max(0, (node.y1 ?? 0) - (node.y0 ?? 0));
+  const { labels, description } = node;
+  const primary = labels.default;
+  const shortLabel = labels.compact ?? labels.default;
+  const title = description ?? labels.summary ?? `${primary}, ${fmt}`;
+
+  if (h < COMPACT_BAND_HEIGHT) {
+    return { compact: true, title, line1: `${shortLabel} · ${fmt}` };
+  }
+  return { compact: false, title, line1: primary, line2: fmt };
+}
 
 export function SankeyNodeRects(props: Props) {
   const width = SANKEY_WIDTH;
@@ -57,7 +79,7 @@ export function SankeyNodeRects(props: Props) {
               >
                 <title>{lines.title}</title>
                 <tspan x={labelX} dy="-0.55em">
-                  {node.label}
+                  {lines.line1}
                 </tspan>
                 {lines.line2 != null ? (
                   <tspan

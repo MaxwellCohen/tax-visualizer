@@ -4,11 +4,25 @@ import { sankey } from "d3-sankey";
 import type { SankeyGraph } from "d3-sankey";
 import { SankeyChartSvg } from "~/components/tax/sankey/svg/SankeyChartSvg";
 import type { ChartLink, ChartNode } from "~/components/tax/sankey/types/chartTypes";
-import { compareSankeyLinks } from "~/components/tax/sankey/compare/compareSankeyLinks";
-import { compareSankeySiblings } from "~/components/tax/sankey/compare/compareSankeySiblings";
+import { compareSankeyItemsByRowAndCol } from "~/components/tax/sankey/compare/compareSankeyLinks";
 import { SANKEY_HEIGHT, SANKEY_WIDTH } from "~/components/tax/sankey/layout/dimensions";
 import { resolveChartStyle } from "~/lib/config/taxPage/chart/chartStyle";
+import type { SankeyLink, SankeyNode } from "~/lib/config/taxPage/types";
 import type { CalculatedConfigItem } from "~/lib/tax/calc/calculateTaxes";
+
+type ClonedSankeyLink = SankeyLink & {
+  value: number;
+  fill: string;
+  stroke: string;
+};
+
+type ClonedSankeyNode = Partial<SankeyNode> & {
+  id: string;
+  labels: CalculatedConfigItem["labels"];
+  description?: string;
+  fill: string;
+  stroke: string;
+};
 
 type TaxSankeyProps = {
   calculatedConfig: Accessor<CalculatedConfigItem[] | null>;
@@ -18,47 +32,41 @@ function makeSankeyData(cc: CalculatedConfigItem[] | null) {
   if (!cc?.length) {
     return undefined;
   }
-  const clonedLinks = cc
-    .filter(
-      (item) =>
-        item.computedValue > 0 && Boolean(item.sankey?.links?.length),
-    )
-    .flatMap((item) => {
-      const chartStyle = resolveChartStyle(item);
-      return (
-        item.sankey?.links?.map((link) => ({
-          ...link,
-          source: link.source,
-          target: link.target,
-          value: item.computedValue,
-          fill: chartStyle.fill,
-          stroke: chartStyle.stroke,
-        })) || []
-      );
-    });
+  const nodeIdSet = new Set<string>();
+  const clonedLinks = cc.reduce<ClonedSankeyLink[]>((acc, item) => {
+    if (item.computedValue <= 0 || !item.sankey?.links?.length) {
+      return acc;
+    }
+    const chartStyle = resolveChartStyle(item);
+    for (const link of item.sankey.links) {
+      nodeIdSet.add(link.source);
+      nodeIdSet.add(link.target);
+      acc.push({
+        ...link,
+        ...chartStyle,
+        value: item.computedValue,
+      });
+    }
+    return acc;
+  }, []);
 
   if (!clonedLinks.length) {
     return undefined;
   }
 
-  const nodeIdSet = new Set<string>();
-  clonedLinks.forEach((link) => {
-    nodeIdSet.add(link.source);
-    nodeIdSet.add(link.target);
-  });
-
-  const clonedNodes = cc
-    .filter((item) => nodeIdSet.has(item.id))
-    .map((item) => {
-      const chartStyle = resolveChartStyle(item);
-      return {
-        id: item.id,
-        label: item.labels.default,
-        fill: chartStyle.fill,
-        stroke: chartStyle.stroke,
-        ...item.sankey?.node,
-      };
+  const clonedNodes = cc.reduce<ClonedSankeyNode[]>((acc, item) => {
+    if (!nodeIdSet.has(item.id)) {
+      return acc;
+    }
+    acc.push({
+      id: item.id,
+      labels: item.labels,
+      description: item.description,
+      ...resolveChartStyle(item),
+      ...item.sankey?.node,
     });
+    return acc;
+  }, []);
 
   if (!clonedNodes.length) {
     return undefined;
@@ -68,20 +76,20 @@ function makeSankeyData(cc: CalculatedConfigItem[] | null) {
     .nodeId((node: ChartNode) => node.id)
     .nodeWidth(18)
     .nodePadding(14)
-    .nodeSort(compareSankeySiblings)
-    .linkSort(compareSankeyLinks)
+    .nodeSort(compareSankeyItemsByRowAndCol)
+    .linkSort(compareSankeyItemsByRowAndCol)
     .iterations(32)
     .extent([
       [8, 8],
       [SANKEY_WIDTH - 8, SANKEY_HEIGHT - 8],
     ]);
 
-  const graph = sankeyGenerator({
+  return sankeyGenerator({
     nodes: clonedNodes,
     links: clonedLinks,
   } as SankeyGraph<ChartNode, ChartLink>);
 
-  return { graph };
+
 }
 
 export default function TaxSankey(props: TaxSankeyProps) {
@@ -127,7 +135,7 @@ export default function TaxSankey(props: TaxSankeyProps) {
             </p>
           }
         >
-          {(data) => <SankeyChartSvg graph={data.graph} />}
+          {(data) => <SankeyChartSvg graph={data} />}
         </Show>
       </CollapsibleBlock>
     </section>

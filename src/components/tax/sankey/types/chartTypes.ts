@@ -1,14 +1,12 @@
 import { sankeyLinkHorizontal } from "d3-sankey";
 import type { SankeyLinkMinimal, SankeyNodeMinimal } from "d3-sankey";
+import type { ConfigLabels } from "~/lib/config/taxPage/types";
 
 export interface ChartNode extends SankeyNodeMinimal<ChartNode, ChartLink> {
   id: string;
-  label: string;
-  kind: string;
-  amount?: number;
-  incomeAmount?: number;
-  taxAmount?: number;
-  marginalRate?: number;
+  labels: ConfigLabels;
+  /** Extra context for the native tooltip (`<title>`). */
+  description?: string;
   row: number;
   col: number;
   stroke?: string;
