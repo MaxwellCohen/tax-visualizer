@@ -46,5 +46,7 @@ export type ValidationContext = {
   isJoint: boolean;
   spouse1Value?: number;
   spouse2Value?: number;
+  /** Pretax/income line `kind` (subcategory key) when validating a single row. */
+  lineItemKind?: string;
 };
 

@@ -122,7 +122,7 @@ export function validateLineItemAmount(
     if (!Number.isFinite(value)) return "Enter a valid number";
     const fn = findValidateForKind(taxData, ctx.filingStatus, kind);
     if (fn) {
-        const r = fn(value, ctx);
+        const r = fn(value, { ...ctx, lineItemKind: kind });
         if (!r.valid) return r.message ?? "Invalid amount";
         return undefined;
     }

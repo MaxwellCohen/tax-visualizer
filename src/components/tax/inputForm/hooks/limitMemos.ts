@@ -25,7 +25,11 @@ export function createLimitMemos(values: Accessor<TaxFormData>) {
     return k401 + hsa + pt.preTaxOther;
   });
 
-  const maxElective401 = createMemo(() => pretaxLimits()?.electiveDeferral401k);
+  const maxElective401 = createMemo(() => {
+    const lim = pretaxLimits();
+    if (!lim) return undefined;
+    return lim.electiveDeferral401k + lim.electiveDeferral401kCatchUp;
+  });
   const maxIraContribution = createMemo(() => pretaxLimits()?.traditionalIraContribution);
   const maxHsaSpouse1 = createMemo(() => {
     const lim = pretaxLimits();

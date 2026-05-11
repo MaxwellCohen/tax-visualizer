@@ -2,7 +2,12 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
 import { _401k, _hsa, otherPretax, traditionalIra } from "../rowMetrics";
-import { nonNegativeValidator, makeYearValuesCappedValidator, makeHsaCappedValidator } from "../inputValidators";
+import {
+    nonNegativeValidator,
+    makeYearValuesCappedValidator,
+    makeElectiveDeferral401kFamilyRowValidator,
+    makeHsaCappedValidator,
+} from "../inputValidators";
 
 export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
@@ -13,22 +18,27 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             description:
                 "Elective deferrals from W-2 pay — 401(k), 403(b), and 457(b) elective deferrals share the same IRS limit per employee",
             kindDetail: {
-                limitNote: "elective deferral per employee (catch-up not modeled)",
+                limitNote:
+                    "401(k), 403(b), and age-50+ elective catch-up share the §402(g) deferral limit per employee; 457(b) is separate in IRS rules and uses the base deferral cap per row here",
             },
             input: {
                 category: "pretax",
                 displayOrder: 1,
                 inputType: "currency",
                 subcategories: [
-                    { key: "input-pretax-401K-preTax401kSpouse1", labelSingle: "401(k) deferrals", labelJoint: "401(k) deferrals" },
-                    { key: "input-pretax-401K-preTax403bSpouse1", labelSingle: "403(b) deferrals", labelJoint: "403(b) deferrals" },
-                    { key: "input-pretax-401K-preTax457bSpouse1", labelSingle: "457(b) deferrals", labelJoint: "457(b) deferrals" },
-                    { key: "input-pretax-401K-preTax401kSpouse2", labelSingle: "401(k) deferrals (2)", labelJoint: "401(k) deferrals (2)" },
-                    { key: "input-pretax-401K-preTax403bSpouse2", labelSingle: "403(b) deferrals (2)", labelJoint: "403(b) deferrals (2)" },
-                    { key: "input-pretax-401K-preTax457bSpouse2", labelSingle: "457(b) deferrals (2)", labelJoint: "457(b) deferrals (2)" },
+                    { key: "input-pretax-401K-preTax401kSpouse1", labelSingle: "401(k) deferrals", labelJoint: "401(k) deferrals (spouse 1)" },
+                    { key: "input-pretax-401K-preTax403bSpouse1", labelSingle: "403(b) deferrals", labelJoint: "403(b) deferrals (spouse 1)" },
+                    { key: "input-pretax-401K-preTax457bSpouse1", labelSingle: "457(b) deferrals", labelJoint: "457(b) deferrals (spouse 1)" },
+                    { key: "input-pretax-401K-electiveCatchUpSpouse1", labelSingle: "Age 50+ catch-up (401(k)/403(b))", labelJoint: "Age 50+ catch-up (401(k)/403(b)) (spouse 1)" },
+                    { key: "input-pretax-401K-preTax401kSpouse2", labelSingle: "401(k) deferrals (2)", labelJoint: "401(k) deferrals (spouse 2)" },
+                    { key: "input-pretax-401K-preTax403bSpouse2", labelSingle: "403(b) deferrals (2)", labelJoint: "403(b) deferrals (spouse 2)" },
+                    { key: "input-pretax-401K-preTax457bSpouse2", labelSingle: "457(b) deferrals (2)", labelJoint: "457(b) deferrals (spouse 2)" },
+                    { key: "input-pretax-401K-electiveCatchUpSpouse2", labelSingle: "Age 50+ catch-up (401(k)/403(b)) (2)", labelJoint: "Age 50+ catch-up (401(k)/403(b)) (spouse 2)" },
                 ],
-                getLimit: (yearValues) => yearValues.limits.electiveDeferral401k ?? 23000,
-                validate: makeYearValuesCappedValidator("electiveDeferral401k", 23000),
+                getLimit: (yearValues) =>
+                    (yearValues.limits.electiveDeferral401k ?? 23000) +
+                    (yearValues.limits.electiveDeferral401kCatchUp ?? 7500),
+                validate: makeElectiveDeferral401kFamilyRowValidator(23000, 7500),
             },
             calculate: _401k, 
             sankey: {
@@ -51,8 +61,8 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 displayOrder: 2,
                 inputType: "currency",
                 subcategories: [
-                    { key: "input-pretax-hsa-preTaxHsaSpouse1", labelSingle: "HSA (payroll)", labelJoint: "HSA (payroll)" },
-                    { key: "input-pretax-hsa-preTaxHsaSpouse2", labelSingle: "HSA (payroll) (2)", labelJoint: "HSA (payroll) (2)" },
+                    { key: "input-pretax-hsa-preTaxHsaSpouse1", labelSingle: "HSA (payroll)", labelJoint: "HSA (payroll) (spouse 1)" },
+                    { key: "input-pretax-hsa-preTaxHsaSpouse2", labelSingle: "HSA (payroll) (2)", labelJoint: "HSA (payroll) (spouse 2)" },
                 ],
                 getFilingStatusLimit: (yearValues, filingStatus) => {
                     const isJoint = filingStatus === "marriedJoint";
@@ -83,12 +93,12 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 inputType: "currency",
                 subcategories: [
                     { key: "input-pretax-otherPretax-preTaxOther", labelSingle: "Other payroll pre-tax", labelJoint: "Other payroll pre-tax" },
-                    { key: "input-pretax-otherPretax-preTaxHealthFsaSpouse1", labelSingle: "Health FSA (payroll)", labelJoint: "Health FSA (payroll)" },
-                    { key: "input-pretax-otherPretax-preTaxHealthFsaSpouse2", labelSingle: "Health FSA (payroll) (2)", labelJoint: "Health FSA (payroll) (2)" },
-                    { key: "input-pretax-otherPretax-preTaxDependentCareFsaSpouse1", labelSingle: "Dependent care FSA (payroll)", labelJoint: "Dependent care FSA (payroll)" },
-                    { key: "input-pretax-otherPretax-preTaxDependentCareFsaSpouse2", labelSingle: "Dependent care FSA (payroll) (2)", labelJoint: "Dependent care FSA (payroll) (2)" },
-                    { key: "input-pretax-otherPretax-preTaxCommuterSpouse1", labelSingle: "Commuter / parking (payroll)", labelJoint: "Commuter / parking (payroll)" },
-                    { key: "input-pretax-otherPretax-preTaxCommuterSpouse2", labelSingle: "Commuter / parking (payroll) (2)", labelJoint: "Commuter / parking (payroll) (2)" },
+                    { key: "input-pretax-otherPretax-preTaxHealthFsaSpouse1", labelSingle: "Health FSA (payroll)", labelJoint: "Health FSA (payroll) (spouse 1)" },
+                    { key: "input-pretax-otherPretax-preTaxHealthFsaSpouse2", labelSingle: "Health FSA (payroll) (2)", labelJoint: "Health FSA (payroll) (spouse 2)" },
+                    { key: "input-pretax-otherPretax-preTaxDependentCareFsaSpouse1", labelSingle: "Dependent care FSA (payroll)", labelJoint: "Dependent care FSA (payroll) (spouse 1)" },
+                    { key: "input-pretax-otherPretax-preTaxDependentCareFsaSpouse2", labelSingle: "Dependent care FSA (payroll) (2)", labelJoint: "Dependent care FSA (payroll) (spouse 2)" },
+                    { key: "input-pretax-otherPretax-preTaxCommuterSpouse1", labelSingle: "Commuter / parking (payroll)", labelJoint: "Commuter / parking (payroll) (spouse 1)" },
+                    { key: "input-pretax-otherPretax-preTaxCommuterSpouse2", labelSingle: "Commuter / parking (payroll) (2)", labelJoint: "Commuter / parking (payroll) (spouse 2)" },
                 ],
                 validate: nonNegativeValidator,
             },
@@ -116,8 +126,8 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 displayOrder: 4,
                 inputType: "currency",
                 subcategories: [
-                    { key: "input-pretax-traditionalIra-traditionalIraSpouse1", labelSingle: "Traditional IRA (deductible)", labelJoint: "Traditional IRA (deductible)" },
-                    { key: "input-pretax-traditionalIra-traditionalIraSpouse2", labelSingle: "Traditional IRA (deductible) (2)", labelJoint: "Traditional IRA (deductible) (2)" },
+                    { key: "input-pretax-traditionalIra-traditionalIraSpouse1", labelSingle: "Traditional IRA (deductible)", labelJoint: "Traditional IRA (deductible) (spouse 1)" },
+                    { key: "input-pretax-traditionalIra-traditionalIraSpouse2", labelSingle: "Traditional IRA (deductible) (2)", labelJoint: "Traditional IRA (deductible) (spouse 2)" },
                 ],
                 getLimit: (yearValues) => yearValues.limits["traditionalIra"] ?? 7000,
                 validate: makeYearValuesCappedValidator("traditionalIra", 7000),

@@ -7,7 +7,13 @@ export const YEAR_VALUES_2024: YearValues = {
   standardDeduction: { single: 14600, marriedJoint: 29200, marriedSeparate: 14600, headOfHousehold: 21900 },
   brackets: buildBrackets([11600, 47150, 100525, 191950, 243725, 609350], [23200, 94300, 201050, 383900, 487450, 731200], [11600, 47150, 100525, 191950, 243725, 365600], [16550, 63100, 100500, 191950, 243700, 609350]),
   ltcgThresholds: buildLtcgBrackets([47025, 518900], [94050, 583750], [47025, 291850], [63000, 566700]),
-  limits: { electiveDeferral401k: 23000, hsaSelfOnly: 4150, hsaFamily: 8300, traditionalIra: 7000 },
+  limits: {
+    electiveDeferral401k: 23000,
+    electiveDeferral401kCatchUp: 7500,
+    hsaSelfOnly: 4150,
+    hsaFamily: 8300,
+    traditionalIra: 7000,
+  },
   caps: {
     salt: { single: 10000, marriedJoint: 10000, marriedSeparate: 5000, headOfHousehold: 10000 },
     credits: { childTaxCredit: 40000, creditForOtherDependents: 10000, childAndDependentCare: 8000, educationCredits: 10000, retirementSavingsContributions: 2000, foreignTaxCredit: 9000000000, residentialCleanEnergy: 100000, electricVehicleCredit: 40000, generalBusinessCredit: 1000000, otherFederalCredit: 2000000 },

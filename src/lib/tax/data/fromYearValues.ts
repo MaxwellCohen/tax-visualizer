@@ -47,6 +47,7 @@ export function yearValuesToTaxYearConfig(yv: YearValues, status: "final" | "pla
     },
     pretaxLimits: {
       electiveDeferral401k: yv.limits.electiveDeferral401k,
+      electiveDeferral401kCatchUp: yv.limits.electiveDeferral401kCatchUp ?? 7500,
       hsaSelfOnly: yv.limits.hsaSelfOnly,
       hsaFamily: yv.limits.hsaFamily,
       traditionalIraContribution: yv.limits.traditionalIra,

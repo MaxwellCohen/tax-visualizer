@@ -44,7 +44,7 @@ export const incomeSectionUi: LineItemsAccordionUiConfig = {
 export const preTaxSectionUi: LineItemsAccordionUiConfig = {
   title: "Pre-tax benefits",
   descriptionText:
-    "Choose a benefit type and amount per row (optional labels are for your notes). Payroll lines apply only to W-2 wages; totals above wages are scaled down. IRS contribution limits for the selected year are enforced automatically (age-50+ catch-up is not modeled).",
+    "Choose a benefit type and amount per row (optional labels are for your notes). Payroll lines apply only to W-2 wages; totals above wages are scaled down. IRS contribution limits for the selected year are enforced automatically, including age-50+ §402(g) deferral catch-up on its own row.",
   addLabel: "Add benefit",
   kindColumnHeader: "Type",
   labelColumnHeader: "Label (optional)",

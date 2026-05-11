@@ -20,7 +20,7 @@ export function capAmountsTo402gPool(amounts: number[], limit: number): number[]
   return out;
 }
 
-/** IRS §402(g) elective deferral limit applies to combined 401(k)+403(b) per employee, not each line item. */
+/** IRS §402(g) elective deferral limit applies to combined 401(k)+403(b)+age-50+ catch-up per employee, not each line item. */
 function applyElectiveDeferral402gLimit(raw401: number, raw403: number, limit: number): [number, number] {
   const sum = raw401 + raw403;
   if (sum <= 0) return [0, 0];
@@ -43,6 +43,8 @@ export function aggregatePretaxFromSources(sources: PretaxBenefitSource[], joint
   let raw403s2 = 0;
   let raw457s1 = 0;
   let raw457s2 = 0;
+  let rawCatch1 = 0;
+  let rawCatch2 = 0;
   let rawHsa1 = 0;
   let rawHsa2 = 0;
   let rawOther = 0;
@@ -53,7 +55,10 @@ export function aggregatePretaxFromSources(sources: PretaxBenefitSource[], joint
     const kind = (src.kind as string).toLowerCase();
     const amount = finiteAmount(src.amount);
 
-    if (kind.includes("401k")) {
+    if (kind.includes("electivecatchup")) {
+      if (kind.includes("spouse2") && joint) rawCatch2 += amount;
+      else rawCatch1 += amount;
+    } else if (kind.includes("401k")) {
       if (kind.includes("spouse2") && joint) raw401s2 += amount;
       else raw401s1 += amount;
     } else if (kind.includes("403b")) {
@@ -74,11 +79,17 @@ export function aggregatePretaxFromSources(sources: PretaxBenefitSource[], joint
   }
 
   const config = getTaxYearConfig(taxYear);
-  const electiveLimit = config?.pretaxLimits.electiveDeferral401k ?? 23_000;
+  const baseLimit = config?.pretaxLimits.electiveDeferral401k ?? 23_000;
+  const catchUpLimit = config?.pretaxLimits.electiveDeferral401kCatchUp ?? 7_500;
+  const elective402gLimit = baseLimit + catchUpLimit;
 
-  const [preTax401kSpouse1, preTax403bSpouse1] = applyElectiveDeferral402gLimit(raw401s1, raw403s1, electiveLimit);
+  const [preTax401kSpouse1, preTax403bSpouse1] = applyElectiveDeferral402gLimit(
+    raw401s1 + rawCatch1,
+    raw403s1,
+    elective402gLimit,
+  );
   const [preTax401kSpouse2, preTax403bSpouse2] = joint
-    ? applyElectiveDeferral402gLimit(raw401s2, raw403s2, electiveLimit)
+    ? applyElectiveDeferral402gLimit(raw401s2 + rawCatch2, raw403s2, elective402gLimit)
     : [0, 0];
 
   return {

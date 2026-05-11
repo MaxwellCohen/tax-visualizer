@@ -25,7 +25,28 @@ export const makeYearValuesCappedValidator = (
     };
 };
 
-/** Cap from {@link YearValues.caps.credits} (e.g. saver's credit entry limit). */
+const electiveCatchUpKindToken = "electivecatchup";
+
+/**
+ * Caps 401(k)/403(b)/457(b) rows at the base elective limit, and age-50+ §402(g) catch-up rows at the catch-up limit.
+ * Uses optional lineItemKind on the context (set when validating line items in the tax input form).
+ */
+export const makeElectiveDeferral401kFamilyRowValidator = (
+    baseFallback: number,
+    catchUpFallback: number,
+): ValidationFn => {
+    return (value: number, ctx: ValidationContext) => {
+        const kind = (ctx.lineItemKind ?? "").toLowerCase();
+        const base = ctx.yearValues.limits.electiveDeferral401k ?? baseFallback;
+        const catchUp = ctx.yearValues.limits.electiveDeferral401kCatchUp ?? catchUpFallback;
+        const limit = kind.includes(electiveCatchUpKindToken) ? catchUp : base;
+        if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
+        if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+        return { valid: true };
+    };
+};
+
+/** Cap from yearValues.caps.credits (e.g. saver's credit entry limit). */
 export const makeCreditsCappedValidator = (key: string, fallback: number): ValidationFn => {
     return (value: number, ctx: ValidationContext) => {
         const limit = ctx.yearValues.caps.credits[key] ?? fallback;

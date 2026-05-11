@@ -30,7 +30,7 @@ function clampRowsWithConfigValidation(
     const validate = findInputItemForKind(taxData, filingStatus, row.kind)?.input?.validate;
     if (!validate) return row;
 
-    const result = validate(row.amount, ctx);
+    const result = validate(row.amount, { ...ctx, lineItemKind: row.kind });
     return !result.valid && typeof result.clampedValue === "number" && Number.isFinite(result.clampedValue)
       ? { ...row, amount: result.clampedValue }
       : row;
@@ -47,12 +47,13 @@ export function clampTaxFormData(data: TaxFormData): TaxFormData {
   }
 
   const joint = filingStatus === "marriedJoint";
-  const electiveCap = config.pretaxLimits.electiveDeferral401k;
+  const lim = config.pretaxLimits;
+  const electiveCap = lim.electiveDeferral401k + lim.electiveDeferral401kCatchUp;
   const pooledRows = applyElectiveDeferral402gClampToRows(finiteRows, electiveCap, joint);
   return { rows: clampRowsWithConfigValidation(pooledRows, config, taxYear, filingStatus) };
 }
 
-/** §402(g): combined cap for all 401(k)+403(b) lines per spouse (not per row). */
+/** §402(g): combined cap for 401(k), 403(b), and age-50+ catch-up per spouse (457(b) excluded from this pool). */
 function applyElectiveDeferral402gClampToRows(
   rows: TaxFormRow[],
   electiveLimit: number,
@@ -64,7 +65,8 @@ function applyElectiveDeferral402gClampToRows(
   out.forEach((row, i) => {
     if (row.type !== "pretax") return;
     const k = (row.kind as string).toLowerCase();
-    if (!k.includes("401k") && !k.includes("403b")) return;
+    if (k.includes("457")) return;
+    if (!k.includes("401k") && !k.includes("403b") && !k.includes("electivecatchup")) return;
     if (k.includes("spouse2")) {
       if (joint) idxS2.push(i);
     } else {

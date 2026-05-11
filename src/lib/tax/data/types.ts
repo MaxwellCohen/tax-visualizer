@@ -41,9 +41,11 @@ export type NiitRules = {
 export type PretaxBenefitLimits = {
   /** 401(k)/403(b)/457(b) elective deferral limit per employee. */
   electiveDeferral401k: number;
+  /** Additional §402(g) elective deferral for age 50+ (combined with 401(k)/403(b) in the model). */
+  electiveDeferral401kCatchUp: number;
   hsaSelfOnly: number;
   hsaFamily: number;
-  /** Traditional (and Roth) IRA contribution limit per person under age 50; catch-up omitted. */
+  /** Traditional (and Roth) IRA contribution limit per person (age-50+ IRA catch-up not modeled separately). */
   traditionalIraContribution: number;
 };
 
