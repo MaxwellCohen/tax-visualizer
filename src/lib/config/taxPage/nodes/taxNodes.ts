@@ -40,7 +40,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
             id: "sankeyOrdinaryToPayrollTax",
             chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: "Ordinary income to payroll / SE hub", compact: "Ordinary → payroll" },
-            calculate: (inputs, td, fs) => calculatePayrollTax(inputs, td, fs) + calculateSelfEmploymentTax(inputs, td),
+            calculate: (inputs, td, fs) => calculatePayrollTax(inputs, td, fs) + calculateSelfEmploymentTax(inputs, td, fs),
             sankey: {
                 links: [
                     {
@@ -62,7 +62,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
                     { source: "payrollTax", target: "federalPayrollTaxes", row: 4, col: 1 },
                 ],
             },
-            calculate: (inputs, taxData) => calculateSelfEmploymentTax(inputs, taxData),
+            calculate: (inputs, taxData) => calculateSelfEmploymentTax(inputs, taxData, filingStatus),
             summary: {
                 displayOrder: 6,
                 format: "currency",

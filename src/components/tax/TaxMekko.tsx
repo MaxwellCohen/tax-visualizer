@@ -62,21 +62,21 @@ function MekkoSummary(props: { data: MekkoChartData }) {
           style={{ width: `${takeShare * 100}%` }}
           title={`Take-home pay ${money.format(d.takeHomePay)} (${pct.format(takeShare)})`}
         >
-          {pct.format(takeShare)}
+          {takeShare ? pct.format(takeShare) : ""}
         </div>
         <div
           class="flex items-center justify-center bg-chart-pretax text-[10px]"
           style={{ width: `${pretaxShare * 100}%` }}
           title={`Payroll pre-tax & deductible IRA ${money.format(d.preTaxTotal + d.traditionalIra)} (${pct.format(pretaxShare)})`}
         >
-          {pct.format(pretaxShare)}
+          {pretaxShare ? pct.format(pretaxShare) : ""}
         </div>
         <div
           class="flex items-center justify-center bg-chart-tax text-[10px]"
           style={{ width: `${taxShare * 100}%` }} 
           title={`Taxes ${money.format(d.federalIncomeTax + d.payrollTax)} (${pct.format(taxShare)})`}
         >
-          {pct.format(taxShare)}
+          {taxShare ? pct.format(taxShare) : ""}
         </div>
       </div>
     </div>

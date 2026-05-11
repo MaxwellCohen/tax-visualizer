@@ -3,15 +3,17 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
 import {
-    calculateTaxableIncome,
     calculatePayrollTax,
     calculatePayrollTaxBreakdown,
     calculateSelfEmploymentDeduction,
     computeFederalTaxCreditsApplied,
     getItemizedDeductionsWithoutPayrollTax,
     getStandardDeductionWithoutPayrollTax,
+    totalTaxableIncome,
+    ordinaryIncomeAfterPretax,
+    taxableIncomeAfterDeductions,
 } from "../calc/taxCalculations";
-import { longTermCapGains, selfEmploymentIncome, allPretax } from "../rowMetrics";
+import { longTermCapGains, allPretax } from "../rowMetrics";
 
 export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
@@ -75,10 +77,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             id: "taxableIncome",
             chartRole: "deduction",
             labels: { default: "Total Taxable Income", compact: "Taxable Income", summary: "Taxable Income" },
-            calculate: (inputs, taxData, filingStatus) => {
-                const { total } = calculateTaxableIncome(inputs, taxData, filingStatus);
-                return total;
-            },
+            calculate: totalTaxableIncome,
             summary: {
                 displayOrder: 3,
                 format: "currency",
@@ -130,7 +129,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
 }
 
 /** Mekko vertical slices before federal brackets: deferrals, SE adjustment, deduction shield. */
-export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
+export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
     return [
         {
             id: "mekkoPretaxDeferrals",
@@ -152,10 +151,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
                     row: 2,
                 
             },
-            calculate: (inputs) => {
-                const se = selfEmploymentIncome(inputs);
-                return calculateSelfEmploymentDeduction(se, taxData);
-            },
+            calculate: (inputs) => calculateSelfEmploymentDeduction(inputs, taxData, filingStatus),
         },
         {
             id: "mekkoDeductionShieldNet",
@@ -167,8 +163,9 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
             
             },
             calculate: (inputs, td, fs) => {
-                const t = calculateTaxableIncome(inputs, td, fs);
-                const shield = Math.max(0, t.afterPretax - t.ordinary);
+                const ordinary = taxableIncomeAfterDeductions(inputs, td, fs);
+                const afterPretax = ordinaryIncomeAfterPretax(inputs);
+                const shield = Math.max(0, afterPretax - ordinary);
                 const payrollTax = calculatePayrollTax(inputs, td, fs);
                 const payrollFromShield = Math.min(payrollTax, shield);
                 return Math.max(0, shield - payrollFromShield);
@@ -183,8 +180,9 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, _filingStatus:
                     row: 1,
             },
             calculate: (inputs, td, fs) => {
-                const t = calculateTaxableIncome(inputs, td, fs);
-                const shield = Math.max(0, t.afterPretax - t.ordinary);
+                const  ordinary = taxableIncomeAfterDeductions(inputs, td, fs);
+                const afterPretax = ordinaryIncomeAfterPretax(inputs);
+                const shield = Math.max(0, afterPretax - ordinary);
                 const payrollTax = calculatePayrollTax(inputs, td, fs);
                 return Math.min(payrollTax, shield);
             },
