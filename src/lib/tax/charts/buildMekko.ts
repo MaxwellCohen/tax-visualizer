@@ -5,6 +5,13 @@ import {
 } from "~/lib/tax/calc/calculateTaxes";
 import type { ChartRole } from "~/lib/config/taxPage/types";
 import { resolveChartStyle, TAX_CHART_STYLE } from "~/lib/config/taxPage/chart/chartStyle";
+import { money } from "~/lib/format/moneyFormat";
+
+const zeroMoneyLabel = money.format(0);
+
+function roundsToNonZeroCurrency(value: number): boolean {
+  return money.format(value) !== zeroMoneyLabel;
+}
 
 export type MekkoRow = {
   id: string;
@@ -74,7 +81,12 @@ export type MekkoChartData = {
 export function buildMekkoFromConfig(cc: CalculatedConfigItem[]): MekkoChartData | undefined {
   const values = calculatedConfigValuesById(cc);
   const rows = cc
-    .filter(i => i.computedValue > 0 && i.mekko?.row)
+    .filter(
+      i =>
+        i.mekko != null &&
+        Number.isFinite(i.mekko.row) &&
+        roundsToNonZeroCurrency(i.computedValue),
+    )
     .sort(compareMekkoRows)
     .map(item => rowFromCalculatedItem(item, values));
 

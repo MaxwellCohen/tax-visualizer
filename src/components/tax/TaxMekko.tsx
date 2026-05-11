@@ -38,6 +38,13 @@ function share(value: number, total: number): number {
   return total > 0 ? Math.max(0, value / total) : 0;
 }
 
+const zeroMoneyLabel = money.format(0);
+
+function currencyLabelUnlessZeroDisplay(amount: number): string {
+  const formatted = money.format(amount);
+  return formatted === zeroMoneyLabel ? "" : formatted;
+}
+
 function MekkoSummary(props: { data: MekkoChartData }) {
   const d = props.data;
   const takeShare = share(d.takeHomePay, d.totalIncome);
@@ -56,27 +63,31 @@ function MekkoSummary(props: { data: MekkoChartData }) {
             : ""
         }`}
       </div>
-      <div class="flex h-5 overflow-hidden rounded-sm">
-        <div
-          class="flex items-center justify-center bg-sankey-link-keep text-[10px]"
-          style={{ width: `${takeShare * 100}%` }}
-          title={`Take-home pay ${money.format(d.takeHomePay)} (${pct.format(takeShare)})`}
-        >
-          {takeShare ? pct.format(takeShare) : ""}
-        </div>
-        <div
-          class="flex items-center justify-center bg-chart-pretax text-[10px]"
-          style={{ width: `${pretaxShare * 100}%` }}
-          title={`Payroll pre-tax & deductible IRA ${money.format(d.preTaxTotal + d.traditionalIra)} (${pct.format(pretaxShare)})`}
-        >
-          {pretaxShare ? pct.format(pretaxShare) : ""}
-        </div>
-        <div
-          class="flex items-center justify-center bg-chart-tax text-[10px]"
-          style={{ width: `${taxShare * 100}%` }} 
-          title={`Taxes ${money.format(d.federalIncomeTax + d.payrollTax)} (${pct.format(taxShare)})`}
-        >
-          {taxShare ? pct.format(taxShare) : ""}
+      {/* Same w-32 + flex-1 chart layout as MekkoRows so shares align with band segments */}
+      <div class="flex items-stretch">
+        <div class="w-32 shrink-0" aria-hidden="true" />
+        <div class="flex h-5 min-w-0 flex-1 overflow-hidden rounded-sm">
+          <div
+            class="flex items-center justify-center bg-sankey-link-keep text-[10px]"
+            style={{ width: `${takeShare * 100}%` }}
+            title={`Take-home pay ${money.format(d.takeHomePay)} (${pct.format(takeShare)})`}
+          >
+            {takeShare ? pct.format(takeShare) : ""}
+          </div>
+          <div
+            class="flex items-center justify-center bg-chart-pretax text-[10px]"
+            style={{ width: `${pretaxShare * 100}%` }}
+            title={`Payroll pre-tax & deductible IRA ${money.format(d.preTaxTotal + d.traditionalIra)} (${pct.format(pretaxShare)})`}
+          >
+            {pretaxShare ? pct.format(pretaxShare) : ""}
+          </div>
+          <div
+            class="flex items-center justify-center bg-chart-tax text-[10px]"
+            style={{ width: `${taxShare * 100}%` }}
+            title={`Taxes ${money.format(d.federalIncomeTax + d.payrollTax)} (${pct.format(taxShare)})`}
+          >
+            {taxShare ? pct.format(taxShare) : ""}
+          </div>
         </div>
       </div>
     </div>
@@ -115,9 +126,9 @@ function MekkoRows(props: { data: MekkoChartData }) {
                   }}
                   title={title}
                 >
-                  {money.format(row.keep)}
+                  {currencyLabelUnlessZeroDisplay(row.keep)}
                 </div>
-                <Show when={row.tax > 0}>
+                <Show when={money.format(row.tax) !== zeroMoneyLabel}>
                   <div
                     class="flex items-center justify-center text-[10px] text-mekko-segment-label"
                     style={{
@@ -127,7 +138,7 @@ function MekkoRows(props: { data: MekkoChartData }) {
                     }}
                     title={title}
                   >
-                    {money.format(row.tax)}
+                    {currencyLabelUnlessZeroDisplay(row.tax)}
                   </div>
                 </Show>
               </div>

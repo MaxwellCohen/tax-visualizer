@@ -25,6 +25,16 @@ export const makeYearValuesCappedValidator = (
     };
 };
 
+/** Cap from {@link YearValues.caps.credits} (e.g. saver's credit entry limit). */
+export const makeCreditsCappedValidator = (key: string, fallback: number): ValidationFn => {
+    return (value: number, ctx: ValidationContext) => {
+        const limit = ctx.yearValues.caps.credits[key] ?? fallback;
+        if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
+        if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+        return { valid: true };
+    };
+};
+
 export const makeSaltCappedValidator: ValidationFn = (value: number, ctx: ValidationContext) => {
     const limit = ctx.yearValues.caps.salt[ctx.filingStatus] ?? 10000;
     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };

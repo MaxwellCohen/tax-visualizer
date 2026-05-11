@@ -14,6 +14,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             id: "federalPayrollTaxes",
             chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: "Federal Payroll", compact: "Federal Payroll" },
+            description: "Combined federal payroll taxes from wages and self-employment",
             sankey: {
                 node: { row: 2, col: 4 },
             },
@@ -23,6 +24,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             chartRole: "takehome",
             chartStyle: { fill: "var(--color-chart-keep)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: "Take-Home Pay", compact: "Take-Home Pay" },
+            description: "After-tax keep, deduction shield, and credited amounts in this visualization",
             sankey: {
                 node: { row: 3, col: 4 },
             },
@@ -42,6 +44,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             chartRole: "tax",
             chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: "Federal Income Tax", compact: "Federal Income Tax" },
+            description: "Federal income tax on ordinary and LTCG brackets before payroll taxes",
             sankey: {
                 node: { row: 4, col: 4 },
             },
@@ -61,6 +64,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             id: "effectiveTaxRate",
             chartRole: "rate",
             labels: { default: "Effective Tax Rate", compact: "Effective Rate" },
+            description: "Federal income tax divided by total modeled gross income",
             calculate: (inputs) => {
                 const gross = totalIncome(inputs);
                 if (gross <= 0) return 0;

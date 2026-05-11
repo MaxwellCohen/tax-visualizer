@@ -2,7 +2,7 @@ import type { ValidationContext } from "~/lib/config/types";
 import { getYearValues } from "~/lib/config/years/index";
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import { makeCreditInputsConfig } from "./inputConfigs/creditInputs";
-import { makeDeductionInputsConfig, makePayrollFromWagesInputConfig, makePayrollTaxInputConfig } from "./inputConfigs/deductionInputs";
+import { makeDeductionInputsConfig, makePayrollTaxInputConfig } from "./inputConfigs/deductionInputs";
 import { makeEndingNodesConfig } from "./nodes/endingNodes";
 import { makeIncomeInputsConfig } from "./inputConfigs/incomeInputs";
 import { makeIncomeNodesConfig } from "./nodes/incomeNodes";
@@ -45,6 +45,10 @@ export function getInputItemsForSection(
 }
 
 
+/**
+ * Full ordered registry of tax page {@link ConfigItem} rows (inputs + chart pipeline nodes).
+ * Maintainer inventory: [docs/tax-config-items.md](../../../../docs/tax-config-items.md).
+ */
 export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
     return [
         ...makeIncomeInputsConfig(taxData, filingStatus),
@@ -54,7 +58,6 @@ export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatu
         ...makeCreditInputsConfig(taxData, filingStatus),
         ...makeIncomeNodesConfig(taxData, filingStatus),
         ...makeDeductionAmountNodesConfig(taxData, filingStatus),
-        ...makePayrollFromWagesInputConfig(taxData, filingStatus),
         ...make0taxIncomeNodesConfig(taxData, filingStatus),
         ...makePayrollTaxInputConfig(taxData, filingStatus),
         ...makePretaxIncomeNodesConfig(taxData, filingStatus),

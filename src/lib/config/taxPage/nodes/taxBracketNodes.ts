@@ -26,6 +26,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             id: `${bracketId}-node`,
             chartStyle: { fill: "var(--color-chart-keep)", stroke: "var(--color-chart-keep)" },
             labels: { default: `${rateLabel} % Income`, compact: `${rateLabel}% Income` },
+            description: `Ordinary income hub taxed at ${rateLabel}% (marginal band)`,
             sankey: {
                 node: { row: bracketRow, col: 3 },
             },
@@ -34,6 +35,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             chartRole: "ordinaryBracket",
             chartStyle: { fill: "var(--color-sankey-link-keep)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: `${rateLabel} % Income`, compact: `${rateLabel}% Income` },
+            description: `Ordinary income flowing into the ${rateLabel}% bracket slice`,
             sankey: {
                 links: [
                     { source: "ordinaryTaxableIncome", target: `${bracketId}-node`, row: bracketRow, col: 2 },
@@ -51,6 +53,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             id: `${bracketId}-keep`,
             chartStyle: { fill: "var(--color-sankey-link-keep)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: `${rateLabel} % Keep`, compact: `${rateLabel}% Income` },
+            description: `After-tax ordinary income kept from the ${rateLabel}% bracket`,
             sankey: {
                 links: [
                     { source: `${bracketId}-node`, target: "takeHomePay", row: bracketRow + 1, col: 3 },
@@ -61,6 +64,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             id: `${bracketId}-credits`,
             chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
             labels: { default: `${rateLabel} % Credits`, compact: `${rateLabel}% Credits` },
+            description: `Federal credits attributed to ordinary income in the ${rateLabel}% band`,
             sankey: {
                 links: [
                     { source: `${bracketId}-node`, target: "takeHomePay", ...getCreditLinkCreditsRow(creditsRow), row: bracketRow + 2 },
@@ -71,6 +75,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             id: `${bracketId}-tax`,
             chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: `${rateLabel} % Tax`, compact: `${rateLabel}% Tax` },
+            description: `Federal income tax from ordinary income in the ${rateLabel}% bracket`,
             sankey: {
                 links: [
                     { source: `${bracketId}-node`, target: "federalIncomeTax", row: bracketRow + 3, col: 3 },
@@ -85,6 +90,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         chartRole: "ltcg",
         chartStyle: { fill: "var(--color-chart-ltcg)", stroke: "var(--color-sankey-link)" },
         labels: { default: "LTCG Income", compact: "LTCG Income" },
+        description: "Long-term capital gains routed through preferential rate buckets",
         sankey: {
             node: { row: ltcgIncomeRow, col: 3 },
             links: [
@@ -100,6 +106,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         id: "ltcg-tax",
         chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
         labels: { default: "LTCG Tax", compact: "LTCG Tax" },
+        description: "Federal income tax on long-term capital gains",
         sankey: {
             links: [
                 { source: "ltcg-income", target: "federalIncomeTax", row: ltcgIncomeRow + 2, col: 3 },
@@ -110,6 +117,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         id: "ltcg-credits",
         chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
         labels: { default: "LTCG Credits", compact: "LTCG Credits" },
+        description: "Credits flowing from LTCG bracket allocation",
         sankey: {
             links: [
                 {
@@ -125,6 +133,7 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         id: "ltcg-keep",
         chartStyle: { fill: "var(--color-sankey-link-keep)", stroke: "var(--color-sankey-link-keep)" },
         labels: { default: "LTCG Keep", compact: "LTCG Keep" },
+        description: "After-tax long-term gains kept",
         sankey: {
             links: [
                 { source: "ltcg-income", target: "takeHomePay", row: 49, col: 3 },

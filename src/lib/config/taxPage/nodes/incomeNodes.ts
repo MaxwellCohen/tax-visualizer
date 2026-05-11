@@ -17,6 +17,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             id: "totalIncome",
             chartRole: "income",
             labels: { default: "Total Income", compact: "Total Income", summary: "Gross Income" },
+            description: "Sum of modeled wages, other ordinary income, and capital gains",
             calculate: totalIncome,
             summary: {
                 displayOrder: 1,
@@ -27,6 +28,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             id: "wages",
             chartStyle: { fill: "var(--color-chart-income)", stroke: "var(--color-sankey-link)" },
             labels: { default: "Wages" },
+            description: "Taxable wages after payroll pre-tax reductions",
             sankey: {
                 node: { row: 1, col: 1 },
                 links: [
@@ -39,6 +41,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             id: "longTermCapGains",
             chartStyle: { fill: "var(--color-chart-ltcg)", stroke: "var(--color-sankey-link)" },
             labels: { default: "Long-Term Capital Gains" },
+            description: "Long-term capital gains eligible for LTCG rates",
             sankey: {
                 node: { row: 2, col: 1 },
                 links: [
@@ -52,6 +55,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             chartRole: "pretax",
             chartStyle: { fill: "var(--color-chart-pretax)", stroke: "var(--color-sankey-link-deferred)" },
             labels: { default: "Pretax Deductions", compact: "Pretax Deductions", summary: "Pre-tax Deductions" },
+            description: "Payroll pre-tax plus deductible IRA — flows off top of wages",
             sankey: {
                 node: { row: 1, col: 2 },
                 links: [
@@ -68,27 +72,32 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         {
             id: "selfEmployment",
             labels: { default: "Self-Employment Income" },
+            description: "Net self-employment earnings (Schedule SE basis)",
             calculate: selfEmploymentIncome,
         },
         {
             id: "ordinaryIncome",
             labels: { default: "Other Ordinary Income" },
+            description: "Ordinary income other than wages (interest, ordinary dividends, etc.)",
             calculate: ordinaryIncome,
         },
         {
             id: "shortTermCapGains",
             labels: { default: "Short-Term Capital Gains" },
+            description: "Short-term capital gains taxed as ordinary income",
             calculate: shortTermCapGains,
         },
         {
             id: "shortTermCapGainsGrossIncome",
             labels: { default: "Short-Term Cap Gains (Gross)", compact: "STCG (Gross)" },
+            description: "STCG included in gross ordinary-income style totals",
             calculate: shortTermCapGains,
         },
         {
             id: "longTermCapitalGainsGrossIncome",
             chartStyle: { fill: "var(--color-chart-ltcg)", stroke: "var(--color-sankey-link)" },
             labels: { default: "Long-Term Cap Gains (Gross)", compact: "LTCG (Gross)" },
+            description: "LTCG before stacking / preferential-rate split",
             sankey: {
                 node: { row: 1, col: 2 },
             },

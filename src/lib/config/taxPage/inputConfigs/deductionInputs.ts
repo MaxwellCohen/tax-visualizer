@@ -4,17 +4,6 @@ import type { ConfigItem } from "../types";
 import { calculatePayrollTax, getItemizedDeductionsWithoutPayrollTax, getStandardDeductionWithoutPayrollTax } from "~/lib/config/taxPage/calc/taxCalculations";
 import { nonNegativeValidator, makeSaltCappedValidator } from "../inputValidators";
 
-
-export function makePayrollFromWagesInputConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
-    return [
-        {
-            id: "payrollTaxWages",
-            labels: { default: "Payroll Taxes", compact: "Payroll Taxes" },
-            calculate: calculatePayrollTax,
-        },
-    ];
-}
-
 export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
         {
@@ -22,6 +11,7 @@ export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus
             chartRole: "tax",
             chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: "Payroll Taxes", compact: "Payroll Taxes", summary: "Payroll Tax" },
+            description: "Withholding-style payroll tax on wages (FICA) and related flow in the Sankey",
             sankey: {
                 node: { row: 2, col: 3 },
                 links: [
@@ -132,7 +122,9 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             labels: { default: "Charitable Contributions", compact: "Charity" },
             description: "Cash and non-cash contributions to qualified charities",
             kindDetail: {
-                limitNote: "60% of AGI limit for cash contributions",
+                limitNote: "60% of AGI limit applies to cash contributions to public charities",
+                modelingNote:
+                    "Non-cash donations often face lower AGI percentage caps (e.g. 50% / 30%); this model does not split cash vs property",
             },
             input: {
                 category: "deduction",

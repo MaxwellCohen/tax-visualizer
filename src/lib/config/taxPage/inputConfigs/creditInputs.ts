@@ -7,7 +7,7 @@ import {
     retirementSavingsContributions,
     otherCredit,
 } from "../rowMetrics";
-import { nonNegativeValidator, makeYearValuesCappedValidator } from "../inputValidators";
+import { nonNegativeValidator, makeCreditsCappedValidator } from "../inputValidators";
 import { getCreditsSankeyRow } from "../sankey/sankeyLayout.helpers";
 
 export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
@@ -54,9 +54,11 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             id: "retirementSavingsContributions",
             chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
             labels: { default: "Retirement Savings Contributions (Saver's Credit)", compact: "Saver's Credit" },
-            description: "Saver's credit for eligible retirement contributions",
+            description:
+                "Retirement savings contributions credit amount you enter for this return (nonrefundable saver's credit)",
             kindDetail: {
-                limitNote: "Up to $1,000 credit ($2,000 MFJ) at the maximum rate; percentage depends on AGI and filing status",
+                limitNote:
+                    "Maximum entry matches the per-tax-year credit cap used for validation (typically $2,000); IRS rate tiers by AGI are not modeled",
             },
             input: {
                 category: "credit",
@@ -64,7 +66,7 @@ export function makeCreditInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 inputType: "currency",
                 subcategories: [{ key: "retirementSavingsContributions-retirementSavingsContributions", labelSingle: "Retirement savings contributions (saver's) credit", labelJoint: "Retirement savings contributions (saver's) credit" }],
                 getLimit: (yearValues) => yearValues.caps.credits["retirementSavingsContributions"] ?? 2000,
-                validate: makeYearValuesCappedValidator("retirementSavingsContributions", 2000),
+                validate: makeCreditsCappedValidator("retirementSavingsContributions", 2000),
             },
             calculate: retirementSavingsContributions,
             sankey: {

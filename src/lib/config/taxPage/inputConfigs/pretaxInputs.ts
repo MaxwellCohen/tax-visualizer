@@ -10,7 +10,8 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             id: "input-pretax-401K",
             chartStyle: { fill: "var(--color-chart-pretax)", stroke: "var(--color-sankey-link-deferred)" },
             labels: { default: "401(k) Deferrals", compact: "401(k)" },
-            description: "Elective deferrals from W-2 pay",
+            description:
+                "Elective deferrals from W-2 pay — 401(k), 403(b), and 457(b) elective deferrals share the same IRS limit per employee",
             kindDetail: {
                 limitNote: "elective deferral per employee (catch-up not modeled)",
             },
@@ -103,9 +104,12 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             id: "input-pretax-traditionalIra",
             chartStyle: { fill: "var(--color-chart-pretax)", stroke: "var(--color-sankey-link-deferred)" },
             labels: { default: "Traditional IRA (deductible)", compact: "Traditional IRA" },
-            description: "Traditional IRA (deductible)",
+            description:
+                "Deductible traditional IRA contributions you fund outside payroll — not employer deferrals",
             kindDetail: {
-                limitNote: "Traditional IRA (deductible in this flow)",
+                limitNote: "Annual contribution limit applies per spouse",
+                modelingNote:
+                    "Deductibility phase-outs (MAGI, workplace plan coverage, spouse coverage) are not modeled; treat amounts as fully deductible if you use this row",
             },
             input: {
                 category: "pretax",
