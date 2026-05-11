@@ -31,6 +31,22 @@ export const selfEmploymentIncome = (inputs: TaxFormRow[]) => findInputById(inpu
 export const ordinaryIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary");
 export const shortTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary-shortTermCapGains");
 export const longTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "income-longTermCapGains");
+function sumPretaxKinds(inputs: TaxFormRow[], predicate: (kindLower: string) => boolean): number {
+    let sum = 0;
+    for (const row of inputs || []) {
+        if (row.type === "setting") continue;
+        if (!("kind" in row) || typeof row.kind !== "string") continue;
+        const kindLower = row.kind.toLowerCase();
+        if (!predicate(kindLower)) continue;
+        if ("amount" in row && typeof row.amount === "number") sum += row.amount;
+    }
+    return sum;
+}
+
+/** 401(k)/403(b)/457(b) elective rows; excludes age-50+ catch-up (separate config item). */
+export const electiveDeferrals401kFamilyExcludingCatchUp = (inputs: TaxFormRow[]) =>
+    sumPretaxKinds(inputs, (k) => k.includes("input-pretax-401k"));
+
 export const _401k = (inputs: TaxFormRow[]) => findInputById(inputs, "input-pretax-401K");
 export const _hsa = (inputs: TaxFormRow[]) => findInputById(inputs, "input-pretax-hsa");
 export const otherPretax = (inputs: TaxFormRow[]) => findInputById(inputs, "input-pretax-otherPretax");

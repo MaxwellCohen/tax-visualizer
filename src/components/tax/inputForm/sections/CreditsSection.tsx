@@ -6,7 +6,7 @@ import type { ValidationContext } from "~/lib/config/types";
 import { sumLabeledAmountSources } from "~/lib/tax/calc/labeledAmountSource";
 import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
 import { itemizedDeductionSelectOptions } from "~/components/tax/inputForm/shared";
-import { rowIdsForTypedRows } from "~/lib/tax/form/rows";
+import { useStableTypedRowIds } from "~/components/tax/inputForm/hooks/useStableTypedRowIds";
 import { childTaxCredit } from "~/lib/config/taxPage/rowMetrics";
 import {
   creditsSectionUi,
@@ -29,7 +29,7 @@ export function CreditsSection(props: Props) {
   const creditRows = createMemo(() =>
     props.taxInput().rows.filter((r): r is TaxFormCreditRow => r.type === "credit"),
   );
-  const creditRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "credit"));
+  const creditRowIds = useStableTypedRowIds(props.taxInput, "credit");
 
   const creditConfigItems = useConfigItemsForSection(props.taxData, props.filingStatus, "credit");
   const creditKindOptions = createMemo(() => itemizedDeductionSelectOptions("credit", creditConfigItems()));

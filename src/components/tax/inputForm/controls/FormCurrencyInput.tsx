@@ -1,3 +1,4 @@
+import { splitProps } from "solid-js";
 import { useTaxInputCommitToUrl } from "~/components/tax/inputForm/context/TaxInputCommitUrlContext";
 import { inputClass, parseCurrencyInput } from "~/components/tax/inputForm/shared";
 
@@ -12,20 +13,22 @@ type Props = {
 };
 
 export function FormCurrencyInput(props: Props) {
+  const [local] = splitProps(props, ["value", "onInput", "onBlur", "min", "step", "ariaLabel"]);
   const commitToUrl = useTaxInputCommitToUrl();
   const onBlur = () => {
-    props.onBlur?.();
+    local.onBlur?.();
     commitToUrl?.();
   };
   return (
     <input
       type="number"
-      onBlur={onBlur}
       class={`${inputClass} bg-input text-foreground`}
-      {...props}
-      onInput={(e) => props.onInput(parseCurrencyInput(e.currentTarget.value))}
-      min={props.min ?? "0"}
-      step={props.step ?? "1"}
+      value={local.value}
+      min={local.min ?? "0"}
+      step={local.step ?? "1"}
+      aria-label={local.ariaLabel}
+      onInput={(e) => local.onInput(parseCurrencyInput(e.currentTarget.value))}
+      onBlur={onBlur}
     />
   );
 }

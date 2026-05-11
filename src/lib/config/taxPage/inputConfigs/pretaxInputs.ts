@@ -1,13 +1,13 @@
 /** Pre-tax inputs: 401(k), HSA, traditional IRA, other payroll pre-tax. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
-import { _401k, _hsa, otherPretax, traditionalIra } from "../rowMetrics";
 import {
-    nonNegativeValidator,
-    makeYearValuesCappedValidator,
-    makeElectiveDeferral401kFamilyRowValidator,
-    makeHsaCappedValidator,
-} from "../inputValidators";
+    electiveDeferrals401kFamilyExcludingCatchUp,
+    _hsa,
+    otherPretax,
+    traditionalIra,
+} from "../rowMetrics";
+import { nonNegativeValidator, makeYearValuesCappedValidator, makeHsaCappedValidator } from "../inputValidators";
 
 export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
@@ -19,7 +19,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 "Elective deferrals from W-2 pay — 401(k), 403(b), and 457(b) elective deferrals share the same IRS limit per employee",
             kindDetail: {
                 limitNote:
-                    "401(k), 403(b), and age-50+ elective catch-up share the §402(g) deferral limit per employee; 457(b) is separate in IRS rules and uses the base deferral cap per row here",
+                    "401(k) and 403(b) elective deferrals share the IRC 402(g) base limit per employee (combined with age-50+ catch-up on the catch-up row); 457(b) uses its own deferral cap per row",
             },
             input: {
                 category: "pretax",
@@ -29,24 +29,46 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                     { key: "input-pretax-401K-preTax401kSpouse1", labelSingle: "401(k) deferrals", labelJoint: "401(k) deferrals (spouse 1)" },
                     { key: "input-pretax-401K-preTax403bSpouse1", labelSingle: "403(b) deferrals", labelJoint: "403(b) deferrals (spouse 1)" },
                     { key: "input-pretax-401K-preTax457bSpouse1", labelSingle: "457(b) deferrals", labelJoint: "457(b) deferrals (spouse 1)" },
-                    { key: "input-pretax-401K-electiveCatchUpSpouse1", labelSingle: "Age 50+ catch-up (401(k)/403(b))", labelJoint: "Age 50+ catch-up (401(k)/403(b)) (spouse 1)" },
                     { key: "input-pretax-401K-preTax401kSpouse2", labelSingle: "401(k) deferrals (2)", labelJoint: "401(k) deferrals (spouse 2)" },
                     { key: "input-pretax-401K-preTax403bSpouse2", labelSingle: "403(b) deferrals (2)", labelJoint: "403(b) deferrals (spouse 2)" },
                     { key: "input-pretax-401K-preTax457bSpouse2", labelSingle: "457(b) deferrals (2)", labelJoint: "457(b) deferrals (spouse 2)" },
-                    { key: "input-pretax-401K-electiveCatchUpSpouse2", labelSingle: "Age 50+ catch-up (401(k)/403(b)) (2)", labelJoint: "Age 50+ catch-up (401(k)/403(b)) (spouse 2)" },
                 ],
-                getLimit: (yearValues) =>
-                    (yearValues.limits.electiveDeferral401k ?? 23000) +
-                    (yearValues.limits.electiveDeferral401kCatchUp ?? 7500),
-                validate: makeElectiveDeferral401kFamilyRowValidator(23000, 7500),
+                getLimit: (yearValues) => yearValues.limits.electiveDeferral401k ?? 23000,
+                validate: makeYearValuesCappedValidator("electiveDeferral401k", 23000),
             },
-            calculate: _401k, 
+            calculate: electiveDeferrals401kFamilyExcludingCatchUp,
             sankey: {
                 node: { row: 1, col: 2 },
                 links: [
                     { source: "wages", target: "pretaxDeductions", row: 1, col: 1 },
                 ],
             },
+        },
+        {
+            id: "input-pretax-401K-catchUp",
+            chartStyle: { fill: "var(--color-chart-pretax)", stroke: "var(--color-sankey-link-deferred)" },
+            labels: { default: "401(k)/403(b) age 50+ catch-up", compact: "401(k) catch-up" },
+            description: "Additional elective deferrals allowed at age 50+ under IRC 402(g) for 401(k) and 403(b) plans",
+            kindDetail: {
+                limitNote: "Elective catch-up cap per employee; combined with base 401(k)/403(b) deferrals for the IRC 402(g) ceiling in tax math",
+            },
+            input: {
+                category: "pretax",
+                displayOrder: 2,
+                inputType: "currency",
+                subcategories: [
+                    { key: "input-pretax-401K-electiveCatchUpSpouse1", labelSingle: "Age 50+ catch-up (401(k)/403(b))", labelJoint: "Age 50+ catch-up (401(k)/403(b)) (spouse 1)" },
+                    { key: "input-pretax-401K-electiveCatchUpSpouse2", labelSingle: "Age 50+ catch-up (401(k)/403(b)) (2)", labelJoint: "Age 50+ catch-up (401(k)/403(b)) (spouse 2)" },
+                ],
+                getLimit: (yearValues) => yearValues.limits.electiveDeferral401kCatchUp ?? 7500,
+                validate: makeYearValuesCappedValidator("electiveDeferral401kCatchUp", 7500),
+            },
+            // sankey: {
+            //     node: { row: 2, col: 2 },
+            //     links: [
+            //         { source: "wages", target: "pretaxDeductions", row: 1, col: 1 },
+            //     ],
+            // },
         },
         {
             id: "input-pretax-hsa",
@@ -58,7 +80,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             },
             input: {
                 category: "pretax",
-                displayOrder: 2,
+                displayOrder: 3,
                 inputType: "currency",
                 subcategories: [
                     { key: "input-pretax-hsa-preTaxHsaSpouse1", labelSingle: "HSA (payroll)", labelJoint: "HSA (payroll) (spouse 1)" },
@@ -73,7 +95,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             },
             calculate: _hsa,
             sankey: {
-                node: { row: 2, col: 3 },
+                node: { row: 3, col: 3 },
                 links: [
                     { source: "wages", target: "pretaxDeductions", row: 1, col: 1 },
                 ],
@@ -89,7 +111,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             },
             input: {
                 category: "pretax",
-                displayOrder: 3,
+                displayOrder: 4,
                 inputType: "currency",
                 subcategories: [
                     { key: "input-pretax-otherPretax-preTaxOther", labelSingle: "Other payroll pre-tax", labelJoint: "Other payroll pre-tax" },
@@ -104,7 +126,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             },
             calculate: otherPretax,
             sankey: {
-                node: { row: 3, col: 2 },
+                node: { row: 4, col: 2 },
                 links: [
                     { source: "wages", target: "pretaxDeductions", row: 1, col: 1 },
                 ],
@@ -123,7 +145,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             },
             input: {
                 category: "pretax",
-                displayOrder: 4,
+                displayOrder: 5,
                 inputType: "currency",
                 subcategories: [
                     { key: "input-pretax-traditionalIra-traditionalIraSpouse1", labelSingle: "Traditional IRA (deductible)", labelJoint: "Traditional IRA (deductible) (spouse 1)" },
@@ -135,7 +157,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
             },
             calculate: traditionalIra,
             sankey: {
-                node: { row: 4, col: 2 },
+                node: { row: 5, col: 2 },
                 links: [
                     { source: "wages", target: "pretaxDeductions", row: 1, col: 1 },
                 ],

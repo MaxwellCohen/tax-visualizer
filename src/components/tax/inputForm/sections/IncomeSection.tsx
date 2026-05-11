@@ -1,10 +1,10 @@
 import { createMemo, type Accessor, type Setter } from "solid-js";
 import { incomeKindSelectOptions } from "~/components/tax/inputForm/shared";
 import type { TaxFormData, TaxFormIncomeRow } from "~/lib/tax/form/types";
-import { rowIdsForTypedRows } from "~/lib/tax/form/rows";
 import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
 import type { ValidationContext } from "~/lib/config/types";
 import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
+import { useStableTypedRowIds } from "~/components/tax/inputForm/hooks/useStableTypedRowIds";
 import {
   incomeSectionUi,
   LineItemsAccordionFromConfig,
@@ -21,7 +21,7 @@ type Props = {
 };
 
 export function IncomeSection(props: Props) {
-  const incomeRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "income"));
+  const incomeRowIds = useStableTypedRowIds(props.taxInput, "income");
 
   const incomeTotal = createMemo(() =>
     props

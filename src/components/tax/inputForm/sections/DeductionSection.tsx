@@ -10,7 +10,8 @@ import { itemizedDeductionSelectOptions } from "~/components/tax/inputForm/share
 import { getFilingStatusFromRows } from "~/lib/tax/calc/inputs";
 import { useTaxInputCommitToUrl } from "~/components/tax/inputForm/context/TaxInputCommitUrlContext";
 import { money } from "~/lib/format/moneyFormat";
-import { rowIdsForTypedRows, settingRowFieldMountKey, settingRowIndex } from "~/lib/tax/form/rows";
+import { useStableTypedRowIds } from "~/components/tax/inputForm/hooks/useStableTypedRowIds";
+import { settingRowFieldMountKey, settingRowIndex } from "~/lib/tax/form/rows";
 import { LineItemsTableBlock } from "~/components/tax/inputForm/sections/LineItemsTableBlock";
 
 type Props = {
@@ -46,7 +47,7 @@ export function DeductionSection(props: Props) {
   const deductionRows = createMemo(() =>
     props.taxInput().rows.filter((r): r is TaxFormDeductionRow => r.type === "deduction"),
   );
-  const deductionRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "deduction"));
+  const deductionRowIds = useStableTypedRowIds(props.taxInput, "deduction");
 
   const filingStatus = createMemo(() => getFilingStatusFromRows(props.taxInput().rows) ?? "single");
   const deductionConfigItems = useConfigItemsForSection(props.taxData, filingStatus, "deduction");

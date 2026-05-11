@@ -140,11 +140,11 @@ export function LineItemSourceRow(props: LineItemSourceRowProps) {
           />
           <LineItemRemoveActionsCell canRemove={props.canRemove} onRemove={props.onRemove} entity={props.removeEntity} />
         </tr>
-        <Show when={detailLines()} keyed>
+        <Show when={detailLines()}>
           {(lines) => (
             <LineItemDetailSubRow>
-              <p class="leading-snug">{lines.line1}</p>
-              <p class="leading-snug">{lines.line2}</p>
+              <p class="leading-snug">{lines().line1}</p>
+              <p class="leading-snug">{lines().line2}</p>
             </LineItemDetailSubRow>
           )}
         </Show>

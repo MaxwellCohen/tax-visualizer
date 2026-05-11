@@ -3,8 +3,8 @@ import { pretaxBenefitKindSelectOptions } from "~/components/tax/inputForm/share
 import type { TaxFormData, TaxFormPretaxRow } from "~/lib/tax/form/types";
 import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
 import type { ValidationContext } from "~/lib/config/types";
-import { rowIdsForTypedRows } from "~/lib/tax/form/rows";
 import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
+import { useStableTypedRowIds } from "~/components/tax/inputForm/hooks/useStableTypedRowIds";
 import {
   LineItemsAccordionFromConfig,
   preTaxSectionUi,
@@ -24,7 +24,7 @@ type Props = {
 };
 
 export function PreTaxSection(props: Props) {
-  const pretaxRowIds = createMemo(() => rowIdsForTypedRows(props.taxInput().rows, "pretax"));
+  const pretaxRowIds = useStableTypedRowIds(props.taxInput, "pretax");
   const pretaxRows = createMemo(() =>
     props.taxInput().rows.filter((r): r is TaxFormPretaxRow => r.type === "pretax"),
   );
