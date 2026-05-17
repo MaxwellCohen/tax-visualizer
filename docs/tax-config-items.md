@@ -12,7 +12,7 @@ This document lists every [`ConfigItem`](../src/lib/config/taxPage/types.ts) ret
 
 ## Assembly order
 
-`getConfigItems` concatenates factories in this order (matches [`taxPage.config.ts`](../src/lib/config/taxPage/taxPage.config.ts)):
+Authoritative phase names and order live in **`TAX_PAGE_REGISTRY_PHASES`** in [`taxPage.config.ts`](../src/lib/config/taxPage/taxPage.config.ts) (asserted by `taxPageRegistry.test.ts`). Human-readable factory names below mirror that order.
 
 1. `makeIncomeInputsConfig`
 2. `makePretaxInputsConfig`

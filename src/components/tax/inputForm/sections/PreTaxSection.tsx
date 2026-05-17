@@ -1,8 +1,7 @@
-import { createMemo, type Accessor, type Setter } from "solid-js";
+import { createMemo } from "solid-js";
 import { pretaxBenefitKindSelectOptions } from "~/components/tax/inputForm/shared";
-import type { TaxFormData, TaxFormPretaxRow } from "~/lib/tax/form/types";
-import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
-import type { ValidationContext } from "~/lib/config/types";
+import type { TaxFormPretaxRow } from "~/lib/tax/form/types";
+import { useTaxInputForm } from "~/components/tax/inputForm/context/TaxInputFormContext";
 import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
 import { useStableTypedRowIds } from "~/components/tax/inputForm/hooks/useStableTypedRowIds";
 import {
@@ -10,43 +9,40 @@ import {
   preTaxSectionUi,
 } from "~/components/tax/inputForm/sections/LineItemsAccordionFromConfig";
 
-type Props = {
-  taxInput: Accessor<TaxFormData>;
-  setTaxInput: Setter<TaxFormData>;
-  preTaxBenefitsTotal: Accessor<number>;
-  isMarriedJoint: Accessor<boolean>;
-  addPretaxBenefit: () => void;
-  removePretaxBenefitAt: (rowIndex: number) => void;
-  clearAll: () => void;
-  taxData: Accessor<TaxYearConfig | null>;
-  filingStatus: Accessor<FilingStatus>;
-  validationCtx: Accessor<ValidationContext | undefined>;
-};
-
-export function PreTaxSection(props: Props) {
-  const pretaxRowIds = useStableTypedRowIds(props.taxInput, "pretax");
+export function PreTaxSection() {
+  const {
+    taxInput,
+    setTaxInput,
+    preTaxBenefitsTotal,
+    isMarriedJoint,
+    taxData,
+    filingStatus,
+    validationCtx,
+    rowActions,
+  } = useTaxInputForm();
+  const pretaxRowIds = useStableTypedRowIds(taxInput, "pretax");
   const pretaxRows = createMemo(() =>
-    props.taxInput().rows.filter((r): r is TaxFormPretaxRow => r.type === "pretax"),
+    taxInput().rows.filter((r): r is TaxFormPretaxRow => r.type === "pretax"),
   );
 
-  const configItems = useConfigItemsForSection(props.taxData, props.filingStatus, "pretax");
-  const kindOptions = createMemo(() => pretaxBenefitKindSelectOptions(configItems(), props.isMarriedJoint()));
+  const configItems = useConfigItemsForSection(taxData, filingStatus, "pretax");
+  const kindOptions = createMemo(() => pretaxBenefitKindSelectOptions(configItems(), isMarriedJoint()));
 
   const showClearAll = createMemo(() => pretaxRows().length > 0);
 
   return (
     <LineItemsAccordionFromConfig
       ui={preTaxSectionUi}
-      summaryAmount={props.preTaxBenefitsTotal}
-      taxInput={props.taxInput}
-      setTaxInput={props.setTaxInput}
-      taxData={props.taxData}
-      validationCtx={props.validationCtx}
-      onAdd={props.addPretaxBenefit}
-      onClearAll={props.clearAll}
+      summaryAmount={preTaxBenefitsTotal}
+      taxInput={taxInput}
+      setTaxInput={setTaxInput}
+      taxData={taxData}
+      validationCtx={validationCtx}
+      onAdd={rowActions.addPretaxBenefit}
+      onClearAll={rowActions.clearAllPretaxBenefits}
       showClearAll={showClearAll}
       rowIds={pretaxRowIds}
-      removeAt={props.removePretaxBenefitAt}
+      removeAt={rowActions.removePretaxBenefitAt}
       kindOptions={kindOptions}
       configItems={configItems}
     />

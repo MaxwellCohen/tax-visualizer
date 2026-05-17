@@ -19,6 +19,34 @@ import type {
     TaxInputFormSectionKey,
 } from "./types";
 
+type TaxPageRegistryPhase = {
+    readonly name: string;
+    readonly getItems: (taxData: TaxYearConfig, filingStatus: FilingStatus) => readonly ConfigItem[] | ConfigItem[];
+};
+
+/**
+ * Ordered phases for {@link getConfigItems}. Names are asserted in tests against
+ * [docs/tax-config-items.md](../../../../docs/tax-config-items.md) assembly order.
+ */
+const TAX_PAGE_REGISTRY_PHASES: readonly TaxPageRegistryPhase[] = [
+    { name: "incomeInputs", getItems: makeIncomeInputsConfig },
+    { name: "pretaxInputs", getItems: makePretaxInputsConfig },
+    { name: "deductionInputs", getItems: makeDeductionInputsConfig },
+    { name: "pretaxDeductionsNodes", getItems: makePretaxDeductionsNodesConfig },
+    { name: "creditInputs", getItems: makeCreditInputsConfig },
+    { name: "incomeNodes", getItems: makeIncomeNodesConfig },
+    { name: "deductionAmountNodes", getItems: makeDeductionAmountNodesConfig },
+    { name: "zeroTaxIncomeNodes", getItems: make0taxIncomeNodesConfig },
+    { name: "payrollTaxInput", getItems: makePayrollTaxInputConfig },
+    { name: "pretaxIncomeNodes", getItems: makePretaxIncomeNodesConfig },
+    { name: "taxNodes", getItems: makeTaxNodesConfig },
+    { name: "mekkoSliceNodes", getItems: makeMekkoSliceNodesConfig },
+    { name: "bracketItems", getItems: getBracketItems },
+    { name: "endingNodes", getItems: makeEndingNodesConfig },
+] as const;
+
+export const TAX_PAGE_REGISTRY_PHASE_NAMES = TAX_PAGE_REGISTRY_PHASES.map((p) => p.name);
+
 /** Ordered tax input sections: edit this list to reorder or drop line-item groups; `settings` is special-cased in UI. */
 const TAX_INPUT_FORM_SECTIONS: readonly TaxInputFormSectionDefinition[] = [
     { key: "settings", kind: "settings" },
@@ -50,22 +78,11 @@ export function getInputItemsForSection(
  * Maintainer inventory: [docs/tax-config-items.md](../../../../docs/tax-config-items.md).
  */
 export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
-    return [
-        ...makeIncomeInputsConfig(taxData, filingStatus),
-        ...makePretaxInputsConfig(taxData, filingStatus),
-        ...makeDeductionInputsConfig(taxData, filingStatus),
-        ...makePretaxDeductionsNodesConfig(taxData, filingStatus),
-        ...makeCreditInputsConfig(taxData, filingStatus),
-        ...makeIncomeNodesConfig(taxData, filingStatus),
-        ...makeDeductionAmountNodesConfig(taxData, filingStatus),
-        ...make0taxIncomeNodesConfig(taxData, filingStatus),
-        ...makePayrollTaxInputConfig(taxData, filingStatus),
-        ...makePretaxIncomeNodesConfig(taxData, filingStatus),
-        ...makeTaxNodesConfig(taxData, filingStatus),
-        ...makeMekkoSliceNodesConfig(taxData, filingStatus),
-        ...getBracketItems(taxData, filingStatus),
-        ...makeEndingNodesConfig(taxData, filingStatus),
-    ];
+    const out: ConfigItem[] = [];
+    for (const phase of TAX_PAGE_REGISTRY_PHASES) {
+        out.push(...phase.getItems(taxData, filingStatus));
+    }
+    return out;
 }
 
 export function getInputItems(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {

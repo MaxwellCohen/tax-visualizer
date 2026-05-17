@@ -11,6 +11,7 @@ import { SettingsSection } from "~/components/tax/inputForm/sections/SettingsSec
 import { IncomeSection } from "~/components/tax/inputForm/sections/IncomeSection";
 import { PreTaxSection } from "~/components/tax/inputForm/sections/PreTaxSection";
 import { TaxInputCommitToUrlProvider } from "~/components/tax/inputForm/context/TaxInputCommitUrlContext";
+import { TaxInputFormProvider } from "~/components/tax/inputForm/context/TaxInputFormContext";
 import { createTaxInputRowActions } from "~/components/tax/inputForm/hooks/taxInputRowActions";
 import { createDeductionMemos } from "~/components/tax/inputForm/hooks/deductionMemos";
 import { createLimitMemos } from "~/components/tax/inputForm/hooks/limitMemos";
@@ -50,62 +51,39 @@ export default function TaxInputForm(props: TaxInputFormProps) {
     return calcInputs?.value ?? "single";
   };
 
+  const formContext = createMemo(() => ({
+    taxInput: props.taxInput,
+    setTaxInput: props.setTaxInput,
+    taxData,
+    filingStatus,
+    validationCtx,
+    preTaxBenefitsTotal: limits.preTaxBenefitsTotal,
+    isMarriedJoint: limits.isMarriedJoint,
+    standardDeduction: deduction.standardDeduction,
+    itemizedBeatsStandard: deduction.itemizedBeatsStandard,
+    rowActions,
+  }));
+
   return (
     <TaxInputCommitToUrlProvider onCommitToUrl={props.onCommitToUrl}>
-      <form class="rounded-xl p-5 background-surface border-border shadow-shadow">
-        <CollapsibleBlock
-          title="Filing details & income"
-          bodyClass="mt-4 space-y-4"
-        >
-          <SettingsSection
-            taxInput={props.taxInput}
-            setTaxInput={props.setTaxInput}
-            availableYears={props.availableYears}
-          />
-          <IncomeSection
-            taxInput={props.taxInput}
-            setTaxInput={props.setTaxInput}
-            addSource={rowActions.addSource}
-            removeSourceAt={rowActions.removeSourceAt}
-            taxData={taxData}
-            filingStatus={filingStatus}
-            validationCtx={validationCtx}
-          />
-          <PreTaxSection
-            taxInput={props.taxInput}
-            setTaxInput={props.setTaxInput}
-            preTaxBenefitsTotal={limits.preTaxBenefitsTotal}
-            isMarriedJoint={limits.isMarriedJoint}
-            addPretaxBenefit={rowActions.addPretaxBenefit}
-            removePretaxBenefitAt={rowActions.removePretaxBenefitAt}
-            clearAll={rowActions.clearAllPretaxBenefits}
-            taxData={taxData}
-            filingStatus={filingStatus}
-            validationCtx={validationCtx}
-          />
-          <DeductionSection
-            taxInput={props.taxInput}
-            setTaxInput={props.setTaxInput}
-            standardDeduction={deduction.standardDeduction}
-            itemizedBeatsStandard={deduction.itemizedBeatsStandard}
-            addItemizedDeduction={rowActions.addItemizedDeduction}
-            removeItemizedDeductionAt={rowActions.removeItemizedDeductionAt}
-            clearAll={rowActions.clearAllItemizedDeductions}
-            taxData={taxData}
-            validationCtx={validationCtx}
-          />
-          <CreditsSection
-            taxInput={props.taxInput}
-            setTaxInput={props.setTaxInput}
-            addFederalTaxCredit={rowActions.addFederalTaxCredit}
-            removeFederalTaxCreditAt={rowActions.removeFederalTaxCreditAt}
-            clearAll={rowActions.clearAllFederalTaxCredits}
-            taxData={taxData}
-            filingStatus={filingStatus}
-            validationCtx={validationCtx}
-          />
-        </CollapsibleBlock>
-      </form>
+      <TaxInputFormProvider value={formContext()}>
+        <form class="rounded-xl p-5 background-surface border-border shadow-shadow">
+          <CollapsibleBlock
+            title="Filing details & income"
+            bodyClass="mt-4 space-y-4"
+          >
+            <SettingsSection
+              taxInput={props.taxInput}
+              setTaxInput={props.setTaxInput}
+              availableYears={props.availableYears}
+            />
+            <IncomeSection />
+            <PreTaxSection />
+            <DeductionSection />
+            <CreditsSection />
+          </CollapsibleBlock>
+        </form>
+      </TaxInputFormProvider>
     </TaxInputCommitToUrlProvider>
   );
 }

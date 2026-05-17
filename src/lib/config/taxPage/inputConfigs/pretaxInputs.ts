@@ -1,6 +1,7 @@
 /** Pre-tax inputs: 401(k), HSA, traditional IRA, other payroll pre-tax. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
+import { ELECTIVE_DEFERRAL_BASE_SUBCATEGORIES } from "./electiveDeferralBaseSubcategories";
 import {
     electiveDeferrals401kFamilyExcludingCatchUp,
     _hsa,
@@ -25,14 +26,7 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 category: "pretax",
                 displayOrder: 1,
                 inputType: "currency",
-                subcategories: [
-                    { key: "input-pretax-401K-preTax401kSpouse1", labelSingle: "401(k) deferrals", labelJoint: "401(k) deferrals (spouse 1)" },
-                    { key: "input-pretax-401K-preTax403bSpouse1", labelSingle: "403(b) deferrals", labelJoint: "403(b) deferrals (spouse 1)" },
-                    { key: "input-pretax-401K-preTax457bSpouse1", labelSingle: "457(b) deferrals", labelJoint: "457(b) deferrals (spouse 1)" },
-                    { key: "input-pretax-401K-preTax401kSpouse2", labelSingle: "401(k) deferrals (2)", labelJoint: "401(k) deferrals (spouse 2)" },
-                    { key: "input-pretax-401K-preTax403bSpouse2", labelSingle: "403(b) deferrals (2)", labelJoint: "403(b) deferrals (spouse 2)" },
-                    { key: "input-pretax-401K-preTax457bSpouse2", labelSingle: "457(b) deferrals (2)", labelJoint: "457(b) deferrals (spouse 2)" },
-                ],
+                subcategories: [...ELECTIVE_DEFERRAL_BASE_SUBCATEGORIES],
                 getLimit: (yearValues) => yearValues.limits.electiveDeferral401k ?? 23000,
                 validate: makeYearValuesCappedValidator("electiveDeferral401k", 23000),
             },

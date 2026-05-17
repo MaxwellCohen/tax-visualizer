@@ -1,42 +1,31 @@
-import { createMemo, type Accessor, type Setter } from "solid-js";
+import { createMemo } from "solid-js";
 import { rowsToTaxCalculationInputs } from "~/lib/tax/calc/inputs";
-import type { TaxFormData, TaxFormCreditRow } from "~/lib/tax/form/types";
-import type { TaxYearConfig, FilingStatus } from "~/lib/tax/data/types";
-import type { ValidationContext } from "~/lib/config/types";
+import type { TaxFormCreditRow } from "~/lib/tax/form/types";
 import { sumLabeledAmountSources } from "~/lib/tax/calc/labeledAmountSource";
 import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
 import { itemizedDeductionSelectOptions } from "~/components/tax/inputForm/shared";
 import { useStableTypedRowIds } from "~/components/tax/inputForm/hooks/useStableTypedRowIds";
 import { childTaxCredit } from "~/lib/config/taxPage/rowMetrics";
+import { useTaxInputForm } from "~/components/tax/inputForm/context/TaxInputFormContext";
 import {
   creditsSectionUi,
   LineItemsAccordionFromConfig,
 } from "~/components/tax/inputForm/sections/LineItemsAccordionFromConfig";
 
-type Props = {
-  taxInput: Accessor<TaxFormData>;
-  setTaxInput: Setter<TaxFormData>;
-  addFederalTaxCredit: () => void;
-  removeFederalTaxCreditAt: (rowIndex: number) => void;
-  clearAll: () => void;
-  taxData: Accessor<TaxYearConfig | null>;
-  filingStatus: Accessor<FilingStatus>;
-  validationCtx: Accessor<ValidationContext | undefined>;
-};
-
-export function CreditsSection(props: Props) {
-  const calc = createMemo(() => rowsToTaxCalculationInputs(props.taxInput().rows));
+export function CreditsSection() {
+  const { taxInput, setTaxInput, taxData, filingStatus, validationCtx, rowActions } = useTaxInputForm();
+  const calc = createMemo(() => rowsToTaxCalculationInputs(taxInput().rows));
   const creditRows = createMemo(() =>
-    props.taxInput().rows.filter((r): r is TaxFormCreditRow => r.type === "credit"),
+    taxInput().rows.filter((r): r is TaxFormCreditRow => r.type === "credit"),
   );
-  const creditRowIds = useStableTypedRowIds(props.taxInput, "credit");
+  const creditRowIds = useStableTypedRowIds(taxInput, "credit");
 
-  const creditConfigItems = useConfigItemsForSection(props.taxData, props.filingStatus, "credit");
+  const creditConfigItems = useConfigItemsForSection(taxData, filingStatus, "credit");
   const creditKindOptions = createMemo(() => itemizedDeductionSelectOptions("credit", creditConfigItems()));
 
   const creditsTotal = createMemo(() => {
-    const taxData = props.taxData();
-    const dependentCredits = taxData ? childTaxCredit(props.taxInput().rows, taxData) : 0;
+    const td = taxData();
+    const dependentCredits = td ? childTaxCredit(taxInput().rows, td) : 0;
     return dependentCredits + sumLabeledAmountSources(calc().federalTaxCredits);
   });
 
@@ -46,15 +35,15 @@ export function CreditsSection(props: Props) {
     <LineItemsAccordionFromConfig
       ui={creditsSectionUi}
       summaryAmount={creditsTotal}
-      taxInput={props.taxInput}
-      setTaxInput={props.setTaxInput}
-      taxData={props.taxData}
-      validationCtx={props.validationCtx}
-      onAdd={props.addFederalTaxCredit}
-      onClearAll={props.clearAll}
+      taxInput={taxInput}
+      setTaxInput={setTaxInput}
+      taxData={taxData}
+      validationCtx={validationCtx}
+      onAdd={rowActions.addFederalTaxCredit}
+      onClearAll={rowActions.clearAllFederalTaxCredits}
       showClearAll={showClearAll}
       rowIds={creditRowIds}
-      removeAt={props.removeFederalTaxCreditAt}
+      removeAt={rowActions.removeFederalTaxCreditAt}
       kindOptions={creditKindOptions}
       configItems={creditConfigItems}
     />

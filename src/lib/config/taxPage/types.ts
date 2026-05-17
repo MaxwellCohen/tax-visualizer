@@ -102,21 +102,37 @@ export type SummarySettings = {
     hideWhenZero?: boolean;
 };
 
-export type ConfigItem = {
+export type CalculateFn = (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => number;
+
+/** Identity + copy shown in UI tooltips */
+export type ConfigItemIdentity = {
     id: string;
-    chartRole?: ChartRole;
-    chartStyle?: ChartStyle;
-    category?: InputCategory;
     labels: ConfigLabels;
     description?: string;
     kindDetail?: KindDetail;
+};
+
+/** Line-item input slice (when this registry row backs the form) */
+export type ConfigItemTaxInputSlice = {
+    category?: InputCategory;
     input?: InputRowSettings;
     taxTreatment?: TaxTreatment;
+};
+
+/** Chart / summary presentation slice */
+export type ConfigItemChartSlice = {
+    chartRole?: ChartRole;
+    chartStyle?: ChartStyle;
     sankey?: SankeySettings;
     mekko?: MekkoSettings;
     summary?: SummarySettings;
+};
+
+/** Numeric pipeline step */
+export type ConfigItemPipelineSlice = {
     calculate?: CalculateFn;
 };
 
-export type CalculateFn = (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => number;
+/** One registry row: composed slices for shallower imports at chart vs input call sites */
+export type ConfigItem = ConfigItemIdentity & ConfigItemTaxInputSlice & ConfigItemChartSlice & ConfigItemPipelineSlice;
 

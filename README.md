@@ -2,6 +2,8 @@
 
 Interactive web app that estimates how US federal income flows through **deductions**, **progressive brackets**, **payroll taxes (Social Security and Medicare)**, and **take-home pay**. Results include a numeric summary, a **Sankey diagram** of the money flow, and listed assumptions.
 
+Domain vocabulary and pipeline seams: [CONTEXT.md](CONTEXT.md).
+
 Built with [SolidStart](https://start.solidjs.com) (Solid.js), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/) v4, and [d3-sankey](https://github.com/d3/d3-sankey).
 
 ## Requirements

@@ -2,7 +2,14 @@ import type { Setter } from "solid-js";
 import { newFederalTaxCreditSource } from "~/lib/tax/calc/federalTaxCreditSource";
 import { newItemizedDeductionSource } from "~/lib/tax/calc/itemizedDeductionSource";
 import { newPretaxBenefitSource } from "~/lib/tax/calc/pretaxBenefitSource";
-import type { TaxFormData, TaxFormRow } from "~/lib/tax/form/types";
+import type {
+  TaxFormCreditRow,
+  TaxFormData,
+  TaxFormDeductionRow,
+  TaxFormIncomeRow,
+  TaxFormPretaxRow,
+  TaxFormRow,
+} from "~/lib/tax/form/types";
 import {
   creditRowIndices,
   deductionRowIndices,
@@ -12,8 +19,41 @@ import {
 } from "~/lib/tax/form/rows";
 import { newIncomeRow, newPretaxRow } from "~/lib/tax/form/factories";
 
+function taxFormRowEqual(a: TaxFormRow, b: TaxFormRow): boolean {
+  if (a.type !== b.type) return false;
+  switch (a.type) {
+    case "setting":
+      return b.type === "setting" && a.id === b.id && a.value === b.value;
+    case "income": {
+      const bi = b as TaxFormIncomeRow;
+      return a.id === bi.id && a.kind === bi.kind && a.label === bi.label && a.amount === bi.amount;
+    }
+    case "pretax": {
+      const bp = b as TaxFormPretaxRow;
+      return a.id === bp.id && a.kind === bp.kind && a.label === bp.label && a.amount === bp.amount;
+    }
+    case "deduction": {
+      const bd = b as TaxFormDeductionRow;
+      return a.id === bd.id && a.kind === bd.kind && a.label === bd.label && a.amount === bd.amount;
+    }
+    case "credit": {
+      const bc = b as TaxFormCreditRow;
+      return a.id === bc.id && a.kind === bc.kind && a.label === bc.label && a.amount === bc.amount;
+    }
+    default:
+      return false;
+  }
+}
+
+/** Row-order-sensitive equality (matches prior JSON.stringify contract for `TaxFormData.rows`). */
 export function taxFormDataEquals(a: TaxFormData, b: TaxFormData): boolean {
-  return JSON.stringify(a.rows) === JSON.stringify(b.rows);
+  const ra = a.rows;
+  const rb = b.rows;
+  if (ra.length !== rb.length) return false;
+  for (let i = 0; i < ra.length; i++) {
+    if (!taxFormRowEqual(ra[i]!, rb[i]!)) return false;
+  }
+  return true;
 }
 
 function insertIndexForNewIncome(rows: TaxFormRow[]): number {
@@ -184,3 +224,5 @@ export function createTaxInputRowActions(
     clearAllFederalTaxCredits,
   };
 }
+
+export type TaxInputRowActions = ReturnType<typeof createTaxInputRowActions>;

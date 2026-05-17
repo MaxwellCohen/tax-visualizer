@@ -1,6 +1,11 @@
 import type { TaxFormRow } from "~/lib/tax/form/types";
 import { findInputById } from "./inputAccessors";
 import { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
+import { ELECTIVE_DEFERRAL_BASE_SUBCATEGORIES } from "./inputConfigs/electiveDeferralBaseSubcategories";
+
+const ELECTIVE_DEFERRAL_BASE_KIND_SET = new Set(
+    ELECTIVE_DEFERRAL_BASE_SUBCATEGORIES.map((s) => s.key.toLowerCase()),
+);
 
 const _cache = new WeakMap<TaxFormRow[], Map<string, number>>();
 
@@ -43,9 +48,9 @@ function sumPretaxKinds(inputs: TaxFormRow[], predicate: (kindLower: string) => 
     return sum;
 }
 
-/** 401(k)/403(b)/457(b) elective rows; excludes age-50+ catch-up (separate config item). */
+/** 401(k)/403(b)/457(b) elective rows; excludes age-50+ catch-up (separate config item). Keys match {@link ELECTIVE_DEFERRAL_BASE_SUBCATEGORIES}. */
 export const electiveDeferrals401kFamilyExcludingCatchUp = (inputs: TaxFormRow[]) =>
-    sumPretaxKinds(inputs, (k) => k.includes("input-pretax-401k"));
+    sumPretaxKinds(inputs, (k) => ELECTIVE_DEFERRAL_BASE_KIND_SET.has(k));
 
 export const _401k = (inputs: TaxFormRow[]) => findInputById(inputs, "input-pretax-401K");
 export const _hsa = (inputs: TaxFormRow[]) => findInputById(inputs, "input-pretax-hsa");

@@ -1,30 +1,17 @@
-import { Show, createMemo, type Accessor, type Setter } from "solid-js";
+import { Show, createMemo } from "solid-js";
 import Accordion from "~/components/ui/Accordion";
 import { rowsToTaxCalculationInputs } from "~/lib/tax/calc/inputs";
-import type { TaxFormData, TaxFormDeductionRow, TaxFormRow } from "~/lib/tax/form/types";
-import type { TaxYearConfig } from "~/lib/tax/data/types";
-import type { ValidationContext } from "~/lib/config/types";
+import type { TaxFormDeductionRow, TaxFormRow } from "~/lib/tax/form/types";
 import { sumLabeledAmountSources } from "~/lib/tax/calc/labeledAmountSource";
 import { useConfigItemsForSection } from "~/components/tax/inputForm/hooks/useConfigItemsForSection";
 import { itemizedDeductionSelectOptions } from "~/components/tax/inputForm/shared";
 import { getFilingStatusFromRows } from "~/lib/tax/calc/inputs";
 import { useTaxInputCommitToUrl } from "~/components/tax/inputForm/context/TaxInputCommitUrlContext";
+import { useTaxInputForm } from "~/components/tax/inputForm/context/TaxInputFormContext";
 import { money } from "~/lib/format/moneyFormat";
 import { useStableTypedRowIds } from "~/components/tax/inputForm/hooks/useStableTypedRowIds";
 import { settingRowFieldMountKey, settingRowIndex } from "~/lib/tax/form/rows";
 import { LineItemsTableBlock } from "~/components/tax/inputForm/sections/LineItemsTableBlock";
-
-type Props = {
-  taxInput: Accessor<TaxFormData>;
-  setTaxInput: Setter<TaxFormData>;
-  standardDeduction: Accessor<number>;
-  itemizedBeatsStandard: Accessor<boolean>;
-  addItemizedDeduction: () => void;
-  removeItemizedDeductionAt: (rowIndex: number) => void;
-  clearAll: () => void;
-  taxData: Accessor<TaxYearConfig | null>;
-  validationCtx: Accessor<ValidationContext | undefined>;
-};
 
 function patchUseItemized(rows: TaxFormRow[], checked: boolean): TaxFormRow[] {
   const i = settingRowIndex(rows, "useItemizedDeductions");
@@ -36,24 +23,33 @@ function patchUseItemized(rows: TaxFormRow[], checked: boolean): TaxFormRow[] {
   return next;
 }
 
-export function DeductionSection(props: Props) {
+export function DeductionSection() {
+  const {
+    taxInput,
+    setTaxInput,
+    standardDeduction,
+    itemizedBeatsStandard,
+    taxData,
+    validationCtx,
+    rowActions,
+  } = useTaxInputForm();
   const commitToUrl = useTaxInputCommitToUrl();
-  const calc = createMemo(() => rowsToTaxCalculationInputs(props.taxInput().rows));
+  const calc = createMemo(() => rowsToTaxCalculationInputs(taxInput().rows));
   const itemizedTotal = () => sumLabeledAmountSources(calc().itemizedDeductions);
   const useItemizedFieldMountKey = createMemo(() =>
-    settingRowFieldMountKey(props.taxInput().rows, "useItemizedDeductions"),
+    settingRowFieldMountKey(taxInput().rows, "useItemizedDeductions"),
   );
   const useItemized = createMemo(() => calc().useItemizedDeductions);
   const deductionRows = createMemo(() =>
-    props.taxInput().rows.filter((r): r is TaxFormDeductionRow => r.type === "deduction"),
+    taxInput().rows.filter((r): r is TaxFormDeductionRow => r.type === "deduction"),
   );
-  const deductionRowIds = useStableTypedRowIds(props.taxInput, "deduction");
+  const deductionRowIds = useStableTypedRowIds(taxInput, "deduction");
 
-  const filingStatus = createMemo(() => getFilingStatusFromRows(props.taxInput().rows) ?? "single");
-  const deductionConfigItems = useConfigItemsForSection(props.taxData, filingStatus, "deduction");
+  const filingStatus = createMemo(() => getFilingStatusFromRows(taxInput().rows) ?? "single");
+  const deductionConfigItems = useConfigItemsForSection(taxData, filingStatus, "deduction");
   const deductionKindOptions = createMemo(() => itemizedDeductionSelectOptions("deduction", deductionConfigItems()));
 
-  const summaryAmount = () => (useItemized() ? itemizedTotal() : props.standardDeduction());
+  const summaryAmount = () => (useItemized() ? itemizedTotal() : standardDeduction());
 
   const showClearAll = createMemo(() => deductionRows().length > 0);
 
@@ -76,7 +72,7 @@ export function DeductionSection(props: Props) {
             checked={useItemized()}
             onInput={(e) => {
               const checked = e.currentTarget.checked;
-              props.setTaxInput((prev) => ({ ...prev, rows: patchUseItemized(prev.rows, checked) }));
+              setTaxInput((prev) => ({ ...prev, rows: patchUseItemized(prev.rows, checked) }));
             }}
             onBlur={() => {
               commitToUrl?.();
@@ -87,7 +83,7 @@ export function DeductionSection(props: Props) {
         </label>
       </Show>
       <p class="text-xs leading-relaxed text-muted-foreground">
-        Standard deduction for this year and filing status: {money.format(props.standardDeduction())}.
+        Standard deduction for this year and filing status: {money.format(standardDeduction())}.
       </p>
 
       <Show when={useItemized()}>
@@ -100,19 +96,19 @@ export function DeductionSection(props: Props) {
               </p>
             }
             addLabel="Add line"
-            onAdd={props.addItemizedDeduction}
-            onClearAll={props.clearAll}
+            onAdd={rowActions.addItemizedDeduction}
+            onClearAll={rowActions.clearAllItemizedDeductions}
             showClearAll={showClearAll}
             kindColumnHeader="Category"
             labelColumnHeader="Label (optional)"
             amountColumnHeader="Amount"
             rowType="deduction"
             rowIds={deductionRowIds}
-            removeAt={props.removeItemizedDeductionAt}
-            taxInput={props.taxInput}
-            setTaxInput={props.setTaxInput}
-            taxData={props.taxData}
-            validationCtx={props.validationCtx}
+            removeAt={rowActions.removeItemizedDeductionAt}
+            taxInput={taxInput}
+            setTaxInput={setTaxInput}
+            taxData={taxData}
+            validationCtx={validationCtx}
             detailVariant="deduction"
             configItems={deductionConfigItems}
             kindDataLabel="Category"
@@ -123,14 +119,14 @@ export function DeductionSection(props: Props) {
           />
           <p
             class={`rounded-lg border px-3 py-2 text-xs leading-relaxed ${
-              props.itemizedBeatsStandard()
+              itemizedBeatsStandard()
                 ? "border-border bg-accent-muted text-accent"
                 : "border-warning-border bg-warning-bg text-warning-text"
             }`}
           >
-            {props.itemizedBeatsStandard()
-              ? `Itemized deductions currently exceed the standard deduction by ${money.format(itemizedTotal() - props.standardDeduction())}.`
-              : `Itemized deductions are currently ${money.format(props.standardDeduction() - itemizedTotal())} below the standard deduction, so the standard deduction would usually produce a lower federal tax bill.`}
+            {itemizedBeatsStandard()
+              ? `Itemized deductions currently exceed the standard deduction by ${money.format(itemizedTotal() - standardDeduction())}.`
+              : `Itemized deductions are currently ${money.format(standardDeduction() - itemizedTotal())} below the standard deduction, so the standard deduction would usually produce a lower federal tax bill.`}
           </p>
         </>
       </Show>
