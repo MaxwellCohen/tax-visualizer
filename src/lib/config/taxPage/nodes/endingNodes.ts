@@ -1,11 +1,11 @@
 /** Ending metrics: take-home pay, effective tax rate, marginal federal rate. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
-import { totalIncome } from "../rowMetrics";
+import { allPretax, totalIncome } from "../rowMetrics";
 import {
+    calculatePayrollTax,
+    calculateSelfEmploymentTax,
     calculateTaxBuckets,
-    getStandardDeductionWithoutPayrollTax,
-    getItemizedDeductionsWithoutPayrollTax,
 } from "../calc/taxCalculations";
 
 export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
@@ -24,14 +24,20 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             chartRole: "takehome",
             chartStyle: { fill: "var(--color-chart-keep)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: "Take-Home Pay", compact: "Take-Home Pay" },
-            description: "After-tax keep, deduction shield, and credited amounts in this visualization",
+            description:
+                "Modeled cash after pre-tax deferrals, federal income tax, and payroll taxes",
             sankey: {
                 node: { row: 3, col: 4 },
             },
             calculate: (inputs, taxData, filingStatus) => {
+                const gross = totalIncome(inputs);
+                const pretax = allPretax(inputs);
                 const brackets = calculateTaxBuckets(inputs, taxData, filingStatus);
-                const keep = brackets.reduce((sum, bracket) => sum + bracket.keep + bracket.credits, 0) + getStandardDeductionWithoutPayrollTax(inputs, taxData, filingStatus) + getItemizedDeductionsWithoutPayrollTax(inputs, taxData, filingStatus);
-                return keep;
+                const federalTax = brackets.reduce((sum, bracket) => sum + bracket.tax, 0);
+                const payroll =
+                    calculatePayrollTax(inputs, taxData, filingStatus) +
+                    calculateSelfEmploymentTax(inputs, taxData, filingStatus);
+                return gross - pretax - federalTax - payroll;
             },
             summary: {
                 displayOrder: 6,

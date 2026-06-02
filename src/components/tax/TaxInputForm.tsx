@@ -24,6 +24,8 @@ type TaxInputFormProps = {
   availableYears: number[];
   /** Called when focus leaves a field inside the form (focusout); use to sync URL without per-keystroke updates. */
   onCommitToUrl?: () => void;
+  /** When false, the main form collapsible starts closed (e.g. withholding page with wage jobs). */
+  defaultOpen?: boolean;
 };
 
 export default function TaxInputForm(props: TaxInputFormProps) {
@@ -71,6 +73,7 @@ export default function TaxInputForm(props: TaxInputFormProps) {
           <CollapsibleBlock
             title="Filing details & income"
             bodyClass="mt-4 space-y-4"
+            defaultOpen={props.defaultOpen ?? true}
           >
             <SettingsSection
               taxInput={props.taxInput}

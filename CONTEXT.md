@@ -17,3 +17,4 @@ Vocabulary for the tax page pipeline and UI. For the full **ConfigItem** invento
 - **Registry factories** — Add or change a `ConfigItem` by editing the appropriate factory under `src/lib/config/taxPage/` and keeping ids unique.
 - **calculate pipeline** — All computed dollars flow through `calculateAllConfigValues`; favor tests at this boundary.
 - **Sankey layout** — Pure builder `buildSankeyLayoutFromCalculatedConfig` (`src/components/tax/sankey/buildSankeyLayoutFromCalculatedConfig.ts`) separates layout from Solid rendering.
+- **Withholding page** — `/withholding` reuses `calculateAllConfigValues` and reads `federalIncomeTax` (post-credit net liability); paycheck math lives in `src/lib/tax/withholding/` and does not add registry phases.

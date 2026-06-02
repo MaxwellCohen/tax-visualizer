@@ -17,6 +17,13 @@ export const PAGE_META = {
     keywords:
       "federal income tax, tax brackets, FICA, payroll tax, capital gains, take-home pay, withholding, United States",
   },
+  withholding: {
+    title: "Paycheck withholding estimate — US Tax Visualizer",
+    description:
+      "Rough federal income tax per paycheck and year-end refund or balance-due estimate from your modeled annual liability. Educational—not W-4 or tax advice.",
+    keywords:
+      "federal income tax withholding, paycheck withholding, refund estimate, biweekly withholding, United States",
+  },
   about: {
     title: "About — US Tax Visualizer",
     description:

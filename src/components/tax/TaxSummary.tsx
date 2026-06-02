@@ -6,9 +6,12 @@ import {
   type SummaryMetric,
 } from "~/lib/tax/charts/buildSummary";
 import type { CalculatedConfigItem } from "~/lib/tax/calc/calculateTaxes";
+import type { TaxFormData } from "~/lib/tax/form/types";
+import { WithholdingCta } from "~/components/tax/WithholdingCta";
 
 type TaxSummaryProps = {
   calculatedConfig: Accessor<CalculatedConfigItem[] | null>;
+  taxInput: Accessor<TaxFormData>;
 };
 
 function MetricItem(props: { metric: SummaryMetric }) {
@@ -63,6 +66,7 @@ export default function TaxSummary(props: TaxSummaryProps) {
                   </div>
                 )}
               </For>
+              <WithholdingCta taxInput={props.taxInput()} />
             </div>
           )}
         </Show>

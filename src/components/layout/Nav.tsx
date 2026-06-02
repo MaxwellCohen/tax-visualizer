@@ -15,7 +15,7 @@ export default function Nav() {
           Tax Visualizer
         </a>
 
-        <div class="ml-auto flex items-center gap-6">
+        <div class="ml-auto flex flex-wrap items-center justify-end gap-x-6 gap-y-2">
           <a
             href="/"
             class={`text-sm border-b pb-0.5 transition-colors duration-150 ${
@@ -23,6 +23,14 @@ export default function Nav() {
             }`}
           >
             Home
+          </a>
+          <a
+            href="/withholding"
+            class={`text-sm border-b pb-0.5 transition-colors duration-150 ${
+              isActive("/withholding") ? "border-accent text-accent" : "border-transparent text-muted-foreground"
+            }`}
+          >
+            Withholding
           </a>
           <a
             href="/about"

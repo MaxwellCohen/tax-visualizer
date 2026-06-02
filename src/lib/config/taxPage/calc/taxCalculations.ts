@@ -242,7 +242,6 @@ export function calculateTaxBuckets(inputs: TaxFormRow[], taxData: TaxYearConfig
         bracket.tax = Math.max(0, bracket.tax - credits);
         remainingCredits -= credits;
     }
-    console.log("calculateTaxBuckets", result);
     bucketCache.set(cacheKey, result);
     return result;
 }

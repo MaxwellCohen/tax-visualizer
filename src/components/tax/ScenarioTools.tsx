@@ -3,15 +3,19 @@ import { CollapsibleBlock } from "~/components/ui/CollapsibleBlock";
 import { ScenarioToolsActions } from "~/components/tax/scenarioTools/ScenarioToolsActions";
 import { ScenarioToolsPresets } from "~/components/tax/scenarioTools/ScenarioToolsPresets";
 import { buildUrlWithScenario } from "~/routes/taxHome/taxHomePersistence";
+import { buildWithholdingShareUrl } from "~/routes/withholding/withholdingPersistence";
 import { getTaxYearFromRows } from "~/lib/tax/calc/inputs";
 import { TaxFormData } from "~/lib/tax/form/types";
 import { ScenarioPreset } from "~/lib/tax/scenario/types";
+import type { WithholdingInputs } from "~/lib/tax/withholding/types";
 
 type ScenarioToolsProps = {
   presets: ScenarioPreset[];
   taxInput: Accessor<TaxFormData>;
   setTaxInput: Setter<TaxFormData>;
   syncScenarioToUrl: () => void;
+  variant?: "home" | "withholding";
+  withholdingInputs?: Accessor<WithholdingInputs>;
 };
 
 export default function ScenarioTools(props: ScenarioToolsProps) {
@@ -50,8 +54,8 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
         }
       >
         <p class="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-          Try a starter scenario or share the current case. Your latest scenario
-          is saved locally in this browser.
+          Try a starter scenario or share the current case. Your scenario is saved in this
+          browser and encoded in the URL when you copy a share link or leave a field.
         </p>
         <ScenarioToolsPresets
           presets={props.presets}
@@ -83,10 +87,14 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
         <ScenarioToolsActions
           onCopyShareLink={async () => {
             if (typeof window === "undefined") return;
-            const href = buildUrlWithScenario(
-              window.location.href,
-              props.taxInput(),
-            );
+            const href =
+              props.variant === "withholding" && props.withholdingInputs
+                ? buildWithholdingShareUrl(
+                    window.location.origin,
+                    props.taxInput(),
+                    props.withholdingInputs(),
+                  )
+                : buildUrlWithScenario(window.location.href, props.taxInput());
             await copyText(href, "Share link copied.");
           }}
         />

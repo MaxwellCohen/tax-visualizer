@@ -31,7 +31,7 @@ export function AboutModelSections() {
         <AboutBulletCard title="What it omits" as="div">
           <li>State and local taxes.</li>
           <li>Credits, phaseouts, AMT, full Form 8960 / NIIT detail, self-employment tax, and other specialized regimes.</li>
-          <li>Employer-side payroll taxes, withholding schedules, and refund timing.</li>
+          <li>Employer-side payroll taxes and full W-4 / state withholding worksheets (see the simplified paycheck estimator on Withholding).</li>
           <li>Qualified-dividend, collectibles, or other special capital-gain edge cases.</li>
         </AboutBulletCard>
 

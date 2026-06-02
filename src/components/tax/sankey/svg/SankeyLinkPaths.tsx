@@ -1,10 +1,15 @@
 import { For } from "solid-js";
+import type { Accessor } from "solid-js";
 import type { SankeyGraph } from "d3-sankey";
 import { sankeyLinkPath, type ChartLink, type ChartNode } from "~/components/tax/sankey/types/chartTypes";
 import { linkStroke } from "~/components/tax/sankey/style/sankeyColors";
 import { money } from "~/lib/format/moneyFormat";
+import { isLinkHighlighted } from "~/components/tax/sankey/svg/sankeyHighlight";
 
-type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
+type Props = {
+  graph: SankeyGraph<ChartNode, ChartLink>;
+  activeNodeId: Accessor<string | null>;
+};
 
 function linkLabelPosition(link: ChartLink) {
   const source = link.source as ChartNode;
@@ -24,6 +29,7 @@ export function SankeyLinkPaths(props: Props) {
         const targetNode = link.target as ChartNode;
         const { x, y } = linkLabelPosition(link);
         const amount = money.format(link.value ?? 0);
+        const highlighted = () => isLinkHighlighted(link, props.activeNodeId());
         return (
           <g data-link={`${sourceNode.id} - ${targetNode.id}`} data-row={link.row} data-col={link.col} data-val={link.value}>
             <title>{`${sourceNode.labels.default} → ${targetNode.labels.default}: ${amount}`}</title>
@@ -31,8 +37,9 @@ export function SankeyLinkPaths(props: Props) {
               d={sankeyLinkPath(link) ?? ""}
               fill="none"
               stroke={link.stroke ?? linkStroke(targetNode)}
-              stroke-opacity="1"
+              stroke-opacity={highlighted() ? 1 : 0.12}
               stroke-width={Math.max(1, link.width ?? 1)}
+              style={{ transition: "stroke-opacity 150ms ease" }}
             />
             <text
               class="fill-sankey-label font-body"

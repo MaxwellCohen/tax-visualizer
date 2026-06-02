@@ -28,8 +28,8 @@ export function RouteSeo(props: { page: PageKey }) {
     <>
       <Title>{m.title}</Title>
       <Meta name="description" content={m.description} />
-      {props.page === "home" ? (
-        <Meta name="keywords" content={PAGE_META.home.keywords} />
+      {"keywords" in m && m.keywords ? (
+        <Meta name="keywords" content={m.keywords} />
       ) : null}
       <Meta property="og:title" content={m.title} />
       <Meta property="og:description" content={m.description} />

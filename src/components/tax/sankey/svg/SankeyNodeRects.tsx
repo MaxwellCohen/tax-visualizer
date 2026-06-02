@@ -1,11 +1,18 @@
 import { For } from "solid-js";
+import type { Accessor } from "solid-js";
 import type { SankeyGraph } from "d3-sankey";
 import type { ChartLink, ChartNode } from "~/components/tax/sankey/types/chartTypes";
 import { LABEL_RIGHT_RESERVE, SANKEY_WIDTH } from "~/components/tax/sankey/layout/dimensions";
 import { nodeFill } from "~/components/tax/sankey/style/sankeyColors";
 import { money as sankeyMoney } from "~/lib/format/moneyFormat";
 
-type Props = { graph: SankeyGraph<ChartNode, ChartLink> };
+type Props = {
+  graph: SankeyGraph<ChartNode, ChartLink>;
+  activeNodeId: Accessor<string | null>;
+  highlightedNodes: Accessor<Set<string> | null>;
+  onNodeHover: (nodeId: string) => void;
+  onNodeLeave: () => void;
+};
 
 const COMPACT_BAND_HEIGHT = 28;
 
@@ -42,9 +49,18 @@ export function SankeyNodeRects(props: Props) {
         const midY = (y0 + y1) / 2;
         const anchor = labelInside ? "end" : "start";
         const lines = sankeyLabelLines(node);
+        const dimmed = () => {
+          const active = props.highlightedNodes();
+          return active !== null && !active.has(node.id);
+        };
 
         return (
-          <g data-node={node.id} data-row={node.row} data-col={node.col}>
+          <g
+            data-node={node.id}
+            data-row={node.row}
+            data-col={node.col}
+            style={{ opacity: dimmed() ? 0.35 : 1, transition: "opacity 150ms ease" }}
+          >
             <rect
               x={node.x0}
               y={node.y0}
@@ -52,7 +68,16 @@ export function SankeyNodeRects(props: Props) {
               height={Math.max(1, y1 - y0)}
               fill={nodeFill(node)}
               data-node={node.id}
-              rx={3} 
+              rx={3}
+              class="cursor-pointer"
+              onMouseEnter={() => props.onNodeHover(node.id)}
+              onFocus={() => props.onNodeHover(node.id)}
+              onMouseLeave={() => props.onNodeLeave()}
+              onBlur={() => props.onNodeLeave()}
+              onClick={() => props.onNodeHover(node.id)}
+              tabindex={0}
+              role="button"
+              aria-label={lines.title}
             />
             {lines.compact ? (
               <text
