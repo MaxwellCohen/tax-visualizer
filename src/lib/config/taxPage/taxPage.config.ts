@@ -80,9 +80,15 @@ export function getInputItemsForSection(
 export function getConfigItems(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
     const out: ConfigItem[] = [];
     for (const phase of TAX_PAGE_REGISTRY_PHASES) {
-        out.push(...phase.getItems(taxData, filingStatus));
+        out.push(...phase.getItems(taxData, filingStatus).map(stripSankeyTopology));
     }
     return out;
+}
+
+function stripSankeyTopology(item: ConfigItem): ConfigItem {
+    if (!item.sankey) return item;
+    const { sankey: _sankey, ...rest } = item;
+    return rest;
 }
 
 export function getInputItems(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {

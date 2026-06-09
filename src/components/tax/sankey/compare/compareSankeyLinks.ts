@@ -5,6 +5,6 @@ export function compareSankeyItemsByRowAndCol(a: ChartLink | ChartNode, b: Chart
     return 0;
   }
   const aVal = (a?.row || 0) + ((a?.col || 0) * 1000)
-  const bVal = (b.row || 0) + ((a?.col || 0) * 1000)
+  const bVal = (b.row || 0) + ((b?.col || 0) * 1000)
   return aVal - bVal;
 }

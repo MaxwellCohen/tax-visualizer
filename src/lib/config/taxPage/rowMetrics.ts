@@ -1,91 +1,42 @@
 import type { TaxFormRow } from "~/lib/tax/form/types";
-import { findInputById } from "./inputAccessors";
 import { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
-import { ELECTIVE_DEFERRAL_BASE_SUBCATEGORIES } from "./inputConfigs/electiveDeferralBaseSubcategories";
+import { buildScenarioMetrics } from "~/lib/tax/calc/scenarioMetrics";
 
-const ELECTIVE_DEFERRAL_BASE_KIND_SET = new Set(
-    ELECTIVE_DEFERRAL_BASE_SUBCATEGORIES.map((s) => s.key.toLowerCase()),
-);
+export const wageIncomeSpouse1 = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).income.wagesSpouse1;
+export const wageIncomeSpouse2 = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).income.wagesSpouse2;
+export const wageIncome = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).income.wages;
+export const selfEmploymentIncome = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).income.selfEmployment;
+export const ordinaryIncome = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).income.ordinary;
+export const shortTermCapGains = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).income.shortTermCapGains;
+export const longTermCapGains = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).income.longTermCapGains;
 
-const _cache = new WeakMap<TaxFormRow[], Map<string, number>>();
-
-const sumInputsByKinds = (inputs: TaxFormRow[], ...kinds: string[]): number => {
-    let cache = _cache.get(inputs);
-    if (!cache) {
-        cache = new Map<string, number>();
-        _cache.set(inputs, cache);
-    }
-    if (cache.has(kinds.join(","))) {
-        return cache.get(kinds.join(","))?? 0; 
-    }
-   const amount =  inputs.reduce((sum, row) => {
-        if (row.type === "setting") return sum;
-        const rowKind = row.kind?.toLowerCase();
-        if (!rowKind || !kinds.every((kind) => rowKind.includes(kind.toLowerCase()))) return sum;
-        return sum + row.amount;
-    }, 0);
-    cache.set(kinds.join(","), amount);
-    return amount;
-}
-
-export const wageIncomeSpouse1 = (inputs: TaxFormRow[]) =>
-    sumInputsByKinds(inputs, "income-ordinary-wages") - sumInputsByKinds(inputs, "income-ordinary-wages", "spouse2");
-export const wageIncomeSpouse2 = (inputs: TaxFormRow[]) => sumInputsByKinds(inputs, "income-ordinary-wages", "spouse2");
-export const wageIncome = (inputs: TaxFormRow[]) => wageIncomeSpouse1(inputs) + wageIncomeSpouse2(inputs);
-export const selfEmploymentIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary-selfEmployment");
-export const ordinaryIncome = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary");
-export const shortTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "income-ordinary-shortTermCapGains");
-export const longTermCapGains = (inputs: TaxFormRow[]) => findInputById(inputs, "income-longTermCapGains");
-function sumPretaxKinds(inputs: TaxFormRow[], predicate: (kindLower: string) => boolean): number {
-    let sum = 0;
-    for (const row of inputs || []) {
-        if (row.type === "setting") continue;
-        if (!("kind" in row) || typeof row.kind !== "string") continue;
-        const kindLower = row.kind.toLowerCase();
-        if (!predicate(kindLower)) continue;
-        if ("amount" in row && typeof row.amount === "number") sum += row.amount;
-    }
-    return sum;
-}
-
-/** 401(k)/403(b)/457(b) elective rows; excludes age-50+ catch-up (separate config item). Keys match {@link ELECTIVE_DEFERRAL_BASE_SUBCATEGORIES}. */
+/** 401(k)/403(b)/457(b) elective rows; excludes age-50+ catch-up (separate config item). */
 export const electiveDeferrals401kFamilyExcludingCatchUp = (inputs: TaxFormRow[]) =>
-    sumPretaxKinds(inputs, (k) => ELECTIVE_DEFERRAL_BASE_KIND_SET.has(k));
+    buildScenarioMetrics(inputs).pretax.electiveDeferrals401kFamilyExcludingCatchUp;
 
-export const _401k = (inputs: TaxFormRow[]) => findInputById(inputs, "input-pretax-401K");
-export const _hsa = (inputs: TaxFormRow[]) => findInputById(inputs, "input-pretax-hsa");
-export const otherPretax = (inputs: TaxFormRow[]) => findInputById(inputs, "input-pretax-otherPretax");
-export const allPretax = (inputs: TaxFormRow[]) => {
-    const pretax = findInputById(inputs, "input-pretax");
-    const wageIncome = findInputById(inputs, "income-ordinary-wages");
-    return Math.min(pretax, wageIncome);
-};
-export const traditionalIra = (inputs: TaxFormRow[]) => findInputById(inputs, "input-pretax-traditionalIra");
-// const salt = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-salt");
-// const medicalDental = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-medicalDental");
-// const mortgageInterest = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-mortgageInterest");
-// const charitable = (inputs: TaxFormRow[]) => findInputById(inputs, "deduction-charitable");
-const qualifyingChildren = (inputs: TaxFormRow[]) => Math.max(0, findInputById(inputs, "qualifyingChildren"));
-const otherDependents = (inputs: TaxFormRow[]) => Math.max(0, findInputById(inputs, "otherDependents"));
+export const _401k = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).pretax.preTax401k;
+export const _hsa = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).pretax.hsa;
+export const otherPretax = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).pretax.other;
+export const allPretax = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).pretax.all;
+export const traditionalIra = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).pretax.traditionalIra;
+const qualifyingChildren = (inputs: TaxFormRow[]) => Math.max(0, buildScenarioMetrics(inputs).qualifyingChildren);
+const otherDependents = (inputs: TaxFormRow[]) => Math.max(0, buildScenarioMetrics(inputs).otherDependents);
 export const childTaxCredit = (inputs: TaxFormRow[], taxData: TaxYearConfig) => {
     const childCredit = taxData.federalTaxCreditDefaults.childTaxCredit ?? 0;
     const otherDependentCredit = taxData.federalTaxCreditDefaults.creditForOtherDependents ?? 0;
     return (qualifyingChildren(inputs) * childCredit) + (otherDependents(inputs) * otherDependentCredit);
 };
-export const educationCredits = (inputs: TaxFormRow[]) => findInputById(inputs, "input-credit-education");
-export const retirementSavingsContributions = (inputs: TaxFormRow[]) => findInputById(inputs, "retirementSavingsContributions");
-export const otherCredit = (inputs: TaxFormRow[]) => findInputById(inputs, "input-credit-other");
-export const useItemizedDeductions = (inputs: TaxFormRow[]) => findInputById(inputs, "useItemizedDeductions");
+export const educationCredits = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).credits.education;
+export const retirementSavingsContributions = (inputs: TaxFormRow[]) =>
+    buildScenarioMetrics(inputs).credits.retirementSavingsContributions;
+export const otherCredit = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).credits.other;
+export const useItemizedDeductions = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).useItemizedDeductions ? 1 : 0;
 
 export const totalCredits = (inputs: TaxFormRow[], taxData: TaxYearConfig) =>
     childTaxCredit(inputs, taxData) + educationCredits(inputs) + retirementSavingsContributions(inputs) + otherCredit(inputs);
 
 
-export const totalItemized = (inputs: TaxFormRow[]) => {
-    const deductions = findInputById(inputs, 'deduction-');
-    const postTaxIncome = Math.max(0, ordinaryIncome(inputs) - allPretax(inputs));
-    return Math.min(deductions, postTaxIncome);
-}
+export const totalItemized = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).deductions.totalItemized;
 
 export const standardDeduction = (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => {
     const standardDeduction = taxData.standardDeduction[filingStatus];
@@ -95,5 +46,5 @@ export const standardDeduction = (inputs: TaxFormRow[], taxData: TaxYearConfig, 
 export const totalDeductions = (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => useItemizedDeductions(inputs) ? totalItemized(inputs) : standardDeduction(inputs, taxData, filingStatus) ;
    
 
-export const totalIncome = (inputs: TaxFormRow[]) => longTermCapGains(inputs) + ordinaryIncome(inputs);
+export const totalIncome = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).income.total;
 

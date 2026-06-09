@@ -2,18 +2,6 @@
 /** Deduction-related config nodes: 0% tax brackets (standard/itemized), deduction amounts, mekko slices. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
-import {
-    calculatePayrollTax,
-    calculatePayrollTaxBreakdown,
-    calculateSelfEmploymentDeduction,
-    computeFederalTaxCreditsApplied,
-    getItemizedDeductionsWithoutPayrollTax,
-    getStandardDeductionWithoutPayrollTax,
-    totalTaxableIncome,
-    ordinaryIncomeAfterPretax,
-    taxableIncomeAfterDeductions,
-} from "../calc/taxCalculations";
-import { longTermCapGains, allPretax } from "../rowMetrics";
 
 export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
@@ -28,7 +16,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "standardDeduction", target: "takeHomePay", row: 3, col: 3 },
                 ],
             },
-            calculate: getStandardDeductionWithoutPayrollTax,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.standardDeductionWithoutPayrollTax,
         },
         {
             id: "itemizedDeductions",
@@ -41,7 +29,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "itemizedDeductions", target: "takeHomePay", row: 3, col: 3 },
                 ],
             },
-            calculate: getItemizedDeductionsWithoutPayrollTax
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.itemizedDeductionsWithoutPayrollTax,
         },
     ];
 }
@@ -71,7 +59,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             sankey: {
                 node: { row: 3, col: 2 },
             },
-            calculate: longTermCapGains,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.income.longTermCapGains,
             summary: {
                 displayOrder: 1.8,
                 format: "currency",
@@ -82,7 +70,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             chartRole: "deduction",
             labels: { default: "Total Taxable Income", compact: "Taxable Income", summary: "Taxable Income" },
             description: "Federal taxable income after deductions (ordinary + LTCG pipeline)",
-            calculate: totalTaxableIncome,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.totalTaxableIncome,
             summary: {
                 displayOrder: 3,
                 format: "currency",
@@ -102,7 +90,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
             labels: { default: "Federal Credits Applied", compact: "Credits Applied" },
             description: "Sum of federal credits applied against income tax in this model",
-            calculate: (inputs, taxData, filingStatus) => computeFederalTaxCreditsApplied(inputs, taxData, filingStatus),
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.federalTaxCreditsApplied,
             summary: {
                 displayOrder: 5.5,
                 format: "currency",
@@ -117,9 +105,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             sankey: {
                 node: { row: 4, col: 1 },
             },
-            calculate: (inputs, td, filingStatus) => {
-                return calculatePayrollTaxBreakdown(inputs, td, filingStatus).socialSecurityTax;
-            },
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.payrollTaxBreakdown.socialSecurityTax,
         },
         {
             id: "medicareTax",
@@ -129,15 +115,13 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             sankey: {
                 node: { row: 4, col: 1 },
             },
-            calculate: (inputs, td, filingStatus) => {
-                return calculatePayrollTaxBreakdown(inputs, td, filingStatus).medicareTax;
-            },
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.payrollTaxBreakdown.medicareTax,
         },
     ];
 }
 
 /** Mekko vertical slices before federal brackets: deferrals, SE adjustment, deduction shield. */
-export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
+export function makeMekkoSliceNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
         {
             id: "mekkoPretaxDeferrals",
@@ -148,7 +132,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, filingStatus: 
             mekko: {
                     row: 0,
             },
-            calculate: (inputs) => allPretax(inputs),
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.pretax.all,
         },
         {
             id: "mekkoSelfEmploymentTaxDeduction",
@@ -161,7 +145,7 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, filingStatus: 
                     row: 2,
                 
             },
-            calculate: (inputs) => calculateSelfEmploymentDeduction(inputs, taxData, filingStatus),
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.selfEmploymentDeduction,
         },
         {
             id: "mekkoDeductionShieldNet",
@@ -173,11 +157,11 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, filingStatus: 
                     row: 3,
             
             },
-            calculate: (inputs, td, fs) => {
-                const ordinary = taxableIncomeAfterDeductions(inputs, td, fs);
-                const afterPretax = ordinaryIncomeAfterPretax(inputs);
+            calculate: (_inputs, _taxData, _filingStatus, context) => {
+                const ordinary = context.taxableIncomeAfterDeductions;
+                const afterPretax = context.ordinaryIncomeAfterPretax;
                 const shield = Math.max(0, afterPretax - ordinary);
-                const payrollTax = calculatePayrollTax(inputs, td, fs);
+                const payrollTax = context.payrollTax;
                 const payrollFromShield = Math.min(payrollTax, shield);
                 return Math.max(0, shield - payrollFromShield);
             },
@@ -191,11 +175,11 @@ export function makeMekkoSliceNodesConfig(taxData: TaxYearConfig, filingStatus: 
             mekko: {
                     row: 1,
             },
-            calculate: (inputs, td, fs) => {
-                const  ordinary = taxableIncomeAfterDeductions(inputs, td, fs);
-                const afterPretax = ordinaryIncomeAfterPretax(inputs);
+            calculate: (_inputs, _taxData, _filingStatus, context) => {
+                const ordinary = context.taxableIncomeAfterDeductions;
+                const afterPretax = context.ordinaryIncomeAfterPretax;
                 const shield = Math.max(0, afterPretax - ordinary);
-                const payrollTax = calculatePayrollTax(inputs, td, fs);
+                const payrollTax = context.payrollTax;
                 return Math.min(payrollTax, shield);
             },
         },

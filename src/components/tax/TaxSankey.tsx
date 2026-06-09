@@ -2,7 +2,7 @@ import { Accessor, Show, createMemo } from "solid-js";
 import { CollapsibleBlock } from "~/components/ui/CollapsibleBlock";
 import { SankeyHowToRead } from "~/components/tax/sankey/SankeyHowToRead";
 import { SankeyChartSvg } from "~/components/tax/sankey/svg/SankeyChartSvg";
-import { buildSankeyLayoutFromCalculatedConfig } from "~/components/tax/sankey/buildSankeyLayoutFromCalculatedConfig";
+import { buildSankeyLayoutFromCalculatedConfig } from "~/lib/tax/charts/buildSankeyLayout";
 import type { CalculatedConfigItem } from "~/lib/tax/calc/calculateTaxes";
 
 type TaxSankeyProps = {

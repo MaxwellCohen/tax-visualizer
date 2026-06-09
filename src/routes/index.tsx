@@ -52,7 +52,7 @@ export default function HomeContent() {
         availableYears={availableYears}
         onCommitToUrl={syncScenarioToUrl}
       />
-      <HomeTaxResults taxInput={taxInput} />
+      <HomeTaxResults taxInput={taxInput} calculatedConfig={calculatedConfig} />
     </main>
   );
 }

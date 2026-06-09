@@ -1,16 +1,6 @@
 /** Pretax-related config nodes: pretax income, pretax deductions, pretax takehome. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
-import {
-    wageIncome,
-    _401k,
-    _hsa,
-    otherPretax,
-    traditionalIra,
-    allPretax,
-    ordinaryIncome,
-    shortTermCapGains,
-} from "../rowMetrics";
 
 export function makePretaxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
@@ -47,13 +37,15 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
             id: "ordinaryGrossIncome",
             labels: { default: "Ordinary Gross Income", compact: "Ordinary Gross" },
             description: "Ordinary income plus short-term capital gains (internal gross)",
-            calculate: (inputs) => ordinaryIncome(inputs) + shortTermCapGains(inputs),
+            calculate: (_inputs, _taxData, _filingStatus, context) =>
+                context.metrics.income.ordinary + context.metrics.income.shortTermCapGains,
         },
         {
             id: "preTaxTotal",
             labels: { default: "Total Pre-tax", compact: "Total Pre-tax" },
             description: "Payroll pre-tax only: 401(k)/403(b)/457(b), HSA, FSAs, commuter, and similar",
-            calculate: (inputs) => _401k(inputs) + _hsa(inputs) + otherPretax(inputs),
+            calculate: (_inputs, _taxData, _filingStatus, context) =>
+                context.metrics.pretax.preTax401k + context.metrics.pretax.hsa + context.metrics.pretax.other,
         },
         {
             id: "preTax401k",
@@ -63,7 +55,7 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
             sankey: {
                 node: { row: 1, col: 3 },
             },
-            calculate: _401k,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.pretax.preTax401k,
         },
         {
             id: "preTaxHsa",
@@ -73,7 +65,7 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
             sankey: {
                 node: { row: 1, col: 3 },
             },
-            calculate: _hsa,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.pretax.hsa,
         },
         {
             id: "preTaxOther",
@@ -83,7 +75,7 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
             sankey: {
                 node: { row: 1, col: 3 },
             },
-            calculate: otherPretax,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.pretax.other,
         },
         {
             id: "traditionalIra",
@@ -93,7 +85,7 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
             sankey: {
                 node: { row: 1, col: 3 },
             },
-            calculate: traditionalIra,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.pretax.traditionalIra,
         },
         {
             id: "wagesAfterPretax",
@@ -103,7 +95,8 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
             sankey: {
                 node: { row: 1, col: 3 },
             },
-            calculate: (inputs) => wageIncome(inputs) - allPretax(inputs),
+            calculate: (_inputs, _taxData, _filingStatus, context) =>
+                context.metrics.income.wages - context.metrics.pretax.all,
         },
     ];
 }

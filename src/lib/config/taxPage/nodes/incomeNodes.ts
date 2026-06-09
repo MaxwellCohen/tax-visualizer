@@ -1,15 +1,6 @@
 /** Income pipeline: wages, pretax, shielded income, taxable ordinary/LTCG, and related calculated nodes. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
-import {
-    selfEmploymentIncome,
-    shortTermCapGains,
-    longTermCapGains,
-    ordinaryIncome,
-    allPretax,
-    totalIncome,
-} from "../rowMetrics";
-import { ordinaryIncomeAfterPretax } from "../calc/taxCalculations";
 
 export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
@@ -18,7 +9,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             chartRole: "income",
             labels: { default: "Total Income", compact: "Total Income", summary: "Gross Income" },
             description: "Sum of modeled wages, other ordinary income, and capital gains",
-            calculate: totalIncome,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.income.total,
             summary: {
                 displayOrder: 1,
                 format: "currency",
@@ -35,7 +26,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
                     { source: "wages", target: "ordinaryTaxableIncome", row: 1, col: 1 },
                 ],
             },
-            calculate: ordinaryIncomeAfterPretax,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.ordinaryIncomeAfterPretax,
         },
         {
             id: "longTermCapGains",
@@ -48,7 +39,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
                     { source: "longTermCapGains", target: "longTermTaxableIncome", row: 1, col: 1 },
                 ],
             },
-            calculate: longTermCapGains,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.income.longTermCapGains,
         },
         {
             id: "pretaxDeductions",
@@ -63,7 +54,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
                     { source: "pretaxIncome", target: "pretaxTakehome", row: 1, col: 3 },
                 ],
             },
-            calculate: allPretax,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.pretax.all,
             summary: {
                 displayOrder: 2,
                 format: "currency",
@@ -73,25 +64,25 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             id: "selfEmployment",
             labels: { default: "Self-Employment Income" },
             description: "Net self-employment earnings (Schedule SE basis)",
-            calculate: selfEmploymentIncome,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.income.selfEmployment,
         },
         {
             id: "ordinaryIncome",
             labels: { default: "Other Ordinary Income" },
             description: "Ordinary income other than wages (interest, ordinary dividends, etc.)",
-            calculate: ordinaryIncome,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.income.ordinary,
         },
         {
             id: "shortTermCapGains",
             labels: { default: "Short-Term Capital Gains" },
             description: "Short-term capital gains taxed as ordinary income",
-            calculate: shortTermCapGains,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.income.shortTermCapGains,
         },
         {
             id: "shortTermCapGainsGrossIncome",
             labels: { default: "Short-Term Cap Gains (Gross)", compact: "STCG (Gross)" },
             description: "STCG included in gross ordinary-income style totals",
-            calculate: shortTermCapGains,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.income.shortTermCapGains,
         },
         {
             id: "longTermCapitalGainsGrossIncome",
@@ -101,7 +92,7 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
             sankey: {
                 node: { row: 1, col: 2 },
             },
-            calculate: longTermCapGains,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.income.longTermCapGains,
         },
     ]
 }

@@ -16,6 +16,7 @@ function roundsToNonZeroCurrency(value: number): boolean {
 export type MekkoRow = {
   id: string;
   label: string;
+  title: string;
   total: number;
   keep: number;
   tax: number;
@@ -27,6 +28,14 @@ export type MekkoRow = {
   taxStroke: string;
 };
 
+export type MekkoSummaryData = {
+  takeHomeShare: number;
+  pretaxShare: number;
+  taxShare: number;
+  pretaxTotal: number;
+  taxTotal: number;
+};
+
 const configValue = (values: CalculatedConfigValueMap, id: string): number => values.get(id) ?? 0;
 
 /** Keep from sibling nodes; tax fills remainder so keep + tax === total. */
@@ -35,6 +44,26 @@ function keepTaxFromSlice(values: CalculatedConfigValueMap, total: number, keepI
   const keep = Math.max(0, Math.min(configValue(values, keepId), total));
   const tax = total - keep;
   return { keep, tax };
+}
+
+function share(value: number, total: number): number {
+  return total > 0 ? Math.max(0, value / total) : 0;
+}
+
+function bandTitle(args: { label: string; chartRole: ChartRole; total: number; keep: number; tax: number }): string {
+  if (args.chartRole === "pretax") {
+    return `${args.label}: ${money.format(args.total)} deferred (payroll pre-tax & deductible IRA).`;
+  }
+  if (args.chartRole === "seAdjustment") {
+    return `${args.label}: ${money.format(args.total)} deductible against ordinary income (not cash).`;
+  }
+  if (args.chartRole === "payrollTax") {
+    return `${args.label}: ${money.format(args.total)} wage Social Security & Medicare.`;
+  }
+  if (args.chartRole === "deduction") {
+    return `${args.label}: ${money.format(args.total)} shielded by standard or itemized deduction.`;
+  }
+  return `${args.label}: federal tax ${money.format(args.tax)}; ${money.format(args.keep)} remains before payroll tax.`;
 }
 
 function rowFromCalculatedItem(item: CalculatedConfigItem, values: CalculatedConfigValueMap): MekkoRow {
@@ -50,6 +79,13 @@ function rowFromCalculatedItem(item: CalculatedConfigItem, values: CalculatedCon
   return {
     id: item.id,
     label: item.labels.compact ?? item.labels.default,
+    title: bandTitle({
+      label: item.labels.compact ?? item.labels.default,
+      chartRole,
+      total,
+      keep,
+      tax,
+    }),
     total,
     keep,
     tax,
@@ -76,6 +112,7 @@ export type MekkoChartData = {
   federalIncomeTax: number;
   payrollTax: number;
   federalTaxCreditsApplied: number;
+  summary: MekkoSummaryData;
 };
 
 export function buildMekkoFromConfig(cc: CalculatedConfigItem[]): MekkoChartData | undefined {
@@ -94,14 +131,29 @@ export function buildMekkoFromConfig(cc: CalculatedConfigItem[]): MekkoChartData
   const totalIncome = configValue(values, "totalIncome");
   if (!rows.length || Math.max(totalIncome, stackedTotal) <= 0) return undefined;
 
+  const takeHomePay = configValue(values, "takeHomePay");
+  const preTaxTotal = configValue(values, "preTaxTotal");
+  const traditionalIra = configValue(values, "traditionalIra");
+  const federalIncomeTax = configValue(values, "federalIncomeTax");
+  const payrollTax = configValue(values, "payrollTax");
+  const pretaxTotal = preTaxTotal + traditionalIra;
+  const taxTotal = federalIncomeTax + payrollTax;
+
   return {
     rows,
     totalIncome,
-    takeHomePay: configValue(values, "takeHomePay"),
-    preTaxTotal: configValue(values, "preTaxTotal"),
-    traditionalIra: configValue(values, "traditionalIra"),
-    federalIncomeTax: configValue(values, "federalIncomeTax"),
-    payrollTax: configValue(values, "payrollTax"),
+    takeHomePay,
+    preTaxTotal,
+    traditionalIra,
+    federalIncomeTax,
+    payrollTax,
     federalTaxCreditsApplied: configValue(values, "federalTaxCreditsApplied"),
+    summary: {
+      takeHomeShare: share(takeHomePay, totalIncome),
+      pretaxShare: share(pretaxTotal, totalIncome),
+      taxShare: share(taxTotal, totalIncome),
+      pretaxTotal,
+      taxTotal,
+    },
   };
 }

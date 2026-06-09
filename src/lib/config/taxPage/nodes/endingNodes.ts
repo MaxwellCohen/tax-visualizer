@@ -1,14 +1,8 @@
 /** Ending metrics: take-home pay, effective tax rate, marginal federal rate. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
-import { allPretax, totalIncome } from "../rowMetrics";
-import {
-    calculatePayrollTax,
-    calculateSelfEmploymentTax,
-    calculateTaxBuckets,
-} from "../calc/taxCalculations";
 
-export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
+export function makeEndingNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
         {
             id: "federalPayrollTaxes",
@@ -29,16 +23,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             sankey: {
                 node: { row: 3, col: 4 },
             },
-            calculate: (inputs, taxData, filingStatus) => {
-                const gross = totalIncome(inputs);
-                const pretax = allPretax(inputs);
-                const brackets = calculateTaxBuckets(inputs, taxData, filingStatus);
-                const federalTax = brackets.reduce((sum, bracket) => sum + bracket.tax, 0);
-                const payroll =
-                    calculatePayrollTax(inputs, taxData, filingStatus) +
-                    calculateSelfEmploymentTax(inputs, taxData, filingStatus);
-                return gross - pretax - federalTax - payroll;
-            },
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.takeHomePay,
             summary: {
                 displayOrder: 6,
                 format: "currency",
@@ -54,11 +39,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             sankey: {
                 node: { row: 4, col: 4 },
             },
-            calculate: (inputs, taxData, filingStatus) => {
-                const brackets = calculateTaxBuckets(inputs, taxData, filingStatus);
-                const tax = brackets.reduce((sum, bracket) => sum + bracket.tax, 0);
-                return tax;
-            },
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.federalIncomeTax,
             summary: {
                 displayOrder: 4,
                 format: "currency",
@@ -71,13 +52,7 @@ export function makeEndingNodesConfig(taxData: TaxYearConfig, filingStatus: Fili
             chartRole: "rate",
             labels: { default: "Effective Tax Rate", compact: "Effective Rate" },
             description: "Federal income tax divided by total modeled gross income",
-            calculate: (inputs) => {
-                const gross = totalIncome(inputs);
-                if (gross <= 0) return 0;
-                const brackets = calculateTaxBuckets(inputs, taxData, filingStatus);
-                const federalTax = brackets.reduce((sum, bracket) => sum + bracket.tax, 0);
-                return federalTax / gross;
-            },
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.effectiveTaxRate,
             summary: {
                 displayOrder: 7,
                 format: "percent",

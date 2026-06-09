@@ -3,24 +3,24 @@ import { Show } from "solid-js";
 import TaxMekko from "~/components/tax/TaxMekko";
 import TaxSankey from "~/components/tax/TaxSankey";
 import TaxSummary from "~/components/tax/TaxSummary";
+import type { CalculatedConfigItem } from "~/lib/tax/calc/calculateTaxes";
 import type { TaxFormData } from "~/lib/tax/form/types";
 import { TaxYearInvalid } from "./TaxYearInvalid";
-import { useCalculatedTaxConfig } from "~/lib/tax/calc/useCalculatedTaxConfig";
 
 type HomeTaxResultsProps = {
   taxInput: Accessor<TaxFormData>;
+  calculatedConfig: Accessor<CalculatedConfigItem[] | null>;
 };
 
 export function HomeTaxResults(props: HomeTaxResultsProps) {
-  const calculatedConfig = useCalculatedTaxConfig(props.taxInput);
   return (
-    <Show when={calculatedConfig() !== null} fallback={<TaxYearInvalid />}>
+    <Show when={props.calculatedConfig() !== null} fallback={<TaxYearInvalid />}>
       
         <>
-          <TaxSankey calculatedConfig={calculatedConfig} />
-          <TaxMekko calculatedConfig={calculatedConfig} />
+          <TaxSankey calculatedConfig={props.calculatedConfig} />
+          <TaxMekko calculatedConfig={props.calculatedConfig} />
           <TaxSummary
-            calculatedConfig={calculatedConfig}
+            calculatedConfig={props.calculatedConfig}
             taxInput={props.taxInput}
           />
         </>

@@ -4,7 +4,6 @@ import type { CalculatedConfigItem } from "~/lib/tax/calc/calculateTaxes";
 import {
   buildMekkoFromConfig,
   type MekkoChartData,
-  type MekkoRow,
 } from "~/lib/tax/charts/buildMekko";
 import { money } from "~/lib/format/moneyFormat";
 
@@ -17,22 +16,6 @@ const pct = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
 });
-
-function bandTitle(row: MekkoRow): string {
-  if (row.chartRole === "pretax") {
-    return `${row.label}: ${money.format(row.total)} deferred (payroll pre-tax & deductible IRA).`;
-  }
-  if (row.chartRole === "seAdjustment") {
-    return `${row.label}: ${money.format(row.total)} deductible against ordinary income (not cash).`;
-  }
-  if (row.chartRole === "payrollTax") {
-    return `${row.label}: ${money.format(row.total)} wage Social Security & Medicare.`;
-  }
-  if (row.chartRole === "deduction") {
-    return `${row.label}: ${money.format(row.total)} shielded by standard or itemized deduction.`;
-  }
-  return `${row.label}: federal tax ${money.format(row.tax)}; ${money.format(row.keep)} remains before payroll tax.`;
-}
 
 function share(value: number, total: number): number {
   return total > 0 ? Math.max(0, value / total) : 0;
@@ -47,9 +30,7 @@ function currencyLabelUnlessZeroDisplay(amount: number): string {
 
 function MekkoSummary(props: { data: MekkoChartData }) {
   const d = props.data;
-  const takeShare = share(d.takeHomePay, d.totalIncome);
-  const pretaxShare = share(d.preTaxTotal + d.traditionalIra, d.totalIncome);
-  const taxShare = share(d.federalIncomeTax + d.payrollTax, d.totalIncome);
+  const summary = d.summary;
 
   return (
     <div class="mb-4">
@@ -69,24 +50,24 @@ function MekkoSummary(props: { data: MekkoChartData }) {
         <div class="flex h-5 min-w-0 flex-1 overflow-hidden rounded-sm">
           <div
             class="flex items-center justify-center bg-sankey-link-keep text-[10px]"
-            style={{ width: `${takeShare * 100}%` }}
-            title={`Take-home pay ${money.format(d.takeHomePay)} (${pct.format(takeShare)})`}
+            style={{ width: `${summary.takeHomeShare * 100}%` }}
+            title={`Take-home pay ${money.format(d.takeHomePay)} (${pct.format(summary.takeHomeShare)})`}
           >
-            {takeShare ? pct.format(takeShare) : ""}
+            {summary.takeHomeShare ? pct.format(summary.takeHomeShare) : ""}
           </div>
           <div
             class="flex items-center justify-center bg-chart-pretax text-[10px]"
-            style={{ width: `${pretaxShare * 100}%` }}
-            title={`Payroll pre-tax & deductible IRA ${money.format(d.preTaxTotal + d.traditionalIra)} (${pct.format(pretaxShare)})`}
+            style={{ width: `${summary.pretaxShare * 100}%` }}
+            title={`Payroll pre-tax & deductible IRA ${money.format(summary.pretaxTotal)} (${pct.format(summary.pretaxShare)})`}
           >
-            {pretaxShare ? pct.format(pretaxShare) : ""}
+            {summary.pretaxShare ? pct.format(summary.pretaxShare) : ""}
           </div>
           <div
             class="flex items-center justify-center bg-chart-tax text-[10px]"
-            style={{ width: `${taxShare * 100}%` }}
-            title={`Taxes ${money.format(d.federalIncomeTax + d.payrollTax)} (${pct.format(taxShare)})`}
+            style={{ width: `${summary.taxShare * 100}%` }}
+            title={`Taxes ${money.format(summary.taxTotal)} (${pct.format(summary.taxShare)})`}
           >
-            {taxShare ? pct.format(taxShare) : ""}
+            {summary.taxShare ? pct.format(summary.taxShare) : ""}
           </div>
         </div>
       </div>
@@ -106,7 +87,6 @@ function MekkoRows(props: { data: MekkoChartData }) {
           const keepShare = share(row.keep, row.total);
           const taxShare = share(row.tax, row.total);
           const rowShare = share(row.total, visualTotal);
-          const title = bandTitle(row);
 
           return (
             <div
@@ -124,7 +104,7 @@ function MekkoRows(props: { data: MekkoChartData }) {
                     background: row.fill,
                     border: `0.5px solid ${row.stroke}`,
                   }}
-                  title={title}
+                  title={row.title}
                 >
                   {currencyLabelUnlessZeroDisplay(row.keep)}
                 </div>
@@ -136,7 +116,7 @@ function MekkoRows(props: { data: MekkoChartData }) {
                       background: row.taxFill,
                       border: `0.5px solid ${row.taxStroke}`,
                     }}
-                    title={title}
+                    title={row.title}
                   >
                     {currencyLabelUnlessZeroDisplay(row.tax)}
                   </div>

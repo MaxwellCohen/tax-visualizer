@@ -1,16 +1,15 @@
 /** Tax nodes: federal income tax, payroll tax, self-employment tax. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
-import { calculatePayrollTax, calculateSelfEmploymentTax } from "../calc/taxCalculations";
 
-export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingStatus): ConfigItem[] {
+export function makeTaxNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
         {
             id: "sankeyOrdinaryToPayrollTax",
             chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: "Ordinary income to payroll / SE hub", compact: "Ordinary → payroll" },
             description: "Ordinary income routed toward wage payroll tax and self-employment tax",
-            calculate: (inputs, td, fs) => calculatePayrollTax(inputs, td, fs) + calculateSelfEmploymentTax(inputs, td, fs),
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.payrollTaxTotal,
             sankey: {
                 links: [
                     {
@@ -33,7 +32,7 @@ export function makeTaxNodesConfig(taxData: TaxYearConfig, filingStatus: FilingS
                     { source: "payrollTax", target: "federalPayrollTaxes", row: 4, col: 1 },
                 ],
             },
-            calculate: (inputs, taxData) => calculateSelfEmploymentTax(inputs, taxData, filingStatus),
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.selfEmploymentTax,
             summary: {
                 displayOrder: 6,
                 format: "currency",

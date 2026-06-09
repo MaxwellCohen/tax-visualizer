@@ -24,7 +24,7 @@ export function StickyHeadlineBar(props: StickyHeadlineBarProps) {
 
   return (
     <>
-      <div ref={sentinel} class="h-px w-full" aria-hidden="true" />
+      <div ref={(el) => { sentinel = el; }} class="h-px w-full" aria-hidden="true" />
       <Show when={props.metrics().length > 0}>
         <div
           class="sticky top-0 z-20 -mx-4 border-b border-border bg-surface/95 px-4 py-2 backdrop-blur-sm transition-shadow duration-150"

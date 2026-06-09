@@ -1,5 +1,6 @@
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { TaxFormRow } from "~/lib/tax/form/types";
+import type { TaxEvaluationContext } from "~/lib/tax/calc/taxEvaluation";
 import type { ValidationContext, YearValues } from "~/lib/config/types";
 
 type ValidationResult = {
@@ -102,7 +103,12 @@ export type SummarySettings = {
     hideWhenZero?: boolean;
 };
 
-export type CalculateFn = (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => number;
+export type CalculateFn = (
+    inputs: TaxFormRow[],
+    taxData: TaxYearConfig,
+    filingStatus: FilingStatus,
+    context: TaxEvaluationContext,
+) => number;
 
 /** Identity + copy shown in UI tooltips */
 export type ConfigItemIdentity = {
