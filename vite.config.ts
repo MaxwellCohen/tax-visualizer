@@ -1,19 +1,20 @@
 import { defineConfig } from "vite";
-import { nitroV2Plugin as nitro } from "@solidjs/vite-plugin-nitro-2";
+import { nitro } from "nitro/vite";
 import { solidStart } from "@solidjs/start/config";
 import tailwindcss from "@tailwindcss/vite";
 import devtools from "solid-devtools/vite";
 
 export default defineConfig({
-  // @ts-expect-error devtools is valid in Vite 7
-  devtools: true,
   server: {
     host: true
   },
   plugins: [
-    devtools({ autoname: true, }),
+    devtools({ autoname: true }),
     solidStart(),
     tailwindcss(),
-    nitro({ preset: "vercel" })
-  ]
+    nitro()
+  ],
+  nitro: {
+    preset: "vercel"
+  }
 });

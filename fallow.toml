@@ -1,5 +1,5 @@
 # SolidStart: FileRoutes is not a static import graph, so declare entries explicitly.
-ignoreDependencies = ["@solidjs/vite-plugin-nitro-2", "vite"]
+ignoreDependencies = ["nitro", "vite"]
 
 entry = [
   "src/entry-client.tsx",
