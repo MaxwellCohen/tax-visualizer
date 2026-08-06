@@ -60,6 +60,9 @@ importers:
       solid-devtools:
         specifier: ^0.34.5
         version: 0.34.5(solid-js@1.9.14)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.0))
+      source-map-js:
+        specifier: 1.2.1
+        version: 1.2.1
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
@@ -1709,9 +1712,6 @@ packages:
 
   decimal.js@10.6.0:
     resolution: {integrity: sha512-YpgQiITW3JXGntzdUmyUR1V812Hn8T1YVXhCu+wO3OpS4eU9l4YdD3qjyiKdV6mvV29zapkMeD390UVEf2lkUg==}
-
-  defu@6.1.4:
-    resolution: {integrity: sha512-mEQCMmwJu317oSz8CwdIOdwf3xMif1ttiM8LTufzc3g6kR+9Pe236twL8j3IYT1F7GfRgGcW6MWxzZjLIkuHIg==}
 
   defu@6.1.7:
     resolution: {integrity: sha512-7z22QmUWiQ/2d0KkdYmANbRUVABpZ9SNYyH5vx6PZ+nE5bcC0l7uFvEfHlyld/HcGBFTL536ClDt3DEcSlEJAQ==}
@@ -4142,9 +4142,6 @@ snapshots:
 
   decimal.js@10.6.0: {}
 
-  defu@6.1.4:
-    optional: true
-
   defu@6.1.7: {}
 
   denque@2.1.0:
@@ -4274,7 +4271,7 @@ snapshots:
     dependencies:
       citty: 0.1.6
       consola: 3.4.2
-      defu: 6.1.4
+      defu: 6.1.7
       node-fetch-native: 1.6.7
       nypm: 0.6.5
       pathe: 2.0.3

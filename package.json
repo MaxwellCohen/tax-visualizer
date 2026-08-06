@@ -31,6 +31,7 @@
     "knip": "^6.31.0",
     "oxlint": "^1.77.0",
     "solid-devtools": "^0.34.5",
+    "source-map-js": "1.2.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite-plugin-solid": "^2.11.14",
