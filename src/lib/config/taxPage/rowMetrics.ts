@@ -39,9 +39,12 @@ export const totalCredits = (inputs: TaxFormRow[], taxData: TaxYearConfig) =>
 export const totalItemized = (inputs: TaxFormRow[]) => buildScenarioMetrics(inputs).deductions.totalItemized;
 
 export const standardDeduction = (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => {
-    const standardDeduction = taxData.standardDeduction[filingStatus];
-    const postTaxIncome = Math.max(0, ordinaryIncome(inputs) - allPretax(inputs));
-    return Math.min(standardDeduction, postTaxIncome);
+    const statutory = taxData.standardDeduction[filingStatus];
+    const incomeAvailable = Math.max(
+        0,
+        ordinaryIncome(inputs) - allPretax(inputs) + longTermCapGains(inputs),
+    );
+    return Math.min(statutory, incomeAvailable);
 }
 export const totalDeductions = (inputs: TaxFormRow[], taxData: TaxYearConfig, filingStatus: FilingStatus) => useItemizedDeductions(inputs) ? totalItemized(inputs) : standardDeduction(inputs, taxData, filingStatus) ;
    

@@ -39,7 +39,11 @@ export type TaxEvaluationContext = {
   standardDeductionWithoutPayrollTax: number;
   itemizedDeductionsWithoutPayrollTax: number;
   ordinaryIncomeAfterPretax: number;
+  /** Ordinary income taxed at ordinary rates after ½ SE and std/itemized. */
   taxableIncomeAfterDeductions: number;
+  /** Preferential LTCG included in taxable income after deductions. */
+  ltcgTaxableIncome: number;
+  /** Federal taxable income (ordinary taxable + LTCG taxable). */
   totalTaxableIncome: number;
   totalCredits: number;
   taxBuckets: TaxBucket[];
@@ -136,26 +140,33 @@ function calculateLtcgTaxTotal(
 }
 
 function calculateTaxBucketsFromEvaluation(args: {
-  metrics: ScenarioMetrics;
   taxData: TaxYearConfig;
   filingStatus: FilingStatus;
   payrollTaxTotal: number;
-  totalDeductions: number;
+  taxFreeAmount: number;
+  ordinaryTaxable: number;
+  ltcgTaxable: number;
   totalCredits: number;
 }): TaxBucket[] {
-  const { metrics, taxData, filingStatus, payrollTaxTotal, totalDeductions, totalCredits } = args;
+  const {
+    taxData,
+    filingStatus,
+    payrollTaxTotal,
+    taxFreeAmount,
+    ordinaryTaxable,
+    ltcgTaxable,
+    totalCredits,
+  } = args;
   const result: TaxBucket[] = [];
   const brackets = taxData.federalBrackets[filingStatus];
-  const income = metrics.income.ordinary - metrics.pretax.all;
-  let remainingIncome = income - totalDeductions;
-  const ordinaryTaxableForLtcg = Math.max(0, remainingIncome);
-  let remainingPayrollTax = Math.max(payrollTaxTotal - totalDeductions, 0);
+  let remainingIncome = ordinaryTaxable;
+  let remainingPayrollTax = Math.max(payrollTaxTotal - taxFreeAmount, 0);
   let remainingCredits = totalCredits;
   result.push({
     type: "tax-free",
     taxBracket: undefined,
     tax: 0,
-    keep: totalDeductions,
+    keep: taxFreeAmount,
     credits: 0,
     payrollTax: 0,
     remainingIncome,
@@ -182,12 +193,16 @@ function calculateTaxBucketsFromEvaluation(args: {
     });
   }
 
-  const ltcg = metrics.income.longTermCapGains;
-  const ltcgTax = calculateLtcgTaxTotal(ltcg, taxData.longTermCapGains, filingStatus, ordinaryTaxableForLtcg);
+  const ltcgTax = calculateLtcgTaxTotal(
+    ltcgTaxable,
+    taxData.longTermCapGains,
+    filingStatus,
+    ordinaryTaxable,
+  );
   result.push({
     type: "ltcg",
     tax: ltcgTax,
-    keep: ltcg - ltcgTax,
+    keep: Math.max(0, ltcgTaxable - ltcgTax),
     credits: 0,
     payrollTax: 0,
     remainingIncome: 0,
@@ -214,26 +229,33 @@ export function evaluateTaxScenario(
   const payrollTax = payrollTaxBreakdown.total;
   const selfEmploymentTax = calculateSelfEmploymentTaxFromMetrics(metrics, taxData, filingStatus);
   const payrollTaxTotal = payrollTax + selfEmploymentTax;
-  const standardDeduction = Math.min(
-    taxData.standardDeduction[filingStatus],
-    Math.max(0, metrics.income.ordinary - metrics.pretax.all),
-  );
+  const selfEmploymentDeduction = selfEmploymentTax / 2;
+  const statutoryStandardDeduction = taxData.standardDeduction[filingStatus];
   const itemizedDeductions = metrics.deductions.totalItemized;
-  const totalDeductions = metrics.useItemizedDeductions ? itemizedDeductions : standardDeduction;
+  const chosenDeduction = metrics.useItemizedDeductions
+    ? itemizedDeductions
+    : statutoryStandardDeduction;
+  const ordinaryIncomeAfterPretax = Math.max(0, metrics.income.ordinary - metrics.pretax.all);
+  const longTermCapGains = Math.max(0, metrics.income.longTermCapGains);
+  // IRS-style: reduce combined ordinary + LTCG by deductible ½ SE, then std/itemized.
+  const afterHalfSe = Math.max(
+    0,
+    ordinaryIncomeAfterPretax + longTermCapGains - selfEmploymentDeduction,
+  );
+  const deductionApplied = Math.min(chosenDeduction, afterHalfSe);
+  const totalTaxableIncome = afterHalfSe - deductionApplied;
+  const taxableIncomeAfterDeductions = Math.max(0, totalTaxableIncome - longTermCapGains);
+  const ltcgTaxableIncome = totalTaxableIncome - taxableIncomeAfterDeductions;
+  const taxFreeAmount = ordinaryIncomeAfterPretax + longTermCapGains - totalTaxableIncome;
+  const standardDeduction = metrics.useItemizedDeductions ? 0 : statutoryStandardDeduction;
+  const totalDeductions = chosenDeduction;
+  // Sankey "0% tax" slice: deduction shield net of wage FICA (educational).
   const standardDeductionWithoutPayrollTax = metrics.useItemizedDeductions
     ? 0
-    : Math.max(0, standardDeduction - payrollTaxTotal);
+    : Math.max(0, statutoryStandardDeduction - payrollTax);
   const itemizedDeductionsWithoutPayrollTax = metrics.useItemizedDeductions
-    ? Math.max(0, itemizedDeductions - payrollTaxTotal)
+    ? Math.max(0, itemizedDeductions - payrollTax)
     : 0;
-  const ordinaryIncomeAfterPretax = Math.max(0, metrics.income.ordinary - metrics.pretax.all);
-  const taxableIncomeAfterDeductions = Math.max(
-    0,
-    ordinaryIncomeAfterPretax - payrollTaxTotal - (metrics.useItemizedDeductions
-      ? itemizedDeductionsWithoutPayrollTax
-      : standardDeductionWithoutPayrollTax),
-  );
-  const totalTaxableIncome = taxableIncomeAfterDeductions + metrics.income.longTermCapGains;
   const totalCredits =
     metrics.qualifyingChildren * (taxData.federalTaxCreditDefaults.childTaxCredit ?? 0) +
     metrics.otherDependents * (taxData.federalTaxCreditDefaults.creditForOtherDependents ?? 0) +
@@ -241,11 +263,12 @@ export function evaluateTaxScenario(
     metrics.credits.retirementSavingsContributions +
     metrics.credits.other;
   const taxBuckets = calculateTaxBucketsFromEvaluation({
-    metrics,
     taxData,
     filingStatus,
     payrollTaxTotal,
-    totalDeductions,
+    taxFreeAmount,
+    ordinaryTaxable: taxableIncomeAfterDeductions,
+    ltcgTaxable: ltcgTaxableIncome,
     totalCredits,
   });
   const federalTaxCreditsApplied = taxBuckets.reduce((sum, bucket) => sum + bucket.credits, 0);
@@ -262,7 +285,7 @@ export function evaluateTaxScenario(
     payrollTax,
     selfEmploymentTax,
     payrollTaxTotal,
-    selfEmploymentDeduction: selfEmploymentTax / 2,
+    selfEmploymentDeduction,
     standardDeduction,
     itemizedDeductions,
     totalDeductions,
@@ -270,6 +293,7 @@ export function evaluateTaxScenario(
     itemizedDeductionsWithoutPayrollTax,
     ordinaryIncomeAfterPretax,
     taxableIncomeAfterDeductions,
+    ltcgTaxableIncome,
     totalTaxableIncome,
     totalCredits,
     taxBuckets,

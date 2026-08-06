@@ -59,7 +59,7 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             sankey: {
                 node: { row: 3, col: 2 },
             },
-            calculate: (_inputs, _taxData, _filingStatus, context) => context.metrics.income.longTermCapGains,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.ltcgTaxableIncome,
             summary: {
                 displayOrder: 1.8,
                 format: "currency",
@@ -160,7 +160,9 @@ export function makeMekkoSliceNodesConfig(_taxData: TaxYearConfig, _filingStatus
             calculate: (_inputs, _taxData, _filingStatus, context) => {
                 const ordinary = context.taxableIncomeAfterDeductions;
                 const afterPretax = context.ordinaryIncomeAfterPretax;
-                const shield = Math.max(0, afterPretax - ordinary);
+                const halfSe = context.selfEmploymentDeduction;
+                // Half SE is its own mekko band; keep the std/itemized shield separate.
+                const shield = Math.max(0, afterPretax - ordinary - halfSe);
                 const payrollTax = context.payrollTax;
                 const payrollFromShield = Math.min(payrollTax, shield);
                 return Math.max(0, shield - payrollFromShield);
@@ -178,7 +180,8 @@ export function makeMekkoSliceNodesConfig(_taxData: TaxYearConfig, _filingStatus
             calculate: (_inputs, _taxData, _filingStatus, context) => {
                 const ordinary = context.taxableIncomeAfterDeductions;
                 const afterPretax = context.ordinaryIncomeAfterPretax;
-                const shield = Math.max(0, afterPretax - ordinary);
+                const halfSe = context.selfEmploymentDeduction;
+                const shield = Math.max(0, afterPretax - ordinary - halfSe);
                 const payrollTax = context.payrollTax;
                 return Math.min(payrollTax, shield);
             },
