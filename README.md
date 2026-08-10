@@ -8,7 +8,7 @@ Built with [SolidStart](https://start.solidjs.com) (Solid.js), [Vite](https://vi
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/) 22 or newer
+- [Node.js](https://nodejs.org/) 24 or newer
 
 ## Setup
 

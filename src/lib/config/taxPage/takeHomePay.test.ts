@@ -1,9 +1,4 @@
 import { describe, expect, it } from "vitest";
-import {
-  calculatePayrollTax,
-  calculateSelfEmploymentTax,
-  calculateTaxBuckets,
-} from "~/lib/config/taxPage/calc/taxCalculations";
 import { allPretax, totalIncome } from "~/lib/config/taxPage/rowMetrics";
 import { calculateAllConfigValues } from "~/lib/tax/calc/calculateTaxes";
 import { newIncomeSource } from "~/lib/tax/calc/labeledAmountSource";
@@ -11,6 +6,7 @@ import {
   emptyAggregatedPretax,
   pretaxScalarsToMinimalSources,
 } from "~/lib/tax/calc/pretaxBenefitSource";
+import { evaluateTaxScenario } from "~/lib/tax/calc/taxEvaluation";
 import { getTaxYearConfig } from "~/lib/tax/data/accessors.impl";
 import type { FilingStatus } from "~/lib/tax/data/types";
 import {
@@ -55,16 +51,8 @@ function expectedTakeHomeDirect(
   taxData: NonNullable<ReturnType<typeof getTaxYearConfig>>,
   filingStatus: FilingStatus,
 ): number {
-  const gross = totalIncome(rows);
-  const pretax = allPretax(rows);
-  const federalTax = calculateTaxBuckets(rows, taxData, filingStatus).reduce(
-    (sum, bracket) => sum + bracket.tax,
-    0,
-  );
-  const payroll =
-    calculatePayrollTax(rows, taxData, filingStatus) +
-    calculateSelfEmploymentTax(rows, taxData, filingStatus);
-  return gross - pretax - federalTax - payroll;
+  const ctx = evaluateTaxScenario(rows, taxData, filingStatus);
+  return totalIncome(rows) - allPretax(rows) - ctx.federalIncomeTax - ctx.payrollTaxTotal;
 }
 
 function runScenario(args: {

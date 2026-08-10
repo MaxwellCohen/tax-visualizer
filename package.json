@@ -1,5 +1,5 @@
 {
-  "name": "example-with-tailwindcss",
+  "name": "tax-visualizer",
   "type": "module",
   "scripts": {
     "dev": "vite dev",

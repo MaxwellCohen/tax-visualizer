@@ -8,13 +8,13 @@ Vocabulary for the tax page pipeline and UI. For the full **ConfigItem** invento
 - **Line item** — A user-editable money row in the form: income, pretax payroll benefit, itemized-style deduction, or credit. Implemented as typed rows in `TaxFormData.rows` (see `src/lib/tax/form/types.ts`).
 - **ConfigItem** — One row in the ordered tax-page **registry**: may define a line-item `input`, a `calculate` pipeline step, Sankey/Mekko placement, and summary metadata. Composed type: identity + tax input slice + chart slice + pipeline slice (`src/lib/config/taxPage/types.ts`).
 - **Registry / assembly phases** — `getConfigItems` builds the full ordered list by concatenating named **phases** (`TAX_PAGE_REGISTRY_PHASES` in `src/lib/config/taxPage/taxPage.config.ts`). Order matters for the calculation graph.
+- **Tax evaluation context** — Result of one `evaluateTaxScenario` pass (`TaxEvaluationContext` in `src/lib/tax/calc/taxEvaluation.ts`): payroll, SE, deductions, buckets, credits applied, FIT, take-home. Built once per form evaluation.
 - **Calculated config** — Each `ConfigItem` plus `computedValue` from running `calculate` over current form rows (`calculateAllConfigValues` in `src/lib/tax/calc/calculateTaxes.ts`). Primary numeric **seam** for charts and summary.
 - **Scenario** — Serialized `TaxFormData` (for example URL search param); see `src/lib/tax/scenario/`.
-- **Line item lifecycle** — Checklist paths for adding a line type: `src/lib/tax/form/lineItemLifecycle.ts`.
 
 ## Seams (where behavior is meant to change without edits elsewhere)
 
 - **Registry factories** — Add or change a `ConfigItem` by editing the appropriate factory under `src/lib/config/taxPage/` and keeping ids unique.
-- **calculate pipeline** — All computed dollars flow through `calculateAllConfigValues`; favor tests at this boundary.
-- **Sankey layout** — Pure builder `buildSankeyLayoutFromCalculatedConfig` (`src/components/tax/sankey/buildSankeyLayoutFromCalculatedConfig.ts`) separates layout from Solid rendering.
+- **calculate pipeline** — All computed dollars flow through `calculateAllConfigValues`; favor tests at this boundary. `calculateAllConfigValues` calls `evaluateTaxScenario` once and passes the shared **tax evaluation context** into each `CalculateFn`. Implementations must read `context` fields only — they must not call `evaluateTaxScenario` (or other re-entrant adapters). _Avoid_: per-item re-evaluation helpers such as the former `taxCalculations.ts` pass-throughs.
+- **Sankey layout** — Pure builder `buildSankeyLayoutFromCalculatedConfig` (`src/lib/tax/charts/buildSankeyLayout.ts`) separates layout from Solid rendering. Live edge/node catalog: `src/lib/tax/charts/sankeyTopology.ts` (authoritative; factory `sankey:` blocks are transitional and stripped at assembly).
 - **Withholding page** — `/withholding` reuses `calculateAllConfigValues` and reads `federalIncomeTax` (post-credit net liability); paycheck math lives in `src/lib/tax/withholding/` and does not add registry phases.

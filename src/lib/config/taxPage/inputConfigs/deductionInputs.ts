@@ -1,7 +1,6 @@
 /** Deduction inputs: standard, SALT, medical, mortgage, charity. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
-import { calculatePayrollTax, getItemizedDeductionsWithoutPayrollTax, getStandardDeductionWithoutPayrollTax } from "~/lib/config/taxPage/calc/taxCalculations";
 import { nonNegativeValidator, makeSaltCappedValidator } from "../inputValidators";
 
 export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
@@ -18,7 +17,7 @@ export function makePayrollTaxInputConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "payrollTax", target: "federalPayrollTaxes", row: 2, col: 3 },
                 ],
             },
-            calculate: calculatePayrollTax,
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.payrollTax,
             summary: {
                 displayOrder: 5,
                 format: "currency",
@@ -43,7 +42,8 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "ordinaryTaxableIncome", target: "standardDeduction", row: 1, col: 2 },
                 ],
             },
-            calculate: getStandardDeductionWithoutPayrollTax,
+            calculate: (_inputs, _taxData, _filingStatus, context) =>
+                context.standardDeductionWithoutPayrollTax,
             summary: {
                 displayOrder: 2.5,
                 format: "currency",
@@ -63,7 +63,8 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                     { source: "ordinaryTaxableIncome", target: "itemizedDeductions", row: 1, col: 2 },
                 ],
             },
-            calculate: getItemizedDeductionsWithoutPayrollTax,
+            calculate: (_inputs, _taxData, _filingStatus, context) =>
+                context.itemizedDeductionsWithoutPayrollTax,
             summary: {
                 displayOrder: 2.5,
                 format: "currency",
