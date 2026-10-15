@@ -9,13 +9,13 @@ importers:
   .:
     dependencies:
       '@solidjs/meta':
-        specifier: 1.0.0-next.2
+        specifier: ^1.0.0-next.2
         version: 1.0.0-next.2(@solidjs/web@2.0.0-rc.14(solid-js@2.0.0-rc.14))(solid-js@2.0.0-rc.14)
       '@solidjs/router':
-        specifier: 2.0.0-next.38
+        specifier: ^2.0.0-next.38
         version: 2.0.0-next.38(@solidjs/web@2.0.0-rc.14(solid-js@2.0.0-rc.14))(filesystem-routing@0.4.0(vite@8.2.0(@types/node@26.1.2)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.0)))(solid-js@2.0.0-rc.14)
       '@solidjs/web':
-        specifier: 2.0.0-rc.14
+        specifier: ^2.0.0-rc.14
         version: 2.0.0-rc.14(solid-js@2.0.0-rc.14)
       d3-sankey:
         specifier: ^0.12.3
@@ -27,17 +27,17 @@ importers:
         specifier: ^3.0.260610-beta
         version: 3.0.260610-beta(chokidar@5.0.0)(dotenv@17.3.1)(giget@2.0.0)(ioredis@5.10.0)(jiti@2.7.0)(lru-cache@11.5.2)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.0))
       solid-js:
-        specifier: 2.0.0-rc.14
+        specifier: ^2.0.0-rc.14
         version: 2.0.0-rc.14
     devDependencies:
       '@solidjs/diagnostics':
-        specifier: 2.0.0-rc.14
+        specifier: ^2.0.0-rc.14
         version: 2.0.0-rc.14(@solidjs/web@2.0.0-rc.14(solid-js@2.0.0-rc.14))(solid-js@2.0.0-rc.14)(vitest@4.1.10)
       '@solidjs/testing-library':
-        specifier: 1.0.0-beta.3
+        specifier: ^1.0.0-beta.3
         version: 1.0.0-beta.3(@solidjs/web@2.0.0-rc.14(solid-js@2.0.0-rc.14))(solid-js@2.0.0-rc.14)
       '@solidjs/vite-plugin':
-        specifier: 3.0.0-next.49
+        specifier: ^3.0.0-next.49
         version: 3.0.0-next.49(@solidjs/web@2.0.0-rc.14(solid-js@2.0.0-rc.14))(@testing-library/jest-dom@6.9.1)(solid-js@2.0.0-rc.14)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.0))
       '@tailwindcss/vite':
         specifier: ^4.3.3
