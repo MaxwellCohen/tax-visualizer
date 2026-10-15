@@ -1,3 +1,4 @@
+import { money } from "~/lib/format/moneyFormat";
 import type { ValidationContext } from "../types";
 
 type ValidationResult = {
@@ -20,7 +21,7 @@ export const makeYearValuesCappedValidator = (
     return (value: number, ctx: ValidationContext) => {
         const limit = ctx.yearValues.limits[key] ?? fallback;
         if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-        if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+        if (value > limit) return { valid: false, message: `Cannot exceed ${money.format(limit)}`, clampedValue: limit };
         return { valid: true };
     };
 };
@@ -30,7 +31,7 @@ export const makeCreditsCappedValidator = (key: string, fallback: number): Valid
     return (value: number, ctx: ValidationContext) => {
         const limit = ctx.yearValues.caps.credits[key] ?? fallback;
         if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-        if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+        if (value > limit) return { valid: false, message: `Cannot exceed ${money.format(limit)}`, clampedValue: limit };
         return { valid: true };
     };
 };
@@ -38,7 +39,7 @@ export const makeCreditsCappedValidator = (key: string, fallback: number): Valid
 export const makeSaltCappedValidator: ValidationFn = (value: number, ctx: ValidationContext) => {
     const limit = ctx.yearValues.caps.salt[ctx.filingStatus] ?? 10000;
     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-    if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+    if (value > limit) return { valid: false, message: `Cannot exceed ${money.format(limit)}`, clampedValue: limit };
     return { valid: true };
 };
 
@@ -48,6 +49,6 @@ export const makeHsaCappedValidator: ValidationFn = (value: number, ctx: Validat
         ? (ctx.yearValues.limits.hsaFamily ?? 8300)
         : (ctx.yearValues.limits.hsaSelfOnly ?? 4150);
     if (value < 0) return { valid: false, message: "Cannot be negative", clampedValue: 0 };
-    if (value > limit) return { valid: false, message: `Cannot exceed ${limit}`, clampedValue: limit };
+    if (value > limit) return { valid: false, message: `Cannot exceed ${money.format(limit)}`, clampedValue: limit };
     return { valid: true };
 };

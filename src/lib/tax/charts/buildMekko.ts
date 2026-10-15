@@ -136,8 +136,9 @@ export function buildMekkoFromConfig(cc: CalculatedConfigItem[]): MekkoChartData
   const traditionalIra = configValue(values, "traditionalIra");
   const federalIncomeTax = configValue(values, "federalIncomeTax");
   const payrollTax = configValue(values, "payrollTax");
+  const selfEmploymentTax = configValue(values, "selfEmploymentTax");
   const pretaxTotal = preTaxTotal + traditionalIra;
-  const taxTotal = federalIncomeTax + payrollTax;
+  const taxTotal = federalIncomeTax + payrollTax + selfEmploymentTax;
 
   return {
     rows,

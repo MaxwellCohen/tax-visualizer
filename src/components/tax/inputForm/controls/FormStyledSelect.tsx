@@ -1,5 +1,6 @@
-import type { Accessor, JSX } from "solid-js";
-import { For, createEffect } from "solid-js";
+import type { Accessor } from "solid-js";
+import { For, Show, createEffect } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { useTaxInputCommitToUrl } from "~/components/tax/inputForm/context/TaxInputCommitUrlContext";
 import { inputClass, labelClass } from "~/components/tax/inputForm/shared";
 
@@ -24,20 +25,16 @@ export function FormStyledSelect(props: Props) {
   };
 
   /** Native `<select>` can drop the visible selection when `<option>` nodes reconcile; re-apply after DOM settles (value may be unchanged). */
-  createEffect(() => {
-    const v = String(props.value());
-    const opts = props.options;
-    if (opts && opts.length) {
+  createEffect(
+    () => ({ value: String(props.value()), options: props.options }),
+    ({ value, options }) => {
       const el = selectEl;
-      if (el) {
-        queueMicrotask(() => {
-          if (el.isConnected && el.value !== v) {
-            el.value = v;
-          }
-        });
-      }
-    }
-  });
+      if (!el || !options?.length) return;
+      queueMicrotask(() => {
+        if (el.isConnected && el.value !== value) el.value = value;
+      });
+    },
+  );
 
   const select = (
     <select
@@ -51,21 +48,23 @@ export function FormStyledSelect(props: Props) {
       onBlur={onBlur}
     >
       {props.options ? (
-        <For each={props.options}>
-          {(opt) => <option value={String(opt.value)}>{opt.label}</option>}
+        <For each={props.options} keyed={(opt) => String(opt.value)}>
+          {(opt) => <option value={String(opt().value)}>{opt().label}</option>}
         </For>
       ) : (
         props.children
       )}
     </select>
   );
-  if (props.hideLabel) {
-    return select;
-  }
   return (
-    <label class={`${labelClass} text-muted-foreground`}>
-      {props.label}
-      {select}
-    </label>
+    <Show
+      when={!props.hideLabel}
+      fallback={select}
+    >
+      <label class={`${labelClass} text-muted-foreground`}>
+        {props.label}
+        {select}
+      </label>
+    </Show>
   );
 }

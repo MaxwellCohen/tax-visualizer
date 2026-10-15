@@ -130,6 +130,7 @@ export function LineItemSourceRow(props: LineItemSourceRowProps) {
           <LineItemAmountCell
             value={amount()}
             amountError={amountError}
+            errorId={`amount-error-${props.rowId}`}
             onAmountChange={(n) => {
               props.setTaxInput((prev) => ({
                 ...prev,

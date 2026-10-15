@@ -21,7 +21,7 @@ export default function TaxSankey(props: TaxSankeyProps) {
           when={sankeyData()}
           fallback={
             <p class="text-sm text-faint-foreground">
-              Enter income to see the flow.
+              Enter income, or load a sample in Try a sample / Share above, to see the flow.
             </p>
           }
         >

@@ -1,9 +1,9 @@
 import { createSignal, Show } from "solid-js";
 
 const SUMMARY =
-  "Income flows left to right through deductions, tax buckets, and take-home pay.";
+  "Left to right: income, then amounts removed by pretax and deductions, then tax, then take-home. Click a bar for its label and dollars.";
 
-const DETAILS = `Each income row on the left flows into ordinary or long-term taxable income (by source), then follow the flows into pre-tax payroll benefits, deductions, federal tax buckets, taxes, federal credits (when entered — drawn from the highest marginal-rate slice first), separate federal-tax and payroll-tax bars, and a single take-home bar. The "shielded income" path is a visual explanation of income removed by deductions and payroll pre-tax amounts, not a literal cash account. Payroll tax ribbons attach only to ordinary / LTCG ordinary bracket paths (FICA does not apply to long-term gains). Short-term capital gains show as their own income stream on the left, but federal tax on them is included in the ordinary bracket slices.`;
+const DETAILS = `1. Left: gross income by type. 2. Middle: pretax payroll amounts and the standard or itemized deduction reduce what is taxed. 3. Right: federal income tax, payroll tax, and take-home. Credits come off the highest tax slice first. “Income removed by deductions” is a teaching view, not a bank account. Payroll tax does not apply to long-term gains. Short-term gains are taxed in the ordinary brackets.`;
 
 export function SankeyHowToRead() {
   const [open, setOpen] = createSignal(false);
@@ -14,7 +14,7 @@ export function SankeyHowToRead() {
       <button
         type="button"
         class="mt-1 text-xs font-medium text-accent underline underline-offset-2"
-        aria-expanded={open()}
+        aria-expanded={open() ? "true" : "false"}
         onClick={() => setOpen(v => !v)}
       >
         {open() ? "Hide diagram guide" : "How to read this diagram"}

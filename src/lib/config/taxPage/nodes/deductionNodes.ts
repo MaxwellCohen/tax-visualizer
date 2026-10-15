@@ -9,7 +9,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
             id: "standardDeduction",
             chartStyle: { fill: "var(--color-chart-deduction-node)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: "0% tax", compact: "Standard Ded." },
-            description: "Standard deduction slice taxed at 0% federal ordinary rates",
+            description: "Standard deduction you keep. Payroll taxes are a separate ribbon, so this band is only the dollars that continue to take-home.",
             sankey: {
                 node: { row: 3, col: 3 },
                 links: [
@@ -22,7 +22,7 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
             id: "itemizedDeductions",
             chartStyle: { fill: "var(--color-chart-deduction-node)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: "Itemized Deductions", compact: "Itemized Ded." },
-            description: "Itemized deduction slice taxed at 0% federal ordinary rates",
+            description: "Itemized deductions you keep. Payroll taxes are a separate ribbon, so this band is only the dollars that continue to take-home.",
             sankey: {
                 node: { row: 3, col: 3 },
                 links: [
@@ -40,11 +40,13 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             id: "ordinaryTaxableIncome",
             chartRole: "income",
             chartStyle: { fill: "var(--color-sankey-node-3)", stroke: "var(--color-sankey-link)" },
-            labels: { default: "Ordinary Income", compact: "Ordinary (Pre-Ded)", summary: "Ordinary Taxable Income" },
-            description: "Ordinary income stack before standard vs itemized deduction",
+            labels: { default: "After pretax", compact: "After pretax", summary: "Ordinary Taxable Income" },
+            description: "Ordinary income after payroll pretax and deductible IRA. This bar splits into payroll tax, the deduction you keep, and each tax bracket.",
             sankey: {
                 node: { row: 2, col: 2 },
             },
+            calculate: (_inputs, _taxData, _filingStatus, context) =>
+                context.taxableIncomeAfterDeductions,
             summary: {
                 displayOrder: 1.5,
                 format: "currency",
@@ -157,16 +159,10 @@ export function makeMekkoSliceNodesConfig(_taxData: TaxYearConfig, _filingStatus
                     row: 3,
             
             },
-            calculate: (_inputs, _taxData, _filingStatus, context) => {
-                const ordinary = context.taxableIncomeAfterDeductions;
-                const afterPretax = context.ordinaryIncomeAfterPretax;
-                const halfSe = context.selfEmploymentDeduction;
-                // Half SE is its own mekko band; keep the std/itemized shield separate.
-                const shield = Math.max(0, afterPretax - ordinary - halfSe);
-                const payrollTax = context.payrollTax;
-                const payrollFromShield = Math.min(payrollTax, shield);
-                return Math.max(0, shield - payrollFromShield);
-            },
+            calculate: (_inputs, _taxData, _filingStatus, context) =>
+                context.metrics.useItemizedDeductions
+                    ? context.itemizedDeductions
+                    : context.standardDeduction,
         },
         {
             id: "mekkoPayrollTaxFromShield",
@@ -177,14 +173,7 @@ export function makeMekkoSliceNodesConfig(_taxData: TaxYearConfig, _filingStatus
             mekko: {
                     row: 1,
             },
-            calculate: (_inputs, _taxData, _filingStatus, context) => {
-                const ordinary = context.taxableIncomeAfterDeductions;
-                const afterPretax = context.ordinaryIncomeAfterPretax;
-                const halfSe = context.selfEmploymentDeduction;
-                const shield = Math.max(0, afterPretax - ordinary - halfSe);
-                const payrollTax = context.payrollTax;
-                return Math.min(payrollTax, shield);
-            },
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.payrollTax,
         },
     ];
 }

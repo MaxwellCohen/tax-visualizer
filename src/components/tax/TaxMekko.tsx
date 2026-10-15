@@ -144,24 +144,16 @@ export default function TaxMekko(props: TaxMekkoProps) {
         bodyClass="mt-4"
       >
         <p class="mb-4 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-          How to read this: the <strong>left axis is gross income</strong> (same
-          as “Total Income”). From bottom to top, bands are{" "}
-          <strong>pre-tax deferrals</strong>, the <strong>½ SE tax</strong>{" "}
-          deduction (if any), <strong>deduction shield</strong>{" "}
-          (standard/itemized on ordinary, net of wage payroll taxes carved out),{" "}
-          <strong>wage payroll taxes</strong> (FICA taken from that same shield
-          pool), then <strong>ordinary federal brackets</strong> (green / red),
-          then <strong>long-term gains</strong>. Together they fill gross. The
-          line under the summary bar shows total payroll tax and federal
-          credits. The bar above is take-home vs pre-tax deferrals vs all taxes
-          (income + payroll).
+          Bottom to top is gross income. Green is what you keep in that band;
+          red is federal tax. The bar above compares take-home, pretax amounts,
+          and taxes (income + Social Security/Medicare + self-employment tax).
         </p>
         <Show
           keyed
           when={chartData()}
           fallback={
             <p class="text-sm text-faint-foreground">
-              Enter income to see the chart.
+              Enter income, or load a sample in Try a sample / Share above, to see the chart.
             </p>
           }
         >

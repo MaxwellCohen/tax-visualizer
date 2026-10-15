@@ -7,11 +7,11 @@ export const YEAR_VALUES_2026: YearValues = {
   brackets: buildBrackets([12400, 50400, 105700, 201775, 256225, 640600], [24800, 100800, 211400, 403550, 512450, 768700], [12400, 50400, 105700, 201775, 256225, 384350], [17700, 67450, 105700, 201775, 256200, 640600]),
   ltcgThresholds: buildLtcgBrackets([49450, 545500], [98900, 613700], [49450, 306850], [66200, 579600]),
   limits: {
-    electiveDeferral401k: 24000,
-    electiveDeferral401kCatchUp: 7500,
+    electiveDeferral401k: 24500,
+    electiveDeferral401kCatchUp: 8000,
     hsaSelfOnly: 4400,
     hsaFamily: 8750,
-    traditionalIra: 7150,
+    traditionalIra: 7500,
   },
   caps: {
     salt: { single: 40400, marriedJoint: 40400, marriedSeparate: 20200, headOfHousehold: 40400 },

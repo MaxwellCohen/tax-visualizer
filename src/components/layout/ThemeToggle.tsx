@@ -18,8 +18,7 @@ export default function ThemeToggle() {
         stroke-width="1.5"
         stroke-linecap="round"
         stroke-linejoin="round"
-        class="transition-transform duration-300"
-        classList={{ "rotate-45": theme() === "dark" }}
+        class={["transition-transform duration-300", { "rotate-45": theme() === "dark" }]}
       >
         {theme() === "light" ? (
           <>

@@ -1,4 +1,5 @@
-import type { Accessor, JSX } from "solid-js";
+import type { Accessor } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { FormCurrencyInput } from "~/components/tax/inputForm/controls/FormCurrencyInput";
 import { FormFieldValidationMessage } from "~/components/tax/inputForm/controls/FormFieldValidationMessage";
 import { FormStyledSelect } from "~/components/tax/inputForm/controls/FormStyledSelect";
@@ -58,6 +59,7 @@ export function LineItemAmountCell(props: {
   value: number;
   amountError: Accessor<string | undefined>;
   onAmountChange: (n: number) => void;
+  errorId?: string;
 }) {
   return (
     <td class={taxInputFormTableTdLabeled} data-label="Amount">
@@ -67,8 +69,10 @@ export function LineItemAmountCell(props: {
           onInput={props.onAmountChange}
           onBlur={() => {}}
           ariaLabel="Amount"
+          error={props.amountError()}
+          errorId={props.errorId}
         />
-        <FormFieldValidationMessage message={props.amountError} />
+        <FormFieldValidationMessage message={props.amountError} id={props.errorId} />
       </div>
     </td>
   );

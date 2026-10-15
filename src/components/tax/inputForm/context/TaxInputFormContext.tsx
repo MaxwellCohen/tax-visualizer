@@ -22,7 +22,7 @@ type TaxInputFormContextValue = {
 const TaxInputFormContext = createContext<TaxInputFormContextValue>();
 
 export const TaxInputFormProvider: ParentComponent<{ value: TaxInputFormContextValue }> = (props) => (
-    <TaxInputFormContext.Provider value={props.value}>{props.children}</TaxInputFormContext.Provider>
+    <TaxInputFormContext value={props.value}>{props.children}</TaxInputFormContext>
 );
 
 export function useTaxInputForm(): TaxInputFormContextValue {

@@ -1,5 +1,6 @@
 import { getFilingStatusFromRows, getTaxYearFromRows } from "~/lib/tax/calc/inputs";
 import { capAmountsTo402gPool, finiteAmount } from "~/lib/tax/calc/pretaxBenefitSource";
+import { applyHsaHouseholdCap, applyPretaxCompensationCaps } from "~/lib/tax/calc/pretaxCompensation";
 import type { TaxFormData, TaxFormRow } from "~/lib/tax/form/types";
 import { getTaxYearConfig } from "~/lib/tax/data/accessors.impl";
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
@@ -50,7 +51,10 @@ export function clampTaxFormData(data: TaxFormData): TaxFormData {
   const lim = config.pretaxLimits;
   const electiveCap = lim.electiveDeferral401k + lim.electiveDeferral401kCatchUp;
   const pooledRows = applyElectiveDeferral402gClampToRows(finiteRows, electiveCap, joint);
-  return { rows: clampRowsWithConfigValidation(pooledRows, config, taxYear, filingStatus) };
+  const hsaLimit = joint ? lim.hsaFamily : lim.hsaSelfOnly;
+  const hsaCapped = applyHsaHouseholdCap(pooledRows, hsaLimit);
+  const compensationCapped = applyPretaxCompensationCaps(hsaCapped);
+  return { rows: clampRowsWithConfigValidation(compensationCapped, config, taxYear, filingStatus) };
 }
 
 /** §402(g): combined cap for 401(k), 403(b), and age-50+ catch-up per spouse (457(b) excluded from this pool). */

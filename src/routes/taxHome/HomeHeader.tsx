@@ -5,13 +5,11 @@ export function HomeHeader() {
         US Tax Income Visualizer
       </h1>
       <p class="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-        Enter your filing details below to see how gross income flows through deductions, pre-tax
-        payroll benefits, separate federal treatment of ordinary income (progressive brackets) vs
-        long-term capital gains (0% / 15% / 20%), payroll taxes on wages, and take-home pay.
+        Enter income and filing details to see how federal tax and payroll tax split take-home pay.
       </p>
       <p class="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-        Use a preset if you want a fast tour, then change one variable at a time to see what really
-        moved the result.
+        Federal only — no state tax and no credit phaseouts.{" "}
+        <a href="/about" class="text-accent underline underline-offset-2">See what we model</a>.
       </p>
     </header>
   );

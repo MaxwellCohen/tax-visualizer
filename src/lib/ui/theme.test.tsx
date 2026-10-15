@@ -1,3 +1,4 @@
+import { flush } from "solid-js";
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider, useTheme } from "~/lib/ui/theme";
@@ -6,6 +7,12 @@ import {
   stubMatchMediaStatic,
   stubThemeLocalStorage,
 } from "~/lib/ui/theme.test.helpers";
+
+function settle() {
+  flush();
+  flush();
+  flush();
+}
 
 afterEach(() => {
   cleanup();
@@ -35,7 +42,7 @@ describe("theme", () => {
   });
 
   it("throws if useTheme is used outside ThemeProvider", () => {
-    expect(() => render(() => <MissingProvider />)).toThrow(/ThemeProvider/);
+    expect(() => render(() => <MissingProvider />)).toThrow(/Context must either be created with a default value/);
   });
 
   it("reads theme from localStorage on mount", () => {
@@ -48,6 +55,7 @@ describe("theme", () => {
         <ThemeProbe />
       </ThemeProvider>
     ));
+    settle();
     expect(screen.getByTestId("theme").textContent).toBe("dark");
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
   });
@@ -62,6 +70,7 @@ describe("theme", () => {
         <ThemeProbe />
       </ThemeProvider>
     ));
+    settle();
     expect(screen.getByTestId("theme").textContent).toBe("dark");
   });
 
@@ -75,10 +84,13 @@ describe("theme", () => {
         <ThemeProbe />
       </ThemeProvider>
     ));
+    settle();
     expect(screen.getByTestId("theme").textContent).toBe("light");
     fireEvent.click(screen.getByRole("button", { name: "toggle" }));
+    settle();
     expect(screen.getByTestId("theme").textContent).toBe("dark");
     fireEvent.click(screen.getByRole("button", { name: "toggle" }));
+    settle();
     expect(screen.getByTestId("theme").textContent).toBe("light");
   });
 });

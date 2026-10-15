@@ -1,4 +1,5 @@
-import { Show, splitProps, type Accessor, type Component, type JSX } from "solid-js";
+import { Show, omit, type Accessor, type Component } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import Accordion from "~/components/ui/Accordion";
 import { money } from "~/lib/format/moneyFormat";
 import {
@@ -13,21 +14,21 @@ export type LineItemsAccordionSectionProps = LineItemsTableBlockProps & {
 };
 
 export const LineItemsAccordionSection: Component<LineItemsAccordionSectionProps> = (props) => {
-  const [panel, table] = splitProps(props, ["title", "summaryAmount", "leading"]);
+  const table = omit(props, "title", "summaryAmount", "leading");
 
   return (
     <Accordion
       summary={
         <>
           <h2 class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-faint-foreground font-heading">
-            {panel.title}
+            {props.title}
           </h2>
-          <span class="text-sm tabular-nums text-muted-foreground">{money.format(panel.summaryAmount())}</span>
+          <span class="text-sm tabular-nums text-muted-foreground">{money.format(props.summaryAmount())}</span>
         </>
       }
       bodyClass="space-y-4"
     >
-      <Show when={panel.leading}>{panel.leading}</Show>
+      <Show when={props.leading}>{props.leading}</Show>
       <LineItemsTableBlock {...table} />
     </Accordion>
   );

@@ -8,7 +8,7 @@ import { deriveWageJobsFromTaxInput } from "~/lib/tax/withholding/wageJobs";
 export type HeadlineMetric = {
   label: string;
   value: number;
-  format: "currency";
+  format: "currency" | "percent";
   highlight?: boolean;
 };
 
@@ -63,6 +63,14 @@ export function headlineMetricsFromCalculatedConfig(
       value: takeHome.computedValue,
       format: "currency",
       highlight: true,
+    });
+  }
+  const effectiveRate = calculatedConfig.find((c) => c.id === "effectiveTaxRate");
+  if (effectiveRate && taxScope === "allTaxes") {
+    metrics.push({
+      label: effectiveRate.labels.summary ?? effectiveRate.labels.default,
+      value: effectiveRate.computedValue,
+      format: "percent",
     });
   }
   return metrics;

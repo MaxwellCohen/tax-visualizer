@@ -1,14 +1,17 @@
 import { createContext, useContext, type ParentComponent } from "solid-js";
+import type { CommitTaxInputToUrl } from "~/components/tax/inputForm/hooks/taxInputRowActions";
 
-const TaxInputCommitToUrlContext = createContext<(() => void) | undefined>(undefined);
+const noop: CommitTaxInputToUrl = () => {};
+
+const TaxInputCommitToUrlContext = createContext<CommitTaxInputToUrl>(noop);
 
 /** Wraps the tax form so fields can call URL sync after their own blur handling. */
 export const TaxInputCommitToUrlProvider: ParentComponent<{
-  onCommitToUrl?: () => void;
-}> = props => (
-  <TaxInputCommitToUrlContext.Provider value={props.onCommitToUrl}>{props.children}</TaxInputCommitToUrlContext.Provider>
+  onCommitToUrl?: CommitTaxInputToUrl;
+}> = (props) => (
+  <TaxInputCommitToUrlContext value={props.onCommitToUrl ?? noop}>{props.children}</TaxInputCommitToUrlContext>
 );
 
-export function useTaxInputCommitToUrl(): (() => void) | undefined {
+export function useTaxInputCommitToUrl(): CommitTaxInputToUrl {
   return useContext(TaxInputCommitToUrlContext);
 }

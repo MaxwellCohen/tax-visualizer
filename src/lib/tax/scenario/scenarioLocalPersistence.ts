@@ -1,5 +1,6 @@
 import type { TaxFormData } from "~/lib/tax/form/types";
 import type { WithholdingInputs } from "~/lib/tax/withholding/types";
+import { parseTaxFormData } from "~/lib/tax/scenario/serialize";
 
 const SCENARIO_STORAGE_KEY = "tax-visualizer-scenario";
 const WITHHOLDING_STORAGE_KEY = "tax-visualizer-withholding";
@@ -22,9 +23,7 @@ export function loadScenarioFromLocalStorage(): TaxFormData | null {
   try {
     const raw = localStorage.getItem(SCENARIO_STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as TaxFormData;
-    if (!parsed || !Array.isArray(parsed.rows)) return null;
-    return parsed;
+    return parseTaxFormData(JSON.parse(raw));
   } catch {
     return null;
   }

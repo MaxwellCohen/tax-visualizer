@@ -18,8 +18,8 @@ export function makeIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         {
             id: "wages",
             chartStyle: { fill: "var(--color-chart-income)", stroke: "var(--color-sankey-link)" },
-            labels: { default: "Wages" },
-            description: "Taxable wages after payroll pre-tax reductions",
+            labels: { default: "Ordinary income", compact: "Ordinary income" },
+            description: "Wages, self-employment, short-term gains, and other ordinary income. Pre-tax deferrals leave the top of this bar; the rest continues.",
             sankey: {
                 node: { row: 1, col: 1 },
                 links: [

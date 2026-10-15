@@ -1,10 +1,11 @@
 // fallow-ignore-file unused-file
-import { A } from "@solidjs/router";
+import { httpStatus } from "@solidjs/web";
 import { NotFoundSeo } from "~/components/seo/Seo";
 
 export default function NotFound() {
+  httpStatus(404);
   return (
-    <main class="mx-auto max-w-2xl px-4 py-16 text-center">
+    <main id="main-content" class="mx-auto max-w-2xl px-4 py-16 text-center">
       <NotFoundSeo />
       <p class="text-sm font-semibold uppercase tracking-[0.15em] text-accent">
         404
@@ -16,19 +17,19 @@ export default function NotFound() {
         The page you're looking for doesn't exist.
       </p>
       <div class="mt-10 flex items-center justify-center gap-4 text-sm text-faint-foreground">
-        <A
+        <a
           href="/"
           class="text-accent underline underline-offset-2 transition-colors duration-150"
         >
           Home
-        </A>
+        </a>
         <span aria-hidden="true">&middot;</span>
-        <A
+        <a
           href="/about"
           class="text-accent underline underline-offset-2 transition-colors duration-150"
         >
           About
-        </A>
+        </a>
       </div>
     </main>
   );

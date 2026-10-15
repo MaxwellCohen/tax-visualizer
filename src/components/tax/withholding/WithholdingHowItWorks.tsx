@@ -12,7 +12,7 @@ export function WithholdingHowItWorks() {
       <button
         type="button"
         class="mt-2 text-xs font-medium text-accent underline underline-offset-2"
-        aria-expanded={open()}
+        aria-expanded={open() ? "true" : "false"}
         onClick={() => setOpen(v => !v)}
       >
         {open() ? "Hide calculation details" : "How this is calculated"}
@@ -26,7 +26,7 @@ export function WithholdingHowItWorks() {
           <li>Each job&apos;s share = (job wages ÷ total wages) × annual federal tax.</li>
           <li>Suggested per paycheck = job share ÷ pay periods per year (52 / 26 / 24 / 12).</li>
           <li>
-            Refund or owed compares your entered withholding × pay periods to annual federal tax.
+            Refund or owed compares withholding × pay periods to annual federal tax only after every job has an amount.
           </li>
         </ul>
       </Show>

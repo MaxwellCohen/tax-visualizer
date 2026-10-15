@@ -85,4 +85,24 @@ describe("computeWithholdingEstimate", () => {
     expect(result.jobs).toEqual([]);
     expect(result.annualWithheld).toBeNull();
   });
+
+  it("hides household totals until every job has a withheld amount", () => {
+    const result = computeWithholdingEstimate(10_000, jobs, {
+      jobs: [
+        {
+          incomeRowId: "s1-job1",
+          payFrequency: "monthly",
+          federalWithheldPerPaycheck: 600,
+        },
+        {
+          incomeRowId: "s2-job1",
+          payFrequency: "monthly",
+        },
+      ],
+    });
+    expect(result.jobs[0]!.annualWithheld).toBe(7_200);
+    expect(result.jobs[1]!.annualWithheld).toBeNull();
+    expect(result.annualWithheld).toBeNull();
+    expect(result.estimatedBalance).toBeNull();
+  });
 });

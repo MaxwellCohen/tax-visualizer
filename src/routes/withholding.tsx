@@ -1,4 +1,6 @@
-import { createMemo, createSignal, Show } from "solid-js";
+import { createMemo, createSignal, onSettled, Show, untrack } from "solid-js";
+import { isServer } from "@solidjs/web";
+import { createNormalizedTaxInput } from "~/components/tax/inputForm/hooks/taxYearLimitsEffect";
 import { useSearchParams } from "@solidjs/router";
 import { RouteSeo } from "~/components/seo/Seo";
 import { StickyHeadlineBar } from "~/components/layout/StickyHeadlineBar";
@@ -22,13 +24,15 @@ import {
   persistWithholdingLocally,
 } from "~/lib/tax/scenario/scenarioLocalPersistence";
 import { SCENARIO_QUERY_PARAM } from "~/lib/tax/scenario/keys.constants";
-import { getScenarioPresets, serializeScenarioInput } from "~/lib/tax/scenario/serialize";
-import { resolveInitialScenario } from "~/routes/taxHome/scenarioInit";
+import { getScenarioPresets } from "~/lib/tax/scenario/serialize";
+import { resolveInitialScenario, storedScenarioIfNoUrl } from "~/routes/taxHome/scenarioInit";
+import { encodedScenarioIfFitsUrl } from "~/routes/taxHome/taxHomePersistence";
 import { TaxYearInvalid } from "~/routes/taxHome/TaxYearInvalid";
 import {
   mergeWithholdingIntoSearchParams,
   resolveInitialWithholdingInputs,
   resolveWithholdingInputsForWageJobs,
+  storedWithholdingIfNoUrl,
 } from "~/routes/withholding/withholdingPersistence";
 import type { WithholdingInputs } from "~/lib/tax/withholding/types";
 import { deriveWageJobsFromTaxInput } from "~/lib/tax/withholding/wageJobs";
@@ -40,16 +44,30 @@ export default function WithholdingPage() {
   const defaultYear = availableYears[0] ?? 2026;
   const presets = getScenarioPresets();
 
-  const [taxInput, setTaxInput] = createSignal<TaxFormData>(
-    resolveInitialScenario(searchParams as Record<string, string>, defaultYear),
+  const [taxInput, setTaxInput, clampNotice] = createNormalizedTaxInput(
+    untrack(() => resolveInitialScenario(searchParams as Record<string, string>, defaultYear)),
   );
 
   const [withholdingInputs, setWithholdingInputs] = createSignal<WithholdingInputs>(
-    resolveInitialWithholdingInputs(
-      searchParams as Record<string, string>,
-      deriveWageJobsFromTaxInput(taxInput()),
+    untrack(() =>
+      resolveInitialWithholdingInputs(
+        searchParams as Record<string, string>,
+        deriveWageJobsFromTaxInput(taxInput()),
+      ),
     ),
   );
+
+  onSettled(() => {
+    if (isServer) return;
+    const params = searchParams as Record<string, string>;
+    const storedScenario = storedScenarioIfNoUrl(params);
+    if (storedScenario) setTaxInput(storedScenario);
+    const storedWithholding = storedWithholdingIfNoUrl(
+      params,
+      deriveWageJobsFromTaxInput(storedScenario ?? taxInput()),
+    );
+    if (storedWithholding) setWithholdingInputs(storedWithholding);
+  });
 
   const wageJobs = createMemo(() => deriveWageJobsFromTaxInput(taxInput()));
 
@@ -57,11 +75,13 @@ export default function WithholdingPage() {
     resolveWithholdingInputsForWageJobs(wageJobs(), withholdingInputs()),
   );
 
-  const syncScenarioToUrl = () => {
-    persistScenarioLocally(taxInput());
+  const syncScenarioToUrl = (data?: TaxFormData) => {
+    const current = data ?? taxInput();
+    persistScenarioLocally(current);
+    const href = typeof window === "undefined" ? "https://localhost/" : window.location.href;
     setSearchParams({
       ...searchParams,
-      [SCENARIO_QUERY_PARAM]: serializeScenarioInput(taxInput()),
+      [SCENARIO_QUERY_PARAM]: encodedScenarioIfFitsUrl(href, current),
     });
   };
 
@@ -76,8 +96,8 @@ export default function WithholdingPage() {
     const preset = presets.find(p => p.id === "singleW2");
     if (!preset) return;
     const year = getTaxYearFromRows(taxInput().rows);
-    setTaxInput(preset.buildInput(year));
-    syncScenarioToUrl();
+    const written = setTaxInput(preset.buildInput(year));
+    syncScenarioToUrl(written);
   };
 
   const calculatedConfig = useCalculatedTaxConfig(taxInput);
@@ -109,7 +129,7 @@ export default function WithholdingPage() {
   const formDefaultOpen = createMemo(() => wageJobs().length === 0);
 
   return (
-    <main class="mx-auto max-w-6xl space-y-8 px-4 py-8">
+    <main id="main-content" class="mx-auto max-w-6xl space-y-8 px-4 py-8">
       <RouteSeo page="withholding" />
       <WithholdingHeader />
       <StickyHeadlineBar metrics={headlineMetrics} />
@@ -121,13 +141,6 @@ export default function WithholdingPage() {
         variant="withholding"
         withholdingInputs={effectiveWithholdingInputs}
       />
-      <Show when={calculatedConfig() !== null} fallback={<TaxYearInvalid />}>
-        <WithholdingResults
-          taxInput={taxInput}
-          calculatedConfig={calculatedConfig}
-          withholdingInputs={effectiveWithholdingInputs}
-        />
-      </Show>
       <WithholdingSection
         taxInput={taxInput}
         inputs={effectiveWithholdingInputs}
@@ -136,12 +149,20 @@ export default function WithholdingPage() {
         onAddWageIncome={rowActions.addSource}
         onLoadSingleW2Preset={applySingleW2Preset}
       />
+      <Show when={calculatedConfig() !== null} fallback={<TaxYearInvalid />}>
+        <WithholdingResults
+          taxInput={taxInput}
+          calculatedConfig={calculatedConfig}
+          withholdingInputs={effectiveWithholdingInputs}
+        />
+      </Show>
       <TaxInputForm
         taxInput={taxInput}
         setTaxInput={setTaxInput}
         availableYears={availableYears}
         onCommitToUrl={syncScenarioToUrl}
         defaultOpen={formDefaultOpen()}
+        clampNotice={clampNotice}
       />
     </main>
   );

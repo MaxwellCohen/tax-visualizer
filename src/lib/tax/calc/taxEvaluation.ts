@@ -6,6 +6,7 @@ import type {
 } from "~/lib/tax/data/types";
 import type { TaxFormRow } from "~/lib/tax/form/types";
 import { buildScenarioMetrics, type ScenarioMetrics } from "~/lib/tax/calc/scenarioMetrics";
+import { deductionPayrollSplit } from "~/lib/tax/charts/sankeyMoneyFlow";
 
 export type PayrollTaxBreakdown = {
   socialSecurityTax: number;
@@ -66,11 +67,11 @@ function calculatePayrollTaxBreakdownFromMetrics(
   taxData: TaxYearConfig,
   filingStatus: FilingStatus,
 ): PayrollTaxBreakdown {
-  const spouseWages =
+  const spouseFicaWages =
     filingStatus === "marriedJoint"
-      ? [metrics.income.wagesSpouse1, metrics.income.wagesSpouse2]
-      : [metrics.income.wages];
-  const fromWages = spouseWages
+      ? [metrics.income.ficaWagesSpouse1, metrics.income.ficaWagesSpouse2]
+      : [metrics.income.ficaWagesSpouse1];
+  const fromWages = spouseFicaWages
     .map((wages) => calculatePayrollTaxForWages(wages, taxData))
     .reduce(
       (sum, spouseTax) => ({
@@ -83,7 +84,7 @@ function calculatePayrollTaxBreakdownFromMetrics(
   const netSeForMedicare =
     Math.max(0, metrics.income.selfEmployment) * taxData.payroll.selfEmploymentNetEarningsFactor;
   const totalMedicareCompensation =
-    spouseWages.reduce((sum, wages) => sum + Math.max(0, wages), 0) + netSeForMedicare;
+    spouseFicaWages.reduce((sum, wages) => sum + Math.max(0, wages), 0) + netSeForMedicare;
   const threshold = taxData.payroll.additionalMedicareThreshold[filingStatus];
   const additionalMedicareTax =
     Math.max(0, totalMedicareCompensation - threshold) * taxData.payroll.additionalMedicareRate;
@@ -94,21 +95,44 @@ function calculatePayrollTaxBreakdownFromMetrics(
   };
 }
 
+function selfEmploymentTaxForSpouse(
+  netSe: number,
+  ficaWages: number,
+  taxData: TaxYearConfig,
+): number {
+  const netEarnings = Math.max(0, netSe) * taxData.payroll.selfEmploymentNetEarningsFactor;
+  const base = taxData.payroll.socialSecurityWageBase;
+  const ssRoom = Math.max(0, base - Math.min(Math.max(0, ficaWages), base));
+  const ssTaxable = Math.min(netEarnings, ssRoom);
+  const ssTax = ssTaxable * taxData.payroll.selfEmploymentSocialSecurityRate;
+  const medicareTax = netEarnings * taxData.payroll.selfEmploymentMedicareRate;
+  return ssTax + medicareTax;
+}
+
 function calculateSelfEmploymentTaxFromMetrics(
   metrics: ScenarioMetrics,
   taxData: TaxYearConfig,
   filingStatus: FilingStatus,
 ): number {
-  const netEarnings =
-    Math.max(0, metrics.income.selfEmployment) * taxData.payroll.selfEmploymentNetEarningsFactor;
-  const base = taxData.payroll.socialSecurityWageBase;
-  const wagesForSeSsCap =
-    filingStatus === "marriedJoint" ? metrics.income.wagesSpouse1 : metrics.income.wages;
-  const ssRoom = Math.max(0, base - Math.min(Math.max(0, wagesForSeSsCap), base));
-  const ssTaxable = Math.min(netEarnings, ssRoom);
-  const ssTax = ssTaxable * taxData.payroll.selfEmploymentSocialSecurityRate;
-  const medicareTax = netEarnings * taxData.payroll.selfEmploymentMedicareRate;
-  return ssTax + medicareTax;
+  if (filingStatus === "marriedJoint") {
+    return (
+      selfEmploymentTaxForSpouse(
+        metrics.income.selfEmploymentSpouse1,
+        metrics.income.ficaWagesSpouse1,
+        taxData,
+      ) +
+      selfEmploymentTaxForSpouse(
+        metrics.income.selfEmploymentSpouse2,
+        metrics.income.ficaWagesSpouse2,
+        taxData,
+      )
+    );
+  }
+  return selfEmploymentTaxForSpouse(
+    metrics.income.selfEmployment,
+    metrics.income.ficaWagesSpouse1,
+    taxData,
+  );
 }
 
 function calculateLtcgTaxTotal(
@@ -142,7 +166,6 @@ function calculateLtcgTaxTotal(
 function calculateTaxBucketsFromEvaluation(args: {
   taxData: TaxYearConfig;
   filingStatus: FilingStatus;
-  payrollTaxTotal: number;
   taxFreeAmount: number;
   ordinaryTaxable: number;
   ltcgTaxable: number;
@@ -151,7 +174,6 @@ function calculateTaxBucketsFromEvaluation(args: {
   const {
     taxData,
     filingStatus,
-    payrollTaxTotal,
     taxFreeAmount,
     ordinaryTaxable,
     ltcgTaxable,
@@ -160,7 +182,6 @@ function calculateTaxBucketsFromEvaluation(args: {
   const result: TaxBucket[] = [];
   const brackets = taxData.federalBrackets[filingStatus];
   let remainingIncome = ordinaryTaxable;
-  let remainingPayrollTax = Math.max(payrollTaxTotal - taxFreeAmount, 0);
   let remainingCredits = totalCredits;
   result.push({
     type: "tax-free",
@@ -180,15 +201,14 @@ function calculateTaxBucketsFromEvaluation(args: {
     remainingIncome = Math.max(0, remainingIncome - taxableBracketIncome);
     previousBracketCeiling = bracket.upTo ?? previousBracketCeiling;
     const tax = taxableBracketIncome * bracket.rate;
-    const keep = Math.max(taxableBracketIncome - tax - remainingPayrollTax, 0);
-    remainingPayrollTax = Math.max(0, remainingPayrollTax - (taxableBracketIncome - tax));
+    const keep = Math.max(taxableBracketIncome - tax, 0);
     result.push({
       type: "ordinary",
       taxBracket: bracket,
       tax,
       keep,
       credits: 0,
-      payrollTax: remainingPayrollTax,
+      payrollTax: 0,
       remainingIncome,
     });
   }
@@ -249,13 +269,17 @@ export function evaluateTaxScenario(
   const taxFreeAmount = ordinaryIncomeAfterPretax + longTermCapGains - totalTaxableIncome;
   const standardDeduction = metrics.useItemizedDeductions ? 0 : statutoryStandardDeduction;
   const totalDeductions = chosenDeduction;
-  // Sankey "0% tax" slice: deduction shield net of wage FICA (educational).
-  const standardDeductionWithoutPayrollTax = metrics.useItemizedDeductions
-    ? 0
-    : Math.max(0, statutoryStandardDeduction - payrollTax);
-  const itemizedDeductionsWithoutPayrollTax = metrics.useItemizedDeductions
-    ? Math.max(0, itemizedDeductions - payrollTax)
-    : 0;
+  // Sankey ribbons must partition the same dollars: payroll leaves ordinary income
+  // beside the deduction, so the 0% band is only the deduction left after that split.
+  const shield = deductionPayrollSplit({
+    ordinaryIncomeAfterPretax,
+    longTermCapGains,
+    selfEmploymentDeduction,
+    chosenDeduction,
+    payrollTaxTotal,
+  });
+  const standardDeductionWithoutPayrollTax = metrics.useItemizedDeductions ? 0 : shield.deductionToTakeHome;
+  const itemizedDeductionsWithoutPayrollTax = metrics.useItemizedDeductions ? shield.deductionToTakeHome : 0;
   const totalCredits =
     metrics.qualifyingChildren * (taxData.federalTaxCreditDefaults.childTaxCredit ?? 0) +
     metrics.otherDependents * (taxData.federalTaxCreditDefaults.creditForOtherDependents ?? 0) +
@@ -265,7 +289,6 @@ export function evaluateTaxScenario(
   const taxBuckets = calculateTaxBucketsFromEvaluation({
     taxData,
     filingStatus,
-    payrollTaxTotal,
     taxFreeAmount,
     ordinaryTaxable: taxableIncomeAfterDeductions,
     ltcgTaxable: ltcgTaxableIncome,

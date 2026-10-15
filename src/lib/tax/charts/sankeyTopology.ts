@@ -28,8 +28,11 @@ function addOrdinaryBracketTopology(topology: Map<string, SankeySettings>, numbe
     addTopology(topology, `${bracketId}-income`, {
       links: [{ source: "ordinaryTaxableIncome", target: `${bracketId}-node`, row: bracketRow, col: 2 }],
     });
-    addTopology(topology, `${bracketId}-keep`, {
+    addTopology(topology, `${bracketId}-keep-net`, {
       links: [{ source: `${bracketId}-node`, target: "takeHomePay", row: bracketRow + 1, col: 3 }],
+    });
+    addTopology(topology, `${bracketId}-payroll`, {
+      links: [{ source: `${bracketId}-node`, target: "payrollTax", row: bracketRow + 1, col: 2 }],
     });
     addTopology(topology, `${bracketId}-credits`, {
       links: [{ source: `${bracketId}-node`, target: "takeHomePay", row: bracketRow + 2, col: 3 }],
@@ -80,19 +83,19 @@ function addStaticTopology(topology: Map<string, SankeySettings>): void {
     ],
   });
   addTopology(topology, "longTermCapitalGainsGrossIncome", { node: { row: 1, col: 2 } });
-  addTopology(topology, "standard", {
-    links: [{ source: "ordinaryTaxableIncome", target: "standardDeduction", row: 1, col: 2 }],
-  });
-  addTopology(topology, "Itemized Deductions", {
-    links: [{ source: "ordinaryTaxableIncome", target: "itemizedDeductions", row: 1, col: 2 }],
-  });
   addTopology(topology, "standardDeduction", {
     node: { row: 3, col: 3 },
-    links: [{ source: "standardDeduction", target: "takeHomePay", row: 3, col: 3 }],
+    links: [
+      { source: "ordinaryTaxableIncome", target: "standardDeduction", row: 1, col: 2 },
+      { source: "standardDeduction", target: "takeHomePay", row: 3, col: 3 },
+    ],
   });
   addTopology(topology, "itemizedDeductions", {
     node: { row: 3, col: 3 },
-    links: [{ source: "itemizedDeductions", target: "takeHomePay", row: 3, col: 3 }],
+    links: [
+      { source: "ordinaryTaxableIncome", target: "itemizedDeductions", row: 1, col: 2 },
+      { source: "itemizedDeductions", target: "takeHomePay", row: 3, col: 3 },
+    ],
   });
   addTopology(topology, "ordinaryTaxableIncome", { node: { row: 2, col: 2 } });
   addTopology(topology, "longTermTaxableIncome", { node: { row: 3, col: 2 } });
@@ -104,6 +107,9 @@ function addStaticTopology(topology: Map<string, SankeySettings>): void {
   });
   addTopology(topology, "sankeyOrdinaryToPayrollTax", {
     links: [{ source: "ordinaryTaxableIncome", target: "payrollTax", row: 0, col: 2 }],
+  });
+  addTopology(topology, "sankeyHalfSeToTakeHome", {
+    links: [{ source: "ordinaryTaxableIncome", target: "takeHomePay", row: 4, col: 2 }],
   });
   addTopology(topology, "selfEmploymentTax", {
     links: [{ source: "payrollTax", target: "federalPayrollTaxes", row: 4, col: 1 }],
@@ -131,8 +137,11 @@ function addStaticTopology(topology: Map<string, SankeySettings>): void {
   addTopology(topology, "ltcg-tax", {
     links: [{ source: "ltcg-income", target: "federalIncomeTax", row: LTCG_SANKEY_INCOME_ROW + 2, col: 3 }],
   });
-  addTopology(topology, "ltcg-keep", {
+  addTopology(topology, "ltcg-keep-net", {
     links: [{ source: "ltcg-income", target: "takeHomePay", row: 49, col: 3 }],
+  });
+  addTopology(topology, "ltcg-payroll", {
+    links: [{ source: "ltcg-income", target: "payrollTax", row: 48, col: 3 }],
   });
 }
 

@@ -4,7 +4,7 @@ Interactive web app that estimates how US federal income flows through **deducti
 
 Domain vocabulary and pipeline seams: [CONTEXT.md](CONTEXT.md).
 
-Built with [SolidStart](https://start.solidjs.com) (Solid.js), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/) v4, and [d3-sankey](https://github.com/d3/d3-sankey).
+Built with [Solid 2](https://v2.solidjs.com) (start mode), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/) v4, and [d3-sankey](https://github.com/d3/d3-sankey).
 
 ## Requirements
 

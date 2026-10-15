@@ -5,7 +5,7 @@ import { AboutProvenanceAndGlossary } from "~/routes/about/AboutProvenanceAndGlo
 
 export default function About() {
   return (
-    <main class="mx-auto max-w-4xl space-y-8 px-4 py-12">
+    <main id="main-content" class="mx-auto max-w-4xl space-y-8 px-4 py-12">
       <RouteSeo page="about" />
       <header class="space-y-3">
         <h1 class="text-4xl font-semibold tracking-tight text-foreground font-heading">

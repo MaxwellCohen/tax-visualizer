@@ -75,8 +75,14 @@ export function SankeyNodeRects(props: Props) {
               onMouseLeave={() => props.onNodeLeave()}
               onBlur={() => props.onNodeLeave()}
               onClick={() => props.onNodeHover(node.id)}
+              onKeyDown={(e: KeyboardEvent) => {
+                if (e.key !== "Enter" && e.key !== " ") return;
+                e.preventDefault();
+                props.onNodeHover(node.id);
+              }}
               tabindex={0}
               role="button"
+              aria-pressed={props.activeNodeId() === node.id ? "true" : "false"}
               aria-label={lines.title}
             />
             {lines.compact ? (
@@ -86,7 +92,7 @@ export function SankeyNodeRects(props: Props) {
                 y={midY}
                 dominant-baseline="middle"
                 text-anchor={anchor}
-                font-size="9"
+                font-size="12"
               >
                 <title>{lines.title}</title>
                 {lines.line1}
@@ -98,7 +104,7 @@ export function SankeyNodeRects(props: Props) {
                 y={midY}
                 dominant-baseline="middle"
                 text-anchor={anchor}
-                font-size="10"
+                font-size="12"
               >
                 <title>{lines.title}</title>
                 <tspan x={labelX} dy="-0.55em">
@@ -109,7 +115,7 @@ export function SankeyNodeRects(props: Props) {
                     class="fill-muted-foreground"
                     x={labelX}
                     dy="1.15em"
-                    font-size="9"
+                    font-size="11"
                   >
                     {lines.line2}
                   </tspan>

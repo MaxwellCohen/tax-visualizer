@@ -7,6 +7,12 @@ export default function Nav() {
 
   return (
     <nav class="border-b border-border bg-surface">
+      <a
+        href="#main-content"
+        class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:text-accent"
+      >
+        Skip to content
+      </a>
       <div class="mx-auto flex max-w-6xl items-center px-4 py-3">
         <a
           href="/"

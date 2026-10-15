@@ -72,10 +72,10 @@ export function computeWithholdingEstimate(
   });
 
   const withWithheld = jobs.filter(j => j.annualWithheld !== null);
-  const annualWithheld =
-    withWithheld.length > 0
-      ? withWithheld.reduce((sum, j) => sum + (j.annualWithheld ?? 0), 0)
-      : null;
+  const allJobsEntered = jobs.length > 0 && withWithheld.length === jobs.length;
+  const annualWithheld = allJobsEntered
+    ? withWithheld.reduce((sum, j) => sum + (j.annualWithheld ?? 0), 0)
+    : null;
 
   return {
     annualFederalLiability,
@@ -83,6 +83,8 @@ export function computeWithholdingEstimate(
     jobs,
     annualWithheld,
     estimatedBalance:
-      annualWithheld !== null ? annualWithheld - annualFederalLiability : null,
+      allJobsEntered && annualWithheld !== null
+        ? annualWithheld - annualFederalLiability
+        : null,
   };
 }

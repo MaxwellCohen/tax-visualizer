@@ -134,9 +134,19 @@ export function resolveInitialWithholdingInputs(
   searchParams: Record<string, string>,
   wageJobs: WageJob[],
 ): WithholdingInputs {
-  const stored = hasWithholdingInSearchParams(searchParams)
-    ? readWithholdingInputsFromSearchParams(searchParams)
-    : (loadWithholdingFromLocalStorage() ?? readWithholdingInputsFromSearchParams(searchParams));
+  return resolveWithholdingInputsForWageJobs(
+    wageJobs,
+    readWithholdingInputsFromSearchParams(searchParams),
+  );
+}
+
+export function storedWithholdingIfNoUrl(
+  searchParams: Record<string, string>,
+  wageJobs: WageJob[],
+): WithholdingInputs | null {
+  if (hasWithholdingInSearchParams(searchParams)) return null;
+  const stored = loadWithholdingFromLocalStorage();
+  if (!stored) return null;
   return resolveWithholdingInputsForWageJobs(wageJobs, stored);
 }
 

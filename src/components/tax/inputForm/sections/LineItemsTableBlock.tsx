@@ -1,4 +1,5 @@
-import { For, type Accessor, type JSX } from "solid-js";
+import { For, type Accessor } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { LineItemSourceRow, type LineItemSourceRowProps } from "~/components/tax/inputForm/rows/LineItemSourceRow";
 import { AddLineHeaderControls, AddLineMobileControls } from "~/components/tax/inputForm/controls/AddLineControls";
 import { taxInputFormTableThClass } from "~/components/tax/inputForm/shared";

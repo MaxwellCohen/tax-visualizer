@@ -50,8 +50,8 @@ export function makeEndingNodesConfig(_taxData: TaxYearConfig, _filingStatus: Fi
         {
             id: "effectiveTaxRate",
             chartRole: "rate",
-            labels: { default: "Effective Tax Rate", compact: "Effective Rate" },
-            description: "Federal income tax divided by total modeled gross income",
+            labels: { default: "Effective income-tax rate", compact: "Income-tax rate", summary: "Effective income-tax rate" },
+            description: "Federal income tax divided by total modeled gross income (excludes payroll and self-employment tax)",
             calculate: (_inputs, _taxData, _filingStatus, context) => context.effectiveTaxRate,
             summary: {
                 displayOrder: 7,

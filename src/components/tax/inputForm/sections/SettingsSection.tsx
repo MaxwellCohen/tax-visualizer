@@ -6,7 +6,7 @@ import type { FilingStatus } from "~/lib/tax/data/types";
 import { isPlanningTaxYear } from "~/lib/tax/data/accessors.impl";
 import { filingStatusOptions } from "~/components/tax/inputForm/shared";
 import { FormStyledSelect } from "~/components/tax/inputForm/controls/FormStyledSelect";
-import { FormCurrencyInput } from "~/components/tax/inputForm/controls/FormCurrencyInput";
+import { FormIntegerInput } from "~/components/tax/inputForm/controls/FormIntegerInput";
 
 type Props = {
   taxInput: Accessor<TaxFormData>;
@@ -96,30 +96,28 @@ export function SettingsSection(props: Props) {
 
         <label class="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide">
           Qualifying children
-          <FormCurrencyInput
+          <FormIntegerInput
             value={qualifyingChildrenValue()}
             onInput={(value) => {
               props.setTaxInput((prev) => ({
                 ...prev,
-                rows: patchSettingRow(prev.rows, "qualifyingChildren", Math.floor(value)),
+                rows: patchSettingRow(prev.rows, "qualifyingChildren", value),
               }));
             }}
-            onBlur={() => {}}
             ariaLabel="Qualifying children"
           />
         </label>
 
         <label class="flex flex-col gap-1.5 text-xs font-medium uppercase tracking-wide">
           Other dependents
-          <FormCurrencyInput
+          <FormIntegerInput
             value={otherDependentsValue()}
             onInput={(value) => {
               props.setTaxInput((prev) => ({
                 ...prev,
-                rows: patchSettingRow(prev.rows, "otherDependents", Math.floor(value)),
+                rows: patchSettingRow(prev.rows, "otherDependents", value),
               }));
             }}
-            onBlur={() => {}}
             ariaLabel="Other dependents"
           />
         </label>

@@ -35,7 +35,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             labels: { default: "Standard deduction", compact: "Standard", summary: "Standard Deduction" },
             description: "Standard deduction based on filing status",
             kindDetail: {
-                modelingNote: "Applied automatically if greater than itemized deductions",
+                modelingNote: "Used when the itemized-deductions checkbox is off",
             },
             sankey: {
                 links: [
@@ -43,7 +43,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 ],
             },
             calculate: (_inputs, _taxData, _filingStatus, context) =>
-                context.standardDeductionWithoutPayrollTax,
+                context.standardDeduction,
             summary: {
                 displayOrder: 2.5,
                 format: "currency",
@@ -56,7 +56,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             labels: { default: "Itemized Deductions", compact: "Itemized" },
             description: "Itemized deductions based on filing status",
             kindDetail: {
-                modelingNote: "Applied automatically if greater than standard deduction",
+                modelingNote: "Used when you check “Use itemized deductions”",
             },
             sankey: {
                 links: [
@@ -64,7 +64,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
                 ],
             },
             calculate: (_inputs, _taxData, _filingStatus, context) =>
-                context.itemizedDeductionsWithoutPayrollTax,
+                context.metrics.useItemizedDeductions ? context.itemizedDeductions : 0,
             summary: {
                 displayOrder: 2.5,
                 format: "currency",
@@ -77,7 +77,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             description: "State and local taxes you elect to deduct",
             kindDetail: {
                 limitNote:
-                    "Annual cap on combined state/local income, sales, and property taxes (varies by tax year and filing status). MAGI-based SALT reduction for very high incomes is not modeled.",
+                    "Clamped to this year’s SALT cap for your filing status. MAGI-based SALT reduction for very high incomes is not modeled.",
             },
             input: {
                 category: "deduction",
@@ -91,9 +91,9 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
         {
             id: "deduction-medicalDental",
             labels: { default: "Medical & Dental", compact: "Medical" },
-            description: "Medical and dental expenses (7.5% of AGI threshold applied at calculation)",
+            description: "Medical and dental expenses you can deduct after the 7.5% of AGI floor",
             kindDetail: {
-                modelingNote: "Subject to 7.5% of AGI threshold",
+                modelingNote: "Enter the deductible amount after the 7.5% of AGI floor; this model does not apply that floor for you",
             },
             input: {
                 category: "deduction",
@@ -108,7 +108,7 @@ export function makeDeductionInputsConfig(_taxData: TaxYearConfig, _filingStatus
             labels: { default: "Home Mortgage Interest", compact: "Mortgage" },
             description: "Home mortgage interest",
             kindDetail: {
-                modelingNote: "Limited to first $750k of acquisition debt (pre-2018: $1M)",
+                modelingNote: "Enter deductible interest after the $750k acquisition-debt limit (pre-2018: $1M); this model does not apply that cap",
             },
             input: {
                 category: "deduction",

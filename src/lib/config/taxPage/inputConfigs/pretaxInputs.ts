@@ -57,12 +57,12 @@ export function makePretaxInputsConfig(_taxData: TaxYearConfig, _filingStatus: F
                 getLimit: (yearValues) => yearValues.limits.electiveDeferral401kCatchUp ?? 7500,
                 validate: makeYearValuesCappedValidator("electiveDeferral401kCatchUp", 7500),
             },
-            // sankey: {
-            //     node: { row: 2, col: 2 },
-            //     links: [
-            //         { source: "wages", target: "pretaxDeductions", row: 1, col: 1 },
-            //     ],
-            // },
+            sankey: {
+                node: { row: 2, col: 2 },
+                links: [
+                    { source: "wages", target: "pretaxDeductions", row: 1, col: 1 },
+                ],
+            },
         },
         {
             id: "input-pretax-hsa",

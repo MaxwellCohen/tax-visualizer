@@ -39,4 +39,48 @@ describe("buildScenarioMetrics", () => {
       useItemizedDeductions: true,
     });
   });
+
+  it("allows deductible IRA against self-employment and zeros payroll pretax without wages", () => {
+    const rows: TaxFormRow[] = [
+      { type: "setting", id: "taxYear", value: 2026 },
+      { type: "setting", id: "filingStatus", value: "single" },
+      {
+        type: "income",
+        id: "se",
+        kind: "income-ordinary-selfEmployment-selfEmployment-spouse1",
+        label: "1099",
+        amount: 50_000,
+      },
+      {
+        type: "pretax",
+        id: "k",
+        kind: "input-pretax-401K-preTax401kSpouse1",
+        label: "401k",
+        amount: 10_000,
+      },
+      {
+        type: "pretax",
+        id: "ira",
+        kind: "input-pretax-traditionalIra-traditionalIraSpouse1",
+        label: "IRA",
+        amount: 7_000,
+      },
+    ];
+    const metrics = buildScenarioMetrics(rows);
+    expect(metrics.pretax.traditionalIra).toBe(7_000);
+    expect(metrics.pretax.preTax401k).toBe(0);
+    expect(metrics.pretax.all).toBe(7_000);
+  });
+
+  it("caps combined HSA rows to the 2026 family limit", () => {
+    const rows: TaxFormRow[] = [
+      { type: "setting", id: "taxYear", value: 2026 },
+      { type: "setting", id: "filingStatus", value: "marriedJoint" },
+      { type: "income", id: "w1", kind: "income-ordinary-wages-spouse1", label: "Wages 1", amount: 100_000 },
+      { type: "income", id: "w2", kind: "income-ordinary-wages-spouse2", label: "Wages 2", amount: 100_000 },
+      { type: "pretax", id: "h1", kind: "input-pretax-hsa-preTaxHsaSpouse1", label: "HSA 1", amount: 8_750 },
+      { type: "pretax", id: "h2", kind: "input-pretax-hsa-preTaxHsaSpouse2", label: "HSA 2", amount: 8_750 },
+    ];
+    expect(buildScenarioMetrics(rows).pretax.hsa).toBe(8_750);
+  });
 });

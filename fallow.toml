@@ -1,10 +1,10 @@
-# SolidStart: FileRoutes is not a static import graph, so declare entries explicitly.
+# Solid 2 start mode discovers routes from the filesystem, so declare page entries explicitly.
 ignoreDependencies = ["nitro", "vite"]
 
 entry = [
-  "src/entry-client.tsx",
-  "src/entry-server.tsx",
   "src/app.tsx",
+  "src/Document.tsx",
+  "src/router.ts",
   "src/routes/index.tsx",
   "src/routes/about.tsx",
   "src/routes/withholding.tsx",

@@ -1,9 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
-    "src/entry-client.tsx",
-    "src/entry-server.tsx",
     "src/app.tsx",
+    "src/Document.tsx",
+    "src/router.ts",
     "src/routes/**/*.{ts,tsx}"
   ],
   "ignore": [

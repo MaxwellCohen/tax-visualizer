@@ -27,12 +27,14 @@ export function WithholdingSection(props: WithholdingSectionProps) {
     () => getFilingStatusFromRows(props.taxInput().rows) ?? "single",
   );
 
-  createEffect(() => {
-    const jobs = wageJobs();
-    props.setInputs(prev => ({
-      jobs: mergeWithholdingJobsWithWageJobs(jobs, prev.jobs),
-    }));
-  });
+  createEffect(
+    () => wageJobs(),
+    (jobs) => {
+      props.setInputs((prev) => ({
+        jobs: mergeWithholdingJobsWithWageJobs(jobs, prev.jobs),
+      }));
+    },
+  );
 
   const inputByRowId = createMemo(() => new Map(props.inputs().jobs.map(j => [j.incomeRowId, j])));
 
@@ -62,21 +64,21 @@ export function WithholdingSection(props: WithholdingSectionProps) {
             />
           }
         >
-          <For each={groups()}>
+          <For each={groups()} keyed={(group) => group.spouseKey}>
             {group => (
               <div class="space-y-3">
                 <Show when={filingStatus() === "marriedJoint"}>
                   <h3 class="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
-                    {group.label}
+                    {group().label}
                   </h3>
                 </Show>
-                <For each={group.jobs}>
+                <For each={group().jobs} keyed={(job) => job.incomeRowId}>
                   {job => {
-                    const input = () => inputByRowId().get(job.incomeRowId)!;
+                    const input = () => inputByRowId().get(job().incomeRowId)!;
                     return (
-                      <Show when={inputByRowId().has(job.incomeRowId)}>
+                      <Show when={inputByRowId().has(job().incomeRowId)}>
                         <WithholdingJobRow
-                          job={job}
+                          job={job()}
                           input={input}
                           setInputs={props.setInputs}
                           onCommitToUrl={props.onCommitToUrl}

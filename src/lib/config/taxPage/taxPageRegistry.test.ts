@@ -58,6 +58,15 @@ describe("electiveDeferrals401kFamilyExcludingCatchUp", () => {
     const baseKey = "input-pretax-401K-preTax401kSpouse1";
     const catchUpKey = "input-pretax-401K-electiveCatchUpSpouse1";
     const rows: TaxFormRow[] = [
+      { type: "setting", id: "taxYear", value: 2026 },
+      { type: "setting", id: "filingStatus", value: "single" },
+      {
+        type: "income",
+        id: "w",
+        kind: "income-ordinary-wages-spouse1",
+        label: "Wages",
+        amount: 80_000,
+      },
       {
         type: "pretax",
         id: "a",

@@ -13,7 +13,7 @@ type ScenarioToolsProps = {
   presets: ScenarioPreset[];
   taxInput: Accessor<TaxFormData>;
   setTaxInput: Setter<TaxFormData>;
-  syncScenarioToUrl: () => void;
+  syncScenarioToUrl: (data?: TaxFormData) => void;
   variant?: "home" | "withholding";
   withholdingInputs?: Accessor<WithholdingInputs>;
 };
@@ -41,12 +41,16 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
   return (
     <section class="rounded-xl border border-border bg-surface p-5 shadow-card">
       <CollapsibleBlock
-        title="Scenario tools"
+        title="Try a sample / Share"
         bodyClass="mt-4 space-y-5"
         headerAside={
           <>
             {statusMessage() ? (
-              <p class="rounded-lg border border-border bg-accent-muted px-3 py-2 text-xs text-accent">
+              <p
+                class="rounded-lg border border-border bg-accent-muted px-3 py-2 text-xs text-accent"
+                role="status"
+                aria-live="polite"
+              >
                 {statusMessage()}
               </p>
             ) : undefined}
@@ -74,9 +78,8 @@ export default function ScenarioTools(props: ScenarioToolsProps) {
             }
             try {
               const year = getTaxYearFromRows(props.taxInput().rows);
-              const newInput = preset.buildInput(year);
-              props.setTaxInput(newInput);
-              props.syncScenarioToUrl();
+              const written = props.setTaxInput(preset.buildInput(year));
+              props.syncScenarioToUrl(written);
               showStatus(`Loaded preset: ${preset.label}.`);
             } catch (e) {
               console.error("Error building preset input:", e);

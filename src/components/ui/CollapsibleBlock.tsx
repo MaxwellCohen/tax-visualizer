@@ -1,4 +1,5 @@
-import { createSignal, createUniqueId, Show, type JSX } from "solid-js";
+import { createSignal, createUniqueId, Show, untrack } from "solid-js";
+import type { JSX } from "@solidjs/web";
 
 type CollapsibleBlockProps = {
   title: string;
@@ -10,7 +11,7 @@ type CollapsibleBlockProps = {
 };
 
 export function CollapsibleBlock(props: CollapsibleBlockProps) {
-  const [open, setOpen] = createSignal(props.defaultOpen ?? true);
+  const [open, setOpen] = createSignal(untrack(() => props.defaultOpen ?? true));
   const titleId = createUniqueId();
   const panelId = createUniqueId();
 
@@ -20,14 +21,13 @@ export function CollapsibleBlock(props: CollapsibleBlockProps) {
         <button
           type="button"
           class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-surface-alt text-muted-foreground transition-[color,background-color,transform] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          aria-expanded={open()}
+          aria-expanded={open() ? "true" : "false"}
           aria-controls={panelId}
           aria-label={`${open() ? "Collapse" : "Expand"} ${props.title} section`}
           onClick={() => setOpen(v => !v)}
         >
           <svg
-            class="block h-4 w-4 shrink-0 transition-transform duration-200"
-            classList={{ "rotate-180": open() }}
+            class={["block h-4 w-4 shrink-0 transition-transform duration-200", { "rotate-180": open() }]}
             viewBox="0 0 20 20"
             fill="currentColor"
             aria-hidden="true"

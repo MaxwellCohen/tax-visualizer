@@ -109,28 +109,28 @@ export function WithholdingResults(props: WithholdingResultsProps) {
                   <h3 class="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
                     By job
                   </h3>
-                  <For each={data().jobs}>
+                  <For each={data().jobs} keyed={(job) => job.incomeRowId}>
                     {job => (
                       <div class="rounded-lg border border-border bg-surface-alt p-4">
                         <p class="text-sm font-medium text-foreground">
-                          {job.label}
+                          {job().label}
                           <Show when={filingStatus() === "marriedJoint"}>
                             <span class="ml-2 text-xs font-normal text-muted-foreground">
-                              ({spouseGroupLabel(job.spouseKey, filingStatus())})
+                              ({spouseGroupLabel(job().spouseKey, filingStatus())})
                             </span>
                           </Show>
                         </p>
                         <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                           <TaxSummaryMetric
-                            label={`Suggested / paycheck (${job.payPeriodsPerYear}/yr)`}
-                            value={job.suggestedPerPaycheck}
+                            label={`Suggested / paycheck (${job().payPeriodsPerYear}/yr)`}
+                            value={job().suggestedPerPaycheck}
                             format="currency"
                             highlight
                           />
-                          <Show when={job.annualWithheld !== null}>
+                          <Show when={job().annualWithheld !== null}>
                             <TaxSummaryMetric
                               label="Your annual withholding"
-                              value={job.annualWithheld!}
+                              value={job().annualWithheld!}
                               format="currency"
                             />
                           </Show>
@@ -148,8 +148,9 @@ export function WithholdingResults(props: WithholdingResultsProps) {
               </Show>
               <Show when={data().annualWithheld === null && data().jobs.length > 0}>
                 <p class="text-xs leading-relaxed text-muted-foreground">
-                  Enter federal tax withheld per paycheck on one or more jobs to see a household
-                  refund or amount owed (assuming flat withholding all year).
+                  Enter federal tax withheld per paycheck on every W-2 job to see a household
+                  refund or amount owed. Totals stay hidden until all jobs have an amount
+                  (assuming flat withholding all year).
                 </p>
               </Show>
               <Show when={data().estimatedBalance !== null}>

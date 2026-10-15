@@ -7,6 +7,15 @@ import type {
   TaxFormPretaxRow,
   TaxFormRow,
 } from "~/lib/tax/form/types";
+import {
+  applyHsaHouseholdCap,
+  applyPretaxCompensationCaps,
+  ficaWagesSpouse1FromRows,
+  ficaWagesSpouse2FromRows,
+  selfEmploymentSpouse1FromRows,
+  selfEmploymentSpouse2FromRows,
+} from "~/lib/tax/calc/pretaxCompensation";
+import { getTaxYearConfig } from "~/lib/tax/data/accessors.impl";
 
 const ELECTIVE_DEFERRAL_BASE_KIND_SET = new Set(
   [
@@ -34,6 +43,10 @@ export type ScenarioMetrics = {
     wagesSpouse1: number;
     wagesSpouse2: number;
     wages: number;
+    ficaWagesSpouse1: number;
+    ficaWagesSpouse2: number;
+    selfEmploymentSpouse1: number;
+    selfEmploymentSpouse2: number;
     selfEmployment: number;
     ordinary: number;
     shortTermCapGains: number;
@@ -59,6 +72,16 @@ export type ScenarioMetrics = {
 };
 
 const metricsCache = new WeakMap<TaxFormRow[], ScenarioMetrics>();
+
+function cappedPretaxRows(rows: TaxFormRow[], taxYear: number, filingStatus: FilingStatus): TaxFormRow[] {
+  const config = getTaxYearConfig(taxYear);
+  const hsaLimit = config
+    ? filingStatus === "marriedJoint"
+      ? config.pretaxLimits.hsaFamily
+      : config.pretaxLimits.hsaSelfOnly
+    : Number.POSITIVE_INFINITY;
+  return applyPretaxCompensationCaps(applyHsaHouseholdCap(rows, hsaLimit));
+}
 
 function getNumericSettingFromRows(rows: TaxFormRow[], id: "qualifyingChildren" | "otherDependents"): number {
   for (const row of rows) {
@@ -181,48 +204,55 @@ export function buildScenarioMetrics(rows: TaxFormRow[]): ScenarioMetrics {
   const cached = metricsCache.get(rows);
   if (cached) return cached;
 
+  const taxYear = getTaxYearFromRows(rows);
+  const filingStatus = getFilingStatusFromRows(rows);
   const wageIncomeSpouse1 =
     sumRowsByKindParts(rows, "income-ordinary-wages") -
     sumRowsByKindParts(rows, "income-ordinary-wages", "spouse2");
   const wageIncomeSpouse2 = sumRowsByKindParts(rows, "income-ordinary-wages", "spouse2");
   const wageIncome = wageIncomeSpouse1 + wageIncomeSpouse2;
+  const seSpouse1 = selfEmploymentSpouse1FromRows(rows);
+  const seSpouse2 = selfEmploymentSpouse2FromRows(rows);
+  const pretaxRows = cappedPretaxRows(rows, taxYear, filingStatus);
   const ordinary = findScenarioAmountById(rows, "income-ordinary");
-  const allPretaxRaw = findScenarioAmountById(rows, "input-pretax");
-  const allPretax = Math.min(allPretaxRaw, findScenarioAmountById(rows, "income-ordinary-wages"));
+  const allPretax = findScenarioAmountById(pretaxRows, "input-pretax");
   const longTermCapGains = findScenarioAmountById(rows, "income-longTermCapGains");
-  const postTaxIncome = Math.max(0, ordinary - allPretax);
   const deductions = findScenarioAmountById(rows, "deduction-");
 
   const metrics: ScenarioMetrics = {
     rows,
-    taxYear: getTaxYearFromRows(rows),
-    filingStatus: getFilingStatusFromRows(rows),
+    taxYear,
+    filingStatus,
     useItemizedDeductions: getUseItemizedFromRows(rows),
     qualifyingChildren: getNumericSettingFromRows(rows, "qualifyingChildren"),
     otherDependents: getNumericSettingFromRows(rows, "otherDependents"),
     incomeSources: incomeSourcesFromRows(rows),
-    pretaxBenefitSources: pretaxBenefitSourcesFromRows(rows),
+    pretaxBenefitSources: pretaxBenefitSourcesFromRows(pretaxRows),
     itemizedDeductions: itemizedDeductionsFromRows(rows),
     federalTaxCredits: federalTaxCreditsFromRows(rows),
     income: {
       wagesSpouse1: wageIncomeSpouse1,
       wagesSpouse2: wageIncomeSpouse2,
       wages: wageIncome,
-      selfEmployment: findScenarioAmountById(rows, "income-ordinary-selfEmployment"),
+      ficaWagesSpouse1: ficaWagesSpouse1FromRows(pretaxRows),
+      ficaWagesSpouse2: ficaWagesSpouse2FromRows(pretaxRows),
+      selfEmploymentSpouse1: seSpouse1,
+      selfEmploymentSpouse2: seSpouse2,
+      selfEmployment: seSpouse1 + seSpouse2,
       ordinary,
       shortTermCapGains: findScenarioAmountById(rows, "income-ordinary-shortTermCapGains"),
       longTermCapGains,
       total: ordinary + longTermCapGains,
     },
     pretax: {
-      electiveDeferrals401kFamilyExcludingCatchUp: sumPretaxKinds(rows, (kind) =>
+      electiveDeferrals401kFamilyExcludingCatchUp: sumPretaxKinds(pretaxRows, (kind) =>
         ELECTIVE_DEFERRAL_BASE_KIND_SET.has(kind),
       ),
-      preTax401k: findScenarioAmountById(rows, "input-pretax-401K"),
-      hsa: findScenarioAmountById(rows, "input-pretax-hsa"),
-      other: findScenarioAmountById(rows, "input-pretax-otherPretax"),
+      preTax401k: findScenarioAmountById(pretaxRows, "input-pretax-401K"),
+      hsa: findScenarioAmountById(pretaxRows, "input-pretax-hsa"),
+      other: findScenarioAmountById(pretaxRows, "input-pretax-otherPretax"),
       all: allPretax,
-      traditionalIra: findScenarioAmountById(rows, "input-pretax-traditionalIra"),
+      traditionalIra: findScenarioAmountById(pretaxRows, "input-pretax-traditionalIra"),
     },
     credits: {
       education: findScenarioAmountById(rows, "input-credit-education"),
@@ -230,7 +260,7 @@ export function buildScenarioMetrics(rows: TaxFormRow[]): ScenarioMetrics {
       other: findScenarioAmountById(rows, "input-credit-other"),
     },
     deductions: {
-      totalItemized: Math.min(deductions, postTaxIncome),
+      totalItemized: Math.max(0, deductions),
     },
   };
   metricsCache.set(rows, metrics);

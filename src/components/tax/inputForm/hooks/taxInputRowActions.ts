@@ -92,122 +92,124 @@ function removeRowAt(rows: TaxFormRow[], index: number): TaxFormRow[] {
   return rows.filter((_, i) => i !== index);
 }
 
+export type CommitTaxInputToUrl = (data?: TaxFormData) => void;
+
 export function createTaxInputRowActions(
   setTaxInput: Setter<TaxFormData>,
-  commitToUrl?: () => void,
+  commitToUrl?: CommitTaxInputToUrl,
 ) {
-  const syncUrl = () => {
-    commitToUrl?.();
+  const writeAndSync = (next: TaxFormData | ((prev: TaxFormData) => TaxFormData)) => {
+    const written = setTaxInput(next);
+    commitToUrl?.(written);
+    return written;
   };
 
   const addSource = () => {
-    setTaxInput((prev) => {
+    writeAndSync((prev) => {
       const idx = insertIndexForNewIncome(prev.rows);
-      const newRows = spliceRows(prev.rows, idx, newIncomeRow());
-      return { ...prev, rows: newRows };
+      return { ...prev, rows: spliceRows(prev.rows, idx, newIncomeRow()) };
     });
-    syncUrl();
   };
 
   const removeSourceAt = (rowIndex: number) => {
     let mutated = false;
-    setTaxInput((prev) => {
+    const written = setTaxInput((prev) => {
       if (incomeRowIndices(prev.rows).length <= 1) return prev;
       mutated = true;
       return { ...prev, rows: removeRowAt(prev.rows, rowIndex) };
     });
-    if (mutated) syncUrl();
+    if (mutated) commitToUrl?.(written);
   };
 
   const addPretaxBenefit = () => {
-    setTaxInput((prev) => {
+    writeAndSync((prev) => {
       const src = newPretaxBenefitSource();
       const idx = insertIndexForNewPretax(prev.rows);
-      const newRows = spliceRows(
-        prev.rows,
-        idx,
-        newPretaxRow({ id: src.id, kind: src.kind, label: src.label, amount: src.amount }),
-      );
-      return { ...prev, rows: newRows };
+      return {
+        ...prev,
+        rows: spliceRows(
+          prev.rows,
+          idx,
+          newPretaxRow({ id: src.id, kind: src.kind, label: src.label, amount: src.amount }),
+        ),
+      };
     });
-    syncUrl();
   };
 
   const removePretaxBenefitAt = (rowIndex: number) => {
     let mutated = false;
-    setTaxInput((prev) => {
+    const written = setTaxInput((prev) => {
       if (pretaxRowIndices(prev.rows).length <= 1) return prev;
       mutated = true;
       return { ...prev, rows: removeRowAt(prev.rows, rowIndex) };
     });
-    if (mutated) syncUrl();
+    if (mutated) commitToUrl?.(written);
   };
 
   const addItemizedDeduction = () => {
-    setTaxInput((prev) => {
+    writeAndSync((prev) => {
       const src = newItemizedDeductionSource();
       const idx = insertIndexForNewDeduction(prev.rows);
-      const newRows = spliceRows(prev.rows, idx, {
-        type: "deduction",
-        id: src.id,
-        kind: src.kind,
-        label: src.label,
-        amount: src.amount,
-      });
-      return { ...prev, rows: newRows };
+      return {
+        ...prev,
+        rows: spliceRows(prev.rows, idx, {
+          type: "deduction",
+          id: src.id,
+          kind: src.kind,
+          label: src.label,
+          amount: src.amount,
+        }),
+      };
     });
-    syncUrl();
   };
 
   const removeItemizedDeductionAt = (rowIndex: number) => {
     let mutated = false;
-    setTaxInput((prev) => {
+    const written = setTaxInput((prev) => {
       if (deductionRowIndices(prev.rows).length <= 1) return prev;
       mutated = true;
       return { ...prev, rows: removeRowAt(prev.rows, rowIndex) };
     });
-    if (mutated) syncUrl();
+    if (mutated) commitToUrl?.(written);
   };
 
   const addFederalTaxCredit = () => {
-    setTaxInput((prev) => {
+    writeAndSync((prev) => {
       const src = newFederalTaxCreditSource();
       const idx = insertIndexForNewCredit(prev.rows);
-      const newRows = spliceRows(prev.rows, idx, {
-        type: "credit",
-        id: src.id,
-        kind: src.kind,
-        label: src.label,
-        amount: src.amount,
-      });
-      return { ...prev, rows: newRows };
+      return {
+        ...prev,
+        rows: spliceRows(prev.rows, idx, {
+          type: "credit",
+          id: src.id,
+          kind: src.kind,
+          label: src.label,
+          amount: src.amount,
+        }),
+      };
     });
-    syncUrl();
   };
 
   const removeFederalTaxCreditAt = (rowIndex: number) => {
     let mutated = false;
-    setTaxInput((prev) => {
+    const written = setTaxInput((prev) => {
       if (creditRowIndices(prev.rows).length <= 1) return prev;
       mutated = true;
       return { ...prev, rows: removeRowAt(prev.rows, rowIndex) };
     });
-    if (mutated) syncUrl();
+    if (mutated) commitToUrl?.(written);
   };
 
   const clearAllPretaxBenefits = () => {
-    setTaxInput((prev) => ({ ...prev, rows: prev.rows.filter((r) => r.type !== "pretax") }));
-    syncUrl();
+    writeAndSync((prev) => ({ ...prev, rows: prev.rows.filter((r) => r.type !== "pretax") }));
   };
 
   const clearAllItemizedDeductions = () => {
-    setTaxInput((prev) => ({ ...prev, rows: prev.rows.filter((r) => r.type !== "deduction") }));
-    syncUrl();
+    writeAndSync((prev) => ({ ...prev, rows: prev.rows.filter((r) => r.type !== "deduction") }));
   };
 
   const clearAllFederalTaxCredits = () => {
-    setTaxInput((prev) => ({ ...prev, rows: prev.rows.filter((r) => r.type !== "credit") }));
-    syncUrl();
+    writeAndSync((prev) => ({ ...prev, rows: prev.rows.filter((r) => r.type !== "credit") }));
   };
 
   return {

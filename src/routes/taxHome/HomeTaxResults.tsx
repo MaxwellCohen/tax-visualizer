@@ -16,14 +16,14 @@ export function HomeTaxResults(props: HomeTaxResultsProps) {
   return (
     <Show when={props.calculatedConfig() !== null} fallback={<TaxYearInvalid />}>
       
-        <>
+        <div class="space-y-8">
           <TaxSankey calculatedConfig={props.calculatedConfig} />
           <TaxMekko calculatedConfig={props.calculatedConfig} />
           <TaxSummary
             calculatedConfig={props.calculatedConfig}
             taxInput={props.taxInput}
           />
-        </>
+        </div>
       
     </Show>
   );

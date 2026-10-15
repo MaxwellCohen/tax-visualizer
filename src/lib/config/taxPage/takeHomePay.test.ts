@@ -191,7 +191,7 @@ const TAKE_HOME_SCENARIOS: TakeHomeScenario[] = [
     taxYear: 2026,
     filingStatus: "marriedJoint",
     buildForm: () => presetForm("familyBenefits", 2026),
-    golden: { takeHome: 120_110 },
+    golden: { takeHome: 120_569 },
   },
   {
     name: "head of household $60k, 1 child",

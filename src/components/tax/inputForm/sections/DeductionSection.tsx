@@ -91,8 +91,9 @@ export function DeductionSection() {
           <LineItemsTableBlock
             description={
               <p class="text-xs leading-relaxed text-muted-foreground">
-                Choose a Schedule A–style category per line; optional label for your notes. Amounts sum for the modeled
-                itemized total (SALT caps and medical floors are not applied separately).
+                Choose a Schedule A–style category per line; optional label for your notes. SALT is
+                clamped to this year’s cap. Enter medical and mortgage amounts after floors and
+                debt limits — those rules are not applied here.
               </p>
             }
             addLabel="Add line"

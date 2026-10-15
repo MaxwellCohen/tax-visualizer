@@ -12,16 +12,18 @@
     "lint:fix": "oxlint --fix"
   },
   "dependencies": {
-    "@solidjs/meta": "^0.29.4",
-    "@solidjs/router": "^1.0.0",
-    "@solidjs/start": "^2.0.0",
+    "@solidjs/meta": "^1.0.0-next.2",
+    "@solidjs/router": "^2.0.0-next.38",
+    "@solidjs/web": "^2.0.0-rc.14",
     "d3-sankey": "^0.12.3",
+    "filesystem-routing": "0.4.0",
     "nitro": "^3.0.260610-beta",
-    "solid-js": "^1.9.14",
-    "vite": "^8.0.0"
+    "solid-js": "^2.0.0-rc.14"
   },
   "devDependencies": {
-    "@solidjs/testing-library": "^0.8.10",
+    "@solidjs/diagnostics": "^2.0.0-rc.14",
+    "@solidjs/testing-library": "^1.0.0-beta.3",
+    "@solidjs/vite-plugin": "^3.0.0-next.49",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^6.9.1",
     "@types/d3-sankey": "^0.12.5",
@@ -30,11 +32,9 @@
     "jsdom": "^30.0.1",
     "knip": "^6.31.0",
     "oxlint": "^1.77.0",
-    "solid-devtools": "^0.34.5",
-    "source-map-js": "1.2.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite-plugin-solid": "^2.11.14",
+    "vite": "^8.1.5",
     "vitest": "^4.1.10"
   },
   "engines": {

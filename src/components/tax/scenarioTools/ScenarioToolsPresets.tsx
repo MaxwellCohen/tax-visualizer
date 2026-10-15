@@ -23,10 +23,11 @@ export function ScenarioToolsPresets(props: Props) {
         return (
         <button
           type="button"
-          class="rounded-lg border border-border-subtle bg-surface-alt p-4 text-left transition-[color,background-color,box-shadow,outline-color]"
-          classList={{
-            "outline-2 outline-accent outline-offset-2": selected(),
-          }}
+          class={[
+            "rounded-lg border border-border-subtle bg-surface-alt p-4 text-left transition-[color,background-color,box-shadow,outline-color]",
+            { "outline-2 outline-accent outline-offset-2": selected() },
+          ]}
+          aria-pressed={selected() ? "true" : "false"}
           onClick={() => {
             handleClick(preset.id);
           }}

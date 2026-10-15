@@ -1,19 +1,17 @@
-import type { JSX } from "solid-js";
-import { Dynamic } from "solid-js/web";
+import type { JSX } from "@solidjs/web";
+import { dynamic } from "@solidjs/web";
 
 function AboutBulletCard(props: { title: string; as?: "section" | "div"; children: JSX.Element }) {
+  const Tag = dynamic(() => props.as ?? "section");
   return (
-    <Dynamic
-      component={props.as ?? "section"}
-      class="rounded-xl border border-border bg-surface p-5 shadow-card"
-    >
+    <Tag class="rounded-xl border border-border bg-surface p-5 shadow-card">
       <h2 class="mb-3 text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-faint-foreground font-heading">
         {props.title}
       </h2>
       <ul class="space-y-2 text-sm leading-relaxed text-muted-foreground">
         {props.children}
       </ul>
-    </Dynamic>
+    </Tag>
   );
 }
 
@@ -32,13 +30,13 @@ export function AboutModelSections() {
       <section class="grid gap-4 lg:grid-cols-2">
         <AboutBulletCard title="What it omits" as="div">
           <li>State and local taxes (as a liability; SALT may appear only as an itemized deduction input).</li>
-          <li>Credit phaseouts, refundable credit excess, AMT, Form 8960 / NIIT, and other specialized regimes.</li>
+          <li>Credit phaseouts, refundable credit excess, AMT, Form 8960 / NIIT, qualified business income (section 199A), and other specialized regimes.</li>
           <li>Employer-side payroll taxes and full W-4 / state withholding worksheets (see the simplified paycheck estimator on Withholding).</li>
           <li>Qualified-dividend, collectibles, or other special capital-gain edge cases.</li>
         </AboutBulletCard>
 
         <AboutBulletCard title="Key assumptions" as="div">
-          <li>Pre-tax payroll entries only apply to W-2 wages in the model.</li>
+          <li>Payroll pretax (401(k), HSA, FSA) applies to that spouse’s W-2 wages; deductible IRA can reduce self-employment income.</li>
           <li>Deductions are applied to ordinary income first and then to long-term gains.</li>
           <li>The charts show teaching-oriented flows and slices, not a literal Form 1040 line order.</li>
           <li>Planning-year figures may be directional before final IRS guidance is published.</li>

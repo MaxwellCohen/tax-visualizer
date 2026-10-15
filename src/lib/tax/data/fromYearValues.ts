@@ -14,7 +14,7 @@ const TAX_YEAR_STATUS: Record<number, "final" | "planning"> = {
   2023: "final",
   2024: "final",
   2025: "final",
-  2026: "planning",
+  2026: "final",
 };
 
 export function getTaxYearStatus(year: number): "final" | "planning" {

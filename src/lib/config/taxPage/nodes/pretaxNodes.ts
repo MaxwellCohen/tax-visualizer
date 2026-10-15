@@ -96,7 +96,7 @@ export function makePretaxDeductionsNodesConfig(_taxData: TaxYearConfig, _filing
                 node: { row: 1, col: 3 },
             },
             calculate: (_inputs, _taxData, _filingStatus, context) =>
-                context.metrics.income.wages - context.metrics.pretax.all,
+                Math.max(0, context.metrics.income.wages - context.metrics.pretax.all),
         },
     ];
 }

@@ -46,21 +46,21 @@ export default function TaxSummary(props: TaxSummaryProps) {
           when={summaryData()}
           fallback={
             <div class="rounded-lg p-4 text-center text-sm text-faint-foreground">
-              Enter income to see the summary.
+              Enter income, or load a sample in Try a sample / Share above, to see the summary.
             </div>
           }
         >
           {(data) => (
             <div class="space-y-4">
-              <For each={data.sections}>
+              <For each={data.sections} keyed={(section) => section.label}>
                 {(section) => (
                   <div>
                     <h3 class="mb-2 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
-                      {section.label}
+                      {section().label}
                     </h3>
                     <div class="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
-                      <For each={section.metrics}>
-                        {(metric) => <MetricItem metric={metric} />}
+                      <For each={section().metrics} keyed={(metric) => metric.label}>
+                        {(metric) => <MetricItem metric={metric()} />}
                       </For>
                     </div>
                   </div>

@@ -1,6 +1,5 @@
-import { createContext, useContext, onMount, createEffect, type ParentComponent } from "solid-js";
-import { createSignal } from "solid-js";
-import { isServer } from "solid-js/web";
+import { createContext, useContext, onSettled, createEffect, createSignal, type ParentComponent } from "solid-js";
+import { isServer } from "@solidjs/web";
 
 type Theme = "light" | "dark";
 
@@ -13,31 +12,38 @@ const ThemeContext = createContext<ThemeContextValue>();
 
 export const ThemeProvider: ParentComponent = (props) => {
   const [theme, setTheme] = createSignal<Theme>("light");
+  let persistTheme = false;
 
-  onMount(() => {
-    const stored = localStorage.getItem("theme");
-    if (stored === "dark" || stored === "light") {
-      setTheme(stored);
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setTheme("dark");
-    }
-  });
-
-  createEffect(() => {
+  onSettled(() => {
     if (isServer) return;
-    const t = theme();
-    document.documentElement.setAttribute("data-theme", t);
-    localStorage.setItem("theme", t);
+    const stored = localStorage.getItem("theme");
+    const next: Theme =
+      stored === "dark" || stored === "light"
+        ? stored
+        : window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+    persistTheme = true;
+    setTheme(next);
   });
+
+  createEffect(
+    () => (isServer ? undefined : theme()),
+    (t) => {
+      if (t == null || !persistTheme) return;
+      document.documentElement.setAttribute("data-theme", t);
+      localStorage.setItem("theme", t);
+    },
+  );
 
   const toggleTheme = () => {
     setTheme(prev => (prev === "light" ? "dark" : "light"));
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext value={{ theme, toggleTheme }}>
       {props.children}
-    </ThemeContext.Provider>
+    </ThemeContext>
   );
 };
 

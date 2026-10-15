@@ -1,4 +1,4 @@
-import { For, Show, createSignal, onCleanup, onMount, type Accessor } from "solid-js";
+import { For, Show, createSignal, onSettled, type Accessor } from "solid-js";
 import { TaxSummaryMetric } from "~/components/tax/summary/TaxSummaryMetric";
 import type { HeadlineMetric } from "~/lib/tax/charts/headlineMetrics";
 
@@ -10,16 +10,16 @@ export function StickyHeadlineBar(props: StickyHeadlineBarProps) {
   const [pinned, setPinned] = createSignal(false);
   let sentinel: HTMLDivElement | undefined;
 
-  onMount(() => {
-    if (typeof IntersectionObserver === "undefined") return;
+  onSettled(() => {
+    if (typeof IntersectionObserver === "undefined" || !sentinel) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry) setPinned(!entry.isIntersecting);
       },
       { rootMargin: "-1px 0px 0px 0px", threshold: 0 },
     );
-    if (sentinel) observer.observe(sentinel);
-    onCleanup(() => observer.disconnect());
+    observer.observe(sentinel);
+    return () => observer.disconnect();
   });
 
   return (
@@ -27,20 +27,22 @@ export function StickyHeadlineBar(props: StickyHeadlineBarProps) {
       <div ref={(el) => { sentinel = el; }} class="h-px w-full" aria-hidden="true" />
       <Show when={props.metrics().length > 0}>
         <div
-          class="sticky top-0 z-20 -mx-4 border-b border-border bg-surface/95 px-4 py-2 backdrop-blur-sm transition-shadow duration-150"
-          classList={{ "shadow-card": pinned() }}
+          class={[
+            "sticky top-0 z-20 -mx-4 border-b border-border bg-surface/95 px-4 py-2 backdrop-blur-sm transition-shadow duration-150",
+            { "shadow-card": pinned() },
+          ]}
           role="region"
           aria-label="Key results"
         >
           <div class="mx-auto flex max-w-6xl flex-wrap gap-2">
-            <For each={props.metrics()}>
-              {metric => (
+            <For each={props.metrics()} keyed={(metric) => metric.label}>
+              {(metric) => (
                 <div class="min-w-[8.5rem] flex-1">
                   <TaxSummaryMetric
-                    label={metric.label}
-                    value={metric.value}
-                    format={metric.format}
-                    highlight={metric.highlight}
+                    label={metric().label}
+                    value={metric().value}
+                    format={metric().format}
+                    highlight={metric().highlight}
                   />
                 </div>
               )}

@@ -1,4 +1,5 @@
-import { createSignal, Show, type JSX } from "solid-js";
+import { createSignal, Show, untrack } from "solid-js";
+import type { JSX } from "@solidjs/web";
 
 const summaryClass =
   "flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 rounded-lg px-3 py-2.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-details-marker]:hidden";
@@ -19,7 +20,7 @@ type AccordionProps = {
 };
 
 export default function Accordion(props: AccordionProps) {
-  const [open, setOpen] = createSignal(props.defaultOpen ?? true);
+  const [open, setOpen] = createSignal(untrack(() => props.defaultOpen ?? true));
 
   return (
     <details
@@ -34,12 +35,12 @@ export default function Accordion(props: AccordionProps) {
         <Show
           when={props.action !== undefined}
           fallback={
-            <span class={`${actionClass} text-faint-foreground`} aria-hidden>
+            <span class={`${actionClass} text-faint-foreground`} aria-hidden="true">
               {open() ? "Collapse" : "Edit"}
             </span>
           }
         >
-          <span class={`${actionClass} text-faint-foreground`} aria-hidden>
+          <span class={`${actionClass} text-faint-foreground`} aria-hidden="true">
             {props.action}
           </span>
         </Show>
