@@ -42,7 +42,7 @@ describe("theme", () => {
   });
 
   it("throws if useTheme is used outside ThemeProvider", () => {
-    expect(() => render(() => <MissingProvider />)).toThrow(/Context must either be created with a default value/);
+    expect(() => render(() => <MissingProvider />)).toThrow(/Context has no provider above this read/);
   });
 
   it("reads theme from localStorage on mount", () => {
