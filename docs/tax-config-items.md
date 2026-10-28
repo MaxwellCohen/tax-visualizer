@@ -152,6 +152,7 @@ Link values for this chain are owned by the `pretaxDeductions` item in `incomeNo
 | ordinaryTaxableIncome | — | — | — | Y | — | Y | — |
 | longTermTaxableIncome | — | Y | — | Y | — | Y | — |
 | taxableIncome | — | Y | — | — | — | Y | — |
+| stateTaxableIncome | — | Y | — | — | — | Y | Federal AGI less the state standard deduction, exemptions, and any allowed federal income tax deduction |
 | federalTaxCreditsApplied | — | Y | — | — | — | Y | — |
 | socialSecurityTax | — | Y | — | Y | — | — | — |
 | medicareTax | — | Y | — | Y | — | — | — |
@@ -186,12 +187,14 @@ Link values for this chain are owned by the `pretaxDeductions` item in `incomeNo
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | sankeyOrdinaryToPayrollTax | — | Y | Y | — | — | — | — |
 | selfEmploymentTax | — | Y | Y | — | — | Y | — |
+| sankeyHalfSeToTakeHome | — | Y | Y | — | — | — | — |
+| sankeyOrdinaryToStateTax | — | Y | Y | — | — | — | State income tax paid out of the kept deduction and ½ self-employment tax when bracket keep is not enough |
 
 ---
 
 ## `nodes/taxBracketNodes.ts` — `getBracketItems`
 
-For each federal **ordinary** bracket index `i` (from `taxData.federalBrackets[filingStatus]`), five ids are emitted:
+For each federal **ordinary** bracket index `i` (from `taxData.federalBrackets[filingStatus]`), these ids are emitted:
 
 | id pattern | calc | sankey.links | sankey.node | mekko | summary | description |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -200,6 +203,9 @@ For each federal **ordinary** bracket index `i` (from `taxData.federalBrackets[f
 | `bracket-{i}-keep` | Y | Y | — | — | — | — |
 | `bracket-{i}-credits` | Y | Y | — | — | — | — |
 | `bracket-{i}-tax` | Y | Y | — | — | — | — |
+| `bracket-{i}-keep-net` | Y | Y | — | — | — | — |
+| `bracket-{i}-payroll` | Y | Y | — | — | — | — |
+| `bracket-{i}-state` | Y | Y | — | — | — | — |
 
 **LTCG block** (fixed ids after the loop):
 
@@ -209,6 +215,9 @@ For each federal **ordinary** bracket index `i` (from `taxData.federalBrackets[f
 | ltcg-tax | Y | Y | — | — | — | — |
 | ltcg-credits | Y | Y | — | — | — | — |
 | ltcg-keep | Y | Y | — | — | — | — |
+| ltcg-keep-net | Y | Y | — | — | — | — |
+| ltcg-payroll | Y | Y | — | — | — | — |
+| ltcg-state | Y | Y | — | — | — | — |
 
 ---
 
@@ -219,6 +228,7 @@ For each federal **ordinary** bracket index `i` (from `taxData.federalBrackets[f
 | federalPayrollTaxes | — | — | — | Y | — | — | — |
 | takeHomePay | — | Y | — | Y | — | Y | — |
 | federalIncomeTax | — | Y | — | Y | — | Y | — |
+| stateIncomeTax | — | Y | — | Y | — | Y | State income tax on federal AGI after the state standard deduction and exemptions (no phaseouts, credits, or local tax) |
 | effectiveTaxRate | — | Y | — | — | — | Y | — |
 
 ---

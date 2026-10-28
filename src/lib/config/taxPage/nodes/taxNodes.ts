@@ -1,7 +1,7 @@
-/** Tax nodes: federal income tax, payroll tax, self-employment tax. */
+/** Tax nodes: payroll tax, self-employment tax, and ordinary-income ribbons into payroll and state tax. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
-import { deductionPayrollSplitFromContext } from "~/lib/tax/charts/sankeyMoneyFlow";
+import { deductionPayrollSplitFromContext, takeHomeAllocation } from "~/lib/tax/charts/sankeyMoneyFlow";
 
 export function makeTaxNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
@@ -45,7 +45,17 @@ export function makeTaxNodesConfig(_taxData: TaxYearConfig, _filingStatus: Filin
             chartStyle: { fill: "var(--color-sankey-link-keep)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: "½ self-employment tax kept", compact: "½ SE tax kept" },
             description: "Deductible half of self-employment tax. It is still cash, so it flows to take-home instead of disappearing from the income stack.",
-            calculate: (_inputs, _taxData, _filingStatus, context) => context.selfEmploymentDeduction,
+            calculate: (_inputs, _taxData, _filingStatus, context) => takeHomeAllocation(context).halfSe.net,
+        },
+        {
+            id: "sankeyOrdinaryToStateTax",
+            chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
+            labels: { default: "Ordinary income to state income tax", compact: "Ordinary → state" },
+            description: "State income tax paid out of the kept deduction and ½ self-employment tax when bracket keep is not enough",
+            calculate: (_inputs, _taxData, _filingStatus, context) => {
+                const allocation = takeHomeAllocation(context);
+                return allocation.deduction.state + allocation.halfSe.state;
+            },
         },
     ];
 }

@@ -51,6 +51,7 @@ flowchart LR
     thp["takeHomePay"]
     fit["federalIncomeTax"]
     fpt["federalPayrollTaxes"]
+    sit["stateIncomeTax"]
   end
 
   iw --> pd
@@ -74,6 +75,9 @@ flowchart LR
   otiN --> bi
   bi --> thp
   bi --> fit
+  bi --> sit
+  ltiNode --> sit
+  otiN --> sit
 
   otiN --> pt
   pt --> fpt
@@ -94,6 +98,7 @@ flowchart LR
 - Each federal ordinary bracket adds nodes `bracket-{i}-node`, `bracket-{i}-income`, `bracket-{i}-keep`, `bracket-{i}-credits`, `bracket-{i}-tax`; Sankey links use `bracket-{i}-income` as the hub for flows to `takeHomePay` (keep and credits) and `federalIncomeTax` (tax). LTCG tax flows `ltcg-income` → `federalIncomeTax`; LTCG keep and credits flow to `takeHomePay`.
 - **Federal income tax node:** Bracket and LTCG tax ribbons terminate at `federalIncomeTax` (gross tax per slice); the node’s summary value is still net federal income tax after credits (link sums may not match that number). Credits to take-home are carried on **`bracket-{i}-credits`** and **`ltcg-credits`** links in [`taxBracketNodes.ts`](../src/lib/config/taxPage/nodes/taxBracketNodes.ts), not via a separate config-only bridge row.
 - Credit **input** rows keep a Sankey **node** in the topology catalog for styling; ribbon amounts for credits applied come from bracket/LTCG slice config, aligned with `federalTaxCreditsApplied` in [`deductionNodes.ts`](../src/lib/config/taxPage/nodes/deductionNodes.ts).
+- **State income tax:** [`takeHomeAllocation`](../src/lib/tax/charts/sankeyMoneyFlow.ts) splits each kept slice into payroll, state tax, and net take-home. State tax comes out of bracket keep (highest rate first) after payroll, then LTCG keep, then the kept deduction and ½ SE. Those last two travel on one ribbon, `sankeyOrdinaryToStateTax` (`ordinaryTaxableIncome` → `stateIncomeTax`); the bracket and LTCG parts use `bracket-{i}-state` and `ltcg-state`.
 - Refundable credit amounts beyond gross federal tax are not shown as a separate ribbon (same cap as `federalTaxCreditsApplied`).
 
 **Implementation:** [`buildSankeyLayout.ts`](../src/lib/tax/charts/buildSankeyLayout.ts) merges calculated config values with the topology catalog and returns the d3-sankey graph rendered by the Solid view.

@@ -1,3 +1,4 @@
+import { isStateCode } from "~/lib/config/states/index";
 import type { FilingStatus } from "~/lib/tax/data/types";
 import type { TaxFormData, TaxFormRow, TaxFormSettingId } from "~/lib/tax/form/types";
 import { SCENARIO_PRESETS } from "~/lib/tax/scenario/presets.constants";
@@ -14,6 +15,7 @@ const FILING_STATUSES = new Set<FilingStatus>([
 const SETTING_IDS = new Set<TaxFormSettingId>([
   "taxYear",
   "filingStatus",
+  "residenceState",
   "qualifyingChildren",
   "otherDependents",
   "useItemizedDeductions",
@@ -37,6 +39,10 @@ function parseSettingRow(row: Record<string, unknown>): TaxFormRow | null {
     case "filingStatus":
       return typeof row.value === "string" && FILING_STATUSES.has(row.value as FilingStatus)
         ? { type: "setting", id: "filingStatus", value: row.value as FilingStatus }
+        : null;
+    case "residenceState":
+      return row.value === "none" || isStateCode(row.value)
+        ? { type: "setting", id: "residenceState", value: row.value }
         : null;
     case "qualifyingChildren":
     case "otherDependents":

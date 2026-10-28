@@ -6,7 +6,7 @@ import type {
 } from "~/lib/tax/data/types";
 import type { TaxFormRow } from "~/lib/tax/form/types";
 import { buildScenarioMetrics, type ScenarioMetrics } from "~/lib/tax/calc/scenarioMetrics";
-import { deductionPayrollSplit } from "~/lib/tax/charts/sankeyMoneyFlow";
+import { calculateStateIncomeTax, type StateIncomeTaxResult } from "~/lib/tax/calc/stateIncomeTax";
 
 export type PayrollTaxBreakdown = {
   socialSecurityTax: number;
@@ -37,9 +37,9 @@ export type TaxEvaluationContext = {
   standardDeduction: number;
   itemizedDeductions: number;
   totalDeductions: number;
-  standardDeductionWithoutPayrollTax: number;
-  itemizedDeductionsWithoutPayrollTax: number;
   ordinaryIncomeAfterPretax: number;
+  /** Ordinary after pretax + LTCG − ½ SE: federal AGI and the state starting point. */
+  adjustedGrossIncome: number;
   /** Ordinary income taxed at ordinary rates after ½ SE and std/itemized. */
   taxableIncomeAfterDeductions: number;
   /** Preferential LTCG included in taxable income after deductions. */
@@ -50,6 +50,8 @@ export type TaxEvaluationContext = {
   taxBuckets: TaxBucket[];
   federalTaxCreditsApplied: number;
   federalIncomeTax: number;
+  state: StateIncomeTaxResult;
+  stateIncomeTax: number;
   takeHomePay: number;
   effectiveTaxRate: number;
 };
@@ -269,17 +271,6 @@ export function evaluateTaxScenario(
   const taxFreeAmount = ordinaryIncomeAfterPretax + longTermCapGains - totalTaxableIncome;
   const standardDeduction = metrics.useItemizedDeductions ? 0 : statutoryStandardDeduction;
   const totalDeductions = chosenDeduction;
-  // Sankey ribbons must partition the same dollars: payroll leaves ordinary income
-  // beside the deduction, so the 0% band is only the deduction left after that split.
-  const shield = deductionPayrollSplit({
-    ordinaryIncomeAfterPretax,
-    longTermCapGains,
-    selfEmploymentDeduction,
-    chosenDeduction,
-    payrollTaxTotal,
-  });
-  const standardDeductionWithoutPayrollTax = metrics.useItemizedDeductions ? 0 : shield.deductionToTakeHome;
-  const itemizedDeductionsWithoutPayrollTax = metrics.useItemizedDeductions ? shield.deductionToTakeHome : 0;
   const totalCredits =
     metrics.qualifyingChildren * (taxData.federalTaxCreditDefaults.childTaxCredit ?? 0) +
     metrics.otherDependents * (taxData.federalTaxCreditDefaults.creditForOtherDependents ?? 0) +
@@ -296,8 +287,21 @@ export function evaluateTaxScenario(
   });
   const federalTaxCreditsApplied = taxBuckets.reduce((sum, bucket) => sum + bucket.credits, 0);
   const federalIncomeTax = taxBuckets.reduce((sum, bucket) => sum + bucket.tax, 0);
-  const takeHomePay = metrics.income.total - metrics.pretax.all - federalIncomeTax - payrollTaxTotal;
-  const effectiveTaxRate = metrics.income.total > 0 ? federalIncomeTax / metrics.income.total : 0;
+  const state = calculateStateIncomeTax({
+    residenceState: metrics.residenceState,
+    taxYear: metrics.taxYear,
+    filingStatus,
+    federalAgi: afterHalfSe,
+    dependents: metrics.qualifyingChildren + metrics.otherDependents,
+    federalStandardDeduction: statutoryStandardDeduction,
+    federalDeductionClaimed: chosenDeduction,
+    federalIncomeTax,
+  });
+  const stateIncomeTax = state.tax;
+  const takeHomePay =
+    metrics.income.total - metrics.pretax.all - federalIncomeTax - stateIncomeTax - payrollTaxTotal;
+  const effectiveTaxRate =
+    metrics.income.total > 0 ? (federalIncomeTax + stateIncomeTax) / metrics.income.total : 0;
 
   return {
     rows,
@@ -312,9 +316,8 @@ export function evaluateTaxScenario(
     standardDeduction,
     itemizedDeductions,
     totalDeductions,
-    standardDeductionWithoutPayrollTax,
-    itemizedDeductionsWithoutPayrollTax,
     ordinaryIncomeAfterPretax,
+    adjustedGrossIncome: afterHalfSe,
     taxableIncomeAfterDeductions,
     ltcgTaxableIncome,
     totalTaxableIncome,
@@ -322,6 +325,8 @@ export function evaluateTaxScenario(
     taxBuckets,
     federalTaxCreditsApplied,
     federalIncomeTax,
+    state,
+    stateIncomeTax,
     takeHomePay,
     effectiveTaxRate,
   };

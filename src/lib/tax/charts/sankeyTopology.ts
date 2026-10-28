@@ -40,6 +40,9 @@ function addOrdinaryBracketTopology(topology: Map<string, SankeySettings>, numbe
     addTopology(topology, `${bracketId}-tax`, {
       links: [{ source: `${bracketId}-node`, target: "federalIncomeTax", row: bracketRow + 3, col: 3 }],
     });
+    addTopology(topology, `${bracketId}-state`, {
+      links: [{ source: `${bracketId}-node`, target: "stateIncomeTax", row: bracketRow + 3.5, col: 3 }],
+    });
   }
   addTopology(topology, "ltcg-credits", {
     links: [{ source: "ltcg-income", target: "takeHomePay", row: LTCG_SANKEY_INCOME_ROW + 1, col: 3 }],
@@ -111,6 +114,9 @@ function addStaticTopology(topology: Map<string, SankeySettings>): void {
   addTopology(topology, "sankeyHalfSeToTakeHome", {
     links: [{ source: "ordinaryTaxableIncome", target: "takeHomePay", row: 4, col: 2 }],
   });
+  addTopology(topology, "sankeyOrdinaryToStateTax", {
+    links: [{ source: "ordinaryTaxableIncome", target: "stateIncomeTax", row: 4.5, col: 2 }],
+  });
   addTopology(topology, "selfEmploymentTax", {
     links: [{ source: "payrollTax", target: "federalPayrollTaxes", row: 4, col: 1 }],
   });
@@ -130,6 +136,7 @@ function addStaticTopology(topology: Map<string, SankeySettings>): void {
   addTopology(topology, "federalPayrollTaxes", { node: { row: 2, col: 4 } });
   addTopology(topology, "takeHomePay", { node: { row: 3, col: 4 } });
   addTopology(topology, "federalIncomeTax", { node: { row: 4, col: 4 } });
+  addTopology(topology, "stateIncomeTax", { node: { row: 5, col: 4 } });
   addTopology(topology, "ltcg-income", {
     node: { row: LTCG_SANKEY_INCOME_ROW, col: 3 },
     links: [{ source: "longTermTaxableIncome", target: "ltcg-income", row: LTCG_SANKEY_INCOME_ROW, col: 2 }],
@@ -139,6 +146,9 @@ function addStaticTopology(topology: Map<string, SankeySettings>): void {
   });
   addTopology(topology, "ltcg-keep-net", {
     links: [{ source: "ltcg-income", target: "takeHomePay", row: 49, col: 3 }],
+  });
+  addTopology(topology, "ltcg-state", {
+    links: [{ source: "ltcg-income", target: "stateIncomeTax", row: LTCG_SANKEY_INCOME_ROW + 2.5, col: 3 }],
   });
   addTopology(topology, "ltcg-payroll", {
     links: [{ source: "ltcg-income", target: "payrollTax", row: 48, col: 3 }],

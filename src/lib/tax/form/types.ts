@@ -1,9 +1,14 @@
+import type { StateCode } from "~/lib/config/states/types";
 import type { FilingStatus } from "~/lib/tax/data/types";
+
+/** State of residence for state income tax; `"none"` leaves state tax out of the model. */
+export type ResidenceState = StateCode | "none";
 
 /** Single setting key in the form row list */
 export type TaxFormSettingId =
   | "taxYear"
   | "filingStatus"
+  | "residenceState"
   | "qualifyingChildren"
   | "otherDependents"
   | "useItemizedDeductions";
@@ -11,6 +16,7 @@ export type TaxFormSettingId =
 export type TaxFormSettingRow =
   | { type: "setting"; id: "taxYear"; value: number }
   | { type: "setting"; id: "filingStatus"; value: FilingStatus }
+  | { type: "setting"; id: "residenceState"; value: ResidenceState }
   | { type: "setting"; id: "qualifyingChildren"; value: number }
   | { type: "setting"; id: "otherDependents"; value: number }
   | { type: "setting"; id: "useItemizedDeductions"; value: boolean };

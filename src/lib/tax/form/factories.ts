@@ -10,6 +10,7 @@ import {
   DEFAULT_PRETAX_BENEFIT_KIND,
 } from "~/lib/config/taxPage/inputKindKeys";
 import type {
+  ResidenceState,
   TaxFormCreditRow,
   TaxFormData,
   TaxFormDeductionRow,
@@ -79,10 +80,11 @@ export function incomeSourcesToRows(sources: IncomeSource[]): TaxFormIncomeRow[]
 
 
 
-/** Canonical row order: settings (year, filing), incomes, pretax, itemized toggle, deductions, credits */
+/** Canonical row order: settings (year, filing, state), incomes, pretax, itemized toggle, deductions, credits */
 export function taxFormDataFromParts(args: {
   taxYear: number;
   filingStatus: FilingStatus;
+  residenceState?: ResidenceState;
   qualifyingChildren?: number;
   otherDependents?: number;
   incomeRows: TaxFormIncomeRow[];
@@ -95,6 +97,7 @@ export function taxFormDataFromParts(args: {
     rows: [
       { type: "setting", id: "taxYear", value: args.taxYear },
       { type: "setting", id: "filingStatus", value: args.filingStatus },
+      { type: "setting", id: "residenceState", value: args.residenceState ?? "none" },
       { type: "setting", id: "qualifyingChildren", value: args.qualifyingChildren ?? 0 },
       { type: "setting", id: "otherDependents", value: args.otherDependents ?? 0 },
       ...args.incomeRows,

@@ -1,4 +1,7 @@
+import { STATE_NAMES } from "~/lib/config/states/index";
+import { STATE_CODES } from "~/lib/config/states/types";
 import type { FilingStatus } from "~/lib/tax/data/types";
+import type { ResidenceState } from "~/lib/tax/form/types";
 import type { ConfigItem, SubcategoryConfig } from "~/lib/config/taxPage/types";
 
 type SelectOption = { value: string; label: string };
@@ -8,6 +11,12 @@ export const filingStatusOptions: Array<{ value: FilingStatus; label: string }> 
   { value: "marriedJoint", label: "Married filing jointly" },
   { value: "marriedSeparate", label: "Married filing separately" },
   { value: "headOfHousehold", label: "Head of household" },
+];
+
+export const residenceStateOptions: Array<{ value: ResidenceState; label: string }> = [
+  { value: "none", label: "No state tax" },
+  ...STATE_CODES.map((code) => ({ value: code, label: STATE_NAMES[code] }))
+    .sort((a, b) => a.label.localeCompare(b.label)),
 ];
 
 export function incomeKindSelectOptions(items: ConfigItem[], isMarriedJoint: boolean): SelectOption[] {

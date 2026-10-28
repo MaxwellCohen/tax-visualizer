@@ -98,6 +98,40 @@ describe("sankey money flow", () => {
     expect(outgoing.get("ordinaryTaxableIncome")).toBeCloseTo(200_000, 2);
   });
 
+  it("routes state income tax to its own node without breaking balance", () => {
+    const wages = (amount: number, residenceState: "CA" | "AL" | "NY", filingStatus: FilingStatus = "single") =>
+      taxFormDataFromParts({
+        taxYear: 2026,
+        filingStatus,
+        residenceState,
+        incomeRows: incomeSourcesToRows([
+          newIncomeSource({ kind: "income-ordinary-wages-spouse1", amount, label: "Salary" }),
+          newIncomeSource({ kind: "income-longTermCapGains", amount: amount / 10, label: "Gains" }),
+        ]),
+        pretaxRows: [],
+        useItemizedDeductions: false,
+        deductionRows: [],
+        creditRows: [],
+      });
+    // Low income: federal taxable income is tiny, so state tax has to come out of the kept deduction.
+    for (const [form, status] of [
+      [wages(90_000, "CA"), "single"],
+      [wages(18_000, "AL"), "single"],
+      [wages(400_000, "NY", "marriedJoint"), "marriedJoint"],
+    ] as const) {
+      const taxData = getTaxYearConfig(2026)!;
+      const calculated = calculateAllConfigValues(form, taxData, status);
+      const stateTax = calculated.find((item) => item.id === "stateIncomeTax")!.computedValue;
+      expect(stateTax).toBeGreaterThan(0);
+      const graph = layoutFor(form, status);
+      expect(imbalances(graph.links)).toEqual([]);
+      const { incoming } = flowTotals(graph.links);
+      expect(incoming.get("stateIncomeTax")).toBeCloseTo(stateTax, 2);
+      const takeHome = calculated.find((item) => item.id === "takeHomePay")!.computedValue;
+      expect(incoming.get("takeHomePay")).toBeCloseTo(takeHome, 2);
+    }
+  });
+
   it("balances the sample presets", () => {
     for (const preset of SCENARIO_PRESETS) {
       const form = preset.buildInput(2026);

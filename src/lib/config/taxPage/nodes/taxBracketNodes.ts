@@ -4,7 +4,7 @@ import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
 import { getCreditsSankeyRow } from "../sankey/sankeyLayout.helpers";
 import { findOrdinaryTaxBucketByRate, sumTaxBucketsByType } from "~/lib/tax/calc/taxEvaluation";
-import { payrollShareForLtcg, payrollShareForOrdinaryRate } from "~/lib/tax/charts/sankeyMoneyFlow";
+import { sharesForOrdinaryRate, takeHomeAllocation } from "~/lib/tax/charts/sankeyMoneyFlow";
 
 function getCreditLinkCreditsRow(creditsRow: number) {
     return {
@@ -65,18 +65,20 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
             id: `${bracketId}-keep-net`,
             chartStyle: { fill: "var(--color-sankey-link-keep)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: `${rateLabel} % Keep`, compact: `${rateLabel}% Income` },
-            description: `After-tax ordinary income kept from the ${rateLabel}% bracket, after any payroll that this band has to fund`,
-            calculate: (_inputs, _taxData, _filingStatus, context) => {
-                const keep = findOrdinaryTaxBucketByRate(context, bracket.rate)?.keep ?? 0;
-                return Math.max(0, keep - payrollShareForOrdinaryRate(context, bracket.rate));
-            },
+            description: `After-tax ordinary income kept from the ${rateLabel}% bracket, after any payroll and state income tax that this band has to fund`,
+            calculate: (_inputs, _taxData, _filingStatus, context) => sharesForOrdinaryRate(context, bracket.rate).net,
         }, {
             id: `${bracketId}-payroll`,
             chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
             labels: { default: `${rateLabel} % Payroll`, compact: `${rateLabel}% Payroll` },
             description: `Payroll tax that did not fit in the deduction slice, taken from the ${rateLabel}% bracket's keep`,
-            calculate: (_inputs, _taxData, _filingStatus, context) =>
-                payrollShareForOrdinaryRate(context, bracket.rate),
+            calculate: (_inputs, _taxData, _filingStatus, context) => sharesForOrdinaryRate(context, bracket.rate).payroll,
+        }, {
+            id: `${bracketId}-state`,
+            chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
+            labels: { default: `${rateLabel} % State tax`, compact: `${rateLabel}% State` },
+            description: `State income tax paid out of the ${rateLabel}% bracket's keep`,
+            calculate: (_inputs, _taxData, _filingStatus, context) => sharesForOrdinaryRate(context, bracket.rate).state,
         }, {
             id: `${bracketId}-credits`,
             chartStyle: { fill: "var(--color-chart-credit)", stroke: "var(--color-sankey-link-credits)" },
@@ -165,15 +167,20 @@ export function getBracketItems(taxData: TaxYearConfig, filingStatus: FilingStat
         id: "ltcg-keep-net",
         chartStyle: { fill: "var(--color-sankey-link-keep)", stroke: "var(--color-sankey-link-keep)" },
         labels: { default: "LTCG Keep", compact: "LTCG Keep" },
-        description: "After-tax long-term gains kept, after any payroll this band has to fund",
-        calculate: (_inputs, _taxData, _filingStatus, context) =>
-            Math.max(0, sumTaxBucketsByType(context, "ltcg", (bucket) => bucket.keep) - payrollShareForLtcg(context)),
+        description: "After-tax long-term gains kept, after any payroll and state income tax this band has to fund",
+        calculate: (_inputs, _taxData, _filingStatus, context) => takeHomeAllocation(context).ltcg.net,
     }, {
         id: "ltcg-payroll",
         chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
         labels: { default: "LTCG Payroll", compact: "LTCG Payroll" },
         description: "Payroll tax that did not fit in ordinary brackets, taken from long-term gains you keep",
-        calculate: (_inputs, _taxData, _filingStatus, context) => payrollShareForLtcg(context),
+        calculate: (_inputs, _taxData, _filingStatus, context) => takeHomeAllocation(context).ltcg.payroll,
+    }, {
+        id: "ltcg-state",
+        chartStyle: { fill: "var(--color-chart-tax)", stroke: "var(--color-sankey-link-tax)" },
+        labels: { default: "LTCG State tax", compact: "LTCG State" },
+        description: "State income tax paid out of long-term gains you keep",
+        calculate: (_inputs, _taxData, _filingStatus, context) => takeHomeAllocation(context).ltcg.state,
     });
     return items;
 }

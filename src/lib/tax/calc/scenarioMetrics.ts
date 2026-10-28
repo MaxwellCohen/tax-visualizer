@@ -1,6 +1,7 @@
 import type { TaxCalculationInputs } from "~/lib/tax/config.types";
 import type { FilingStatus } from "~/lib/tax/data/types";
 import type {
+  ResidenceState,
   TaxFormCreditRow,
   TaxFormDeductionRow,
   TaxFormIncomeRow,
@@ -32,6 +33,7 @@ export type ScenarioMetrics = {
   rows: TaxFormRow[];
   taxYear: number;
   filingStatus: FilingStatus;
+  residenceState: ResidenceState;
   useItemizedDeductions: boolean;
   qualifyingChildren: number;
   otherDependents: number;
@@ -103,6 +105,15 @@ export function getFilingStatusFromRows(rows: TaxFormRow[]): FilingStatus {
     }
   }
   return "single";
+}
+
+export function getResidenceStateFromRows(rows: TaxFormRow[]): ResidenceState {
+  for (const row of rows) {
+    if (row.type === "setting" && row.id === "residenceState") {
+      return row.value;
+    }
+  }
+  return "none";
 }
 
 function getUseItemizedFromRows(rows: TaxFormRow[]): boolean {
@@ -223,6 +234,7 @@ export function buildScenarioMetrics(rows: TaxFormRow[]): ScenarioMetrics {
     rows,
     taxYear,
     filingStatus,
+    residenceState: getResidenceStateFromRows(rows),
     useItemizedDeductions: getUseItemizedFromRows(rows),
     qualifyingChildren: getNumericSettingFromRows(rows, "qualifyingChildren"),
     otherDependents: getNumericSettingFromRows(rows, "otherDependents"),

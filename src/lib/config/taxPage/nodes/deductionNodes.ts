@@ -2,6 +2,7 @@
 /** Deduction-related config nodes: 0% tax brackets (standard/itemized), deduction amounts, mekko slices. */
 import type { FilingStatus, TaxYearConfig } from "~/lib/tax/data/types";
 import type { ConfigItem } from "../types";
+import { takeHomeAllocation } from "~/lib/tax/charts/sankeyMoneyFlow";
 
 export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus: FilingStatus): ConfigItem[] {
     return [
@@ -9,27 +10,29 @@ export function make0taxIncomeNodesConfig(_taxData: TaxYearConfig, _filingStatus
             id: "standardDeduction",
             chartStyle: { fill: "var(--color-chart-deduction-node)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: "0% tax", compact: "Standard Ded." },
-            description: "Standard deduction you keep. Payroll taxes are a separate ribbon, so this band is only the dollars that continue to take-home.",
+            description: "Standard deduction you keep. Payroll and state income taxes are separate ribbons, so this band is only the dollars that continue to take-home.",
             sankey: {
                 node: { row: 3, col: 3 },
                 links: [
                     { source: "standardDeduction", target: "takeHomePay", row: 3, col: 3 },
                 ],
             },
-            calculate: (_inputs, _taxData, _filingStatus, context) => context.standardDeductionWithoutPayrollTax,
+            calculate: (_inputs, _taxData, _filingStatus, context) =>
+                context.metrics.useItemizedDeductions ? 0 : takeHomeAllocation(context).deduction.net,
         },
         {
             id: "itemizedDeductions",
             chartStyle: { fill: "var(--color-chart-deduction-node)", stroke: "var(--color-sankey-link-keep)" },
             labels: { default: "Itemized Deductions", compact: "Itemized Ded." },
-            description: "Itemized deductions you keep. Payroll taxes are a separate ribbon, so this band is only the dollars that continue to take-home.",
+            description: "Itemized deductions you keep. Payroll and state income taxes are separate ribbons, so this band is only the dollars that continue to take-home.",
             sankey: {
                 node: { row: 3, col: 3 },
                 links: [
                     { source: "itemizedDeductions", target: "takeHomePay", row: 3, col: 3 },
                 ],
             },
-            calculate: (_inputs, _taxData, _filingStatus, context) => context.itemizedDeductionsWithoutPayrollTax,
+            calculate: (_inputs, _taxData, _filingStatus, context) =>
+                context.metrics.useItemizedDeductions ? takeHomeAllocation(context).deduction.net : 0,
         },
     ];
 }
@@ -76,6 +79,18 @@ export function makeDeductionAmountNodesConfig(_taxData: TaxYearConfig, _filingS
             summary: {
                 displayOrder: 3,
                 format: "currency",
+            },
+        },
+        {
+            id: "stateTaxableIncome",
+            chartRole: "deduction",
+            labels: { default: "State Taxable Income", compact: "State Taxable", summary: "State Taxable Income" },
+            description: "Federal AGI less the state standard deduction, exemptions, and any allowed federal income tax deduction",
+            calculate: (_inputs, _taxData, _filingStatus, context) => context.state.taxableIncome,
+            summary: {
+                displayOrder: 3.5,
+                format: "currency",
+                hideWhenZero: true,
             },
         },
         // {

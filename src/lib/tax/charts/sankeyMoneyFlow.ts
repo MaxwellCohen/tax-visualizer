@@ -12,7 +12,7 @@ export type DeductionPayrollSplit = {
   payrollFromKeep: number;
 };
 
-export function deductionPayrollSplit(args: {
+function deductionPayrollSplit(args: {
   ordinaryIncomeAfterPretax: number;
   longTermCapGains: number;
   selfEmploymentDeduction: number;
@@ -50,26 +50,70 @@ function ordinaryBucketsHighToLow(buckets: TaxBucket[]): TaxBucket[] {
   return buckets.filter((bucket) => bucket.type === "ordinary").reverse();
 }
 
-/** Payroll that has to leave this ordinary bracket's keep so the bracket still adds up. */
-export function payrollShareForOrdinaryRate(context: TaxEvaluationContext, rate: number): number {
-  let left = deductionPayrollSplitFromContext(context).payrollFromKeep;
-  for (const bucket of ordinaryBucketsHighToLow(context.taxBuckets)) {
-    const take = Math.min(left, Math.max(0, bucket.keep));
-    if (bucket.taxBracket?.rate === rate) return take;
-    left -= take;
-  }
-  return 0;
+/** Payroll and state income tax drawn from one kept slice, plus what is left for take-home. */
+export type KeepSliceShares = {
+  payroll: number;
+  state: number;
+  net: number;
+};
+
+export type TakeHomeAllocation = {
+  /** Keyed by ordinary bracket rate. */
+  ordinary: Map<number, KeepSliceShares>;
+  ltcg: KeepSliceShares;
+  /** Standard / itemized deduction left after payroll that came out of it. */
+  deduction: KeepSliceShares;
+  halfSe: KeepSliceShares;
+};
+
+function takeFrom(available: number, left: { amount: number }): number {
+  const take = Math.min(left.amount, Math.max(0, available));
+  left.amount -= take;
+  return take;
 }
 
-/** Payroll left after ordinary brackets, taken from LTCG keep. */
-export function payrollShareForLtcg(context: TaxEvaluationContext): number {
-  let left = deductionPayrollSplitFromContext(context).payrollFromKeep;
+const allocationCache = new WeakMap<TaxEvaluationContext, TakeHomeAllocation>();
+
+/**
+ * Splits kept dollars so every Sankey ribbon partitions the same money. Payroll beyond the
+ * deduction slice comes out of bracket keep (high rate first), then LTCG keep. State income tax
+ * then comes out of what is left: bracket keep, LTCG keep, the kept deduction, and ½ SE.
+ */
+export function takeHomeAllocation(context: TaxEvaluationContext): TakeHomeAllocation {
+  const cached = allocationCache.get(context);
+  if (cached) return cached;
+  const split = deductionPayrollSplitFromContext(context);
+  const payrollLeft = { amount: split.payrollFromKeep };
+  const stateLeft = { amount: Math.max(0, context.stateIncomeTax) };
+  const slice = (keep: number): KeepSliceShares => {
+    const payroll = takeFrom(keep, payrollLeft);
+    const state = takeFrom(keep - payroll, stateLeft);
+    return { payroll, state, net: Math.max(0, keep - payroll - state) };
+  };
+  const ordinary = new Map<number, KeepSliceShares>();
   for (const bucket of ordinaryBucketsHighToLow(context.taxBuckets)) {
-    left -= Math.min(left, Math.max(0, bucket.keep));
+    if (bucket.taxBracket) ordinary.set(bucket.taxBracket.rate, slice(bucket.keep));
   }
   const ltcgKeep = context.taxBuckets.reduce(
     (sum, bucket) => (bucket.type === "ltcg" ? sum + Math.max(0, bucket.keep) : sum),
     0,
   );
-  return Math.min(left, ltcgKeep);
+  const ltcg = slice(ltcgKeep);
+  // Payroll is already settled against the deduction in `split`; only state tax remains.
+  const deductionState = takeFrom(split.deductionToTakeHome, stateLeft);
+  const halfSeState = takeFrom(split.halfSe, stateLeft);
+  const allocation: TakeHomeAllocation = {
+    ordinary,
+    ltcg,
+    deduction: { payroll: 0, state: deductionState, net: split.deductionToTakeHome - deductionState },
+    halfSe: { payroll: 0, state: halfSeState, net: split.halfSe - halfSeState },
+  };
+  allocationCache.set(context, allocation);
+  return allocation;
+}
+
+const EMPTY_SHARES: KeepSliceShares = { payroll: 0, state: 0, net: 0 };
+
+export function sharesForOrdinaryRate(context: TaxEvaluationContext, rate: number): KeepSliceShares {
+  return takeHomeAllocation(context).ordinary.get(rate) ?? EMPTY_SHARES;
 }

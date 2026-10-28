@@ -27,9 +27,11 @@ export function totalModeledTaxes(
 ): number {
   if (!calculatedConfig?.length) return 0;
   const federalIncomeTax = configAmount(calculatedConfig, "federalIncomeTax");
+  // Withholding headlines compare against federal W-4 withholding, so state tax stays out.
   if (scope === "incomeOnly") return federalIncomeTax;
   return (
     federalIncomeTax +
+    configAmount(calculatedConfig, "stateIncomeTax") +
     configAmount(calculatedConfig, "payrollTax") +
     configAmount(calculatedConfig, "selfEmploymentTax")
   );
@@ -46,9 +48,13 @@ export function headlineMetricsFromCalculatedConfig(
   const metrics: HeadlineMetric[] = [];
   const taxTotal = totalModeledTaxes(calculatedConfig, taxScope);
   if (taxTotal > 0) {
+    const allTaxesLabel =
+      configAmount(calculatedConfig, "stateIncomeTax") > 0
+        ? "Federal, state & payroll taxes"
+        : "Federal income & payroll taxes";
     const label =
       taxScope === "allTaxes"
-        ? "Federal income & payroll taxes"
+        ? allTaxesLabel
         : (federalTax?.labels.summary ?? federalTax?.labels.default ?? "Federal income tax");
     metrics.push({
       label,
