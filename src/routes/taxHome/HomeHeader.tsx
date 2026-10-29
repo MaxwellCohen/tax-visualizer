@@ -5,10 +5,10 @@ export function HomeHeader() {
         US Tax Income Visualizer
       </h1>
       <p class="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-        Enter income and filing details to see how federal tax and payroll tax split take-home pay.
+        Enter income and filing details to see how federal, state, and payroll taxes split take-home pay.
       </p>
       <p class="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-        Federal only — no state tax and no credit phaseouts.{" "}
+        Federal and state income tax, without credit phaseouts or local taxes.{" "}
         <a href="/about" class="text-accent underline underline-offset-2">See what we model</a>.
       </p>
     </header>

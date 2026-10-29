@@ -12,7 +12,7 @@ export default function About() {
           About &amp; methodology
         </h1>
         <p class="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-          Tax Visualizer is an educational US federal tax explainer built with{" "}
+          Tax Visualizer is an educational US federal and state tax explainer built with{" "}
           <a
             href="https://solidjs.com"
             target="_blank"
