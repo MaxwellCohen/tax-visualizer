@@ -41,6 +41,8 @@ Examples:
 
 ## API
 
+The API is open and unauthenticated, with CORS enabled (`Access-Control-Allow-Origin: *`; GET, POST, OPTIONS), so it can be called directly from browsers and agents.
+
 - [OpenAPI 3.1 spec](/openapi.json): machine-readable description of all endpoints
 - [POST /api/calculate](/openapi.json): JSON body `{"year":2026,"filingStatus":"single","state":"CA","lineItems":{"wages":90000}}` returns gross income, AGI, taxable income, federal and state income tax, payroll taxes, total tax, take-home pay, effective and marginal rates, and a `shareUrl`
 - [GET /api/years](/api/years): supported years, filing statuses, states, and accepted line-item ids with labels

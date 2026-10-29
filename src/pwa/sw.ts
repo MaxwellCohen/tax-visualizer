@@ -5,6 +5,7 @@ import { NavigationRoute, registerRoute } from "workbox-routing";
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from "workbox-strategies";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 import { ExpirationPlugin } from "workbox-expiration";
+import { BYPASS_PATTERNS } from "./bypass";
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -53,7 +54,7 @@ registerRoute(
       networkTimeoutSeconds: 3,
       plugins: [new CacheableResponsePlugin({ statuses: [200] }), pathnameCacheKey],
     }),
-    { denylist: [/^\/api\//, /^\/llms(-full)?\.txt$/, /^\/openapi\.json$/, /^\/robots\.txt$/] },
+    { denylist: BYPASS_PATTERNS },
   ),
 );
 
