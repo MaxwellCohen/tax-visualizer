@@ -4,7 +4,8 @@
     "src/app.tsx",
     "src/Document.tsx",
     "src/router.ts",
-    "src/routes/**/*.{ts,tsx}"
+    "src/routes/**/*.{ts,tsx}",
+    "server/routes/**/*.ts"
   ],
   "ignore": [
     ".nitro/**"

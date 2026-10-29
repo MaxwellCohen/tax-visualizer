@@ -37,6 +37,7 @@ import {
 import type { WithholdingInputs } from "~/lib/tax/withholding/types";
 import { deriveWageJobsFromTaxInput } from "~/lib/tax/withholding/wageJobs";
 import { getFederalIncomeTaxLiability } from "~/lib/tax/withholding/getFederalIncomeTaxLiability";
+import { clearedReadableScenarioParams } from "~/lib/tax/scenario/readableParams";
 
 export default function WithholdingPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -81,6 +82,7 @@ export default function WithholdingPage() {
     const href = typeof window === "undefined" ? "https://localhost/" : window.location.href;
     setSearchParams({
       ...searchParams,
+      ...clearedReadableScenarioParams(searchParams),
       [SCENARIO_QUERY_PARAM]: encodedScenarioIfFitsUrl(href, current),
     });
   };

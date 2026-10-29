@@ -17,6 +17,7 @@ import { useCalculatedTaxConfig } from "~/lib/tax/calc/useCalculatedTaxConfig";
 import { headlineMetricsFromCalculatedConfig } from "~/lib/tax/charts/headlineMetrics";
 import { createNormalizedTaxInput } from "~/components/tax/inputForm/hooks/taxYearLimitsEffect";
 import { encodedScenarioIfFitsUrl } from "~/routes/taxHome/taxHomePersistence";
+import { clearedReadableScenarioParams } from "~/lib/tax/scenario/readableParams";
 
 export default function HomeContent() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,6 +39,7 @@ export default function HomeContent() {
     persistScenarioLocally(current);
     const href = typeof window === "undefined" ? "https://localhost/" : window.location.href;
     setSearchParams({
+      ...clearedReadableScenarioParams(searchParams),
       [SCENARIO_QUERY_PARAM]: encodedScenarioIfFitsUrl(href, current),
     });
   };

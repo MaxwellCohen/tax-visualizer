@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Machine-readable summary for LLMs and agents: /llms.txt (full: /llms-full.txt)
+# API description: /openapi.json

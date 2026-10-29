@@ -25,7 +25,7 @@ function pick(pair: StateAmountPair | undefined, filingStatus: FilingStatus): nu
   return filingStatus === "marriedJoint" ? pair[1] : pair[0];
 }
 
-function scheduleFor(entry: StateYearEntry, filingStatus: FilingStatus): readonly StateBracketRow[] {
+export function scheduleFor(entry: StateYearEntry, filingStatus: FilingStatus): readonly StateBracketRow[] {
   if (!("single" in entry.brackets)) return entry.brackets;
   return filingStatus === "marriedJoint" ? entry.brackets.joint : entry.brackets.single;
 }

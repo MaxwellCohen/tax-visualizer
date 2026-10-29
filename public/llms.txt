@@ -1,0 +1,54 @@
+# US Tax Visualizer
+
+> Interactive, educational US tax explorer: federal income tax brackets, long-term capital gains, payroll taxes (Social Security, Medicare, self-employment), deductions, state income tax for all 50 states + DC, and take-home pay, visualized as Sankey and Mekko charts. Not tax advice.
+
+Supported tax years: 2023, 2024, 2025, 2026. Filing statuses: `single`, `marriedJoint`, `marriedSeparate`, `headOfHousehold`. All amounts are annual USD.
+
+## What is modeled
+
+- Federal ordinary income tax brackets and the standard deduction for each filing status and year.
+- Long-term capital gains at 0% / 15% / 20% stacked on ordinary taxable income.
+- Employee payroll taxes on W-2 wages: Social Security (with the wage base) and Medicare (with Additional Medicare).
+- Self-employment tax on 1099 income, with the deductible half of SE tax.
+- Pre-tax payroll benefits (401(k)/403(b)/457(b), catch-up, HSA, FSA, commuter), deductible traditional IRA, and itemized deductions (SALT with cap, medical, mortgage interest, charity).
+- Nonrefundable federal credits (child / other-dependent defaults plus user-entered credits), capped against income tax, no phaseouts.
+- State income tax for all 50 states + DC: state brackets on federal AGI after the state standard deduction and flat personal / dependent exemptions (or exemption credits), plus capped federal-tax deductions where allowed. Source: Tax Foundation January 1 tables plus known retroactive changes.
+- A paycheck withholding page (`/withholding`) estimating federal withholding per paycheck and the year-end refund or balance due.
+
+## Out of scope
+
+- State phaseouts, other state credits, state-specific income adjustments and itemized deductions, and special regimes (e.g. Washington's capital gains tax).
+- Local and city income taxes.
+- Federal credit phaseouts, refundable credit excess, AMT, NIIT (Form 8960), QBI (section 199A), qualified-dividend and collectibles edge cases.
+- Employer-side payroll taxes and full W-4 / state withholding worksheets.
+
+## Shareable scenario URLs
+
+Open `/` (or `/withholding`) with readable query params to load a scenario:
+
+- `year` — tax year (default: latest supported)
+- `filingStatus` — `single` | `marriedJoint` | `marriedSeparate` | `headOfHousehold` (default `single`)
+- `state` — two-letter residence state such as `CA`, or omit for no state tax
+- `children` — qualifying children for the child tax credit; `otherDependents` — other dependents
+- `itemize` — `1` to use itemized deductions instead of the standard deduction
+- Line items (annual USD), by alias or full registry id: `wages`, `wages2` (second job / spouse 2), `se` (1099), `stcg`, `ltcg`, `otherIncome`, `401k`, `403b`, `457b`, `catchUp`, `hsa`, `ira`, `otherPretax`, `healthFsa`, `dependentCareFsa`, `commuter`, `salt`, `medical`, `mortgage`, `charity`, `educationCredit`, `saversCredit`, `childCareCredit`, `otherCredit`. Most income and pretax aliases take a `2` suffix for spouse 2. The full list with labels is at `/api/years`.
+
+Examples:
+
+- Single W-2 earner in California: `/?year=2026&filingStatus=single&state=CA&wages=90000`
+- Married couple with 401(k)s and two kids in New York: `/?year=2026&filingStatus=marriedJoint&state=NY&children=2&wages=120000&wages2=80000&401k=10000&401k2=10000`
+- Freelancer with capital gains, itemizing: `/?year=2025&se=75000&ltcg=20000&itemize=1&mortgage=18000&salt=9000&charity=3000`
+
+## API
+
+- [OpenAPI 3.1 spec](/openapi.json): machine-readable description of all endpoints
+- [POST /api/calculate](/openapi.json): JSON body `{"year":2026,"filingStatus":"single","state":"CA","lineItems":{"wages":90000}}` returns gross income, AGI, taxable income, federal and state income tax, payroll taxes, total tax, take-home pay, effective and marginal rates, and a `shareUrl`
+- [GET /api/years](/api/years): supported years, filing statuses, states, and accepted line-item ids with labels
+- [GET /api/config/{year}](/api/config/2026): federal year values (brackets, standard deduction, payroll rules, limits)
+- [GET /api/states/{year}](/api/states/2026): state income tax rules for all 50 states + DC
+
+## Optional
+
+- [llms-full.txt](/llms-full.txt): this file plus methodology, federal brackets and standard deductions per year, and per-state bracket summaries
+- [About & methodology](/about)
+- [Source code](https://github.com/MaxwellCohen/tax-visualizer)

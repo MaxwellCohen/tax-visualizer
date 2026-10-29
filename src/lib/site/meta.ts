@@ -34,3 +34,17 @@ export const PAGE_META = {
     description: "This URL does not match a page on US Tax Visualizer.",
   },
 } as const;
+
+/** schema.org `WebApplication` JSON-LD for the document head. */
+export const WEB_APPLICATION_JSON_LD = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: SITE_NAME,
+  ...(canonicalUrl("/") ? { url: canonicalUrl("/") } : {}),
+  description:
+    "Interactive US federal and state tax explorer: brackets, payroll taxes, deductions, and take-home pay. Educational—not tax advice.",
+  applicationCategory: "FinanceApplication",
+  operatingSystem: "Any",
+  isAccessibleForFree: true,
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+});

@@ -69,6 +69,8 @@ export default defineConfig({
     }),
   ],
   nitro: {
+    // API routes, /openapi.json, /llms-full.txt (`src/routes` is the Solid app router).
+    serverDir: "./server",
     preset: "vercel",
     vercel: {
       functions: { runtime: "nodejs24.x" },

@@ -45,6 +45,7 @@ self.addEventListener("install", (event) => {
 });
 
 // Network first so online users get fresh SSR; fall back to the cached shell offline.
+// Machine-readable endpoints are never served from the pages cache.
 registerRoute(
   new NavigationRoute(
     new NetworkFirst({
@@ -52,6 +53,7 @@ registerRoute(
       networkTimeoutSeconds: 3,
       plugins: [new CacheableResponsePlugin({ statuses: [200] }), pathnameCacheKey],
     }),
+    { denylist: [/^\/api\//, /^\/llms(-full)?\.txt$/, /^\/openapi\.json$/, /^\/robots\.txt$/] },
   ),
 );
 

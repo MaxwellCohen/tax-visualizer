@@ -1,5 +1,6 @@
 import type { ParentProps } from "solid-js";
 import { HydrationScript } from "@solidjs/web";
+import { WEB_APPLICATION_JSON_LD } from "~/lib/site/meta";
 
 const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light"){document.documentElement.dataset.theme=t}else if(window.matchMedia("(prefers-color-scheme:dark)").matches){document.documentElement.dataset.theme="dark"}}catch(e){}})()`;
 
@@ -24,6 +25,7 @@ export default function Document(props: ParentProps) {
           rel="stylesheet"
         />
         <script textContent={themeInitScript} />
+        <script type="application/ld+json" textContent={WEB_APPLICATION_JSON_LD} />
         <HydrationScript />
       </head>
       <body>{props.children}</body>
