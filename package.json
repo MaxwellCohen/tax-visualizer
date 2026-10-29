@@ -12,13 +12,15 @@
     "lint:fix": "oxlint --fix"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@solidjs/meta": "^1.0.0-next.2",
     "@solidjs/router": "2.0.0-next.42",
     "@solidjs/web": "2.0.0-rc.19",
     "d3-sankey": "^0.12.3",
     "filesystem-routing": "0.4.2",
     "nitro": "3.0.260903-beta",
-    "solid-js": "2.0.0-rc.19"
+    "solid-js": "2.0.0-rc.19",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@solidjs/diagnostics": "2.0.0-rc.19",

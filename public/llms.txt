@@ -49,6 +49,13 @@ The API is open and unauthenticated, with CORS enabled (`Access-Control-Allow-Or
 - [GET /api/config/{year}](/api/config/2026): federal year values (brackets, standard deduction, payroll rules, limits)
 - [GET /api/states/{year}](/api/states/2026): state income tax rules for all 50 states + DC
 
+## MCP server
+
+A remote, stateless, unauthenticated [Model Context Protocol](https://modelcontextprotocol.io) server (Streamable HTTP, JSON responses) is served at `POST /mcp`. Tools: `calculate_taxes`, `compare_scenarios`, `get_tax_brackets`, `list_supported_options`, `estimate_withholding`. Resources: `taxviz://llms-full`, `taxviz://glossary`. Server card: [/.well-known/mcp.json](/.well-known/mcp.json).
+
+- Claude Code: `claude mcp add --transport http taxviz https://<this-host>/mcp`
+- Generic client config: `{"mcpServers":{"taxviz":{"type":"http","url":"https://<this-host>/mcp"}}}`
+
 ## Optional
 
 - [llms-full.txt](/llms-full.txt): this file plus methodology, federal brackets and standard deductions per year, and per-state bracket summaries

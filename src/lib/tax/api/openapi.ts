@@ -26,7 +26,7 @@ export function getOpenApiDocument() {
       version: "1.0.0",
       description:
         "Educational US federal + state income tax and payroll tax estimates. Not tax advice. " +
-        "All amounts are annual USD. See /llms.txt for modeling scope.",
+        "All amounts are annual USD. See /llms.txt for modeling scope. An MCP server (Streamable HTTP) wrapping this API is at POST /mcp.",
     },
     servers: [{ url: "/" }],
     paths: {
