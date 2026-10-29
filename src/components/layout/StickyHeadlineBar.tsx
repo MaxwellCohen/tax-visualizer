@@ -34,10 +34,10 @@ export function StickyHeadlineBar(props: StickyHeadlineBarProps) {
           role="region"
           aria-label="Key results"
         >
-          <div class="mx-auto flex max-w-6xl flex-wrap gap-2">
+          <div class="mx-auto grid max-w-6xl grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
             <For each={props.metrics()} keyed={(metric) => metric.label}>
               {(metric) => (
-                <div class="min-w-[8.5rem] flex-1">
+                <div class="min-w-0 sm:min-w-[8.5rem] sm:flex-1">
                   <TaxSummaryMetric
                     label={metric().label}
                     value={metric().value}

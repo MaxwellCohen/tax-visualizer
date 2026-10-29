@@ -35,9 +35,10 @@ export function SankeyChartSvg(props: Props) {
 
   return (
     <div>
+      <div class="-mx-1 overflow-x-auto px-1 pb-1">
       <svg
         viewBox={`0 0 ${SANKEY_WIDTH} ${SANKEY_HEIGHT}`}
-        class="w-full rounded-lg border border-border-subtle bg-surface-alt"
+        class="w-full min-w-[640px] rounded-lg border border-border-subtle bg-surface-alt"
         overflow="visible"
         onMouseLeave={() => setHoveredId(null)}
       >
@@ -50,6 +51,7 @@ export function SankeyChartSvg(props: Props) {
           onNodeLeave={() => setHoveredId(null)}
         />
       </svg>
+      </div>
       <Show when={selectedNode()}>
         {(node) => (
           <p class="mt-3 rounded-lg border border-border bg-surface-alt px-3 py-2 text-xs leading-relaxed text-muted-foreground" role="status" aria-live="polite">

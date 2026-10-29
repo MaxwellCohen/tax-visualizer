@@ -13,7 +13,7 @@ export default function Nav() {
       >
         Skip to content
       </a>
-      <div class="mx-auto flex max-w-6xl items-center px-4 py-3">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
         <a
           href="/"
           class="text-xs font-semibold tracking-[0.2em] uppercase text-foreground font-heading"
@@ -21,10 +21,10 @@ export default function Nav() {
           Tax Visualizer
         </a>
 
-        <div class="ml-auto flex flex-wrap items-center justify-end gap-x-6 gap-y-2">
+        <div class="flex items-center gap-x-4 max-sm:order-last max-sm:w-full sm:ml-auto sm:gap-x-6">
           <a
             href="/"
-            class={`text-sm border-b pb-0.5 transition-colors duration-150 ${
+            class={`text-sm border-b py-1.5 transition-colors duration-150 ${
               isActive("/") ? "border-accent text-accent" : "border-transparent text-muted-foreground"
             }`}
           >
@@ -32,7 +32,7 @@ export default function Nav() {
           </a>
           <a
             href="/withholding"
-            class={`text-sm border-b pb-0.5 transition-colors duration-150 ${
+            class={`text-sm border-b py-1.5 transition-colors duration-150 ${
               isActive("/withholding") ? "border-accent text-accent" : "border-transparent text-muted-foreground"
             }`}
           >
@@ -40,13 +40,13 @@ export default function Nav() {
           </a>
           <a
             href="/about"
-            class={`text-sm border-b pb-0.5 transition-colors duration-150 ${
+            class={`text-sm border-b py-1.5 transition-colors duration-150 ${
               isActive("/about") ? "border-accent text-accent" : "border-transparent text-muted-foreground"
             }`}
           >
             Methodology
           </a>
-          <div class="ml-2 border-l border-border pl-4">
+          <div class="ml-auto border-l border-border pl-4 sm:ml-2">
             <ThemeToggle />
           </div>
         </div>

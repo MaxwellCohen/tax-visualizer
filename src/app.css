@@ -168,3 +168,12 @@ button {
   background: var(--color-accent);
   color: #fff;
 }
+
+/* Prevent iOS Safari from zooming the page when a small-text field is focused. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
