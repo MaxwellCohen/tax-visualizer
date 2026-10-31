@@ -1,15 +1,16 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import { nitro } from "nitro/vite";
 import solid from "@solidjs/vite-plugin";
 import { fileRoutes } from "filesystem-routing/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: {
     host: true,
   },
@@ -65,6 +66,8 @@ export default defineConfig({
       },
       injectManifest: {
         globPatterns: ["**/*.{js,css,svg,png,ico,woff2}"],
+        // Fontsource ships every script subset; precache latin only (others load on demand via unicode-range).
+        globIgnores: ["**/*-{latin-ext,cyrillic,cyrillic-ext,vietnamese,greek,greek-ext}-*.woff2"],
       },
     }),
   ],
@@ -72,8 +75,46 @@ export default defineConfig({
     // API routes, /openapi.json, /llms-full.txt (`src/routes` is the Solid app router).
     serverDir: "./server",
     preset: "vercel",
+    // Pages and origin-independent endpoints are built once and served from the CDN.
+    // /.well-known/mcp.json derives its URL from the request origin, so it stays dynamic.
+    prerender: {
+      routes: ["/", "/about", "/withholding", "/api/years", "/openapi.json", "/llms-full.txt"],
+      crawlLinks: true,
+      failOnError: true,
+    },
+    // Static per deploy: let the CDN cache and revalidate in the background.
+    // Prerendered files are served by the CDN and skip server/middleware/cors.ts, so set CORS here too.
+    routeRules: Object.fromEntries(
+      ["/api/years", "/api/config/**", "/api/states/**", "/openapi.json", "/llms-full.txt"].map((path) => [
+        path,
+        {
+          headers: {
+            "cache-control": "public, max-age=300, s-maxage=86400, stale-while-revalidate=604800",
+            "access-control-allow-origin": "*",
+          },
+        },
+      ]),
+    ),
+    // The prerender bundle has no `import.meta.env`; inline the one variable the server code reads.
+    replace: {
+      "import.meta.env.VITE_SITE_ORIGIN": JSON.stringify(
+        loadEnv(mode, rootDir, "VITE_").VITE_SITE_ORIGIN ?? "",
+      ),
+    },
+    // The prerender bundle is built outside Vite, so `?raw` imports need their own loader.
+    rollupConfig: {
+      plugins: [
+        {
+          name: "raw-import",
+          load(id: string) {
+            if (!id.endsWith("?raw")) return null;
+            return `export default ${JSON.stringify(readFileSync(id.slice(0, -4), "utf8"))};`;
+          },
+        },
+      ],
+    },
     vercel: {
       functions: { runtime: "nodejs24.x" },
     },
   },
-});
+}));

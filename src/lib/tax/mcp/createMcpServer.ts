@@ -61,6 +61,12 @@ const diff = (a: number, b: number, round = round2) => ({ a, b, delta: round(b -
 const payFrequency = z.enum(["weekly", "biweekly", "semi-monthly", "monthly"]);
 
 /** Fresh stateless MCP server wrapping the public API logic; create one per request. */
+let llmsFullCache: { source: string; text: string } | undefined;
+const getLlmsFull = (llmsTxt: string) => {
+  if (llmsFullCache?.source !== llmsTxt) llmsFullCache = { source: llmsTxt, text: buildLlmsFullTxt(llmsTxt) };
+  return llmsFullCache.text;
+};
+
 export function createMcpServer({ llmsTxt, origin }: McpServerOptions): McpServer {
   const server = new McpServer({ name: SITE_NAME, version: "1.0.0" });
 
@@ -197,7 +203,7 @@ export function createMcpServer({ llmsTxt, origin }: McpServerOptions): McpServe
       description: "Scope, methodology, and federal/state tax tables (markdown).",
       mimeType: "text/markdown",
     },
-    (uri) => ({ contents: [{ uri: uri.href, mimeType: "text/markdown", text: buildLlmsFullTxt(llmsTxt) }] }),
+    (uri) => ({ contents: [{ uri: uri.href, mimeType: "text/markdown", text: getLlmsFull(llmsTxt) }] }),
   );
 
   server.registerResource(
