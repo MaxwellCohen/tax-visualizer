@@ -49,7 +49,7 @@ function MekkoSummary(props: { data: MekkoChartData }) {
         <div class="w-32 shrink-0" aria-hidden="true" />
         <div class="flex h-5 min-w-0 flex-1 overflow-hidden rounded-sm">
           <div
-            class="flex items-center justify-center bg-sankey-link-keep text-[10px] text-mekko-segment-label"
+            class="flex items-center justify-center bg-sankey-link-keep text-[10px] text-mekko-keep-label"
             style={{ width: `${summary.takeHomeShare * 100}%` }}
             title={`Take-home pay ${money.format(d.takeHomePay)} (${pct.format(summary.takeHomeShare)})`}
           >
@@ -63,7 +63,7 @@ function MekkoSummary(props: { data: MekkoChartData }) {
             {summary.pretaxShare ? pct.format(summary.pretaxShare) : ""}
           </div>
           <div
-            class="flex items-center justify-center bg-chart-tax text-[10px]"
+            class="flex items-center justify-center bg-chart-tax text-[10px] text-mekko-segment-label"
             style={{ width: `${summary.taxShare * 100}%` }}
             title={`Taxes ${money.format(summary.taxTotal)} (${pct.format(summary.taxShare)})`}
           >
@@ -98,7 +98,7 @@ function MekkoRows(props: { data: MekkoChartData }) {
               </div>
               <div class="flex min-w-0 flex-1">
                 <div
-                  class="flex items-center justify-center text-[10px] text-mekko-segment-label"
+                  class={`flex items-center justify-center text-[10px] ${row.fill === row.taxFill ? "text-mekko-segment-label" : "text-mekko-keep-label"}`}
                   style={{
                     width: `${keepShare * 100}%`,
                     background: row.fill,
