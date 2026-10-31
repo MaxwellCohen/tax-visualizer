@@ -1,11 +1,12 @@
 import type { Accessor } from "solid-js";
-import { Show } from "solid-js";
-import TaxMekko from "~/components/tax/TaxMekko";
-import TaxSankey from "~/components/tax/TaxSankey";
+import { Show, lazy } from "solid-js";
 import TaxSummary from "~/components/tax/TaxSummary";
 import type { CalculatedConfigItem } from "~/lib/tax/calc/calculateTaxes";
 import type { TaxFormData } from "~/lib/tax/form/types";
 import { TaxYearInvalid } from "./TaxYearInvalid";
+
+const TaxMekko = lazy(() => import("~/components/tax/TaxMekko"));
+const TaxSankey = lazy(() => import("~/components/tax/TaxSankey"));
 
 type HomeTaxResultsProps = {
   taxInput: Accessor<TaxFormData>;

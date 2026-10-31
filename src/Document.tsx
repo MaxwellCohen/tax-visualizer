@@ -1,5 +1,7 @@
 import type { ParentProps } from "solid-js";
 import { HydrationScript } from "@solidjs/web";
+import outfitLatin from "@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2?url";
+import sourceSansLatin from "@fontsource-variable/source-sans-3/files/source-sans-3-latin-wght-normal.woff2?url";
 import { WEB_APPLICATION_JSON_LD } from "~/lib/site/meta";
 
 const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light"){document.documentElement.dataset.theme=t}else if(window.matchMedia("(prefers-color-scheme:dark)").matches){document.documentElement.dataset.theme="dark"}}catch(e){}})()`;
@@ -18,12 +20,8 @@ export default function Document(props: ParentProps) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Tax Visualizer" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap"
-          rel="stylesheet"
-        />
+        <link rel="preload" href={outfitLatin} as="font" type="font/woff2" crossorigin="anonymous" />
+        <link rel="preload" href={sourceSansLatin} as="font" type="font/woff2" crossorigin="anonymous" />
         <script textContent={themeInitScript} />
         <script type="application/ld+json" textContent={WEB_APPLICATION_JSON_LD} />
         <HydrationScript />

@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "@fontsource-variable/outfit/wght.css";
+@import "@fontsource-variable/source-sans-3/wght.css";
 
 /* Bridge design tokens to Tailwind utilities; values come from :root / [data-theme] below. */
 @theme inline {
@@ -98,8 +100,8 @@ html[data-theme="light"] {
 
   --color-mekko-segment-label: rgba(255, 255, 255, 0.95);
 
-  --font-heading: "Outfit", sans-serif;
-  --font-body: "Source Sans 3", sans-serif;
+  --font-heading: "Outfit Variable", sans-serif;
+  --font-body: "Source Sans 3 Variable", sans-serif;
 }
 
 html[data-theme="dark"] {
