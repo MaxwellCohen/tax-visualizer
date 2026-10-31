@@ -112,7 +112,7 @@ html[data-theme="dark"] {
   --color-surface-alt: #252524;
   --color-foreground: #e8e6e3;
   --color-muted-foreground: #a8a29e;
-  --color-faint-foreground: #78716c;
+  --color-faint-foreground: #96908b;
   --color-border: #2e2e2c;
   --color-border-subtle: #232322;
   --color-input: #252524;
@@ -143,7 +143,7 @@ html[data-theme="dark"] {
   --color-sankey-link: rgba(45, 212, 191, 0.28);
   --color-sankey-link-tax: rgba(159, 74, 69, 0.5);
   --color-sankey-link-credits: rgba(234, 179, 8, 0.55);
-  --color-sankey-link-keep: rgba(74, 222, 128, 0.5);
+  --color-sankey-link-keep: rgba(74, 222, 128, 0.42);
   --color-sankey-link-deferred: rgba(34, 211, 238, 0.5);
   --color-sankey-link-label: #c8c8c0;
   --color-sankey-label: #e8e6e3;

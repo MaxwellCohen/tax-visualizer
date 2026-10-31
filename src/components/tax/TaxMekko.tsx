@@ -49,7 +49,7 @@ function MekkoSummary(props: { data: MekkoChartData }) {
         <div class="w-32 shrink-0" aria-hidden="true" />
         <div class="flex h-5 min-w-0 flex-1 overflow-hidden rounded-sm">
           <div
-            class="flex items-center justify-center bg-sankey-link-keep text-[10px]"
+            class="flex items-center justify-center bg-sankey-link-keep text-[10px] text-mekko-segment-label"
             style={{ width: `${summary.takeHomeShare * 100}%` }}
             title={`Take-home pay ${money.format(d.takeHomePay)} (${pct.format(summary.takeHomeShare)})`}
           >
