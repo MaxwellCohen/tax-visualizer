@@ -42,7 +42,7 @@ describe("calculateScenario", () => {
     });
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.errors.join("\n")).toMatch(/year must be one of 2026, 2025, 2024, 2023/);
+    expect(result.errors.join("\n")).toMatch(/year must be one of 2027, 2026, 2025, 2024, 2023/);
     expect(result.errors.join("\n")).toMatch(/filingStatus must be one of single, marriedJoint/);
     expect(result.errors.join("\n")).toMatch(/state must be "none" or a two-letter code/);
   });

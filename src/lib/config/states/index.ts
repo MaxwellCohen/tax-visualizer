@@ -2,6 +2,7 @@ import { STATE_VALUES_2023 } from "./STATE_VALUES_2023";
 import { STATE_VALUES_2024 } from "./STATE_VALUES_2024";
 import { STATE_VALUES_2025 } from "./STATE_VALUES_2025";
 import { STATE_VALUES_2026 } from "./STATE_VALUES_2026";
+import { STATE_VALUES_2027 } from "./STATE_VALUES_2027";
 import { STATE_CODES, type StateCode, type StateYearValues } from "./types";
 
 const STATE_VALUES_BY_YEAR: Record<number, StateYearValues> = {
@@ -9,6 +10,7 @@ const STATE_VALUES_BY_YEAR: Record<number, StateYearValues> = {
   2024: STATE_VALUES_2024,
   2025: STATE_VALUES_2025,
   2026: STATE_VALUES_2026,
+  2027: STATE_VALUES_2027,
 };
 
 export function getStateYearValues(year: number): StateYearValues | undefined {
