@@ -2,7 +2,7 @@
 
 > Interactive, educational US tax explorer: federal income tax brackets, long-term capital gains, payroll taxes (Social Security, Medicare, self-employment), deductions, state income tax for all 50 states + DC, and take-home pay, visualized as Sankey and Mekko charts. Not tax advice.
 
-Supported tax years: 2023, 2024, 2025, 2026. Filing statuses: `single`, `marriedJoint`, `marriedSeparate`, `headOfHousehold`. All amounts are annual USD.
+Supported tax years: 2023, 2024, 2025, 2026, 2027. Filing statuses: `single`, `marriedJoint`, `marriedSeparate`, `headOfHousehold`. All amounts are annual USD.
 
 ## What is modeled
 
